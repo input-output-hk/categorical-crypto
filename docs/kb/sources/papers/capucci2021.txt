@@ -1,0 +1,987 @@
+Towards Foundations of Categorical Cybernetics
+Matteo Capucci, Bruno Gavranović,
+Jules Hedges, Eigil Fjeldgren Rischel
+MSP Group, University of Strathclyde, Écosse Libre
+
+We propose a categorical framework for processes which interact bidirectionally with both an environment and a ‘controller’. Examples include open learners, in which the controller is an optimiser
+such as gradient descent, and an approach to compositional game theory closely related to open
+games, in which the controller is a composite of game-theoretic agents. We believe that ‘cybernetic’
+is an appropriate name for the processes that can be described in this framework.
+
+1
+
+Introduction
+
+In this paper we propose a categorical framework for processes which interact bidirectionally with both
+an environment and a ‘controller’. Examples include open learners [9, 6], in which the controller is an
+optimiser such as gradient descent, and an approach to compositional game theory closely related to open
+games [12] in which the controller is a composite of game-theoretic agents. We believe that ‘cybernetic’
+is an appropriate name for the processes that can be described in this framework.
+A common theme of this paper is that the same categorical ingredients appear repeatedly at multiple
+‘levels’ in the construction of cybernetic systems. The most important of these is the para construction, which yields a category Para(C ) of parametrised morphisms given a category C acted upon by a
+monoidal category of parameters M . We combine this with the optics construction [5], which is known
+to model bidirectional information flow in dynamical systems [21] and compositional game theory [3].
+We argue that we can think of optics as being built of coupled parametrised and ‘coparametrised’ morphisms. This suggests that Para(−) and Optic(−) are related. Putting them together, we obtain the
+category of parametrised optics, which is the central construction of this paper.
+A parametrised optic describes open systems that have bidirectional information flow, with a control
+on the forward direction and an objective on the backwards direction. This pattern is ubiquitous in cybernetics: whenever an instance of the optic pattern appears, we generally find that they form a parametrised
+family with an objective function, where the goal of the system is to find a parameter that optimises the
+objective, all while interacting with its environment bidirectionally. The most straightforward example is
+a component (for example a layer) of a neural network, which interacts with its neighbours via forwards
+and backwards passes, depending on its current parameters (weights and biases), and produces a ‘local’
+loss against which the parameters are optimised.
+The final part of the construction of a class of cybernetic systems is to describe how the parameters/controls and objectives interact. For many classes of systems, they are coupled to a dynamical
+system that updates the parameters using an algorithm such as gradient descent. In the case of game
+theory the situation is more complicated, since game-theoretic agents perform counterfactual reasoning
+and are classically assumed to be perfect optimisers rather than using some effective approximation of
+the optimum. This situation can be described using selection functions [16]. We find that there is a deep
+and previously unknown relationship between selection functions and optics; in particular we can build
+a category whose objects are selection functions and morphisms are optics, with a monoidal product
+describing Nash equilibria.
+K. Kishida (Ed.): Fourth International Conference
+on Applied Category Theory (ACT 2021).
+EPTCS 372, 2022, pp. 235–248, doi:10.4204/EPTCS.372.17
+
+Towards Foundations of Categorical Cybernetics
+
+236
+
+By combining parametrised optics and selection functions, we obtain a compositional formulation of
+game theory. This turns out to be more specific than open games: a pair of a parametrised optic and a
+selection function determines an open game functorially, but not vice versa. However each part of our
+construction carries a clear game-theoretic meaning, and we also fix a particular technical problem with
+open games involving games where one agent makes several different decisions. Overall, we claim that
+this variant of open games is an improvement on the usual one.
+For reasons of space we only present two classes of examples: neural networks which can be presented entirely using the structure of parametrised optics, and open games which have selection functions
+as an additional ingredient. However, abstractly the same construction works if selection functions are
+replaced with any suitable lax monoidal pseudofunctor on a category of optics. Further applications of
+this framework are given in a companion paper [4].
+
+2
+
+Para
+
+Throughout this section, let (M , J, ⊙) be a strict monoidal category and let C be a category.
+Definition 1. An M -actegory is a category C together with a functor • : M × C → C , and natural
+transformations ε : J • X ∼
+= X and δ : (M ⊙ N) • X = M • (N • X ) satisfying certain coherence laws [26,
+Definition 2.2].
+Actegories (note the intentional spelling change) are a vertical categorification of monoid actions.
+For the purposes of this paper, M is to be thought of as a category of parameters and − • − as a
+parametrisation operation. From the structure of an M -actegory then, we can produce a category of
+M -parametrised morphisms in C :
+Definition 2 (Para). Let C be an M -actegory. Para• (C ) is the bicategory whose
+1. objects are the same as C ;
+2. 1-cells φ ∈ Para• (C )(X ,Y ) are given by a choice of object M (the parameter) in M and a choice
+M
+of morphism φ : M • X → Y in C , and we condense this data into the notation φ : X → Y ;
+M
+
+N
+
+3. 1-composition of φ : X → Y and ψ : Y → Z is given by
+N⊙M
+
+φ # ψ : X −→ Z
+
+:=
+
+N•φ
+
+δ
+
+ψ
+
+(N ⊙ M) • X −→ N • (M • X ) −→ N •Y −→ Z
+M′
+
+M
+
+4. 2-cells r : φ ⇒ φ ′ from φ : X → Y to φ ′ : X → Y are given by morphisms r : M ′ → M in M such
+that
+M′ • X
+r•X
+
+M•X
+
+φ′
+
+φ
+
+Y
+
+commutes.
+5. Identities and composition in the hom-cat Para• (C )(X ,Y ) are the same as M .
+Morphisms in Para(C ) are more naturally denoted using string diagrams, as shown in Figure 1. In
+these diagrams, objects of M are denoted by vertical strings, and objects of C by horizontal strings.
+Formally, these (and most other diagrams in this paper) can be considered as diagrams in a larger double
+category in which both Para(C ) and CoPara(C ) embed, and thus we can apply coherence for string
+diagrams in double categories [20].
+
+M. Capucci, B. Gavranović, J. Hedges, E. Fjeldgren Rischel
+
+X
+
+M
+X
+
+Y
+
+φ
+
+φ
+
+(b) A morphism in CoPara(C )
+N ⊙M
+
+N
+
+M
+
+Y
+
+Y
+
+φ
+M
+
+Figure 1: (a) A morphism in Para(C )
+
+X
+
+237
+
+ψ
+
+Z
+
+=
+
+X
+
+φ #ψ
+
+Z
+
+Figure 2: 1-cell composition in Para(C )
+Remark 3. The most common usage of 2-cells in Para(C ) is through a lift-like operation called
+reparametrisation, i.e. using a map of parameters (thus in M ) to change parameter space. This means
+we rarely provide the codomain of a 2-cell and instead we produce it by lifting. Explicitly, given
+r : M ′ → M and an M-parametrised morphism φ : M • X → Y , we produce an M ′ -parametrised morphism φ ′ = (r • X ) # φ which we denote by r∗ φ (an operation depicted in Figure 3), so that r : φ ⇒ r∗ φ
+lifts r : M ′ → M. This amounts to say that Para(C ) is locally fibred over M .
+Remark 4. There is a dual construction to that of Para(−), which we call CoPara(−), which produces
+a category of coparametrised morphisms, i.e. morphisms whose codomain is parametrised (Figure 1(b)).
+A morphism X → Y in CoPara(C ) consists of an object M and a morphism φ : X → M •Y . Moreover,
+2-cells go in the opposite direction (again, as hinted by the graphical language): the recoparametrisation
+of φ along r : M → M ′ is a 2-morphism φ ⇒ r∗ φ defined by postcomposition with r • Y . This makes
+CoPara(C ) locally opfibred over M . All things considered, we can concisely define CoPara(C ) as
+Para(C op )coop .
+It is useful to notice that Para(−) is a functorial construction, which also enjoys a monadic structure:
+Proposition 5. Para(−) is a monad on the category M -Mod of M -actegories.
+Proof. The action of M on Para(C ) is inherited from C in the obvious way. Its unit is given by
+faithful, identity-on-objects functors sending a morphism φ to (J, φ ). Its join sends a twice parametrised
+map (m, n, φ ) to the once parametrised map (m ⊙ n, φ ).
+
+2.1 Monoidal structure on Para(C ).
+If both M and C are additionally monoidal categories in a way that is compatible with the actegory
+structure, we would like to lift the monoidal structure to Para(C ). Unfortunately bifunctoriality of the
+monoidal product on Para(C ) requires that the monoidal product on M is commutative, that is, M ⊙ N =
+N ⊙ M on the nose rather than up to a symmetry morphism. We believe that in the general case, Para(C )
+is symmetric monoidal as a bicategory [17, Section 12.1]. Commutative monoidal categories are rare in
+practice, but for presentation purposes in this paper we assume that M is commutative monoidal.
+
+Towards Foundations of Categorical Cybernetics
+
+238
+
+M′
+
+M′
+
+r
+
+X
+
+X
+
+Y
+
+φ
+
+φ ′ = r∗ φ
+
+=
+
+M
+
+Y
+
+Figure 3: Reparametrisation along a 2-cell r in Para(C )
+Definition 6. A symmetric monoidal M -actegory is an M -actegory C equipped with a symmetric
+monoidal structure, together with a natural isomorphism κM,X,Y : M • (X ⊗Y ) ∼
+= X ⊗ (M •Y ), satisfying
+coherence laws reminiscent of the laws of a costrong comonad.
+Given a symmetric monoidal M -actegory, we can also define natural isomorphisms α : M •(X ⊗Y ) ∼
+=
+∼
+(M • X ) ⊗ Y and ι : (M ⊙ N) • (X ⊗ Y ) = (M • X ) ⊗ (N •Y ), called mixed associator and interchanger,
+respectively.
+As anticipated, when C is a symmetric monoidal M -actegory, then Para• (C ) is itself a symmetric
+monoidal category, whose structure we still denote with I and ⊗. The tensor of two objects X ,Y is given
+M
+N
+by the same tensor X ⊗Y , whereas the tensor of two arrows φ : X → Y and ψ : U → V is given by
+M⊙N
+
+φ ⊗ ψ : X ⊗ X ′ −→ Y ⊗Y ′
+
+:=
+
+φ ⊗ψ
+
+ι
+
+(M ⊙ N) • X ⊗ X ′ −→ (M • X ) ⊗ (N •Y ) −→ Y ⊗Y ′
+
+Bifunctoriality follows from the commutativity of M . Unitors and associator are borrowed from C
+through the immersion C → Para• (C ).
+M
+
+X
+
+M⊗N
+
+N
+
+Y
+
+φ
+
+=
+X′
+
+ψ
+
+X ⊗ X′
+
+φ ⊗ψ
+
+Y ⊗Y ′
+
+Y′
+
+Figure 4: Monoidal product in Para(C )
+Remark 7. It turns out that the structure of a symmetric monoidal M -actegory C is equivalent to that
+of a strong monoidal functor M → C . Given an action, this corresponding functor is F : M 7→ M • I.
+Given a functor, the corresponding action is (M, X ) 7→ F(M) ⊗ X . We can think of the image of − • I as
+a ‘representation’ of M inside C .
+
+M. Capucci, B. Gavranović, J. Hedges, E. Fjeldgren Rischel
+
+3
+
+239
+
+Optics
+
+The story of dynamical systems is grounded in the notion of bidirectionality and feedback: processes
+do not just flow in one direction, but often compute values going forward and compute some notion of
+feedback or rewards going backward. In order of increasing generality, this is captured by lenses, optics,
+and mixed optics. In this paper we proceed with the latter notion and invoke special cases as needed.
+Definition 8 (Optics, [5, Def. 2.1]). Given a monoidal category M acting on categories C , D through
+actions we both denote with • be two M -actegories, we can define the category Optic•,• (C , D) whose
+objects are pairs of objects of C and D, and whose hom-sets are defined by the following coend
+Optic•,• (C , D)( XX′ , YY′ ) =
+
+
+
+
+Z M
+
+C (X , M •Y ) × D(M •Y ′ , X ′ )
+
+We can think of optics as a bidirectional process taking in an X and computing an output M • Y .
+Depending on the monoidal action used, this can unpack to a number of different things. Most often it is
+a product of an output Y and the intermediate state M (called the residual). Off-screen, the environment
+takes in the output Y and returns a Y ′ . In the case of the monoidal action of the product, this Y ′ is used
+together with the previouslysaved M
+to produce an X ′ (Figure 5).
+
+Concretely, an optic XX′ ⇄ YY′ is an equivalence class of triples (M, v, u) where M is an object of
+M
+
+M
+
+M , v : X → Y is a morphism of CoPara(C ) and u : Y ′ → X ′ is a morphism of Para(C ), modulo the
+equivalence relation generated by (M, v, f ∗ u) ∼ (M ′ , f∗ v, u) for morphisms f : M → M ′ of M . This is a
+small equivalent reformulation of the usual definition of optics via a coend. The coend in this formulation
+quotients out observationally indistinguishable reparametrisations, meaning that morphisms of residuals
+can be freely slid over back and forth between the forward and backward part.
+Remark 9 (Specializations). If M = C = D, we speak of non-mixed optics and we write Optic⊗ (C ),
+sometimes omitting the action as well. If C and D are symmetric monoidal, then Optic•,• (C , D) is itself
+symmetric monoidal. Also observe that Lens(C ) ∼
+= Optic× (C ) for a cartesian monoidal category.
+X
+
+v
+
+Y
+
+X′
+
+u
+
+Y′
+
+M
+
+
+
+Figure 5: Graphical representation of an optic XX′ ⇄ YY′ . We conventionally think of the u node as
+rotated rather than reflected, so parameters enter at the bottom (and, later, coparameters will leave at the
+top). For an animated version explaining the information flow, see [11, 10].
+Under certain conditions, we have a convenient description of the collection of states (maps from
+the monoidal unit) and costates (maps to the monoidal unit) in the category of optics. On the one hand,
+states of XX′ in Optic(C , D ) when D and M are semicartesian (hence their unit coincides with the
+terminal object) coincide with states of X in C :
+Z M
+
+C (1, X • M) × D(X • M, 1) ∼
+=
+′
+
+Z M
+
+C (1, X • M) ∼
+= colimM C (1, X • M) ∼
+= C (1, X )
+
+Towards Foundations of Categorical Cybernetics
+
+240
+
+Here we use first terminality of 1 in D, then the fact that mute coends are colimits [23, Lemma 1.2.4],
+then the fact that a colimit over an index category with a terminal object
+is just the functor evaluated at
+X
+that object, and 1 is terminal in C . On the other hand, costates of X ′ in non-mixed optics coincides
+with maps X → X ′ in C .
+Z M
+
+C (X , M ⊗ I) × C (M ⊗ I, X ) ∼
+=
+′
+
+Z M
+
+C (X , M) × C (M, X ′ ) = C (X , X ′ )
+
+by the ninja Yoneda lemma [18]. We note that the case when the forward and the backward categories
+are different can still be made precise, but now instead of a homomorphism X → X ′ in C we have a
+heteromorphism X → X ′ from C to D (mediated by a residual in M ).
+
+4
+
+Parametrised optics for cybernetics systems
+
+The Para(−) construction lets us consider morphisms with “hidden” information, not available at the
+boundary of a morphism. The Optic(−) construction lets us consider bidirectional morphisms in this
+category, allowing for constructions involving feedback and update. Applying the former to the latter
+results in a sophisticated construction which we unpack in this section.
+Parametrised optics. Given a symmetric monoidal category M acting on C and D, we have shown
+above how to form the category Optic(C , D). Moreover, since M is a symmetric monoidal category,
+it acts on itself by the monoidal product, so we can form the category Optic(M ) of non-mixed optics,
+which is symmetric monoidal with pointwise monoidal product.
+Proposition 10. Let M be symmetric monoidal and C and
+D be
+M -actegories.
+There is an action of
+M
+X
+M•X 
+Optic⊙ (M ) on Optic•,• (C , D), defined on objects as M
+′ ⊛ X ′ := M ′ •X ′ .
+
+We thus can form the bicategory Para⊛ (Optic•,• (C , D)) for this action. Concretely, for objects X ,Y
+
+
+of C and X ′ ,Y ′ of D, a parametrised optic XX′ ⇄ YY′ consists of a choice of objects (P, Q) of M , and
+an equivalence class of triples (M, v, u) where M is an object of M , v : P • X → M •Y is a morphism of
+C and u : M •Y ′ → Q • X ′ is a morphism of D. We depict such a morphism by a string diagram, shown
+in Figure 6(a).
+Cybernetic systems. The mathematical framework of parametrised optics extends the one already
+known for dynamical systems, in which different flavours of lenses are used to represent bidirectional
+information flow [25, 21, 22], in a direction first hinted at in [9] and [7]. Parametrised optics model cybernetic systems, namely dynamical systems steered by one or more agents. Then ⊛ represents agency
+being exerted on systems; in particular agents act in the world through the M -actegorical structure on C
+and receive feedback through the M -actegorical structure on D.1 Optic⊙ (M ) is a category representing
+agents, and the framework of Para⊛ (Optic•,• (C , D)) is what allows us to interpret it as such.2
+Graphically, vertical wires in Para⊛ (Optic•,• (C , D)) tell us how agents interact and compose.
+Reparametrisations (Figure 6(b)) denote agency dynamics as happening over the horizontal dynamical system (which can be called an arena, or a protocol) they act within. This point of view seamlessly
+unifies parameters and coparameters of a parametrised optic with residuals inside the optic, which are
+1 A happy coincidence of terminology: agents act through actions.
+2 We remark agency is a property of the model of a system and not of the system per se. This is reflected in the mathematics
+by the fact that all morphisms in Para(C ) are morphisms of C , arranged in a different way.
+
+M. Capucci, B. Gavranović, J. Hedges, E. Fjeldgren Rischel
+
+241
+
+Q
+
+P
+
+r∗
+
+r
+
+X
+
+v
+
+P
+
+Y
+X
+
+X′
+
+u
+
+v
+
+Y
+Q
+
+Y′
+X′
+
+u
+
+Y′
+
+M
+M
+
+Figure 6: A morphism (a) and reparametrisation (b) in Para⊛ (Optic•,• (C , D)).
+now representing the private state of agents controlling the given dynamical system. This state ferries
+information between the forward and the backward part of the dynamics (playing the role of ‘memory’)
+so that an agent’s feedback is contingent on the action they brought about (see [27, p. 192]).3 Furthermore, more complex protocols of interaction can be created, for instance, using optics for the coproduct
+(prisms), modeling control flow.
+What is missing in the mathematical structure of Para(Optic(−)) is a feedback mechanism, central
+in cybernetics. In the next sections, we explore the current solutions adopted by the two most developed
+instantiations of the framework just described, namely open learners and open games.
+
+4.1 Neural Networks
+A special case of this construction is studied in [6], in which the authors instantiate this construction
+in the context of machine learning, when the base is set to Smooth, the category of Euclidean spaces
+and smooth maps. They first start by reframing backpropagation in terms of optic composition, via the
+functor R : Smooth → Optic(Smooth) which augments maps with their backward pass (though they use
+lenses, as defined in Remark 9). Then, using the action of Para(−) on morphisms (Proposition 5), they
+lift this functor to its Para(−) counterpart. We now unpack this in more detail.
+Consider a morphism in (R p , f ) : Para(Smooth)(Rn , Rm ). It consists of a parameter space R p and
+a smooth function f : R p × Rn → Rm . For instance, this could be the forward pass of a complex, multilayered neural network. It takes in a parameter value p : R p , an input x : Rn and computes a prediction
+f (p, x) : Rm . Composition of morphisms in Para(Smooth) reduces to composition of forward passes of
+neural networks, coherently tracking which subnetworks each incoming parameter needs to be relayed
+to. This becomes important as the authors apply a functor
+Para(R) : Para(Smooth) → Para(Optic(Smooth)),
+
+(1)
+
+3 Further investigation in this direction is being pursued by the authors. In particular, it seems profitable to adopt a notion
+of lax optics in which the coend of Definition 8 is replaced by a lax coend [18, Chapter 7]. Residuals and slidings would
+then be explicitly tracked as 2-dimensional structure on Optic(C , D), as much as parameters in Para(C ) are tracked in the
+2-dimensional structure of that category. Lax fubini (ibid.) gives rise to an interesting duality between residuals and parameters,
+which the authors first heard of in a Zulip conversation started by Mitchell Riley [24].
+
+242
+
+Towards Foundations of Categorical Cybernetics
+
+augmenting this neural network with the backward pass. Acting on the morphism f , this results in a
+forward and a backward component (Figure 6(a)). The forward component consists of an input parameter
+space R p and a morphism v : R p × Rn → Rm × Rn which in addition to computing f also copies the
+input Rn and saves it as the residual used in the backward pass. The backward pass consists of an
+output parameter space R p (interpreted as the space of changes), and a map u : Rn × Rm → Rn × R p
+which takes in a change in the output, and together with the saved residual computes a change in the
+parameters and change in inputs. The latter is then subsequently used in the previous learner as its
+incoming change in outputs. This complex data flow is automatic: it falls out of the machinery of both
+Para(−) and Optic(Smooth). The former deals with parameter spaces, and the latter knows how to
+perform backpropagation.
+These parameter spaces become important as neural networks can be coherently reparametrised
+within this framework, where reparametrisations in Para(Optic(Smooth)) are themselves optics. For
+instance, consider the parameter port (R p , R p ) of a 1-cell: it takes in a parameter value and produces a
+change in that parameter. By using the optic of gradient descent we can reparametrise this learner and
+express the idea that a learner is minimizing a particular objective function.
+Construction 11 (Gradient Descent, compare [6, Example 3.15]). Consider
+a lens
+
+ on the base C =
+R
+⇄
+Smooth. Fix α : R. The notion of α -gradient descent is a lens gdα : R
+R
+R whose forward map
+is identity, and the backward map (p, ∇p) 7→ p − α ∇p computes a new parameter value by moving in
+the α -scaled direction of the change in the parameter ∇p. For negative choices of α we obtain gradient
+ascent, and denote it with gaα .
+The archetypal example of two neural networks optimizing different goals is Generative Adversarial
+Networks (GANs) [13, 1]. We hereby present the first categorical formalization of this neural network
+architecture and interpret its game-theoretic behaviour in terms of opposing reparametrisations: gradient
+descent and gradient ascent.4 A GAN is composed of two networks: a generator (g) and a discriminator
+(d) network in Para(Optic(Smooth)), obtained as the image under the functor Para(R) (Equation 1).
+The discriminator (an element of Para(Smooth)(Rx , R)) is tasked with assigning an R-valued cost to
+each point of a particular “image space” (denoted with Rx ) as a measure of how much it looks like it
+belongs to a particular predefined dataset, where low cost means realistic-looking samples. The generator
+(an element of Para(Smooth)(Rz , Rx )) is tasked with generating realistic-looking samples from this
+dataset, by taking in some “latent vector” in Rz and producing a sample in Rx (often called the “fake”
+sample). The user’s goal is to train the generator such that, as we vary the latent vector input Rz , we
+obtain different realistic-looking samples in Rx . This is done via the adversarial training regime and a
+carefully chosen composition of these networks (Figure 7). This regime feeds in real and fake samples to
+the discriminator, training it to distinguish between them. At the same time, it trains the generator with
+an opposing goal: producing samples that fool the discriminator, making it assign a low cost to them.
+This adversarial component is in our framework captured by reparametrisation, allowing us to specify
+agent preferences internal to the agent. Consider the composite R(g) # R(d) in Para(Optic(Smooth))
+(middle part of Figure 7). At some time step i this neural network takes a latent vector zi as input,
+produces a fake element xi of Rx using g, and assigns an R-valued score to it using d. In this setting we
+want the discriminator to assign an even higher score next time (as the sample was fake) and the generator
+to produce a sample which will have a lower score next time (as it is trying to fool the discriminator).
+We can achieve this by reparametrising both the generator and the discriminator, but with different,
+“opposing” optics. We reparametrise the generator with the gradient descent (making it move in the
+negative direction of the gradient, minimizing the cost the discriminator assigns to the fake sample),
+4 We focus on WGAN for simplicity, and ignore the Lipschitz regularization condition.
+
+M. Capucci, B. Gavranović, J. Hedges, E. Fjeldgren Rischel
+
+Rp
+
+Rp
+
+Rq
+
+Rq
+gaα
+
+gdα
+Rp
+
+243
+
+Rp
+
+Rq
+
+Rq
++
+
+Rx
+
+Rz
+zi
+
+Rz
+
+g
+
+Rx
+
+R
+d
+
+R
+
+Rx
+di
+
+Rx
+
+dx
+
+R
+d
+
+R
+
+−dx
+
+Figure 7: A generative adversarial network as a closed system.
+and the discriminator with the gradient ascent (making it move in the positive direction of the gradient,
+increasing the cost discriminator assigns to the fake sample). This allows both of these agents to have
+unchanged external behaviour during one time-step of updating, and use the same training signal to enact
+a different update rule internally.5
+Another benefit of reparametrisation is that it allows us to recast two 1-cells with the same parameter
+object as the same player. Consider the discriminator in Figure 7. It appears twice: once valuating
+samples coming from the generator (xi ) and once evaluating samples coming from the actual dataset (di ).
+The parameter port of the parallel product (Definition 6) R[d] × R[d] takes in two parameters Rq × Rq
+as input and produces two changes Rq × Rq in these parameters as output. By first reparametrising this
+product using the image of the copy map ∆Rq : Rq → Rq × Rq under the functor R, we make sure that the
+same parameter is copied to both discriminators in the forward pass, and their gradients are summed up
+on the backward pass. Also called weight tying, this couples together two different neural networks and
+treats them as a single unit.
+
+5
+
+Selection relations
+
+In cybernetics, agents provide parameters which are evaluated by the environment through a dynamical
+process and fed back to them. Crucially, agents then use this information to update the parameters they
+provide, closing the loop. When agents are satisfied with the outcome of the interaction, an equilibrium
+is established. In machine learning, parameter updating is explicitly modelled (Construction 11), but in
+game theory we directly seek the equilibrium. We propose here a framework for equilibrium selection
+for parametrised optics based on a generalization of selection functions.
+A selection relation, defined in [15] as “multi-valued selection functions”, is a relation of type ε ⊆
+X × (X → R). Selection relations provide an abstraction of the “personality” or “goals” of game-theoretic
+5 The lens costates on the right of Figure 7 are aptly called dx. Their backward maps are constant at 1 : R, the usually
+invisible “initial” factor of 1 in backpropagation.
+
+Towards Foundations of Categorical Cybernetics
+
+244
+
+agents. Specifically, we consider that a function ε ⊆ X × (X → R) describes an agent who can make a
+choice from a set X , with outcomes in a set R, in which (x, k) ∈ ε means that the agent considers the
+move x to be ‘good’ in the context k, mapping possible moves x′ to their outcome k(x′ ).
+Selection relations are a variant of the better-known single-valued selection functions [8], which
+are better behaved mathematically (forming a monad) but are less flexible as descriptions of agents.
+For example, the very common utility-maximizing agents can be described as a multivalued selection
+function argmax, where (x, k) ∈ argmax iff x attains the global maximum of k.
+The functor of selection relations. The starting observation ofthe following mathematical treatment
+of selection relations is that a point x ∈ X is exactly a state of XR in the monoidal category Lens(Set),
+
+while a function k : X → R is exactly a costate of XR . Therefore a selection relation can be seen as a
+
+
+relation ε ⊆ Lens(Set)(I, XR ) × Lens(Set)( XR , I).
+Definition 12. Let M be a monoidal category. We define the functor SM : M → Cat as follows:
+
+1. SM (X ) is the poset P(M (I, X ) × M (X , I)), ordered by inclusion. When ε ∈ SM (X ), we write
+ε (x, k) if (x, k) ∈ ε , emphasizing our view of ε as a predicate. We call the elements of SM (X )
+selection relations on X .
+2. For f : X → Y , E ∈ SM (X ), we define SM ( f )(ε ) ∈ SM (Y ) by SM ( f )(ε ) = {(x # f , k) | ε (x, f # k)}
+We simply write S rather than SM when the category under consideration is obvious from context.
+It is straightforward to verify that the S( f ) are functors (i.e. monotone maps), that S( f # g) = S( f ) # S(g),
+and S(1X ) = 1S(X) . To simplify notation, we write f∗ for SM ( f ).
+Although we write this definition over an arbitrary monoidal category, we are mostly interested in
+′
+the case where M = Optic(M ′ ), where
+symmetric monoidal category. Then,
+ M is a′ semicartesian
+X ∼
+equivalently, we have that SOptic(M ′ ) X ′ = P(M (I, X ) × M ′ (X , X ′ )).
+X
+Example 13. Let M = Lens(Set). Then for any set X , there is a selection relation argmaxX on R
+defined by argmaxX (x, k) iff k(x) ≥ k(x′ ) for all x′ ∈ X . Analogous selection relations also exist over
+many other suitable categories.
+The Nash product. There is a composition law for selection relations called the Nash product, generalising a construction that appeared in [14] as the “sum of selection functions”. Given a context on a
+tensor product k : X ⊗Y → I, we can imagine two agents, one of whom controls the state x : I → X and
+one who controls the state y : I → Y . Suppose their decisions are governed respectively by the selection
+functions ε , δ . Given y, we can compose it with k to form ky := (1X ⊗ y) # k : X → I, and ask whether
+the first player is satisfied with their choice in this context. Analogously, we can ask whether the second
+player is satisfied with their choice in the context kx given by x and k. If both are satisfied, the composite
+state x ⊗ y : I → X ⊗Y is said to be an equilibrium — nobody wants to unilaterally deviate from it.
+In a general (non-cartesian) monoidal category, there may be states s : I → X ⊗ Y which do not
+have the form x ⊗ y. We think of states of the form x ⊗ y as independent. The Nash product models a
+situation where players make their choices without communication, and so we conservatively rule out
+any non-independent states as Nash equilibria.
+Proposition 14. The functor S : M → Cat admits a laxator ⊠ : S(X ) × S(Y ) → S(X ⊗Y ) given by
+
+ε ⊠ δ = {(x ⊗ y, k) | ε (x, ky ) and δ (y, kx )}
+x⊗I
+
+k
+
+I⊗y
+
+k
+
+where kx : Y ∼
+= I ⊗Y −→ X ⊗Y −→ I and ky : X ∼
+= X ⊗ I −→ X ⊗Y −→ I.
+
+M. Capucci, B. Gavranović, J. Hedges, E. Fjeldgren Rischel
+
+245
+
+Proof. It is straightforward to verify associativity and unitality of the lax monoidal structure, as well as
+commutativity. The nontrivial step is to verify that ⊠ is a natural transformation at all. To that end, let
+f : X → Y, f ′ : X ′ → Y ′ , and let ε ∈ S(X ), δ ∈ S(X ′ ). Then we must verify f∗ ε ⊠ f∗′ δ = ( f ⊗ f ′ )∗ (ε ⊠ δ ).
+This statement boils down to the fact that existential quantifiers commute. On the one hand, we have
+( f ⊗ f ′ )∗ (ε ⊠ δ )(s, k) if and only if there exists a factorization s = t # ( f ⊗ f ′ ) and a further factorization
+t = x ⊗ x′ so that ε (x, (1x ⊗ x′ ) # ( f ⊗ f ′ ) # k), and analogously for x′ . On the other hand, we can ask that
+s factor as y ⊗ y′ so that f∗ ε (y, (1y ⊗ y′ ) # k) (and analogously for the other one). This in turn means that
+y factors as x # f , and that y′ = x′ # f ′ , with ε (x, f # (1y ⊗ (x′ # f ′ )) # k), which, applying the equations of a
+symmetric monoidal category, is the same as the condition above. Hence the two selection relations are
+equivalent as desired.
+Example 15. Let X ,Y be sets. Then argmaxX ⊠ argmaxY is a relation between X ×Y and X ×Y → R2 .
+Specifically, (argmaxX ⊠ argmaxY )((x, y), k) if and only if (x, y) is a pure strategy Nash equilibrium for
+the 2-player normal form game with payoff matrix k.
+Therefore, the functor S : M → CatR is an indexed monoidal category. Such an indexed category is
+turned into a (strong) monoidal functor S → M by the monoidal Grothendieck construction [19]:
+R
+
+Definition 16. The category M S := S has
+
+1. objects given by pairs (X , ε ) of an object of M together with a selection relation ε ∈ S(X ) on it.
+2. morphisms (X , ε ) → (Y, δ ) given by morphisms f : X → Y in M with the property that for all
+h : I → X and k : Y → I, if (h, f # k) ∈ ε then (h # f , k) ∈ δ .
+It is monoidal with unit (I, ⊤I ) and product (X , ε )⊗ (Y, δ ) = (X ⊗Y, ε ⊠ δ ). The projection π : M S → M
+is trivially strong monoidal.
+
+6
+
+Open Games
+
+In this section we will equip parametrised optics with selection relations on the parameters. This results
+in a category in which we can do ‘compositional game theory’, which refines open games [12] by adding
+an explicit account of agents. More detail on this perspective can be found in [4].
+Let C be an M -actegory. Since the forgetful functor π : M S → M is strong monoidal, C is also
+an M S -actegory with action given by (X , ε ) •S Y := X • Y . We can then use this action to form the
+symmetric monoidal bicategory Para•S (C ) as per Definition 2. In particular, morphisms of this category
+will be parametrised not just by objects of M but also by selection relations on them, which specify
+preferences on the parameter space. Now let C and D be monoidal M -actegories. Then Optic(C , D) is
+monoidal and instantiating the above construction for the action of ⊛ described in Proposition 10 gives us
+a monoidal category Para⊛S (Optic(C , D)). We think of this as a category of “open games”. Although
+it is closely related to existing definitions of open games [12, 3, 2], it differs in several key ways.
+The parameter object M is an object of Optic(M )S , hence a pair Ω ,6 equipped with a selection
+
+relation ε ∈ SM Ω . Ω is the object of ‘strategy profiles’ found in other definitions of open games
+(usually called Σ). We refer to as the set of ‘rewards’, or ‘intrinsic utilities’, that the agents playing a
+game actually optimise. Despite having such a clear game-theoretic reading, agents’ rewards were left
+implicit in previous formulations of open games.
+When C = D = M is a semicartesian monoidal category, acting on itself by monoidal product,
+
+then a scalar (morphism I → I) in Para⊗S (Optic(M )) consists of a pair of parameter objects Ω , a
+Ω
+
+Ω
+
+Ω
+
+Ω
+
+Ω
+
+6 We pronounce the symbol
+
+as “coméga”.
+
+Towards Foundations of Categorical Cybernetics
+
+246
+
+Ω
+
+Ω
+
+selection relation ε ⊆ M (I, Ω) × M (Ω, ), and a morphism k : M (Ω, ). We can then form the set
+{ω ∈ M (I, Ω) | ε (ω , k)}. We think of this as the solution set of the game: it is the set of strategy profiles
+that the agents accept in the context given by the game they are playing.
+The simplest possible case is when C = D = M = Set, acting on itself by cartesian product. In this
+
+ (Ω, )
+
+case, a morphism XS −−−→ YR consists of a pair of sets Ω , a selection relation ε ⊆ Ω × (Ω → ),
+
+
+
+and a lens G : Ω ⊗ XS → YR . This in turn consists of a “play function” P : Ω × X → Y , and a function Ω × X × R → × S that splits into a “coplay function” C : Ω × X × R → S and
+ an“intrinsic utility
+function” U : Ω × X × R → .7 This data determines an open game in OG XS , YR , where OG is
+the usual category of open games in the sense of [12]. Specifically, we keep the set of strategy profiles, the play function and the coplay function the same. It remains to choose an equilibrium function
+E : X × (Y → R) → P(Ω). We define it by E(h, k) = {ω | ε (ω , Kh,k )}, where Kh,k is given by the following composition in Lens(Set):
+ 
+ 
+ 
+   
+(Ω)⊗h Ω
+Ω
+Y
+Ω ∼
+X
+k
+G
+=
+−→
+−→ I
+−→
+⊗ I −−−−→
+⊗
+R
+S
+Ω
+
+Ω
+
+Ω
+
+Ω
+
+Ω
+
+Ω
+
+Ω
+
+Ω
+
+Ω
+
+Ω
+
+This construction defines a strong monoidal functor Para⊛S (Lens(Set)) → OG, and can also be carried
+out for Bayesian open games and other more general formulations of open games.
+As a worked example, we will demonstrate how this formulation of game theory improves on open
+games by describing Prisoner’s Dilemma and then modifying it so that both decisions are made by the
+same agent. For simplicity, our base will again be Set acting on itself by cartesian product, which
+describes deterministic games and pure strategy Nash equilibria. Given sets X and Y , a decision to
+choose an element
+of Y after observing an element of X and with a real number
+payoff is described by a
+X
+Y
+X→Y 
+morphism 1 → R in Para(Optic(Set)), whose parameter sets are R , where the play function is
+function application (X → Y ) × X → Y , and the intrinsic utility function is the projection (X → Y ) × X ×
+R → R. Note that we have separated the concept of a decision in a game, where a choice is made and
+a real number payoff is obtained, from the goal of the agent to maximise that payoff, or the mechanism
+by which they do so. This aligns with classical game theory, but is in contrast to open games, in which
+agents and decisions are conflated. In the case that X has one element, describing a decision with no
+observation, decisions are particularly simple and can be denoted by a bending wire, as illustrated in
+Figure 8.
+We take Y = {C, D} to be the set of moves in Prisoner’s Dilemma. We take the tensor product of two
+2
+decisions, describing that they are made in parallel. We then postcompose with the morphism YR2 → I
+2
+2
+in Para×S (Lens(Set)) given by lifting the payoff function
+ PD : Y → R of Prisoner’s Dilemma to a
+Ω
+= (1, 1) = I. This results in a scalar I → I in
+costate in Optic(Set), taking the parameter sets to be
+
+Y2
+Para×S (Optic(Set)), with parameters R2 , described by the lower half of Figure 8(a). Ultimately, this
+2
+determines a costate YR2 → I in Lens(Set), namely another copy of the payoff function PD.
+In order to describe the standard Prisoner’s Dilemma, we compose this diagram with a pair of argmax
+operators, describing the situation where a pair of players independently optimise their own payoff,
+without communicating. The lack of communication can be seen in the ‘air gap’ in the top part of
+Figure 8(a).8 The composition of a pair of argmax operators involves the Nash product, and in the end
+Ω
+
+7 In [9] the function U is called ‘update’.
+8 The top parts of Figure 8 are currently informal:
+
+we are drawing the selection functions as though they are states in
+Lens(Set), but they are not. It may be possible, by thinking of them as ‘generalised states’, to embed (perhaps by a clever use
+of co-Yoneda) into a larger category in which they are states; alternatively the top parts can be thought of as ‘just’ a decoration
+of the top boundaries.
+
+M. Capucci, B. Gavranović, J. Hedges, E. Fjeldgren Rischel
+
+247
+
+argmax
+R
+argmax
+
+argmax
+
++
+
+Y
+R
+
+PD
+
+Y
+
+Y
+R
+
+R
+
+PD
+Y
+R
+
+Figure 8: (a) Standard Prisoner’s Dilemma
+
+(b) Modified Prisoner’s Dilemma
+
+applying the costate PD to the selection function argmaxY ⊠ argmaxY determines the solution set, namely
+the set {(D, D)}, which is the unique Nash equilibrium of Prisoner’s Dilemma.
+Now consider the modified Prisoner’s Dilemma denoted by Figure 8(b). This can be described in
+two different ways, which are equivalent but not the same: namely as Prisoner’s Dilemma pulled back
+along an optic on parameters, coupled to the argmax selection function describing a classical optimising
+player; or alternatively as the ordinary Prisoner’s Dilemma coupled to a selection function obtained by
+pushing forwards argmax along the same optic, describing a player who makes two choices to maximise
+the sum of two payoffs. Such a strategy profile is known as Hicks optimal, a strengthening of Pareto
+optimality. For Prisoner’s Dilemma, the solution set of this example is {(C,C)}. Notably this is disjoint
+from the set of Nash equilibria.
+Although this is only a very simple example, separating an open game into these ‘horizontal’ and
+‘vertical’ parts provides a very flexible language for describing a wide variety of game-theoretic situations, such as those described in [4].
+
+References
+[1] Martin Arjovsky, Soumith Chintala & Léon Bottou (2017): Wasserstein GAN. In: ICML’17: Proceedings of
+the 34th International Conference on Machine Learning, doi:10.5555/3305381.3305404.
+[2] Robert Atkey, Bruno Gavranović, Neil Ghani, Clemens Kupke, Jérémy Ledent & Fredrik Nordvall Forsberg
+(2020): Compositional game theory, compositionally. In: Proceedings of Applied Category Theory 2020,
+EPTCS, doi:10.4204/EPTCS.333.14.
+[3] Joe Bolt, Jules Hedges & Philipp Zahn (2019): Bayesian open games. arXiv:1910.03656.
+[4] Matteo Capucci, Neil Ghani, Jérémy Ledent & Fredrik Nordvall Forsberg (2021): Translating extensive
+form games to open games with agency. In: Proceedings of Applied Category Theory 2021, EPTCS.
+ArXiv:2105.06763.
+[5] Bryce Clarke, Derek Elkins, Jeremy Gibbons, Fosco Loregian, Bartosz Milewski, Emily Pillmore & Mario
+Román (2020): Profunctor optics: A categorical update. arXiv:2001.07488.
+[6] G. S. H. Cruttwell, Bruno Gavranović, Neil Ghani, Paul Wilson & Fabio Zanasi (2021): Categorical Foundations of Gradient-Based Learning. arXiv:2103.01931.
+[7] David Dalrymple (2019): Dioptics: a Common Generalization of Open Games and GradientBased Learners.
+SYCO7.
+Available at https://research.protocol.ai/publications/
+
+248
+
+Towards Foundations of Categorical Cybernetics
+
+dioptics-a-common-generalization-of-open-games-and-gradient-based-learners/
+dalrymple2019.pdf.
+[8] Martin Escardó & Paulo Oliva (2011): Sequential games and optimal strategies. Proceedings of the Royal
+Society A 467, pp. 1519–1545, doi:10.1098/rspa.2010.0471.
+[9] Brendan Fong, David Spivak & Rémy Tuyéras (2019): Backprop as functor: A compositional perspective on supervised learning. In: Proceedings of Logic in Computer Science (LiCS) 2019, ACM,
+doi:10.1109/LICS.2019.8785665.
+[10] Bruno Gavranović (2021): Animation of optic composition. https://twitter.com/bgavran3/status/
+1366202140788731908.
+[11] Bruno Gavranović (2021): Animation of optics.
+https://twitter.com/bgavran3/status/
+1364644337968103428.
+[12] Neil Ghani, Jules Hedges, Viktor Winschel & Philipp Zahn (2018): Compositional game theory. In: Proceedings of Logic in Computer Science (LiCS) 2018, ACM, pp. 472–481, doi:10.1145/3209108.3209165.
+[13] Ian J. Goodfellow, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David Warde-Farley, Sherjil Ozair, Aaron
+Courville & Yoshua Bengio (2014): Generative Adversarial Networks, doi:10.1145/3422622.
+[14] Jules Hedges (2018): Backward induction for repeated games. In: Proceedings of Mathematically Structured
+Functional Programming (MSFP) 2018, Electronic Proceedings in Theoretical Computer Science 275, pp.
+35–52, doi:10.4204/EPTCS.275.5.
+[15] Jules Hedges, Paulo Oliva, Evguenia Shprits, Viktor Winschel & Philipp Zahn (2017): Higher-order decision
+theory. In Jörg Rothe, editor: Algorithmic Decision Theory, Lecture Notes in Artificial Intelligence 10576,
+Springer, pp. 241–254, doi:10.1007/978-3-319-67504-6 17.
+[16] Jules Hedges, Paulo Oliva, Evguenia Shprits, Viktor Winschel & Philipp Zahn (2017): Selection equilibria
+of higher-order games. In: Practical aspects of declaritive languages, Lecture Notes in Computer Science
+10137, Springer, pp. 136–151, doi:10.1007/978-3-319-51676-9 9.
+[17] Niles Johnson & Donald Yau (2021): 2-dimensional Categories. Oxford University Press, USA,
+doi:10.1093/oso/9780198871378.001.0001.
+[18] F. Loregian (2021): Coend Calculus, first edition. London Mathematical Society Lecture Note Series 468,
+Cambridge University Press, doi:10.1017/9781108778657. ISBN 9781108746120.
+[19] Joe Moeller & Christina Vasilakopoulou (2020): Monoidal Grothendieck construction. Theory and applications of categories 35(31), pp. 1159–1207.
+[20] David Jaz Myers (2018): String diagrams for double categories and equipments. ArXiv:1612.02762.
+[21] David Jaz Myers (2020): Double Categories of Open Dynamical Systems. ArXiv:2005.05956.
+[22] David Jaz Myers (2021): Categorical Systems Theory. Available at https://github.com/DavidJaz/
+DynamicalSystemsBook/tree/master/book.
+[23] Mitchell Riley (2018): Categories of optics. ArXiv:1809.00738.
+[24] Mitchell Riley & The CT Zulip Community (2021): An involution on ‘Learn’.
+Available
+at https://mattecapu.github.io/ct-zulip-archive/stream/229156-practice:-applied-ct/
+topic/An.20involution.20on.20’Learn’.html#235034768.
+[25] Dmitry Vagner, David I Spivak & Eugene Lerman (2014): Algebras of open dynamical systems on the operad
+of wiring diagrams. arXiv preprint arXiv:1408.1598.
+[26] Christina Vasilakopoulou (2018): On enriched fibrations. arXiv preprint arXiv:1801.01386.
+[27] Joel Watson (2013): Strategy: An introduction to game theory. W. W. Norton.
+
+

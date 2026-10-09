@@ -1,0 +1,1083 @@
+                                                       Coupling Proofs are Probabilistic Product Programs
+
+                                                               Gilles Barthe1         Benjamin Grégoire2              Justin Hsu3         Pierre-Yves Strub1,4
+                                              1                                        2                   3                                          4
+                                                  IMDEA Software Institute, Spain          Inria, France       University of Pennsylvania, USA            École Polytechnique, France
+
+
+
+
+                                        Abstract                                                                     reasoning about the correlated processes can then imply interesting
+                                                                                                                     properties of the original processes.
+
+
+
+
+arXiv:1607.03455v5 [cs.PL] 7 Nov 2016
+                                        Couplings are a powerful mathematical tool for reasoning about
+                                        pairs of probabilistic processes. Recent developments in formal                  A classical application of couplings is showing that two proba-
+                                        verification identify a close connection between couplings and               bilistic processes converge in distribution. Consider, for instance, a
+                                        pRHL, a relational program logic motivated by applications to                symmetric simple random walk over Z: starting from some initial
+                                        provable security, enabling formal construction of couplings from            position p, the process repeatedly samples a value s uniformly in
+                                        the probability theory literature. However, existing work using              {−1, 1} and updates its position to p + s. As the process evolves,
+                                        pRHL merely shows existence of a coupling and does not give                  the distribution on position spreads out from its initial position, and
+                                        a way to prove quantitative properties about the coupling, needed            converges to a limit distribution that is the same for all initial posi-
+                                        to reason about mixing and convergence of probabilistic processes.           tions. This property can be proved by constructing a coupling where
+                                        Furthermore, pRHL is inherently incomplete, and is not able to               the probability that the two coupled walks end in the same position
+                                        capture some advanced forms of couplings such as shift couplings.            approaches 1 as we run the coupled processes.
+                                        We address both problems as follows.                                             Beyond merely showing convergence, typically we are interested
+                                            First, we define an extension of pRHL, called ×pRHL, which               in how quickly the processes converge. For instance, a common use
+                                        explicitly constructs the coupling in a pRHL derivation in the form          of probabilistic processes is to efficiently sample from a distribution
+                                        of a probabilistic product program that simulates two correlated runs        that approximates a complicated distribution (e.g., Metropolis et al.
+                                        of the original program. Existing verification tools for probabilistic       [43]). For one example, the Glauber dynamics [33] approximately
+                                        programs can then be directly applied to the probabilistic product           samples from the uniform distribution on proper colorings of a
+                                        to prove quantitative properties of the coupling. Second, we equip           graph—a hard distribution to compute—by maintaining a coloring
+                                        ×pRHL with a new rule for while loops, where reasoning can                   and randomly re-coloring a single vertex at a time. More generally,
+                                        freely mix synchronized and unsynchronized loop iterations. Our              the Glauber dynamics is an example of Markov chain Monte Carlo
+                                        proof rule can capture examples of shift couplings, and the logic is         (MCMC), a family of techniques that underlie many computational
+                                        relatively complete for deterministic programs.                              simulations in science, and machine learning algorithms for per-
+                                            We show soundness of ×pRHL and use it to analyze two classes             forming probabilistic inference (see Brooks et al. [22] for a survey).
+                                        of examples. First, we verify rapid mixing using different tools from        The rate of convergence, measured by the mixing time of a process,
+                                        coupling: standard coupling, shift coupling, and path coupling, a            determines how many steps we need to run the process before we are
+                                        compositional principle for combining local couplings into a global          approximately sampling from the target distribution. In this paper,
+                                        coupling. Second, we verify (approximate) equivalence between                we aim to formally verify such quantitative features of probabilistic
+                                        a source and an optimized program for several instances of loop              processes.
+                                        optimizations from the literature.                                               To this end, recently Barthe et al. [12] noticed a close connection
+                                                                                                                     between couplings and probabilistic relational Hoare logic (pRHL),
+                                        Categories and Subject Descriptors F.3.1 [Specifying and Verify-             originally designed for reasoning about the computational security
+                                        ing and Reasoning about Programs]                                            of cryptographic constructions [5]. Namely, every valid derivation
+                                                                                                                     in pRHL implies the existence of a coupling of the output distri-
+                                        Keywords Probabilistic Algorithms, Formal Verification, Rela-                butions of the two programs. Using this observation, Barthe et al.
+                                        tional Hoare Logic, Product Programs, Probabilistic Couplings.               [12] verify pRHL judgments that imply properties of random walks,
+                                                                                                                     the balls-in-bins process, and the birth-death process. Barthe et al.
+                                                                                                                     [15] extend the connection to approximate couplings in approximate
+                                        1.   Introduction                                                            probabilistic relational Hoare logic (apRHL), introduced for reason-
+                                        The coupling method [41, 42, 54, 55] is an elegant mathematical tool         ing about differentially private computations [7], and exploit this
+                                        for analyzing the relationship between probabilistic processes. Infor-       connection to prove differential privacy of several examples that had
+                                        mally, couplings correlate outputs of two probabilistic processes by         previously been beyond the reach of formal verification.
+                                        specifying how corresponding sampling statements are correlated;                 While pRHL is a useful tool for constructing couplings, it
+                                                                                                                     has two limitations. First, it cannot directly reason about the two
+                                                                                                                     coupled processes. This poses a problem for proving mixing and
+                                                                                                                     convergence properties. For instance, Barthe et al. [12] prove that
+                                                                                                                     if a certain property P holds on the coupled samples, then two
+                                                                                                                     random walks meet under the coupling. By a theorem about random
+                                                                                                                     walks, this means that the (total variation) distance between the
+                                                                                                                     two distributions is at most the probability of P under the coupling.
+                                                                                                                     However, we do not know what this probability is or how it grows
+                                                                                                                     as we run the random walk for more iterations, since pRHL cannot
+reason about the coupled process. We run into similar difficulties            In the following, we will work with sub-distributions over
+if we try to prove convergence using path coupling [23], a general         discrete (finite or countable) sets.
+construction that shows fast convergence by upper-bounding the
+expected distance when we make a transition from two coupled                                                            Pa set A is defined by
+                                                                           Definition 1. A discrete sub-distribution over
+                                                                           a mass function µ : A → [0, 1] such  P that a∈A µ(a) is defined
+states. While we can express the transition function in code, pRHL
+                                                                           and bounded by 1. The quantity a∈A µ(a) ∈ [0, 1] is called
+cannot reason about expectations.
+    Second, pRHL cannot express some natural classes of couplings          the weight of µ and denoted by |µ|. The support supp(µ) of µ is
+because the rule for while loops requires that both loops execute in       defined as {x ∈ A | µ(x) 6= 0} and is discrete (i.e., countable)
+lockstep. For instance, shift couplings [1] allow the two processes        by construction. We denote the set of sub-distributions over A by
+to meet at a random time shift, e.g., the first process at time t1         Distr(A). A distribution is a sub-distribution with weight 1. The
+could track the second process at some other time t2 = t1 + δ.             probability of an event P w.r.t. µ, writtenPPrµ [P ] (or Pr[P ] when
+This incompleteness of pRHL is also a limitation for more standard         µ is clear from the context), is defined as {x∈A|P (x)} µ(x).
+applications of pRHL to program analysis, like validation of loop             One can equip distributions with a monadic structure using the
+transformations, and more generally for any optimization that alters       Dirac distributions 1x for the unit1 and distribution expectation
+the control flow of the programs.                                          Ex∼µ [M (x)] for the bind; if µ is a distribution over A and M has
+    We address these problems as follows. First, we deepen the             type A → Distr(B), then the bind defines a distribution over B:
+connection between pRHL and couplings with an observation that is                                            X
+reminiscent of proofs-as-programs: not only do pRHL judgements                          Ea∼µ [M (a)] : b 7→       µ(a) · M (a)(b).
+correspond to couplings, but pRHL proofs encode a probabilistic                                                   a
+product program that constructs the distribution witnessing the                When working with sub-distributions over tuples, the prob-
+coupling. This program is similar to existing product program              abilistic versions of the usual projections on tuples are called
+constructions [6, 57] in that it simulates two program executions          marginals. For distributions over pairs, we define the first and sec-
+with a single program. However, the probabilistic product also                                                           P µ over A × B by
+                                                                           ond marginalsPπ1 (µ) and π2 (µ) of a distribution
+coordinates the samplings in the two executions, as specified by           π1 (µ)(a) = b∈B µ(a, b) and π2 (µ)(b) = a∈A µ(a, b). For a
+the coupling encoded in the original pRHL derivation. Second,              distribution µ over memories (i.e., maps from variables Vars to a
+we propose a general rule for while loops; our rule subsumes               set of values V ) and a set of variables X ⊆ Vars,
+                                                                                                                            P we define the
+several existing rules and is sufficiently expressive to capture several   X-marginal distribution of µ as πX (µ)(m) = {µ(m0 ) | ∀x ∈
+examples of shift coupling. The resulting system, which we call            X. m0 (x) = m(x)}.
+product pRHL or ×pRHL for short, has several benefits.                         We can also construct a sub-distribution over tuples from two
+    First, we obtain a simple, algorithmic procedure to construct the      distributions: the product sub-distribution of sub-distributions µ1
+probabilistic product given a pRHL derivation. The product directly        and µ2 of equal weight is defined by
+simulates the coupled processes, so we can prove quantitative prop-                          (µ1 × µ2 )(a, b) = µ1 (a) · µ2 (b).
+erties about probabilities or expected values of this coupling using
+existing probabilistic verification techniques. Moreover, intermedi-       We are now ready to formally define coupling.
+ate assertions in a pRHL derivation can be soundly transported to          Definition 2. Two sub-distributions µ1 , µ2 resp. over A and B
+the probabilistic product in ×pRHL derivations. For instance, we           are said to be coupled with witness µ ∈ Distr(A × B), written
+may prove synchronized control flow in pRHL, and directly assume           µ J hµ1 & µ2 i, iff π1 (µ) = µ1 and π2 (µ) = µ2 .
+this fact in the probabilistic product. Many facts are often practi-          For Ψ ⊆ A × B, we write µ JΨ hµ1 & µ2 i if µ J hµ1 & µ2 i
+cally easier to manipulate in pRHL, since pRHL works purely on             and moreover supp(µ) ⊆ Ψ. We will sometimes abuse notation
+non-probabilistic assertions.                                              and call µ a coupling of µ1 and µ2 .
+    Second, we obtain a powerful logic that can reason about many
+examples from the coupling literature, especially shift couplings,             As an example, suppose that A = B and µ1 = µ2 are the
+and from the translation validation literature, especially loop op-        uniform distributions. Then, any bijection f : A → A gives a
+timizations. On the foundational side, we prove that our logic is          coupling of µ1 and µ2 ; we call the resulting coupling Df (A) so
+relatively complete for deterministic programs.                            that Df (A) J hµ1 & µ2 i. The coupling Df (A) assigns positive
+                                                                           probability only to pairs (v, f v) where v ∈ A.
+Summary of contributions We make the following contributions.                  For another example, suppose again that A = B and µ1 = µ2 ,
+ • We present a proof-relevant program logic ×pRHL that extracts           but the distributions are not necessarily uniform. Then, the identity
+     a probabilistic product program from a valid derivation, and          map id : A → A always gives a coupling of µ1 and µ2 , correlating
+     prove (using the Coq proof assistant) that the logic is sound.        samples from both distributions to be the same. We will write
+                                                                           D= (µ1 ) for the resulting coupling, so that D= (µ1 ) J hµ1 & µ2 i.
+ • We propose new rules for loops and random sampling in ×pRHL.            If µ1 is the uniform distribution we will sometime write D= (A)
+     We also prove relative completeness for deterministic programs.       instead of D= (µ1 ). Note that D= (µ1 ) assigns positive probability
+ • We demonstrate several applications of ×pRHL to showing con-            only to pairs (v, v) with µ1 (v), µ2 (v) 6= 0.
+     vergence of probabilistic processes; several of these examples            To reason about convergence of probabilistic processes, we will
+     use path coupling, a compositional tool for constructing cou-         use the total variation distance on distributions (also known as
+     plings which bounds convergence in terms of expected properties       statistical distance).
+     of the coupling, and shift coupling, a generalization of coupling     Definition 3. Let µ1 and µ2 be sub-distributions over a countable
+     where the two processes are allowed to meet at different times.       set A. The total variation (TV) distance between µ1 and µ2 is
+     We show how to validate some common loop transformations.             defined by:
+                                                                                                       1X
+2.    Preliminaries                                                                     TV(µ1 , µ2 ) =       |µ1 (a) − µ2 (a)|.
+                                                                                                       2 a∈A
+We begin by giving a bird’s eye view of probabilistic couplings,
+which take output distributions from two probabilistic processes and       1 1 is the distribution where x has probability 1 and all other elements have
+                                                                              x
+place them in the same probabilistic space.                                probability 0.
+   To bound this distance, it is enough to find a coupling and bound      3.2     Proof System
+the probability that the two coupled variables differ; this is the        Our proof system manipulates judgments of the form:
+fundamental idea underlying the coupling method.                                                         
+                                                                                                     c1
+Theorem 4 (Fundamental theorem of couplings (e.g., [42])). Let µ1                               Φ          Ψ       c
+                                                                                                     c2
+and µ2 be distributions over a countable set. Then for any coupling
+µ of µ1 , µ2 , we have                                                    where c1 , c2 are statements over disjoint variables and Φ and Ψ are
+                TV(µ1 , µ2 ) ≤ Pr(x,x0 )∼µ [x 6= x ]. 0                   assertions over the variables of c1 and c2 . We will not set a specific
+                                                                          syntax for assertions, but one natural choice is first-order formulas
+                                                                          over the program variables of both programs.
+3.    Product Programs                                                        Informally, the judgment is valid if c is a probabilistic product
+3.1   Language                                                            program for c1 and c2 under the pre-condition Φ, i.e. for every
+                                                                          initial memory m = m1 ] m2 satisfying the pre-condition Φ, the
+We will work with a core, probabilistic imperative language with a        sub-distribution JcKm is a coupling for Jc1 Km1 and Jc2 Km2 , and
+command for random sampling from primitive distributions. The
+                                                                          moreover supp(JcKm ) only contains states that satisfy Ψ.
+set of commands is defined as follows:
+                                                                          Definition 5 (Valid judgment).
+      C ::= skip                       noop
+           | abort                     abort                               • Two commands c1 and c2 are separable iff their variables are
+           | X ←E
+                                                                                                1 ) ∩Vars(c
+                                                                                                           2 ) = ∅.
+                                       deterministic assignment                             Vars(c
+                                                                             disjoint, i.e. 
+           | X ← $ D(E)                probabilistic assignment                                   c1
+                                                                           • A judgment Φ               Ψ       c is valid iff the commands
+           | C; C                      sequencing                                                 c2
+           | if E then C else C        conditional                           c1 and c2 are separable and for every memory m = m1 ] m2
+           | while E do C              while loop                            such that m  Φ, we have
+    Here, X is a set of variables, E is a set of (deterministic)                             JcKm JΨ h(Jc1 Km1 ) & (Jc2 Km2 )i.
+expressions, and D is a set of distribution expressions. Variables and
+expressions are typed, ranging over booleans, integers, lists, etc. The         For comparison, judgments in pRHL are of the form
+expression grammar is entirely standard, and we omit it. We will use                                          
+                                                                                                           c1
+metavariables c to represent commands, e to represents expressions,                                  Φ          Ψ
+                                                                                                           c2
+and g to represent distribution expressions.
+    We will use several shorthands for commands:if e then c               and assert that for every initial memory m = m1 ] m2 such that
+for if e then c else skip, abort for the looping command                  m  Φ, there exists a coupling µ such that
+while > do skip, and ce,k for the k-fold composition of c
+restricted to e. Formally,                                                                   µ JΨ h(Jc1 Km1 ) & (Jc2 Km2 )i.
+
+            ce,k , ı ← 0; while (ı < k) ∧ e do c; ı++                     In contrast, our notion of judgment is proof-relevant, since the
+                                                                          derivation of the judgment guides the product construction. We
+where ı is a fresh variable. We allow k to be an arbitrary expression;    briefly comment on several rules in our system, presented in Fig. 3.
+when k is a constant,                                                     The [C ONSEQ] rule is similar to the rule of consequence, and reflects
+                                   k times
+                                                                          that validity is preserved by weakening the post-condition and
+                         z             }|               {                 strengthening the pre-condition; none of the programs is modified
+                ` ce,k ≡ if e then c; . . . ; if e then c                 in this case.
+for the simple notion of program equivalence introduced in Figure 2.          The [FALSE] rule corresponds to the fact that under a false
+                                                                          precondition nothing needs to be proved.
+     The denotational semantics of programs is adapted from the               The [C ASE] rule allows proving a judgment by case analysis;
+seminal work of Kozen [36]. We first interpret every ground type          specifically, the validity of a judgment with pre-condition Φ can
+T as a set JT K; other constructors C are interpreted as functions        be established from the validity of two judgments, one where the
+JCK that respect their arities. The semantics of expressions and          pre-condition is strengthened with e and the other where the pre-
+distribution expressions, denoted JeKm and JgKm respectively, are         condition is strengthened with ¬e. The product program is of the
+parameterized by a state m (also called a memory), and are defined        form if e then c else c0 , where c and c0 correspond to the product
+in the usual way. Finally, commands are interpreted as a function         programs built from the proofs of the first and second premises
+from memories to sub-distributions over memories, where memories          respectively.
+are finite maps from variables to values. Formally, we let StateX             The [S TRUCT] rule allows replacing programs by provably
+denote the set of memories over the finite set of variables X.            equivalent programs. The rules for proving program equivalence are
+Moreover, we use ] to denote the standard disjoint union on finite        given in Figure 2, and manipulate judgments of the form Φ ` c ≡ c0 ,
+maps, so ] : StateX1 × StateX2 → StateX1 ∪X2 for disjoint                 where Φ is a relational assertion. We only introduce equations that
+finite sets X1 and X2 . The interpretation of c, written JcK, is a        are needed for recovering derived rules, striving to keep the notion
+function from StateX to Distr(StateX ), where Vars(c) = X.                of structural equivalence as simple as possible.
+The definition of J·K is given in Figure 1; note that cb,k is slightly        The [A SSG] rule corresponds to the pRHL rule for assignments;
+different than cb,k , as the former unrolls the loop k times, while the   in this case, the product program is simply the sequential composi-
+latter also drops (via the abort instruction) executions that do not      tion of the two assignments.
+exit the loop after k iterations.                                             The [R AND] rule informally takes a coupling between the two
+     Last, for any predicate over memories Φ, we say that a command       distributions used for sampling in the left and right program, and
+is Φ-lossless iff for any memory m s.t. Φ(m), the weight of JcKm is       produces a product program that draws the pair of correlated samples
+equal to 1; intuitively, such a command terminates with probability       from the coupling. Since our language supports sampling from
+1 from every initial memory satisfying Φ. A command is lossless if        distribution expressions and not only distributions, the rule asks for
+it is >-lossless, i.e. if |JcKm | = 1 for every memory m.                 the existence of a coupling for each interpretation of the distribution
+                       JskipKm = 1m                                                       JabortKm = 0
+                      Jx ← eKm = 1m[x:=JeKm ]                                                $ gK
+                                                                                          Jx ←   m = Ev∼JgKm [1m[x:=v] ]
+                       Jc1 ; c2 Km = Em0 ∼Jc1 Km [Jc2 Km0 ]                 Jif e then s1 else s2 Km = if JeKm then Jc1 Km else Jc2 Km
+                                                                                       n times
+                                                                             z             }|               {
+              Jwhile b do cKm = lim Jc[b,n] Km                where c[b,n] , if b then c; . . . ; if b then c; if b then abort
+                                     n→∞
+
+
+
+
+                                                      Figure 1. Interpretation of commands
+
+
+expressions under a valuation satisfying the pre-condition Φ of the
+                                                                                                     Φ ` c1 ≡ c2
+judgment. Furthermore, note that the rule requires that every element
+in the support of the coupling validates the post-condition. This is              Φ`c≡c              Φ ` c2 ≡ c1         Φ`x←
+                                                                                                                            $ 1 ≡ skip
+                                                                                                                               x
+similar to pRHL, and is a natural requirement given the notion of
+valid judgment. However, the rule is strictly more general than the                 Φ =⇒ x = e
+corresponding pRHL rule, which is restricted to the case where Ψ is               Φ ` x ← e ≡ skip            Φ ` c; skip ≡ c         Φ ` skip; c ≡ c
+the graph of some bijection.
+    The [S EQ] rule for sequential composition simply composes the                           Φ ` c1 ≡ c01                   > ` c2 ≡ c02
+two product programs in sequence. This rule reflects the composi-
+tional property of couplings.                                                             Φ ` c1 ; c2 ≡ c01 ; c2          Φ ` c1 ; c2 ≡ c1 ; c02
+    The [W HILE] rule for while loops constructs a product program
+that interleaves synchronous and asynchronous executions of the                            Φ =⇒ e                                Φ =⇒ ¬e
+loop bodies. The first premise establishes that k1 and k2 are strictly            Φ ` if e then c else c0 ≡ c           Φ ` if e then c else c0 ≡ c0
+positive when the loop invariant Ψ holds. Then, we specify an
+expression e—which may mention variables from both sides—that                                 Φ ∧ e ` c1 ≡ c2     Φ ∧ ¬e ` c01 ≡ c02
+holds true exactly when at least one of the guards is true.
+                                                                                         Φ ` if e then c1 else c1 ≡ if e then c2 else c02
+                                                                                                                0
+    Next, the notation ⊕{p0 , p1 , p2 } indicates that exactly one of
+the tests p0 , p1 , and p2 must hold. These predicates guide the
+construction of the product program. If p0 holds, then both guards                                         e ` c ≡ c0
+should be equal and we can execute the two sides k1 and k2                                      Φ ` while e do c ≡ while e do c0
+iterations respectively, preserving the loop invariant Ψ. If p1 holds
+and the right loop has not terminated yet, then the left loop also has
+not terminated yet (i.e., e2 holds), we may execute the left loop one                    Φ ` while e do c ≡ if e then (c; while e do c)
+iteration. If p2 holds and the left loop has not terminated yet (i.e., e1
+holds), then the right loop also has not terminated yet and we may
+execute the right loop one iteration.                                                                Figure 2. Equivalence rules
+    The last pair of premises deal with termination. Note that some
+condition on termination is needed for soundness of the logic: if the
+left loop terminates with probability 1 while the right loop terminates          two). By reasoning about program equivalence, we can derive all
+with probability 0 (i.e., never), it is impossible to construct a valid          one-sided rules and the two-sided rules of conditionals and loops
+product program since there is no distribution on pairs that has first           from pRHL, presented in Fig. 4, within our system.2
+marginal with weight 1 and second marginal with weight 0. So,
+                                                                                 Proposition 6. All the rules in Figure 4 (and their symmetric
+we require that the first and second loops are lossless assuming p1
+                                                                                 version) are derived rules.
+and p2 respectively. This ensures that with probability 1, there are
+only finitely many steps where we execute the left or right loop                     We briefly comment on some of the derived rules. The [A SSG -L]
+separately. Note that the product program may still fail to terminate            rule is the one-sided rule for assignment. It can be derived from its
+with positive probability since there may be infinite sequences of               two-sided counterpart, the [A SSG] rule, using the [S TRUCT] rule.
+iterations where p0 holds so both loops advance, but both programs                   The [R AND -L] rule is the one-sided rule for random sampling.
+will yield sub-distributions with the same weight so we can still find           It can be derived from its two-sided counterpart, the [R AND] rule,
+a coupling.                                                                      using the [S TRUCT] rule and the fact that the product distribution
+    With these premises, the construction of the product program is              µ1 × µ2 is a valid coupling of proper distributions µ1 and µ2 .
+straightforward. At the top level, the product continues as long as e                We have one-sided and two-sided rules for conditionals. The
+is true, i.e., while at least one of the two loops can make progress.            [C OND -L] rule is the one-sided version; it can be derived from the
+Each iteration, it performs a case analysis on the three predicates. If          [C ASE] and [S TRUCT] rules. The [C OND -S] rule is the two-sided
+p0 holds, then we execute the product from running the two loops                 version; the rule assumes that the two guards of the conditional
+up to k1 and k2 iterations respectively. If p1 holds, then we execute            statements are synchronized, so that one must only need to reason
+the product from running the left loop one iteration; if p2 then we              about the cases where both statements enter the true branch, and the
+execute the product from running the right loop one iteration.                   case where both statements enter the false branch. It can be derived
+                                                                                 from the [C ASE], [S TRUCT], and [FALSE] rules.
+Derived rules
+Presentations of relational Hoare logic often include one-sided rules,           2 In fact, the one-sided and two-sided rules are inter-derivable for all
+which are based on the analysis of a single program (rather than                 constructions except random assignments and loops.
+                                      
+                                   c1
+                              Φ          Ψ     c     Φ0 =⇒ Φ        Ψ =⇒ Ψ0
+                                   c2
+                   C ONSEQ                                                      FALSE        
+                                                c1                                             c1
+                                           Φ0         Ψ0       c                            ⊥       Ψ                       skip
+                                                c2                                             c2
+                                             
+                                           c1
+                                      Φ          Ψ      c     Φ ` c1 ≡ c01     Φ ` c2 ≡ c02   Φ ` c ≡ c0
+                                           c2
+                           S TRUCT                             0  
+                                                                   c1
+                                                              Φ           Ψ      c0
+                                                                   c02
+                                                                                    
+                                                   c1                                c1
+                                           Φ∧e            Ψ      c        Φ ∧ ¬e           Ψ   c0
+                                                   c2                                c2
+                                   C ASE                     
+                                                          c1
+                                                   Φ            Ψ      if e then c else c0
+                                                          c2
+
+                                     A SSG                                        
+                                                                         x1 ← e1
+                                               Ψ[e1 /x1 , e2 /x2 ]                  Ψ        x1 ← e1 ; x2 ← e2
+                                                                         x2 ← e2
+
+                                       ∀m.m  Φ =⇒ JgKm J{(v1 ,v2 )|m[x1 :=v1 ,x2 :=v2 ]Ψ} hJg1 Km & Jg2 Km i
+                               R AND                                 
+                                                        x1 ←
+                                                           $ g
+                                                                1                          $ g
+                                                    Φ                  Ψ        (x1 , x2 ) ←
+                                                        x2 ←
+                                                           $ g
+                                                                2
+                                                                      0  
+                                                    c1                            c1
+                                                Φ        Ξ       c         Ξ             Ψ       c0
+                                                    c2                            c02
+                                          S EQ
+                                                             c1 ; c01
+                                                                      
+                                                        Φ           0     Ψ        c; c0
+                                                             c2 ; c2
+
+                             Ψ =⇒ k1 > 0 ∧ k2 > 0         Ψ =⇒ (e1 ∨ e2 ) = e      Ψ ∧ e =⇒ ⊕{p0 , p1 , p2 }
+                                 Ψ ∧ p0 ∧ e =⇒ e1 = e2        Ψ ∧ p1 ∧ e =⇒ e1       Ψ ∧ p2 ∧ e =⇒ e2
+                                  while  e1 ∧ p1 do c1  Ψ-lossless     while e2 ∧ p2 do c2
+                      e1 ,k1                                                     Ψ-lossless            
+                        c1                                          c1                                   skip
+               Ψ ∧ p0     e2 ,k2   Ψ       c0      Ψ ∧ e 1 ∧ p1           Ψ       c1       Ψ ∧ e2 ∧ p2            Ψ                        c2
+                        c                                          skip                                    c2
+      W HILE         2                                    
+                           while e1 do c1
+                     Ψ                        Ψ ∧ ¬e1 ∧ ¬e2       while e do if p0 then c0 else if p1 then c1 else c2
+                           while e2 do c2
+
+                                                               Figure 3. Proof rules
+
+
+    We also have one-sided and two-sided rules for loops. The                  the loop body of the product program preserves the invariant Ψ.
+[W HILE -L] rule corresponds to the pRHL one-sided rule for while              We are left to prove that the semantics of the projections of the
+loops; it can be derived from the [W HILE] rule by setting p1 = >,             product program correspond to respective semantics of the original
+p0 = p2 = ⊥, and k1 = k2 = 1, e = e1 , e2 = ⊥, c2 = skip                       programs. We here detail the proof for first projection, the one for
+and using the [S TRUCT] and [FALSE] rules. The rule [W HILE -S]                the second projection being similar.
+corresponds to the pRHL two-sided rule for while loops. This                       Let m s.t. m |= Ψ. We want to prove that Jw1 Km1 =
+rule assumes that the two loops are synchronized, i.e., the guards             π1 (JwKm ) where m1 , π1 (m), w , while e do c and
+of the two loops are equal assuming the loop invariant. This rule              w1 , while e1 do c1 . We prove this equation by verifying the
+can be derived from the general [W HILE] rule by setting p0 = >,               double inequality Jw1 Km1  π1 (JwKm ) and π1 (JwKm )  Jw1 Km1
+p1 = p2 = ⊥, and k1 = k2 = 1, and e = e1 , and using the
+                                                                               where  denotes the pointwise ordering of functions. We only detail
+[FALSE] rule.
+                                                                               the first one, the proof for the latter being similar. By definition
+3.3   Soundness and Relative Completeness                                      of Jw1 Km1 as limn→∞ Jc1[e1 ,n] Km , proving the first inequality
+                                                                                                                      1
+                                                                               can be reduced to proving that Jc1[e1 ,n] Km  π1 (JwKm ) for any
+We have formally verified the soundness theorem below in the Coq                                                            1
+proof assistant, with its Ssreflect extension.                                 n ∈ N. We proceed by induction on n and only detail the inductive
+                                                                               case, the base case being immediate. We here do a case analysis
+Theorem 7 (Soundness). Every derivable judgment is valid.                      on Je1 Km . Here too, by lack of space, we only detail the more
+                                                                               technical case where Je1 Km holds. We then proceed by case analysis
+Proof sketch. The proof is by induction on the proof derivation. We            on Jp0 Km , Jp1 Km and Jp2 Km , all of them being pairwise mutually
+only detail the case for the rule [W HILE], using the same notations           exclusive:
+of Fig. 3. It is immediate that the product program satisfies the post-            • If Jp0 Km holds, then
+condition: i) the loop condition e does not hold after the execution
+of the loop by construction, and ii) the rule premises ensure that                       Jc1[e1 ,n+1] Km = Em0 ∼Jc1 Km [Jc1[e1 ,n] Km0 ]
+                                                                                                       1                1
+                                              A SSG -L                                 
+                                                                             x1 ← e1
+                                                           Ψ[e1 /x1 ]                    Ψ       x1 ← e1
+                                                                              skip
+
+                                                                        µ1 lossless
+                                    R AND -L                                              
+                                                ∀v1 ∈ supp(g1 ), Ψ[v1 /x1 ]
+                                                                               x1 $← g1      Ψ      x1 ←$ g
+                                                                                                            1
+                                                                                 skip
+                                                                                       0  
+                                                          c1                                   c1
+                                               Φ ∧ e1            Ψ       c       Φ ∧ ¬e1            Ψ       c0
+                                                          c2                                   c2
+                                   C OND -L  
+                                                     if e1 then c1 else c01
+                                                                               
+                                                Φ                               Ψ        if e1 then c else c0
+                                                                c2
+                                                                                                 0  
+                                                                     c1                                 c1
+                                  Φ =⇒ e1 = e2            Φ ∧ e1            Ψ       c        Φ ∧ ¬e1           Ψ               c0
+                                                                     c2                                 c02
+                         C OND -S
+                                                     if e1 then c1 else c01
+                                                                               
+                                                Φ                               Ψ        if e1 then c else c0
+                                                     if e2 then c2 else c02
+                                                                
+                                                           c1
+                                              Ψ ∧ e1               Ψ       c1     while e1 do c1 Ψ-lossless
+                                                         skip
+                                  W HILE -L                                        
+                                                        while e1 do c1
+                                                  Ψ                          Ψ ∧ ¬e1         while e1 do c1
+                                                              skip
+                                                                                            
+                                                                                        c1
+                                                    Ψ =⇒ e1 = e2             Ψ ∧ e1             Ψ     c
+                                                                                        c2
+                                      W HILE -S                                     
+                                                        while e1 do c1
+                                                  Ψ                           Ψ ∧ ¬e1        while e1 do c
+                                                        while e2 do c2
+
+                                                                    Figure 4. Derived rules
+
+
+                           Em0 ∼Jce1 ,k1 K     [Jc1[e1 ,n] Km0 ]                 not complete for proving rapid mixing of Markov chains.3 Second, it
+                                    1      m1                                     is not clear that our proof system is complete with respect to hoisting
+                          = Em0 ∼Jc0 Km [Jc1[e1 ,n] Km0 ] = JwKm .                random assignments out of loops.
+                                                                                      However, we note that the deterministic fragment of our logic
+ • If Jp1 Km holds, then
+                                                                                  achieves completeness for programs that satisfy a sufficiently strong
+          (
+                         JwKm = Em0 ∼Jc1 Km [JwKm0 ]                              termination property; the key is that the new rule for while sub-
+                                                                                  sumes self-composition for while loops, provided they terminate
+              Jc1[e1 ,n+1] Km = Em0 ∼Jc1 Km [Jc1[e1 ,n] Km0 ].                    on all initial memories satisfying the invariant. More precisely, we
+                               1              1
+                                                                                  can prove the following completeness theorem.
+   We conclude by an immediate application of the induction
+   hypothesis, using the monotony of the distribution expectation                 Theorem 8. Let c1 and c2 be separable deterministic programs. If
+   operator.                                                                      {Φ} c1 ; c2 {Ψ} is derivable using Hoare logic, then
+ • If Jp2 Km holds, then                                                                                          
+                                                                                                               c1
+                                                                                                          Φ          Ψ       _
+          Jc1[e1 ,n+1] Km = Em0 ∼π1 (JsKm ) [Jc1[e1 ,n+1] Km0 ]                                                c2
+                           1
+                                                                                  is derivable. Therefore, ×pRHL is relatively complete for determin-
+   where s , while e2 ∧ p2 do c2 ; w. Note that after having                      istic programs.
+   executed while e2 ∧ p2 do c2 —which is lossless— Ψ and
+   e1 still hold while e2 does not. By the premises of the rule, p2               Proof sketch. It suffices to prove that if {Φ} c1 {Ψ} is derivable
+   must then be false, so p0 ⊕ p1 holds for every memory m0 in the                using Hoare logic, then
+   support of π1 (JsKm ). In that case, following the two first cases,                                               
+                                                                                                                 c1
+   we know that Jc1[e1 ,n+1] Km0  π1 (JwKm0 ). Hence,                                                    Φ             Ψ       _
+                                                                                                               skip
+      Jc1[e1 ,n+1] Km  Em0 ∼π1 (JsKm ) [π1 (JwKm0 )] (monotony)                  is derivable. The proof proceeds by induction on the derivation.
+                     1
+                         = π1 (Em0 ∼JsKm [JwKm0 ])         (separability)
+                                                                                  3.4   Convergence from Couplings
+                         = π1 (JwKm ),
+                                                                                  The fundamental theorem of couplings (Theorem 4) gives a powerful
+   where the penultimate step is valid because while e2 ∧ p2 do c2                method to prove convergence of random processes. First, we recast
+   does not modify m1 — c1 and c2 being separable.                                it in terms of ×pRHL.
+                                                                                  3 Kumar and Ramesh [39] show that the class of causal couplings—which
+   Although it is not a primary objective of our work, we briefly                 contains all couplings in our logic—are unable to prove rapid mixing for
+comment on completeness of the logic. First, the coupling method is               some rapidly-mixing Markov chains [29, 34]
+Proposition 9. Let c1 and c2 be separable programs and assume               mirror moves until they meet, when they make identical moves to
+that the following judgment is valid:                                       stay equal. Specifically, they show that
+                                                                                                                              
+                      c1                                                                 rwalk1
+                 Φ          Ψ =⇒ x1 = x2        c                                  Φ                   k ∈ psum(rev(l1 )) =⇒ x1 = x2
+                      c2                                                                 rwalk2
+Then for every memory m such that m |= Φ, we have                           where Φ , s1 − s2 = 2k, rev(l) reverses the list, and psum(l) is
+                                                                            the list of partial sums of l (sums over its initial segments). We can
+                    TV(µ1 , µ2 ) ≤      Pr [¬Ψ]                             lift the judgment to ×pRHL
+                                      x∼JcKm
+                                                                                                                                   
+where µ1 , µ2 are the distributions obtained by sampling x1 from                      rwalk1
+                                                                               Φ                  k ∈ psum(rev(l1 )) =⇒ x1 = x2             rwalk0
+Jc1 Km and x2 from Jc2 Km respectively.                                               rwalk2
+    This result is a direct consequence of the soundness of the logic,      where rwalk0 is the following product program:
+and allows proving convergence in two parts. First, we use ×pRHL              x1 ← s1 ; x2 ← s2 ; ı1 ← 0; ı2 ← 0; l1 ← []; l2 ← [];
+to establish a valid post-condition of the form Ψ =⇒ x1 = x2 .                while ı1 < T do
+Second, we prove that for every memory m satisfying some pre-                     if x1 = x2 then
+condition, the product program c built from the derivation satisfies                             $ D = ({−1, 1});
+                                                                                      (r1 , r2 ) ←
+Prx∼JcKm [¬Ψ] ≤ β. There are multiple approaches for proving                      else
+                                                                                                 $ D
+                                                                                      (r1 , r2 ) ←
+properties of this form—reasoning directly about the semantics                                      opp ({−1, 1});
+of programs; existing formalisms for bounding probabilities and                   x1 ← x1 + r1 ; x2 ← x2 + r2 ;
+reasoning about expectations (e.g., [37, 45]); program logics for                 l1 ← r :: l1 ; l2 ← r :: l2 ;
+probabilistic programs (e.g., [16, 28, 48]). We will check the                    ı1 ← ı1 + 1; ı2 ← ı2 + 1;
+property on pen and paper; mechanizing the proofs is left for future          return (x1 , x2 )
+work.
+                                                                            where opp x , −x.
+                                                                               We briefly sketch the derivation of the product. We start by an
+4.     Application: Convergence of Markov Chains                            application of the [W HILE -S] rule with the invariant
+We now turn to our first group of examples: proving convergence of              Ψ , k ∈ psum(rev(l1 )) =⇒ x1 = x2
+probabilistic processes. Suppose we have a probabilistic process on
+a set Ω of possible states. At each time step, the process selects                 ∧k ∈
+                                                                                      / psum(rev(l1 )) =⇒ x1 − x2 = 2k − sum(l1 ),
+the next state probabilistically. Consider two runs of the same             where sum(l) is the sum of the list. Then, we apply a [S EQ]
+probabilistic process started from two different states in Ω. We            rule (consuming the first random sampling on each side) with
+would like to know how many steps we need to run before the                 intermediate assertion
+two distributions on states converges to a common distribution. We
+consider several classic examples.                                          Ξ , Ψ ∧ (x1 = x2 =⇒ r1 = r2 ) ∧ (x1 6= x2 =⇒ r1 = −r2 )
+                                                                            The sub-proof obligation on tails is straightforward, the interesting
+Notation. Throughout this section, we consider two copies of the            one is for the random sampling. We start by using the [C ASE] rule
+same program. To ensure that the two copies are separable, we tag
+                                                                            with e , x1 = x2 , which introduce the conditional in the product
+all the variables of the first copy with 1, and all the variables of the
+                                                                            program. If the equality holds, then the two random values are
+second copy with 2.
+                                                                            synchronized using the D= ({−1, 1}); if not, they are mirrored using
+                                                                            Dopp ({−1, 1}). In our mirror coupling, k ∈ psum(l1 ) implies that
+4.1    Simple, Symmetric Random Walk
+                                                                            the walks have already met, and continue to have the same position.
+                                   Our first example is a simple ran-          However, the derivation by itself does not tell us how far the
+     x ← s; ı ← 0; l ← [];         dom walk on the integers. Let the        two distributions are, as a function of T . To get this information,
+     while ı < T do                state space Ω be Z. At each step,        we will use the probabilistic product construction and the following
+         r←$ {−1, 1};              the process chooses uniformly to         classical result from the theory of random walks.
+         x ← x + r;                move left (decreasing the position
+                                   by 1) or right (increasing the posi-     Theorem 10 (e.g., [3]). Let X0 , X1 , . . . be a symmetric random
+         l ← r :: l;                                                        walk on the integers with initial position X0 = 0. Then, for any
+         ı ← ı + 1;                tion by 1). The program rwalk in
+                                   Figure 5 implements the process,         position k ∈ Z, the probability that the walk does not reach k within
+     return x                                                               t steps is at most
+                                   executed for T steps. The variable
+                                                                                                                           √
+Figure 5. Random walk              l is a ghost variable. While it does                                                  ke 2
+                                   not influence the process, it keeps                         Pr[X0 , . . . , Xt 6= k] ≤ √ .
+                                                                                                                          π t
+track of the list of sampled values, and will be used to state assertions
+when we construct the coupling.                                                 Now, we can analyze how quickly the two walks mix.
+     Now, consider the random walk started from starting positions          Theorem 11. If we perform a simple random walk for T steps from
+s1 , s2 . We want to show that the TV-distance between the two              two positions that are 2k apart, then the resulting√distributions µ1
+distributions on positions decreases as we run for more steps T ;
+                                                                            and µ2 on final positions satisfy TV(µ1 , µ2 ) ≤ ke
+                                                                                                                              √ 2 . Formally, for
+roughly, the random walk forgets its initial position. It is not hard                                                        π T
+to see that if s1 − s2 is an odd integer, then we will not have             every two memories m1 and m2 such that m1 (x) − m2 (x) = 2k,
+convergence: at any timestep t, the support of one distribution will        we have
+                                                                                                                              √
+be on even integers while the support of the other distribution will                                                        ke 2
+                                                                                          TV(JrwalkKm1 , JrwalkKm2 ) ≤ √ ,
+be on odd integers, so the TV-distance remains 1.                                                                           π T
+     When s1 − s2 = 2k is even, we can construct a coupling to
+show convergence. Barthe et al. [12] used pRHL to couple these              Proof. Conceptually, we can think of the difference x1 − x2 as
+random walks by mirroring; informally, the coupled walks make               a random walk which increases by 2 with half probability and
+decreases by 2 with half probability. By applying Theorem 10 to         Theorem 12. Let m1 and m2 two memories such that
+this random walk, we find that in the product program c0 ,              m1 (s), m2 (s) ∈ [1, 10], and suppose N > 10. Then:
+                                           √
+                                                                                  TV(JdynkinKm1 , JdynkinKm2 ) ≤ (9/10) /5−2 .
+                                                                                                                              N
+                                         ke 2
+                  Pr[k ∈/ psum(l1 )] ≤ √ .
+                                         π T                            The two distributions converge exponentially fast as N grows.
+Then, we can conclude by Theorem 9.
+                                                                        Proof. In the product program dynkin0 , we want to bound the
+4.2   The Dynkin Process                                                probability that l1 and l2 are disjoint; i.e., the probability that the
+Our second example models a process called the Dynkin process.          two processes never meet. We proceed in two steps. First, it is not
+There is a sequence of N concealed cards, each with a number            hard to show that |x1 − x2 | < 10 is an invariant. Thus, at each
+drawn uniformly at random from {1, . . . , 10}. A player starts at      iteration, there is a 1/10 chance that the lagging process hits the
+some position in {1, . . . , 10}. Repeatedly, the player looks at the   leading process. Second, each process moves at most 10 positions
+number at their current position, and moves forward that many           each iteration and we finish when both processes reach the end, so
+steps. For instance, if the player reveals 2 at their current loca-     there are at least 2(N/10 − 1) = N/5 − 2 chances to hit. Therefore,
+tion, then she moves forward two spaces. The player stops when          in the product we can show
+she passes the last card of the sequence. We want to show fast                            Pr[(l1 ∩ l2 ) = ∅] ≤ (9/10) /5−2 .
+                                                                                                                       N
+                                                                                                                                             (1)
+convergence of this process if we start from any two initial po-
+sitions. In code, the Dynkin process is captured by the program         We can then conclude by Theorem 9.
+dynkin defined in Figure 6. Here, l stores the history of posi-
+tions of the player; this ghost variable will be useful both for            To highlight the quantitative information verified by our ap-
+writing assertions about the coupling, and for assertions in the        proach, we note that the corresponding theorem for random walks
+product program. Just as for random walks, we can consider the          (Theorem 11) shows that the total √ variation distance between two
+mixing rate of this process, starting from two positions s1 , s2 .      random walks decreases as O(1/ T ). In contrast, Theorem 12
+                                    We will couple two runs of the      shows that total variation distance between two Dynkin processes
+                                    Dynkin process from two start-      converges as O(0.9N ), giving much faster mixing (exponentially
+   x ← s; l ← [x];
+                                    ing positions asynchronously:       fast instead of polynomially fast).
+   while x < N do
+       r← $ [1, 10];                we will move whichever process      Remark. The Dynkin process is inspired by the following two-
+       x ← x + r;                   is behind, holding the other pro-   player game. Both players pick a starting position. There is one
+       l ← x :: l;                  cess temporarily fixed. If both     sequence of random cards that is shared by both players, and players
+   return x                         processes are at the same posi-     look at the card at their current position and move forward that many
+                                    tion, then they move together.      spaces. The random cards are shared, so a player samples the card
+ Figure 6. Dynkin process                                               only if the other player has not yet visited the position. If the other
+  Formally, we prove the following ×pRHL judgment:                      player has already landed on the position, the later player observes
+                                                                    the revealed card and moves forward.
+       dynkin1                                                              While the Dynkin process samples every card that the player
+  >                (l1 ∩ l2 6= ∅) =⇒ x1 = x2       dynkin0
+       dynkin2                                                          lands on, it is not hard to see that the product program exactly models
+                                                                        the two-player game. More specifically, the product interleaves the
+where dynkin0 is the following program:
+                                                                        players so that at each turn, the player that is lagging behind makes
+  x1 ← s1 ; x2 ← s2 ;                                                   the next move. By this scheduling, as long as one player is lagging
+  l1 ← [x1 ]; l2 ← [x2 ];                                               behind, the players have not landed on the same position and so
+  while x1 < N ∨ x2 < N do                                              each player lands on unseen cards and draws random samples to
+      if x1 = x2 then                                                   reveal. Once the players meet, the product program makes the same
+                          =
+                     ← D ([1, 10]);
+          (r1 , r2 ) $                                                  move for both players.
+          x1 ← x1 + r1 ; x2 ← x2 + r2 ;                                     Under this interpretation, Eq. (1) bounds the probability that the
+          l1 ← x1 :: l1 ; l2 ← x2 :: l2 ;                               players do not land on the same final position from any two initial
+      else                                                              positions. This result is the basis of the magic trick called Dynkin’s
+          if x1 < x2 then                                               card trick or the Kruskal count. If one player is the magician and the
+               r1 ← $ [1, 10];                                          other player is a spectator, if the spectator starts at a secret position
+               x1 ← x1 + r1 ;                                           and runs the process mentally, the magician can guess the correct
+               l1 ← x1 :: l1 ;                                          final position with high probability by starting at any position and
+          else                                                          counting along.
+               r2 ← $ [1, 10];
+
+               x2 ← x2 + r2 ;                                           5.   Application: Path Coupling
+               l2 ← x2 :: l2 ;
+  return (x1 , x2 )                                                     So far, we have seen how to prove convergence of probabilistic
+                                                                        processes by constructing a coupling, reasoning about the probability
+To couple the two programs, we use the rule [W HILE] with k1 =          of the processes not meeting, and applying the coupling theorem.
+k2 = 1. To control which process will advance, we define:               While this reasoning is quite powerful, for more complicated
+                                                                        processes it may be difficult to directly construct a coupling that
+ p0 , (x1 = x2 )         p1 , (x1 < x2 )         p2 , (x1 > x2 ).
+                                                                        shows fast mixing. For example, it can be difficult to find and reason
+The lossless conditions are satisfied since the distance between        about a coupling on the distributions from two states s, s0 if there
+x1 and x2 strictly decreases at each iteration of the loops. For        are many transitions apart in the Markov chain.
+the samplings, when p1 or p2 hold we use the one-sided rules for            To address this problem, Bubley and Dyer [23] proposed the
+random sampling ([R AND -L] and corresponding [R AND -R]); when         path coupling technique, which allows us to consider just pairs of
+p0 holds, we use the identity coupling.                                 adjacent states, that is states where s can transition in one step
+to s0 . Roughly speaking, if we can give a good coupling on the                far apart, it is hard to reason about how the processes might meet
+distributions from two adjacent states for every pair of adjacent              under a coupling; Jerrum [33] adopted this strategy, but the resulting
+states, then path coupling shows that the state distributions started          proof is dense and complex.
+from two arbitrary states converge quickly.                                        The second, far simpler option is to apply path coupling. Here,
+     As the name suggests, path coupling considers paths of states in          we build a product for just one iteration of the loop, and it suffices
+a probabilistic process. For this to make sense, we need to equip the          to consider cases where the two initial states are adjacent. This
+state space with additional structure. For the basic setup, let Ω be a         drastically simplifies the coupling and analysis of the product
+finite set of states and suppose that we have a metric d : Ω × Ω → N.          program, so we adopt this approach here. For the sake of clarity, we
+We require that d is a path metric: if d(s, s0 ) > 1, then there exists        adapt the transition function so that its output is stored in a fresh
+s00 6= s, s0 such that d(s, s0 ) = d(s, s00 ) + d(s00 , s0 ). Two states are   variable w0 , and call the resulting program glauber† :
+said to be adjacent if d(s, s0 ) = 1. We will assume that the diameter
+                                                                                 v← $ V ; c $ C;
+                                                                                            ←
+of the state space, i.e. the distance between any two states, is finite:
+                                                                                 if V G (w[v 7→ c]) then w0 ← w[v 7→ c] else w0 ← w
+∆ < ∞. The Markov chain is then defined by iterating a transition
+function f : Ω → Distr(Ω).                                                     Note that glauber† ; w ← w0 ; ı ← ı + 1 is semantically equivalent
+     The main idea behind path couplings is that if we can couple              to the loop body of glauber.
+the distributions from any two adjacent states, then there exists                  To apply the path coupling theorem Theorem 13, we need to
+a coupling for the distributions from two states at an arbitrary               define a path metric on Ω and construct a coupling for the process
+distance, constructed by piecing together the couplings between                started from two adjacent states. For the path metric, we define
+them. Furthermore, if the expected distance between states contracts           the distance d(w1 , w2 ) to be the Hamming distance: the number
+under the coupling on adjacent states, i.e., the resulting expected            of vertices where w1 and w2 provide different colors. We say two
+distance is strictly less than 1, then the same holds for the coupling         states are adjacent if d(w1 , w2 ) = 1; these states differ in the color
+on two states at any distance. More formally, we have the following            of exactly one vertex. In order to apply path coupling, we need to
+main theorem of path coupling.                                                 find a coupling of the transition function on adjacent states such
+                                                                               that the expected distance shrinks. We first build the coupling using
+Lemma 13 (Bubley and Dyer [23]). Consider a Markov chain with
+                                                                               ×pRHL. Specifically, we prove
+transition function f over a set Ω with diameter at most ∆. Suppose
+that for any two states s and s0 such that d(s, s0 ) = 1, there exists                                   glauber†1
+                                                                                                                                     
+a coupling µ of f (s), f (s0 ) such that E(r,r0 )∼µ [d(r, r0 )] ≤ β.                 d(w1 , w2 ) = 1              †    d(w10 , w20 ) ≤ 2       c0 (2)
+                                                                                                         glauber2
+    Then, starting from any two states s and s0 and running t steps
+of the chain, there is a coupling µ of f t (s), f t (s0 ) such that            where c0 is the following program:
+                                                                                         $ D = (V );
+                                                                                 v1 , v2 ←
+         TV(f t (s), f t (s0 )) ≤ Pr(r,r0 )∼µ [r 6= r0 ] ≤ β t ∆.                                                                            =
+                                                                                 if v1 ∈ N G (v0 ) then c1 , c2 $
+                                                                                                                ← Dπab (C) else c1 , c2 $
+                                                                                                                                        ← D (C);
+                                                                                                                0                         0
+   This lemma applies for all β, but is most interesting for β < 1               if V G (w1 [v1 7→ c1 ]) then w1 ← w1 [v1 7→ c1 ] else w1 ← w1 ;
+when it implies that the Markov chain mixes quickly. With the main               if V G (w2 [v2 7→ c2 ]) then w20 ← w2 [v2 7→ c2 ] else w20 ← w2
+theorem in hand, we will show how to verify the conditions for path
+                                                                                   We briefly sketch how to prove the judgment. Note that the two
+coupling on two examples from Bubley and Dyer [23].
+                                                                               states must agree at all vertices, except at a single vertex v0 . Let
+5.1   Graph Coloring: the Glauber Dynamics                                     w1 (v0 ) = a and w2 (v0 ) = b. First, we couple the vertex sampling
+                                                                               with the rule [R AND] using the identity coupling, ensuring v1 = v2 .
+Our first example is a Markov chain to provide approximately                   Then, we use the rule [C ASE] to perform a case analysis on the
+uniform samples from the set of colorings of a finite graph; it was            sampled vertex, call it v. If v is a neighbor of the differing vertex v0 ,
+first analyzed by Jerrum [33], our analysis follows Bubley and                 we use the rule [R AND] and the transposition bijection π ab : C → C
+Dyer [23]. Recall that a finite graph G is defined by a finite set             defined by the clauses:
+of vertices V , and a symmetric relation E relating pairs vertices
+that are connected by an edge; we will let N G (v) ⊆ V denote the                 π ab (a) = b        π ab (b) = a        π ab (x) = x otherwise
+set of neighbors of v, i.e the set vertices that have an edge to v in          to ensure that c1 = π ab (c2 ). Otherwise, we use the rule [R AND] and
+G. Let C be the set of colors; throughout, we assume that C is                 the identity coupling to ensure c1 = c2 . By applying the one-sided
+finite. A coloring w of G is a map from V to C. A coloring is valid            rules for conditionals to the left and the right sides ([C OND -L] and
+(sometimes called proper) if all neighboring vertices have different           [C OND -R]), we can conclude the derivation.
+colors: for all v 0 ∈ N G (v) we have w(v) 6= w(v 0 ). We write                    Next, we must reason about the expected value of the distance
+V G (w) if w is a valid coloring. The following program glauber(T )            between w10 and w20 after executing the product program.
+models T steps of the Glauber dynamics in statistical physics:
+                                                                               Lemma 14. Let n = |V | and k = |C|, and suppose that the graph
+  ı ← 0;                                                                       G has degree bounded by D. That is, for any v ∈ V , there are at
+  while ı < T do                                                               most D vertices v 0 such that E(v, v 0 ). If k ≥ D , then there is a
+     v← $ V ; c $ C;
+                ←                                                              coupling µ of the distributions after running glauber† on adjacent
+     if V G (w[v 7→ c]) then w ← w[v 7→ c];                                    states such that
+     ı←ı+1
+                                                                                              Eµ [d(w10 , w20 )] ≤ 1 − 1/n + 2D/kn.
+Informally, the algorithm starts from a valid coloring w and itera-
+tively modifies it by sampling uniformly a vertex v and a color c,             Proof. Let w1 and w2 be adjacent states. We must bound the
+recoloring the v with c if this continues to be a valid coloring.              expected distance between the states w10 , w20 in the product program.
+    We want to measure the statistical distance between two execu-             Let d0 = d(w10 , w20 ), we have:
+tions of the process starting from two initial colorings w1 and w2 .            Eµ [d0 ] = 0 · Pr[d0 = 0] + 1 · Pr[d0 = 1] + 2 · Pr[d0 = 2]
+There are two natural approaches. The first option is to couple the
+two copies of glauber directly, analyze the product program and                    = 1 − Pr[d0 = 0] + Pr[d0 = 2]
+apply Theorem 9. The problem is that when the two colorings are                    ≤ 1 − Pr[v1 = v0 ∧ V G (w0 )] + Pr[v1 ∈ N G (v0 ) ∧ c1 = b]
+                                                                          Proof. Let chlg†1 , chlg†2 be two copies of the transition function,
+                     
+            1       D     D     1  2D
+      ≤1−        1−     +    =1− +    .
+            n       k     nk    n  nk                                     with variables tagged. Consider two adjacent placements w1 and
+                                                                          w2 . We will sketch how to couple the transitions.
+where w0 = w1 [v0 7→ c1 ]. The first equality holds because the               We use rule [R AND] twice to couple the particle and vertex
+distance between the two resulting coloring will be at most 2 by          samplings with the identity coupling, ensuring p1 = p2 and v1 = v2 .
+judgment Eq. (2). The second equality holds since 1 = Pr[d0 =             Then, we can apply the one-sided rules for conditionals to the left
+0] + Pr[d0 = 1] + Pr[d0 = 2]. The second to last step follows since       and the right sides ([C OND -L] and [C OND -R]) to conclude the
+each vertex has at most D neighbors, so there are at least k − D          following judgment:
+valid colors at any vertex.
+                                                                                                       chlg†1
+                                                                                                                               
+                                                                                  d(w1 , w2 ) = 1               d(w 1 , w 2 ) ≤ 2    c0 ,
+                                                                                                       chlg†2
+   Applying the path coupling lemma (Theorem 13), noting that
+the diameter is n since there are n vertices, proves that the Glauber     where c0 is the following product program:
+dynamics mixes quickly if there are sufficiently many colors k.                        $ D = (P ); (v , v ) $ D = (V );
+                                                                            (p1 , p2 ) ←              1  2 ←
+Theorem 15. Consider the Glauber dynamics on k colors with                  if S G (w1 [p1 7→ v1 ]) then w10 ← w1 [p1 7→ v1 ] else w10 ← w1 ;
+a graph G with n vertices and degree at most D, and suppose                 if S G (w2 [p2 7→ v2 ]) then w20 ← w2 [p2 7→ v2 ] else w20 ← w2
+k ≥ 2D + 1. Then, for some constant β < 1,
+                                                                          Then, we can bound the expected distance between w10 , w20 in the
+         TV(Jglauber(T )Km1 , Jglauber(T )Km2 ) ≤ β n    T                product program. Let d0 = d(w10 , w20 ), we have:
+
+for any two initial memories m1 and m2 containing valid colorings.         E(w1 ,w2 ) [µ]d0
+                                                                            = 1 − Pr[d0 = 0] + Pr[d0 = 2]
+   This theorem recovers the result by Bubley and Dyer [23]; this is
+the key step to showing that running Glauber dynamics for a small           = 1 − Pr[p = p0 ∧ S G (w1 [p 7→ v])]
+number of steps and taking a sample is almost equivalent to drawing            + Pr[p 6= p0 ∧ ¬(S G (w1 [p 7→ v]) ⇐⇒ S G (w2 [p 7→ v]))]
+a uniformly random sample from all proper colorings of the graph.
+                                                                            ≤ 1 − Pr[p = p0 ∧ S G (w1 [p 7→ v])]
+5.2   Independent Sets: the Conserved Hard-Core Model                         + Pr[p 6= p0 ∧ ¬(S G (w1 [p 7→ v]) ∧ S G (w2 [p 7→ v]))].
+Our second example is from graph theory and statistical physics,          We can bound the two probability terms. For the first term, we know
+modeling the evolution of a physical system in the conserved hard-        that the probability of selecting p = p0 is 1/s, and the probability
+core lattice gas (CHLG) model [23]. Suppose that we have a set P of       that p is safe at v if it avoids all other points (at most s−1) and all the
+particles, and we have a graph G. A placement is a map w : P → V ,        neighbors of the other points (at most (s − 1)D); this probability is
+placing each particle at a vertex of the graph. We wish to place the      the same for both placements w1 and w2 , since the two placements
+particles so that each vertex has at most one particle, and no two        are identical on points besides p0 .
+particles are located at adjacent vertices; we call such a placement         For the second term, we know that the probability of selecting
+safe and denote it by S G (w). For a specific graph, there could be       p 6= p0 is 1 − 1/s, and p is not safe at v in placement w1 or in
+multiple safe placements.                                                 w2 if we select the position a, b, or one of their neighbors. Putting
+    If we want to sample a uniformly random safe placement, we can        everything together, we can conclude:
+use a simple Markov chain. We take the state space Ω = P → V to
+be the set of placements. Again, we take G and P to be finite. We          Eµ [d(w10 , w20 )]
+start using a safe initial placement. Each step, we sample a particle p                                          
+from P and a vertex v from V uniformly at random and try to place                      1          (s − 1)(D + 1)
+                                                                              ≤1−            1−
+p at v. If w[p 7→ v] is safe, then we make this the new placement;                     s                 n
+otherwise, we keep the same placement. We can model T steps of                                
+                                                                                                | N G (a)| + 1 + | N G (b)| + 1
+                                                                                                                                
+this dynamics with the following program chlg(T ):                               + (s − 1)
+                                                                                                               sn
+  ı ← 0;
+                                                                                                                                        
+                                                                                       1          (s − 1)(D + 1)                  2(D + 1)
+                                                                              ≤1−            1−                     + (s − 1)
+  while ı < T do;                                                                      s                 n                           sn
+     p← $ P; v $ V ;
+                ←                                                                
+                                                                                          1
+                                                                                            
+                                                                                                3(D + 1)
+                                                                                                           
+     if S G (w[p 7→ v]) then w ← w[p 7→ v]                                    = 1−                           .
+     ı←ı+1                                                                                s          n
+
+As in the previous example, we adapt the loop body to form chlg† :            Applying the path coupling lemma (Theorem 13) shows that
+                                                                          if we iterate the transition function on two initial placements, the
+  p $← P; v $←V;                                                          resulting distributions on placements converge quickly.
+  if S G (w[p 7→ v]) then w0 ← w[p 7→ v] else w0 ← w
+                                                                          Theorem 17. Consider the conserved lattice gas model with s =
+   Like the graph coloring sampler, we take the path metric on            |P | particles on a graph G with n = |V | vertices and degree at
+placements to be Hamming distance and try to find a coupling on           most D, where s ≤ n/3(D + 1) + 1. Then, for a constant β < 1,
+the distributions from adjacent initial placements.
+                                                                                              TV(JchlgKm1 , JchlgKm2 ) ≤ β T s
+Lemma 16. Let s = |P | and n = |V |, and suppose that the graph           for any two initial memories m1 , m2 containing safe placements.
+G has degree bounded by D. Starting from any two adjacent safe
+placements w1 and w2 , there is a coupling µ on the distributions         Remark. This theorem is slightly weaker than the corresponding
+after one step such that                                                  result by Bubley and Dyer [23], who prove rapid mixing under
+                                                                      the weaker condition s ≤ n/2(D + 1) + 1. Roughly, they use
+                                          1    3(D + 1)
+       E(w1 ,w2 )∼µ [d(w10 , w20 )] ≤ 1 −                 .               the maximal coupling on the two transition distributions, giving a
+                                          s       n                       tighter analysis and better bound. It is also possible use the maximal
+coupling in ×pRHL, but the corresponding specification of the                  Nested loop:                        Single loop:
+coupling distribution would be proved as part of soundness of the                ı1 ← 0;                             l2 ← 0;
+logic, rather than as a property of a probabilistic program.                     while ı1 < N do                     while l2 < N · M do
+                                                                                    1 ← 0;                              ı2 ← l2 / M ;
+6.    Application: Loop Optimizations                                               while 1 < M do                      2 ← l2 % M ;
+                                                                                        l1 ← ı1 · M + ;                 r2 ←$ µ;
+Program equivalence is one of the original motivation for relational                    r1 ←$ µ;                         x2 ← f (l2 , x2 , r2 );
+program logics [17]. In this section, we demonstrate the effective-                     x1 ← f (l1 , x1 , r1 );          l2 ← l2 + 1;
+ness of our logic using several examples of exact and approximate                       1 ← 1 + 1;                 ı2 ← N ;
+program equivalence. Our first example is a loop transformation                                                      2 ← M ;
+                                                                                    ı1 ← ı1 + 1;
+which originates from the literature on parallelizing compilers but
+also has applications in computer-aided cryptography. Our second                 l1 ← N · M ;
+example is drawn from the recent literature on approximate comput-             Product program:
+ing, and is an instance of loop perforation.                                     ı1 ← 0; l2 ← 0;
+6.1   Loop Strip-Mining                                                          while ı1 < N do
+                                                                                    1 ← 0;
+Loop strip-mining (or loop sectioning) is a transformation that                     while 1 < M do
+turns a loop into a nested loop. While the transformation originates                    l1 ← ı1 · M + 1 ;
+from literature on parallelizing compilers and is primarily used                        ı2 ← l2 / M ; 2 ← l2 % M ;
+to take advantage of vectorized instructions, it is also useful for                                $ D = (µ);
+                                                                                        (r1 , r2 ) ←
+formally proving the computational security of certain cryptographic                    x1 ← f (l1 , x1 , r1 ); x2 ← f (l2 , x2 , r2 );
+constructions. The following example, Fig. 7, is inspired from a                        1 ← 1 + 1; l2 ← l2 + 1;
+proof of indistinguishability of the SHA3 hash function [24].4 Using                ı1 ← ı1 + 1;
+the rule for while loops, we can prove the following:
+                                                                             l1 ← N · M ; ı2 ← N ; 2 ← M ;
+                                c1
+                  x1 = x2             x1 = x2       c                                              Figure 7. Loop strip-mining
+                                c2
+The crux of the proof is applying the [W HILE] rule with k1 = 1
+and k2 = M , and e = ı1 < N , and p0 = >, and p1 = p2 = ⊥                      Original program:
+and an invariant Ψ which strengthens the assertion x1 = x2 mainly                s1 ← 0;
+by adding l2 = ı1 · M . Side conditions using p1 and p2 are trivial              for (ı1 ← 0, ı1 < 2 · n, ı1 ← ı1 + 1) do
+to prove (using the FALSE rule) since they have ⊥ in hypothesis.                     x1 ←$ µ; s ← s + x ;
+                                                                                                1      1     1
+It remains to check the premise for for p0 , but we now have two               Perforated program:
+synchronized loops; we can use the [S TRUCT] rule to remove the
+conditional on p0 which is always true in this case.                             s2 ← 0;
+                                                                                 for (ı2 ← 0, ı2 < n, ı2 ← ı2 + 1) do
+6.2   Loop Perforation                                                               x2 $← µ; s2 ← s2 + x2 ;
+Loop perforation [44, 51] is a program transformation that delivers              s2 ← 2 · s2 ;
+good trade-offs between performance and accuracy, and is practical             Product program:
+in many applications, including image and audio processing, simula-              s1 ← 0; s2 ← 0; ı1 ← 0; ı2 ← 0;
+tions and machine-learning. Informally, loop perforation transforms              while ı1 < 2 · n do
+                                                                                             $ D = (µ);
+                                                                                     x1 , x2 ←
+a loop that performs n iterations of its body into a loop that performs
+m < n iterations of its body, followed by a simple post-processing                   s1 ← s1 + x1 ; s2 ← s2 + x2 ;
+statement. Figure 8 shows an example of loop perforation inspired                    ı1 ← ı1 + 1;
+                                                                                     x1 ← $ µ; s ← s + x ;
+from a financial analysis application, called swaptions. In this exam-                          1     1    1
+ple, every other loop iteration is skipped, and the post-processing                  ı1 ← ı1 + 1; ı2 ← ı2 + 1;
+statement simply multiplies by 2 the value s computed by the opti-               s2 ← 2 · s2 ;
+mized loop. As for the previous example, we can prove the following
+judgment:                                                                                           Figure 8. Loop perforation
+                                          
+                              c1
+                      >             s1 = s2        c
+                              c2                                                 k← $ factors(n); s ← 0;
+
+The product program can be built using the [W HILE] rule. We use                 for (ı ← 0, ı < n, i ← i + k) do
+                                                                                     x← $ µ; s ← s + x;
+e = ı1 < 2 · n, p0 = >, p1 = p2 = ⊥ and k1 = 2 and k2 = 1, and
+the invariant is ı1 = 2 · ı2 . The invariant allows to show, using the           s ← k · s;
+                                                     e ,k
+[S TRUCT] rule, that the loop on k1 (denoted by c11 1 in [W HILE])
+                                                                               selects uniformly at random a factor k of the original number n of
+perform exactly 2 iterations. Using the product, one can also analyze
+                                                                               iterations, and performs n/k iterations. It is possible to relate the
+the (probabilistic) accuracy rate of the transformed program, using
+                                                                               original and the perforated loop, using the [W HILE] rule as before.
+concentration bounds to achieve a more precise bound.
+    Finally, in some applications the number of iterations performed           6.3   Other Optimizations and Program Transformations
+by the perforated loop is probabilistic; for instance, the program
+                                                                               Barthe et al. [6] define an inductive method for building valid prod-
+4 for simplicity, the programs use an operator f which takes randomness        uct programs, and use their method for validating instances of loop
+as an argument (note that the value r is sampled immediately before the        optimizations. Their method combines a rule for each program
+assignment using f ), although in the proof of the SHA3 hash function f is a   construction and a rule akin to our [S TRUCT] rule. Despite this simi-
+procedure call whose body performs random samplings.                           larity, the two methods are fundamentally different: their treatment
+of while loops is restricted to synchronized executions. As a conse-        defines Relational Separation Logic and proves the equivalence
+quence, their structural rule is based on a more advanced refinement        between Depth-First Search and the Schorr-Waite algorithm. Barthe
+relation between programs. Nevertheless, we can reproduce all their         et al. [5] develop probabilistic Relational Hoare Logic, and use it for
+examples in our formalism, taking advantage of our more powerful            proving computational security of cryptographic constructions. In a
+rule for loops.                                                             follow-up work, Barthe et al. [7] develop an approximate variant of
+                                                                            probabilistic Relational Hoare Logic, and verify differential privacy
+7.   Related Work                                                           of several algorithms. More recently, Sousa and Dillig [52] propose
+                                                                            Cartesian Hoare Logic, an extension of relational Hoare logic to an
+Relational logics can be seen as a proof-theoretical counterpart of         arbitrary finite number of executions.
+semantics-based relational methods such as logical relations. Under             Several authors have considered relational logics for higher-order
+this view, our logic bears strong similarities with proof-relevant          programs. Nanevski et al. [47] develop a relational logic to reason
+logical relations [18]. As for proof-relevant logical relations, we         about information flow properties of a higher-order language with
+expect that manipulating explicit witnesses rather than existentially       mutable state. Ghani et al. [31] introduce a relational type theory, and
+quantified can help developing meta-theoretical studies of our logic.       a supporting categorical model, for reasoning about parametricity.
+    Much of the recent work on product programs and relational              Barthe et al. [10] propose a relational extension of a subset of the
+logics has been motivated by applications to security and compiler          F∗ ; in a follow-up work, Barthe et al. [13] combine a relational
+correctness. For instance, Barthe et al. [4] explore self-composition       refinement type system with a graded monad which they use for
+for a variety of programming languages and show that it induces             modeling differentially private computations.
+a sound and complete reduction of an information flow policy                    There are several works that develop more specialized program
+to a safety property. Independently, Darvas et al. [27] consider            logics for analyzing relational properties of programs. For instance,
+self-composition and deductive verification based on dynamic                Amtoft et al. [2] introduce independence assertions and a supporting
+logic, also for verifying information flow policies. Later, Terauchi        program logic for proving information flow security. In a similar
+and Aiken [53] introduce the class of 2-safety properties and               way, Chaudhuri et al. [26] propose a logical approach for proving
+show a reduction from 2-safety to safety of the self-composed               continuity properties of programs, and Carbin et al. [25] develop a
+program. Their reduction is more efficient than self-composition as         logical approach for reasoning about the reliability of approximate
+it selectively applies self-composition or a synchronous product            computation.
+construction akin to cross-products (described below). Further                  Further afield, there has been a significant amount of work
+improvements appear in Kovács et al. [35], Müller et al. [46].              on semantical methods for probabilistic programs and processes
+In a related work, Beringer and Hofmann [20] observe that one               initiated by Kozen [36], see e.g. [21, 38, 40, 49] for some recent
+can encode 2-safety properties in standard Hoare logic, provided            developments. In conjunction with these semantics, research in
+that assertions are sufficiently expressive to model the denotational       deductive verification methods for non-relational properties of
+semantics of programs. Beringer [19] further refines this approach,         probabilistic programs is an active area of research; examples
+by introducing the notion of relational decomposition.                      include [28, 37, 45, 48] to cite only a few systems.
+    Zaks and Pnueli [57] define a cross-product construction, which
+is well-suited for reasoning about programs with identical control-
+flow. Barthe et al. [6] generalize the notion of cross-product by
+proposing a more general notion of product program which sub-               8.   Conclusion and Future Directions
+sumes self-composition and cross-products, and show how it enables
+                                                                            We have introduced ×pRHL, a new program logic that deepens the
+validation of common loop optimizations. Specifically, they define
+                                                                            connection between probabilistic couplings and relational verifica-
+an inductive relation for proving that c is a valid product for c1
+                                                                            tion of probabilistic programs in two different ways. First, ×pRHL
+and c2 ; informally, their rules closely follow those of our system
+                                                                            broadens the class of couplings supported by relational verification.
+(for deterministic constructs), except for the general rule for while
+                                                                            Second, ×pRHL derivations explicitly build a probabilistic prod-
+loops; instead, they use a rule that is closer to the pRHL rule, and a
+                                                                            uct program, which can be used to analyze mixing times. We have
+rule akin to our [S TRUCT] rule, with a much stronger relationship
+                                                                            shown the flexibility of our approach on several examples.
+between programs in order to compensate for the lack of generality
+                                                                                There is ample room for future work. On the theoretical side, it
+of their rule. Barthe et al. [14] carry a more precise study of the rela-
+                                                                            would be interesting to extend ×pRHL to handle continuous dis-
+tive expressiveness of product program constructions and relational
+                                                                            tributions as was recently done by Sato [50] for apRHL. Also, we
+program logics. In a different thread of work, Barthe et al. [8] gener-
+                                                                            believe that we are just scratching the surface of probabilistic prod-
+alize the notion of product program so that it supports verification
+                                                                            uct programs; there should be many further applications, notably
+of refinement properties (modeled by universal quantification over
+                                                                            in relationship with path couplings, in domains such as Brownian
+runs of the first program and existential quantification over runs of
+                                                                            motion [42], molecular evolution [30], and anonymity [32]. On
+the second program), as well as the 2-safety properties (modeled
+                                                                            the more practical side, it would be natural to integrate ×pRHL
+by universal quantification over runs of the first and the second
+                                                                            in EasyCrypt [9], a proof-assistant used for reasoning about com-
+programs). These constructions are focused on non-probabilistic
+                                                                            putational security of cryptographic constructions. We expect that
+programs. Motivated by applications to differential privacy, Barthe
+                                                                            several proofs of cryptographic constructions can be simplified us-
+et al. [11] define a specialized product construction from probabilis-
+                                                                            ing the new loop rule, and we are also planning to use the loop
+tic programs to deterministic programs, so that the original program
+                                                                            rule in an ongoing formalization of indifferentiability of the SHA3
+is differentially private, provided its deterministic product program
+                                                                            standard for hash functions.
+satisfies some Hoare specification. To the best of our knowledge,
+this is the sole product construction that goes from a probabilistic
+language to a deterministic one.                                            Acknowledgments This work benefited from discussions with
+    Benton [17] and Yang [56] were among the first to consider              Thomas Espitau and Ichiro Hasuo. We also thank the anonymous
+relational program logics that support direct reasoning about two           reviewers for their detailed comments, which improved earlier
+programs. Benton [17] introduces Relational Hoare Logic, proves             versions of this work. This work was partially supported by NSF
+correctness of several program transformations, and soundly embeds          grants TC-1065060 and TWC-1513694, and a grant from the Simons
+a type system for information flow security into his logic. Yang [56]       Foundation (#360368 to Justin Hsu).
+References                                                                            Principles of Programming Languages (POPL), Venice, Italy, pages
+                                                                                      14–25, 2004.
+ [1] D. J. Aldous and H. Thorisson. Shift-coupling. Stochastic Processes
+     and their Applications, 44:1–14, 1993.                                      [18] N. Benton, M. Hofmann, and V. Nigam. Proof-relevant logical relations
+                                                                                      for name generation. In International Conference on Typed Lambda
+ [2] T. Amtoft, S. Bandhakavi, and A. Banerjee. A logic for information flow
+                                                                                      Calculi and Applications (TLCA), Eindhoven, The Netherlands, volume
+     in object-oriented programs. In ACM SIGPLAN–SIGACT Symposium
+                                                                                      7941 of Lecture Notes in Computer Science, pages 48–60. Springer-
+     on Principles of Programming Languages (POPL), Charleston, South
+                                                                                      Verlag, 2013.
+     Carolina, pages 91–102, 2006.
+                                                                                 [19] L. Beringer. Relational decomposition. In Interactive Theorem Proving
+ [3] L. Avena, M. Heydenreich, F. den Hollander, E. Verbitskiy, and W. van            (ITP), Nijmegen, The Netherlands, volume 6898 of Lecture Notes in
+     Zuijlen. Random walks (lecture notes). Technical report, Mathematical            Computer Science, pages 39–54. Springer-Verlag, 2011.
+     Institute, Leiden University.
+                                                                                 [20] L. Beringer and M. Hofmann. Secure information flow and program
+ [4] G. Barthe, P. D’Argenio, and T. Rezk. Secure information flow by                 logics. In IEEE Computer Security Foundations Symposium (CSF),
+     self-composition. In IEEE Computer Security Foundations Workshop                 Venice, Italy, pages 233–248, 2007.
+     (CSFW), Pacific Grove, California, pages 100–114, 2004.
+                                                                                 [21] A. Bizjak and L. Birkedal. Step-indexed logical relations for probability.
+ [5] G. Barthe, B. Grégoire, and S. Zanella-Béguelin. Formal certification            In International Conference on Foundations of Software Science and
+     of code-based cryptographic proofs. In ACM SIGPLAN–SIGACT Sym-                   Computation Structures (FoSSaCS), London, England, volume 9034 of
+     posium on Principles of Programming Languages (POPL), Savannah,                  Lecture Notes in Computer Science, pages 279–294. Springer-Verlag,
+     Georgia, pages 90–101, New York, 2009.                                           2015.
+ [6] G. Barthe, J. M. Crespo, and C. Kunz. Relational verification using         [22] S. Brooks, A. Gelman, G. Jones, and X.-L. Meng. Handbook of Markov
+     product programs. In International Symposium on Formal Methods                   Chain Monte Carlo. CRC press, 2011.
+     (FM), Limerick, Ireland, volume 6664 of Lecture Notes in Computer
+                                                                                 [23] R. Bubley and M. Dyer. Path coupling: A technique for proving rapid
+     Science, pages 200–214. Springer-Verlag, 2011.
+                                                                                      mixing in Markov chains. In IEEE Symposium on Foundations of
+ [7] G. Barthe, B. Köpf, F. Olmedo, and S. Z. Béguelin. Probabilistic                 Computer Science (FOCS), Miami Beach, Florida, pages 223–231,
+     relational reasoning for differential privacy. In ACM SIGPLAN–                   1997.
+     SIGACT Symposium on Principles of Programming Languages (POPL),             [24] A. Canteaut, T. Fuhr, M. Naya-Plasencia, P. Paillier, J. Reinhard, and
+     Philadelphia, Pennsylvania, pages 97–110, 2012.                                  M. Videau. A unified indifferentiability proof for permutation- or block
+ [8] G. Barthe, J. M. Crespo, and C. Kunz. Beyond 2-safety: Asymmetric                cipher-based hash functions. IACR Cryptology ePrint Archive, 2012:
+     product programs for relational program verification. In Symposium               363, 2012.
+     on the Logical Foundations of Computer Science (LFCS), San Diego,           [25] M. Carbin, D. Kim, S. Misailovic, and M. C. Rinard. Proving accept-
+     California, volume 7734 of Lecture Notes in Computer Science, pages              ability properties of relaxed nondeterministic approximate programs.
+     29–43. Springer-Verlag, 2013.                                                    In ACM SIGPLAN Conference on Programming Language Design and
+ [9] G. Barthe, F. Dupressoir, B. Grégoire, C. Kunz, B. Schmidt, and P. Strub.        Implementation (PLDI), Beijing, China, pages 169–180, 2012.
+     Easycrypt: A tutorial. In Foundations of Security Analysis and Design       [26] S. Chaudhuri, S. Gulwani, and R. Lublinerman. Continuity analysis
+     VII (FOSAD), volume 8604 of Lecture Notes in Computer Science,                   of programs. In ACM SIGPLAN–SIGACT Symposium on Principles of
+     pages 146–166. Springer-Verlag, 2013. Tutorial Lectures.                         Programming Languages (POPL), Madrid, Spain, pages 57–70, 2010.
+[10] G. Barthe, C. Fournet, B. Grégoire, P. Strub, N. Swamy, and S. Z.           [27] A. Darvas, R. Hähnle, and D. Sands. A theorem proving approach to
+     Béguelin. Probabilistic relational verification for cryptographic im-            analysis of secure information flow. In Security in Pervasive Computing,
+     plementations. In ACM SIGPLAN–SIGACT Symposium on Principles                     volume 3450 of Lecture Notes in Computer Science, pages 193–209.
+     of Programming Languages (POPL), San Diego, California, pages                    Springer-Verlag, 2005. Preliminary version in the informal proceedings
+     193–206, 2014.                                                                   of WITS 2003.
+[11] G. Barthe, M. Gaboardi, E. J. Gallego Arias, J. Hsu, C. Kunz, and           [28] J. den Hartog. Probabilistic extensions of semantical models. PhD
+     P.-Y. Strub. Proving differential privacy in Hoare logic. In IEEE                thesis, Vrije Universiteit Amsterdam, 2002.
+     Computer Security Foundations Symposium (CSF), Vienna, Austria,
+                                                                                 [29] P. Diaconis and D. Stroock. Geometric bounds for eigenvalues of
+     pages 411–424, 2014.
+                                                                                      Markov chains. The Annals of Applied Probability, 1(1):36–61, Feb.
+[12] G. Barthe, T. Espitau, B. Grégoire, J. Hsu, L. Stefanesco, and P.-Y.             1991.
+     Strub. Relational reasoning via probabilistic coupling. In International    [30] N. M. Dixit, P. Srivastava, and N. K. Vishnoi. A finite population
+     Conference on Logic for Programming, Artificial Intelligence and                 model of molecular evolution: Theory and computation. Journal of
+     Reasoning (LPAR), Suva, Fiji, volume 9450 of Lecture Notes in                    Computational Biology, 19(10):1176–1202, 2012.
+     Computer Science, pages 387–401. Springer-Verlag, 2015.
+                                                                                 [31] N. Ghani, F. N. Forsberg, and A. Simpson. Comprehensive parametric
+[13] G. Barthe, M. Gaboardi, E. J. G. Arias, J. Hsu, A. Roth, and P. Strub.           polymorphism: Categorical models and type theory. In International
+     Higher-order approximate relational refinement types for mechanism               Conference on Foundations of Software Science and Computation
+     design and differential privacy. In ACM SIGPLAN–SIGACT Symposium                 Structures (FoSSaCS), Eindhoven, The Netherlands, volume 9634 of
+     on Principles of Programming Languages (POPL), Mumbai, India,                    Lecture Notes in Computer Science, pages 3–19. Springer-Verlag, 2016.
+     pages 55–68, 2015.
+                                                                                 [32] M. Gomulkiewicz, M. Klonowski, and M. Kutylowski. Rapid mixing
+[14] G. Barthe, J. M. Crespo, and C. Kunz. Product programs and rela-                 and security of Chaum’s visual electronic voting. In European Sympo-
+     tional program logics. Journal of Logical and Algebraic Methods in               sium on Programming on Research in Computer Security (ESORICS),
+     Programming, 2016.                                                               Gjøvic, Norway, volume 2808 of Lecture Notes in Computer Science,
+[15] G. Barthe, M. Gaboardi, B. Grégoire, J. Hsu, and P.-Y. Strub. Proving            pages 132–145. Springer-Verlag.
+     differential privacy via probabilistic couplings. In IEEE Symposium on      [33] M. Jerrum. A very simple algorithm for estimating the number of
+     Logic in Computer Science (LICS), New York, New York, 2016.                      k-colorings of a low-degree graph. Random Structures and Algorithms,
+[16] G. Barthe, M. Gaboardi, B. Grégoire, J. Hsu, and P.-Y. Strub. A program          7(2):157–166, 1995.
+     logic for union bounds. In International Colloquium on Automata,            [34] M. Jerrum and A. Sinclair. Approximating the permanent. SIAM
+     Languages and Programming (ICALP), Rome, Italy, volume 55 of                     Journal on Computing, 18(6):1149–1178, 1989.
+     Leibniz International Proceedings in Informatics, pages 107:1–107:15.       [35] M. Kovács, H. Seidl, and B. Finkbeiner. Relational abstract interpreta-
+     Schloss Dagstuhl–Leibniz Center for Informatics, 2016.                           tion for the verification of 2-hypersafety properties. In ACM SIGSAC
+[17] N. Benton. Simple relational correctness proofs for static analyses and          Conference on Computer and Communications Security (CCS), Berlin,
+     program transformations. In ACM SIGPLAN–SIGACT Symposium on                      Germany, pages 211–222, 2013.
+[36] D. Kozen. Semantics of probabilistic programs. In IEEE Symposium               on Security and Privacy (S&P) , Oakland, California, pages 165–179,
+     on Foundations of Computer Science (FOCS), San Juan, Puerto Rico,              2011.
+     pages 101–114, 1979.                                                      [48] L. H. Ramshaw. Formalizing the Analysis of Algorithms. PhD thesis,
+[37] D. Kozen. A probabilistic PDL. Journal of Computer and System                  Computer Science, 1979.
+     Sciences, 30(2):162–178, 1985.
+                                                                               [49] D. Sangiorgi and V. Vignudelli. Environmental bisimulations for
+[38] D. Kozen. Kolmogorov extension, martingale convergence, and                    probabilistic higher-order languages. In ACM SIGPLAN–SIGACT
+     compositionality of processes. In IEEE Symposium on Logic in                   Symposium on Principles of Programming Languages (POPL), Saint
+     Computer Science (LICS), New York, New York, 2016.                             Petersburg, Florida, pages 595–607, 2016.
+[39] V. S. A. Kumar and H. Ramesh. Coupling vs. conductance for the            [50] T. Sato. Approximate relational Hoare logic for continuous random
+     Jerrum-Sinclair chain. Random Structures and Algorithms, 18(1):1–17,           samplings. In Conference on the Mathematical Foundations of Pro-
+     2001.                                                                          gramming Semantics (MFPS), Pittsburgh, Pennsylvania, 2016.
+[40] U. D. Lago, D. Sangiorgi, and M. Alberti. On coinductive equivalences     [51] S. Sidiroglou-Douskos, S. Misailovic, H. Hoffmann, and M. C. Rinard.
+     for higher-order probabilistic functional programs. In ACM SIGPLAN–            Managing performance vs. accuracy trade-offs with loop perforation.
+     SIGACT Symposium on Principles of Programming Languages (POPL),                In Joint Meeting of the European Software Engineering Conference
+     San Diego, California, pages 297–308, 2014.                                    and the ACM SIGSOFT Symposium on the Foundations of Software
+[41] D. A. Levin, Y. Peres, and E. L. Wilmer. Markov chains and mixing              Engineering (ESEC/FSE), Szeged, Hungary, pages 124–134, 2011.
+     times. American Mathematical Society, 2009.
+                                                                               [52] M. Sousa and I. Dillig. Cartesian Hoare logic for verifying k-safety
+[42] T. Lindvall. Lectures on the coupling method. Courier Corporation,             properties. In ACM SIGPLAN Conference on Programming Language
+     2002.                                                                          Design and Implementation (PLDI), Santa Barbara, California, pages
+[43] N. Metropolis, A. W. Rosenbluth, M. N. Rosenbluth, A. H. Teller, and           57–69, 2016.
+     E. Teller. Equation of state calculations by fast computing machines.     [53] T. Terauchi and A. Aiken. Secure information flow as a safety problem.
+     The Journal of Chemical Physics, 21(6):1087–1092, 1953.                        In International Symposium on Static Analysis (SAS), London, England,
+[44] S. Misailovic, D. M. Roy, and M. C. Rinard. Probabilistically accurate         volume 3672 of Lecture Notes in Computer Science, pages 352–367.
+     program transformations. In International Symposium on Static Anal-            Springer-Verlag, 2005.
+     ysis (SAS), Venice, Italy, volume 6887 of Lecture Notes in Computer       [54] H. Thorisson. Coupling, Stationarity, and Regeneration. Springer-
+     Science, pages 316–333. Springer-Verlag, 2011.                                 Verlag, 2000.
+[45] C. Morgan, A. McIver, and K. Seidel. Probabilistic predicate trans-
+                                                                               [55] C. Villani. Optimal transport: old and new. Springer-Verlag, 2008.
+     formers. ACM Transactions on Programming Languages and Systems,
+     18(3):325–353, 1996.                                                      [56] H. Yang. Relational separation logic. Theoretical Computer Science,
+[46] C. Müller, M. Kovács, and H. Seidl. An analysis of universal infor-            375(1-3):308–334, 2007.
+     mation flow based on self-composition. In IEEE Computer Security          [57] A. Zaks and A. Pnueli. CoVaC: Compiler validation by program
+     Foundations Symposium (CSF), Venice, Italy, pages 380–393, 2015.               analysis of the cross-product. In International Symposium on Formal
+[47] A. Nanevski, A. Banerjee, and D. Garg. Verification of information flow        Methods (FM), Turku, Finland, volume 5014 of Lecture Notes in
+     and access control policies with dependent types. In IEEE Symposium            Computer Science, pages 35–51. Springer-Verlag, 2008.
+

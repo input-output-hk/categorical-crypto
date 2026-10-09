@@ -1,0 +1,1231 @@
+Towards a Formal Theory of Graded Monads
+Soichiro Fujii1 , Shin-ya Katsumata2 , and Paul-André Melliès3
+1
+
+Department of Computer Science, The University of Tokyo
+2
+RIMS, Kyoto University
+3
+Laboratoire PPS, CNRS, Univ. Paris Diderot, Sorbonne Paris Cité
+
+Abstract. We initiate a formal theory of graded monads whose purpose is to adapt and to extend the formal theory of monads developed
+by Street in the early 1970’s. We establish in particular that every graded
+monad can be factored in two different ways as a strict action transported
+along a left adjoint functor. We also explain in what sense the first construction generalizes the Eilenberg-Moore construction while the second
+construction generalizes the Kleisli construction. Finally, we illustrate
+the Eilenberg-Moore construction on the graded state monad induced
+by any object V in a symmetric monoidal closed category C .
+
+1
+
+Introduction
+
+An important principle in categorical semantics is that lax algebraic structures
+are transported along left adjoint functors. This principle is a bit abstract and
+not so well known, so let us explain what it means. Suppose that we pick a
+2-monad T on the 2-category Cat of categories and a category B equipped with
+a lax algebra structure of the 2-monad T , provided by the functor
+∗B
+
+:
+
+T B −→ B
+
+Suppose moreover that the category B is related to a category A by adjunction
+where the functor L : A → B is left adjoint to the functor R : B → A , in the
+following way:
+L
+
+A
+
+B
+
+⊥
+R
+
+In that case, the composite functor
+∗A
+
+:=
+
+R ◦ ∗B ◦ T L
+
+T A −→ A
+
+:
+
+provides a lax algebra structure on the category A inherited from the lax algebra
+structure of the category B. This basic observation was inspired by homotopy
+theory and played a central rôle in the early development by Melliès of tensorial
+logic [9, 10, 15]. A particularly important instance is the following one. Every
+monoidal category (M , ⊗, I) induces a 2-monad
+T
+
+=
+
+A
+
+7→
+
+M ×A
+
+:
+
+Cat −→ Cat
+
+on the category Cat. An algebra (in the strict sense) of the 2-monad T is a
+functor
+∗ : M × C −→ C
+(1)
+which satisfies the equations:
+m ∗ (n ∗ A) = (m ⊗ n) ∗ A
+
+A=I ∗A
+
+(2)
+
+for all objects m, n of the category M and every object A of the category C .
+As such, a strict T -algebra is the same thing as an action of the monoidal
+category (M , ⊗, I) over the category C . By way of comparison, a lax T -algebra
+structure on a category C is a functor (1) where the equalities (2) are replaced
+by a family of morphisms
+µm,n,A : m ∗ (n ∗ A) → (m ⊗ n) ∗ A
+
+ηA : A → I ∗ A
+
+natural in objects m, n of the category M and in the object A of the category C ,
+and making the three coherence diagrams commute for all objects m, n, p of the
+category M and all objects A of the category C :
+m ∗ (n ∗ (p ∗ A))
+
+m ∗ µn,p
+
+m ∗ ((n ⊗ p) ∗ A)
+
+µm,n
+
+µm,n⊗p
+
+(m ⊗ n) ∗ (p ∗ A)
+
+µm⊗n,p
+
+(m ⊗ n ⊗ p) ∗ A
+
+I ∗ (m ∗ A)
+
+m ∗ (I ∗ A)
+µI,m
+
+η
+
+m∗A
+
+id
+
+µm,I
+
+m∗η
+
+m∗A
+
+id
+
+m∗A
+
+m∗A
+
+So, a lax T -algebra defines what is traditionally called a lax action of the monoidal category M on the category C . Now, suppose that the category B is
+equipped with an action
+~
+
+:
+
+M ×B
+
+−→
+
+B.
+
+In that case, the category A inherits a lax action
+∗
+
+:
+
+M ×A
+
+−→
+
+A
+
+along the left adjoint functor L, defined as the composite
+m∗A
+
+:=
+
+R(m ~ LA).
+
+Since adjunctions L a R and actions ~ : M × B → B are ubiquitous in programming language semantics, this inheritance property implies that the notion
+of lax action is just as central in the theory.
+
+Note that in the particular case when the monoidal category M coincides
+with the terminal category 1, a lax action of M on a category C is the same
+thing as a monad S on the category C , with (S, µ0 , η 0 ) defined as
+SA := I ∗ A
+
+µ0A := µI,I,A : SSA → SA
+
+0
+:= ηA : A → SA
+ηA
+
+For that reason, Melliès found convenient to introduce the terminology of parametric monad in his work on tensorial logic [10, 13]. One additional reason for
+choosing that terminology was that the dual notion of parametric comonad appeared at about the same time in his work with Grellois on higher-order modelchecking [6]. The idea of developing a general theory of parametric monads for
+effect systems and of parametric comonads for resource systems emerged at this
+point and was announced in [12] as an algebraic counterpart to the works on implicit complexity [4] and on linear dependent types [5]. At about the same time,
+Petricek, Orchard and Mycroft designed the syntax and semantics of a calculus
+which can explicitly manage resource usage based on the structure of graded
+comonads [17]. The concept and terminology of parametric monad was then
+taken up and popularised by Katsumata [8] with a series of new applications to
+the semantics of effect systems. Milius, Pattinson and Schröder applied graded
+monads to extend the trace semantics of coalgebras with the concept of trace
+length [16].
+The combination of these works raised a lot of interest in the community
+and established the notion of parametric monad as an important concept of the
+discipline. We thus feel useful and timely to join forces and to develop a formal
+theory of parametric monads inspired by the seminal work by Street [21] on
+formal monads in 2-categories. However, before doing that, we will explain in §2
+why we decided to revise the original terminology and to call graded monad what
+we used to call parametric monad. As we will see, the change of terminology is
+justified mathematically, and the terminology seems to be convenient in itself 4 .
+Using the new terminology, one of the main contributions of the paper will
+be to establish that given a monoidal category (M , ⊗, I), every graded monad
+:
+
+M ×A
+
+m∗A
+
+:=
+
+∗
+
+A
+
+−→
+
+is the graded monad
+R(m ~ LA)
+
+(3)
+
+associated to an adjunction
+L
+
+A
+
+⊥
+
+B
+
+R
+4
+
+It should be noted that the notion of M -graded monad is the same thing as a lax
+2-functor ΣM → Cat from the bicategory ΣM with one object ∗ obtained by
+“suspending” the monoidal category M , to the 2-category Cat. For that reason, we
+consider that the notion of lax action and of graded monad (in its full generality)
+deserves to be traced back to the seminal work by Bénabou on bicategories [2].
+
+and to a strict action
+~
+
+:
+
+M ×B
+
+−→
+
+B.
+
+of the monoidal category (M , ⊗, I) on the category B. Following an original idea
+by Street [20], we will establish that the factorisation (3) can be performed in
+two different ways. One recovers in the particular case M = 1 the factorisation
+of a monad S = R ◦ L as an adjunction L a R using either the category B of
+Eilenberg-Moore algebras, or the Kleisli category B associated to the monad S.
+As we will see in §3.1 and in §3.2, the constructions of the Eilenberg-Moore
+category and of the Kleisli category are more involved in the case of a graded
+monad. In particular, in order to recover the expected universal characterizations of Eilenberg-Moore and Kleisli objects in the more general case of graded
+monads, the category B has to be considered as an object of the 2-category of
+M -categories, where by M -category, we mean a category C equipped with a
+strict action of M .
+Since the Eilenberg-Moore and Kleisli constructions are a bit formal, we
+find it instructive to illustrate them with a specific example. Besides the original
+example of the continuation monad treated in [15], an original motivation for the
+notion of graded monad emerged in the study of the local state monad [18, 14]. As
+we will see in §3.1, an interesting aspect of the theory is that an Eilenberg-Moore
+algebra of a graded monad ∗ : M × A → A , which we call a graded algebra, is
+defined as a functor A : M → A equipped with a family of morphisms
+hm,n
+
+:
+
+m ∗ An → Am⊗n
+
+natural in m, n ∈ M and making the diagrams below commute
+
+hI,m
+
+η
+
+Am
+
+m ∗ hn,p
+
+m ∗ (n ∗ Ap )
+
+I ∗ Am
+
+id
+
+µm,n
+
+hm,n⊗p
+hm⊗n,p
+
+(m ⊗ n) ∗ Ap
+
+Am
+
+m ∗ An⊗p
+
+Am⊗n⊗p
+
+for all objects m, n, p of the monoidal category (M , ⊗, I). In particular, in the
+case A = Set, the category B of Eilenberg-Moore algebras of the graded
+monad ∗ can be seen as a category of covariant presheaves over M with an
+extra structure provided by the family of morphisms hm,n .
+We will illustrate the construction with an example: suppose given a symmetric monoidal closed category (C , ⊗, (, I) equipped with an object V , where
+V stands for values. The category C is then equipped with a parametric monad
+∗
+
+:
+
+Inj × C
+
+−→
+
+C
+
+where (Inj, +, 0) denotes the monoidal category with natural numbers
+[m]
+
+=
+
+{0, . . . , m − 1}
+
+seen as finite sets as objects, and injections f : [m] → [n] as morphisms. We
+will often write m for the object [m]. The lax action of the monoidal category
+(Inj, +, 0) over the category C is defined as
+n∗A
+
+:=
+
+V ⊗n ( (V ⊗n ⊗ A)
+
+where we write V ⊗n for the object V to the tensorial power n:
+V ⊗n
+
+:=
+
+V ⊗ · · · ⊗ V.
+
+We show that, in the particular case when C = Set, the category B of algebras
+of the graded monad ∗ : Inj × Set → Set coincides with the category of Salgebras for a monad S on the presheaf category [Inj, Set]. The monad S is
+moreover described by a Lawvere theory with arities L in the sense of [14]
+which is presented by generators and relations in the Appendix.
+We believe that these constructions are interesting in themselves. They also
+contribute to the general theory of graded monads, and more generally, of parametric notions of effects and resources.
+Plan of the Paper. We start by explaining in §2 why it makes sense to call graded
+monads what we used to call parametric monads. Then, we describe in §3 the
+Eilenberg-Moore construction (see §3.1) and the Kleisli construction (see §3.2)
+for graded monads. After that, in §4 we provide a 2-categorical perspective on
+our construction, by proving that we indeed defined the Eilenberg-Moore and
+Kleisli objects in the sense of Street. We illustrate the construction by applying
+it in §5 to the Inj-graded state monad S on the category Set. In particular,
+we present by generators and relations the Lawvere theory characterizing the
+graded S-algebras of the graded state monad S as covariant presheaves over Inj
+with an extra structure.
+
+2
+
+Parametric Monads Are Graded Monads
+
+Quite obviously, the terminology “graded” comes from the ring-theoretic concept
+of “graded ring”. Let (R, +, 0, ×, 1) be a ring and N be the additive monoid
+on natural numbers. An N-grading
+L on R is an N-indexed family (Am )m∈N of
+abelian groups such that R = m∈N Am and such that the following holds for
+all m, n ∈ N:
+{x × y | x ∈ Am , y ∈ An } ⊆ Am+n .
+(4)
+From these conditions, it follows that 1 ∈ A0 and A0 is a subring of R. An
+N-graded ring is a pair of a ring R and an N-grading (Am )m∈N on it.
+An N-grading (Am )m∈N on R, which is the primary data of the N-graded
+ring, depicts a monoid-like structure in Ab. It consists of 1) multiple carrier
+objects Am given for each grade m ∈ N, 2) a unit group homomorphism r0 :
+Z → A0 at grade 0, which corresponds to 1 ∈ A0 , and 3) a family of graderespecting multiplications rm,n : Am ⊗ An → Am+n , which are restrictions of
+
+the multiplication (×) : R ⊗ R → R by the condition (4). These morphisms
+satisfy the usual unit and associativity laws. We thus call such a structure an
+N-graded monoid in Ab [19], and identify it with a lax monoidal functor of type
+(N, +, 0) → (Ab, ⊗, Z), because both structures carry exactly the same data.
+More generally, for M a monoidal category, we define an M -graded monoid in a
+monoidal category C to be a lax monoidal functor of type M → C . Of course,
+ordinary monoids coincide with 1-graded monoids.
+A M -graded monad on A may be then defined as an M -graded monoid
+in the strict monoidal category ([A , A ], ◦, Id) of endofunctors on A , in the
+style of [19, Section 1.1]. An easy calculation shows that M -graded monads
+on A bijectively correspond to lax M -actions on A in the previous section,
+and to M -parametric monads on A as they are called in [10, 13, 8]. Following
+this correspondence, in the rest of the paper we use the terminology “graded
+monad” instead of “parametric monad”. The main reason for this change is
+that it makes it easy to relate categorical concepts around graded monads and
+algebraic concepts around graded rings. For instance, one easily sees that the
+concept of graded algebra of a graded monad, introduced in the previous section,
+is a categorical analogue of the concept of graded module over a graded ring.
+
+3
+
+Adjunction Pairs Induced from Graded Monads
+
+Throughout this section we fix a monoidal category (M , ⊗, I), which we will
+consider strict for convenience, together with an M -graded monad T = (∗, µ, η)
+on a given category A . We have explained in the introduction that every adjunction L a R : B → A combined with a strict M -action ~ on the category B
+induces an M -graded monad m ∗ a = R(m ~ La) on the category A . Especially, when M = 1, this reduces to the well-known fact that the adjunction
+L a R induces a monad R ◦ L. Conversely, a natural question is whether one
+can derive any M -graded monad T = (∗, µ, η) on a category A as the result of
+“deforming” a strict M -action ~ on a category B along a suitable adjunction
+L a R with L : A → B. Just as in the case of monads, we provide two answers,
+each of them corresponding to a different construction of the category B as the
+category A T of Eilenberg-Moore algebras, or as the Kleisli category AT associated to the graded monad T. The constructions require that the category M
+is small, and we thus make this hypothesis from now on. A pair of very similar
+constructions have been studied by Street in a nice but not sufficiently known
+paper [20] where two ordinary functors F̂ , F̃ : M → Cat are associated to a
+given lax functor F : M → Cat starting from a category M . As we will see, the
+two constructions adapt Street’s original constructions and mildly extend it to
+allow M to be any monoidal category (seen as a one-object 2-category).
+3.1
+
+The Eilenberg-Moore Construction
+
+Given an M -graded monad T = (∗, µ, η) over a category A , the category A T
+of its Eilenberg-Moore algebras is defined in the following way.
+
+Definition 1 (graded T-algebras). A graded T-algebra is a pair (A, h) that
+consists of a functor A : M → A and of a family h of morphisms
+hm,n : m ∗ An → Am⊗n
+natural in m, n and making the diagrams below commute for all objects m, n, p
+of M :
+
+hI,m
+
+η
+
+Am
+
+m ∗ hn,p
+
+m ∗ (n ∗ Ap )
+
+I ∗ Am
+
+id
+
+µm,n
+
+hm,n⊗p
+hm⊗n,p
+
+(m ⊗ n) ∗ Ap
+
+Am
+
+m ∗ An⊗p
+(5)
+
+Am⊗n⊗p
+
+Definition 2 (homomorphisms). Given two graded T-algebras (A, h) and
+(A0 , h0 ), a homomorphism
+ϕ
+
+:
+
+(A, h)
+
+−→
+
+(A0 , h0 )
+
+is defined as a natural transformation ϕ : A ⇒ A0 making the diagram below
+commute for all objects m, n of M :
+m ∗ An
+
+m ∗ ϕn
+
+m ∗ A0n
+h0m,n
+
+hm,n
+
+Am⊗n
+
+ϕm⊗n
+
+A0m⊗n
+
+Definition 3 (Eilenberg-Moore construction). The category A T has graded
+T-algebras as objects and homomorphisms between them as morphisms.
+One important observation is that the category A T admits the following strict
+M -action.
+Definition 4 (strict action). The strict M -action
+~
+
+:
+
+M ×AT
+
+−→
+
+AT
+
+of an object p ∈ M is defined as follows: it transports a graded T-algebra (A, h)
+to the graded T-algebra defined by right translation:
+
+p ~ (A, h) :=
+(Am⊗p )m∈M , (hm,n⊗p )m,n∈M
+and it transports a homomorphism ϕ : (A, h) → (A0 , h0 ) into the homomorphism
+p ~ ϕ : p ~ (A, h) −→ p ~ (A0 , h0 )
+defined by the natural transformation:
+(p ~ ϕ)n := ϕn⊗p : An⊗p → A0n⊗p
+
+It is worth observing that the definition of the action of p and of q on a graded
+T-algebra (A, h) ensures that the equality below (expected by the definition of
+an M -action) is satisfied:
+p ~ (q ~ (A, h))
+
+=
+
+(p ⊗ q) ~ (A, h)
+
+for all objects p, q of the monoidal category M .
+Theorem 5. The functor uT : A T → A defined by (A, h) 7→ AI has a left
+adjoint f T such that the graded monad T = (∗, µ, η) coincides with the graded
+monad
+(m, a)
+
+7→
+
+uT (m ~ (f T (a)))
+
+M ×A
+
+:
+
+−→
+
+A
+
+derived from the adjunction f T a uT and from the M -action ~ on A T .
+The functor f T is constructed in the following way: to any object a of the
+category A , it associates the graded T-algebra f T (a) defined by the functor
+f T (a)
+
+:=
+
+:
+
+M
+
+−→
+
+m ∗ (n ∗ a)
+
+−→
+
+(m ⊗ n) ∗ a.
+
+7→
+
+m
+
+m∗a
+
+A
+
+together with the family of morphisms
+hm,n
+3.2
+
+:=
+
+µm,n,a
+
+:
+
+The Kleisli Construction
+
+Given an M -graded monad T = (∗, µ, η) over a category A , the Kleisli category AT is defined in the following way.
+Definition 6 (Kleisli construction). The category AT has objects the pairs
+(m, a) where m is an object of M and a is an object of A , and each hom-set is
+defined by the coend formula
+Z n∈M
+
+:=
+AT (m, a), (m0 , a0 )
+A (a, n ∗ a0 ) × M (m ⊗ n, m0 ).
+In other words, a morphism is an equivalence class of triples of the form
+f
+
+w
+
+[ n, a −
+→ n ∗ a0 , m ⊗ n −
+→ m0 ]
+modulo the equivalence relation defined by the coend formula. The identity morphism on (m, a) is defined as
+η
+
+id
+
+[I, a −
+→ I ∗ a, m ⊗ I −→ m]
+and the composition of morphisms is defined as
+f0
+
+w0
+
+f
+
+w
+
+[n0 , a0 −→ n0 ∗ a00 , m0 ⊗ n0 −→ m00 ] ◦ [n, a −
+→ n ∗ a0 , m ⊗ n −
+→ m0 ]
+:=
+
+f
+
+n∗f 0
+
+µn,n0
+
+[n ⊗ n0 , a −
+→ n ∗ a0 −−−→ n ∗ n0 ∗ a00 −−−→ (n ⊗ n0 ) ∗ a00 ,
+w⊗n0
+
+w0
+
+m ⊗ n ⊗ n0 −−−→ m0 ⊗ n0 −→ m00 ].
+
+Definition 7. We define a strict M -action ~ on AT by
+l ~ (m, a) := (l ⊗ m, a)
+v ~ [n, f, w] := [n, f, v ⊗ w]
+
+(v : l → l0 , [n, f, w] : (m, a) → (m0 , a0 ))
+
+Theorem 8. The functor vT : A → AT defined by a 7→ (I, a) has a right
+adjoint gT such that the graded monad T = (∗, µ, η) coincides with the graded
+monad
+(m, a)
+
+7→
+
+gT (m ~ (vT (a)))
+
+:
+
+M ×A
+
+−→
+
+A
+
+derived from the adjunction vT a gT and from the M -action ~ on AT .
+The right adjoint functor gT : AT → A is defined as gT (m, a) := m ∗ a on
+objects and
+f
+
+w
+
+gT ([ n, a −
+→ n ∗ a0 , m ⊗ n −
+→ m0 ])
+:=
+f
+
+w∗a0
+
+µm,n
+
+m∗f
+
+m ∗ a −−−→ m ∗ n ∗ a0 −−−→ (m ⊗ n) ∗ a0 −−−→ n0 ∗ a0
+w
+
+on morphisms [ n, a −
+→ n ∗ a0 , m ⊗ n −
+→ m0 ] : (m, a) → (m0 , a0 ).
+3.3
+
+Resolutions of Graded Monads
+
+What are special about the Eilenberg-Moore and Kleisli resolutions of a graded
+monad? To answer this question, we introduce a suitable category consisting
+of resolutions of a graded monad, and show that Eilenberg-Moore and Kleisli
+resolutions are terminal and initial objects in this category. This is an extension
+of the theory of resolutions of monads to graded monads.
+The key ingredient of a resolution of an M -graded monad is a category with
+strict M -actions. For the categorical treatment of such categories, we introduce
+the 2-category M -Cat of categories with strict M -actions. It is the EilenbergMoore 2-category of the 2-monad M × (−) on Cat. We associate to it the
+2-adjunction F M a U M : M -Cat → Cat that behaves as follows on 0-cells:
+F M (A ) := (M × A , (⊗) × A : M × M × A → M × A ),
+
+U M (A , ~) := A .
+
+Definition 9. Let T = (∗, µ, η) be an M -graded monad on A .
+– A resolution of T is a tuple of a 0-cell (B, ~) in M -Cat and an adjunction
+l a r : B → A in Cat such that T coincides with the graded monad r(− ~
+(l−)) derived from the adjunction l a r and the strict M -action ~.
+– Given two resolutions ((B, ~), l a r) and ((B 0 , ~0 ), l0 a r0 ) of T, a morphism
+from the former to the latter is a 1-cell h : (B, ~) → (B 0 , ~0 ) in M -Cat
+such that h ◦ l = l0 and r = r0 ◦ h (here U M is implicitly applied to h).
+– We define the category Res(T) of resolutions of T by the above data.
+
+4
+
+Towards a Formal Theory of Graded Monads
+
+We explain how Street’s formal theory of monads can be adapted in order to
+characterize the two constructions of A T and of AT described in §3 as universal
+constructions. In his seminal paper [21], Street developed a general theory of
+monads relative to an arbitrary 2-category K, so that the usual theory of monads
+is regained by instantiating K by Cat, the 2-category of categories, functors, and
+natural transformations.
+Definition 10. A monad T in K is given by a 0-cell k, a 1-cell T : k → k,
+and 2-cells µ : T ◦ T ⇒ T of K and η : idk ⇒ T , satisfying the usual axioms
+µ ◦ ηT = idT = µ ◦ T η and µ ◦ T µ = µ ◦ µT .
+Among his various abstract developments of the theory, the notions of EilenbergMoore object and Kleisli object for a monad in a 2-category will be the most
+important ones to our current work. We adopt the following definition, which
+appears for instance in [20]:
+Definition 11. The Eilenberg-Moore object of T is a 0-cell k T such that there
+is a family of isomorphisms of categories
+K(x, k T )
+
+∼
+=
+
+K(x, k)K(x,T)
+
+2-natural in x ∈ K. Here the category on the right hand side is the (usual)
+Eilenberg-Moore category of the monad K(x, T) on the category K(x, k).
+Definition 12. The Kleisli object of T is a 0-cell kT such that there is a family
+of isomorphisms of categories
+K(kT , x)
+
+∼
+=
+
+K(k, x)K(T,x)
+
+2-natural in x ∈ K. Here the category on the right hand side is the (usual)
+Eilenberg-Moore category of the monad K(T, x) on the category K(k, x).
+Now a remarkable point is that from this simple and abstract definition, one
+can reconstruct a fair amount of the well-known properties of Eilenberg-Moore
+or Kleisli categories, including the existence of adjunctions which generate the
+monads, and the existence and uniqueness of comparison 1-cells. The interested
+reader should consult [21] for an ingenious 2-categorical manipulation achieving
+this reconstruction. In what follows, however, we choose to describe the adjunctions explicitly, for the sake of concreteness. As we did in §3, we suppose here
+that the category M is small, a necessary condition in order to perform the
+constructions of the Eilenberg-Moore and Kleisli objects.
+4.1
+
+A 2-Category for Eilenberg-Moore Objects
+
+We introduce the 2-category E ++ where the category A T of graded algebras
+(Definition 1) arises as an Eilenberg-Moore object in it. This 2-category is obtained by a suitable lax comma construction for the 3-category 2-Cat of 2categories, 2-functors, 2-natural transformations and modifications. We denote
+the terminal 2-category by 1.
+
+Definition 13. We define the 2-category E ++ by the following data.
+– A 0-cell of E ++ is a 2-functor a : 1 → A where A is a 2-category; equivalently, it is a pair (A, a) where a is a 0-cell of A.
+– A 1-cell of E ++ from (A, a) to (A0 , a0 ) is a diagram in 2-Cat
+1
+a
+
+a0
+
+f
+
+A
+
+A0
+
+F
+
+filled with a 2-natural transformation f ; equivalently, it is a pair (F, f ) where
+f : F a → a0 is a 1-cell of A0 .
+– A 2-cell of E ++ from (F, f ) to (F 0 , f 0 ) is a diagram in 2-Cat
+1
+f0
+
+a
+
+a0
+α
+
+f
+
+F0
+
+A
+
+A0
+
+Θ
+F
+
+filled with a modification α; equivalently, it is a pair (Θ, α) where α is a
+2-cell of A0 of the following type:
+f
+
+a0
+
+Fa
+α
+Θa
+
+F 0a
+
+f0
+
+The first projection of the data defines a 2-functor p++ : E ++ → 2-Cat2 ,
+where 2-Cat2 is the 2-category of 2-categories, 2-functors, and 2-natural transformations. We take a fibrational viewpoint [7, 1] and say a notion X is above I
+if p++ (X) = I. A first key observation is the following:
+Proposition 14. Let (M , ⊗, I) be a strict monoidal category and A a category.
+Then, an M -graded monad on A is the same thing as a monad in E ++ on
+(Cat, A ), above the 2-monad M × (−) on Cat.
+Thanks to this proposition, it makes sense to speculate on the EilenbergMoore objects (in the sense of Street) of graded monads in this 2-category E ++ .
+Indeed, E ++ turns out to admit Eilenberg-Moore objects of graded monads, and
+moreover the Eilenberg-Moore adjunction for an M -graded monad lies above
+that for the 2-monad M × (−).
+
+Proposition 15. The following is an adjunction in the 2-category E ++ :
+(F M , − ~ f T −)
+
+(Cat, A )
+
+(M -Cat, (A T , ~))
+
+⊥
+(U M , uT )
+
+Proof. In general, for an adjunction L a R in 2-Cat2 and a morphism (R, r) :
+(D, d) → (C, c) in E ++ , a left adjoint to (R, r) above L in E ++ bijectively
+corresponds to a left adjoint to r : c → Rd in C. By letting (R, r) be (U M , uT ),
+where uT is a right adjoint, we obtain the above left adjoint, lying above F M .
+A long, but straightforward calculation establishes the announced result:
+Theorem 16. There is a family of isomorphisms of categories
+E ++ ((X, x), (M -Cat, A T ))
+
+∼
+=
+
+E ++ ((X, x), (Cat, A ))E
+
+++
+
+((X,x),T)
+
+2-natural in (X, x) ∈ E ++ .
+Corollary 17. Let T be a graded monad. Then ((A T , ~), f T a uT ) is terminal
+in the category Res(T) of resolutions of T.
+Proof. The idea is similar to that of Proposition 15.
+
+4.2
+
+A 2-Category for Kleisli Objects
+
+We next introduce the 2-category E −− where the category AT (Definition 6)
+arises as a Kleisli object in it. It turns out to be a certain dual of the 2category E ++ :
+Definition 18. Define the 2-category E −− as follows.
+– A 0-cell of E −− is a 2-functor a : 1 → A where A is a 2-category; equivalently, it is a pair (A, a) where a is a 0-cell of A.
+– A 1-cell of E −− from (A, a) to (A0 , a0 ) is a diagram in 2-Cat
+1
+a
+
+A
+
+f
+
+F
+
+a0
+
+A0
+
+filled with a 2-natural transformation f ; equivalently, it is a pair (F, f ) where
+f : a → F a0 is a 1-cell of A.
+– A 2-cell of E −− from (F, f ) to (F 0 , f 0 ) is a diagram in 2-Cat
+
+1
+f0
+
+a
+
+a0
+α
+
+f
+
+F0
+
+A
+
+A0
+
+Θ
+F
+
+filled with a modification α; equivalently, it is a pair (Θ, α) where α is a
+2-cell of A of the following type:
+f
+
+a
+
+F a0
+α
+
+f
+
+Θa0
+
+0
+
+F 0 a0
+Again the first projection of the data defines a 2-functor p−− : E −− →
+op(1,2)
+op(1,2)
+2-Cat2
+, where 2-Cat2
+is the 2-category obtained by reversing both 1cells and 2-cells of 2-Cat2 .
+Proposition 19. Let (M , ⊗, I) be a strict monoidal category and A a category.
+Then, an M -graded monad on A is the same thing as a monad in E −− on
+(Cat, A ), above the 2-comonad [M , −] on Cat.
+The 2-category E −− admits Kleisli objects of graded monads, and the Kleisli
+adjunction for an M -graded monad lies above the co-Eilenberg-Moore adjunction
+for the 2-comonad [M , −]. Observe that the 2-comonad [M , −], being right
+adjoint to the 2-monad M × (−), has as its co-Eilenberg-Moore 2-category again
+the 2-category M -Cat. Let us denote VM a GM for the associated 2-adjunction.
+Their behaviour on 0-cells are given as follows:
+GM (C ) := ([M , C ], ⊗∧ : M × [M , C ] → [M , C ]),
+
+VM (C , ~) := C ,
+
+where ⊗∧ (m, C) = C(− ⊗ m).
+Proposition 20. The following is an adjunction in the 2-category E −− :
+(VM , vT )
+
+(Cat, A )
+
+⊥
+
+(M -Cat, (AT , ~))
+
+(GM , gT (− ~ −))
+
+Proof. We give a proof similar to Proposition 15. This time we use the following
+fact: for an adjunction L a R in 2-Cat2 and a 1-cell (L, l) : (C, c) → (D, d) in
+E −− , a right adjoint to (L, l) above R in E −− bijectively corresponds to a right
+adjoint to l : c → Ld in C.
+
+Theorem 21. There is a family of isomorphisms of categories
+∼
+=
+
+E −− ((M -Cat, AT ), (X, x))
+
+E −− ((Cat, A ), (X, x))E
+
+−−
+
+(T,(X,x))
+
+2-natural in (X, x) ∈ E −− .
+f
+
+A key to the proof of this theorem is the observation that every 1-cell [n, a −
+→
+w
+n ∗ a0 , m ⊗ n −
+→ m0 ] of AT can be decomposed as
+f
+
+w
+
+[n, a −
+→ n ∗ a0 , m ⊗ n −
+→ m0 ]
+=
+
+id
+
+id
+
+(w ~ vT (a0 )) ◦ (m ~ [n, n ∗ a0 −→ n ∗ a0 , I ⊗ n −→ n]) ◦ (m ~ vT (f )).
+
+Corollary 22. Let T be an M -graded monad. Then ((AT , ~), vT a gT ) is initial in the category Res(T) of resolutions of T.
+
+5
+
+Illustration: the Graded State Monad
+
+Suppose given an object V in a symmetric monoidal closed category C . We start
+by describing the graded state monad
+S = (∗, µ, η)
+
+:
+
+Inj × C
+
+C
+
+−→
+
+mentioned at the end of the introduction, and defined as
+n∗A
+
+:=
+
+V ⊗n ( (V ⊗n ⊗ A).
+
+One simple way to define the graded monad S is to start from the observation
+that the formula A 7→ n ∗ A defines an Inj-indexed monad, defined as a functor
+∗
+
+:
+
+Inj
+
+−→
+
+Mnd(C )
+
+from the category Inj to the category Mnd(C ) of monads over the category C ,
+and monad homomorphisms between them. We write
+µm,A : m ∗ (m ∗ A) −→ m ∗ A
+
+ηm,A : A −→ m ∗ A
+
+for the multiplication and unit of the monad A 7→ m ∗ A. The multiplication
+µm,n,A of the graded state monad S may be then defined as the composite
+m ∗ (n ∗ A)
+
+inl∗(inr∗A)
+
+/ (m + n) ∗ ((m + n) ∗ A)
+
+µm+n,A
+
+/ (m + n) ∗ A
+
+where the lefthand side morphism is defined by the injection morphisms inl :
+m → m + n and inr : n → m + n and where µm+n,A is the multiplication
+of the monad A 7→ (m + n) ∗ A. Similarly, the unit ηA : A → 0 ∗ A of the
+graded monad S is defined as η 0,A which is an isomorphism. This defines the
+graded monad S = (∗, µ, η). More generally, one observes that every M -indexed
+monad induces an M -graded monad in this way, when the unit I of the monoidal
+category (M , ⊗, I) is initial, as in the case of the category Inj.
+
+We find instructive to explicate the notion of graded S-algebra introduced in
+§3.1 in the particular case when C = Set and where V is a finite set. As in the
+case of any such cartesian closed category C , the action can be rewritten as
+n∗A
+
+=
+
+(V n ⇒ V n ) × (V n ⇒ A).
+
+Now, a graded S-algebra (A, h) is given by a functor A : Inj → Set, together
+with a family h of functions
+hm,n
+
+:
+
+(V m ⇒ V m ) × (V m ⇒ An )
+
+−→
+
+subject to the axioms (5) of graded algebras. Since
+a
+(V m ⇒ V m ) × (V m ⇒ An ) =
+
+Am+n
+
+(V m ⇒ An ),
+
+f ∈(V m ⇒V m )
+
+one can see the family h as a family of operations
+hf, ni
+
+:
+
+V m ⇒ An
+
+−→
+
+Am+n .
+
+indexed by the functions f : V m → V m and the natural numbers n. Note that
+each such operation hf, ni transports V m elements of grade n into an element
+of grade m + n. As such, a graded S-algebra (A, h) can be seen in terms of
+multisorted universal algebra as a family (Am )m∈N of sets with sorts provided
+by natural numbers m ∈ N. Following [11, 3, 14], the algebraic theory can be
+presented by extending with the operations hf, ni the trivial Lawvere theory
+with arities
+Σ(Inj) op −→ [Inj, Set]
+whose models are the covariant presheaves over [Inj, Set] with the generators hf, ni together with a number of equations expressing that
+– the family hm,n : m ∗ An → Am⊗n is natural in m and n,
+– h satisfies the equations (5) of a graded S-algebra.
+The equations are given in the Appendix. The resulting algebraic presentation
+of graded S-algebras by operations and equations enables one to establish that
+Theorem 23. The canonical forgetful functor U : SetS → [Inj, Set] given by
+(A, h) 7→ A is monadic.
+One main reason for studying the Inj-graded monad S is that it induces in this
+way a monad on [Inj, Set] with arities Θ : ΣInj op → [Inj, Set] whose Lawvere
+theory ‫(|מ‬S) with arities Θ is a sub-theory of the Lawvere theory ‫( |מ‬with same
+arities) of the local state monad L presented by generators and relations in [14].
+
+Interestingly, the resulting algebraic theory ‫(|מ‬S) captures only a restricted part
+of the original algebraic theory ‫ |מ‬since the multiplication µm,n,A does not enable
+the graded algebra (Am )m∈Inj to pass states from one layer of application (m∗−)
+of the graded state monad to the next layer (n ∗ −). This limitation should not
+be seen as a defect but rather as a feature of the graded state monad S since it
+enables us to delineate a natural fragment of the local state monad L.
+Acknowledgments. The authors are grateful to the anonymous reviewer for suggesting an alternative and more elegant construction of the graded state monad.
+The authors are also grateful to Marco Gaboardi and to Dominic Orchard for
+a number of useful discussions about this work. The authors were supported by
+the JSPS-INRIA Bilateral Joint Research Project CRECOGI, the second author
+was supported by Grant-in-Aid No.15K00014 while the third author was partly
+supported by the ANR Project Recre.
+
+References
+1. Igor Baković. Fibrations of bicategories. Available on the ArXiV.
+2. Jean Bénabou. Introduction to bicategories. Reports of the Midwest Category Seminar Lecture Notes in Mathematics Volume 47, pp 1-77, Springer Verlag, 1967.
+3. Clemens Berger, Paul-André Melliès, Mark Weber. Monads with arities and their
+associated theories, J. Pure Appl. Algebra 216 (2012), 2029-2048.
+4. Ugo Dal Lago. A short introduction to Implicit Computational Complexity. Lectures
+on Logic and Computation LNCS Volume 7388, Springer Verlag, pp 89–109, 2012.
+5. Ugo Dal Lago and Marco Gaboardi. Linear Dependent Types and Relative Completeness. Logical Methods in Computer Science. Volume 8(4) 12, 2012.
+6. Charles Grellois, Paul-André Melliès. Relational Semantics of Linear Logic and
+Higher-order Model Checking. Proceedings of CSL 2015: 260–276.
+7. Claudio Hermida, Descent on 2-fibrations and strongly 2-regular 2-categories. Appl.
+Categ. Structures 12 (2004), no. 5-6, 427-459.
+8. Shin-ya Katsumata. Parametric Effect Monads and Semantics of Effect Systems. In
+Proc. POPL ’14, pp. 633–645, ACM, 2014.
+9. Paul-André Melliès. Towards an algebra of duality. Talk given during the workshop
+Linear Logic, Ludics, Implicit Complexity, Operator Algebras, dedicated to JeanYves Girard on the occasion of his 60th birthday, May 2007.
+10. Paul-André Melliès. Game semantics in string diagrams. In Proceedings of Logic
+In Computer Science, LICS 2012, Dubrovnik.
+11. Paul-André Melliès. Segal condition meets computational effects. LICS 2010.
+12. Paul-André Melliès. Sharing and Duplication in Tensorial Logic. Invited talk at the
+4th International workshop on Developments in Implicit Computational complexity
+(DICE), Rome, March 2013.
+13. Paul-André Melliès. Parametric monads and enriched adjunctions. Syntax and Semantics of Low Level Languages, LOLA 2012, Dubrovnik. Manuscript available on
+the author’s webpage.
+14. Paul-André Melliès. Local States in String Diagrams. Proceedings of RTA-TLCA
+2014, Rewriting & Typed Lambda Calculi, LNCS 8560, Springer Verlag, pp 334–348.
+15. Paul-André Melliès. The parametric continuation monad. Festschrift in honor of
+Corrado Böhm for his 90th birthday. Math. Structures in Computer Science, 2016.
+
+16. Stefan Milius, Dirk Pattinson, and Lutz Schröder. Generic Trace Semantics and
+Graded Monads. Calco 2015.
+17. Tomas Petricek, Dominic Orchard and Alan Mycroft. Coeffects: Unified static analysis of context-dependence. In Proceedings of ICALP 2013.
+18. Gordon Plotkin and John Power. Computational Effects Determine Monads. In
+Proceedings of FoSSaCS 2002, Grenoble.
+19. Alexander Smirnov. Graded monads and rings of polynomials. Journal of Mathematical Sciences, Volume 151, Number 3, 2008, Pages 3032–3051.
+20. Ross Street. Two constructions on lax functors. Cahiers de topologie et géométrie
+différentielle 13 (1972) 217–264.
+21. Ross Street. The formal theory of monads. Journal of Pure and Applied Algebra,
+Volume 2, Issue 2, July 1972, Pages 149–168.
+
+Appendix: an Algebraic Presentation of Graded S-Algebras
+Formulated in the language of multisorted universal algebra, a graded S-algebra
+(A, h) is completely determined by a family (Am )m∈N of sets equipped with an
+operation Av : Am → An for each injection v : m → n and with an operation
+m
+hf, ni : AVn → Am+n for each pair of natural numbers m, n and each function
+f : V m → V m . These operations should moreover satisfy the equations below.
+First of all, the two functoriality equations below:
+Aw◦v = Aw ◦ Av .
+
+Aidm = idAm
+
+Then, the naturality equation, for all injections v : m → m0 and w : n → n0 ,
+Av+w (hf, ni(ai )i∈V m )
+
+hv • f, n0 i(Aw (ai0 ◦v ))i0 ∈V m0 ,
+
+=
+
+0
+
+0
+
+where the function v • f : V m → V m is defined as
+(
+
+
+f (valv(k) )k∈m l if l0 = v(l) for some l ∈ m;
+(v • f )(valk0 )k0 ∈m0 l0 =
+vall0
+otherwise.
+Then, the unit equation
+hidV 0 , mi
+
+=
+
+idAm ,
+
+for a function f : V m → V m and an injection v : m → m0 ; and finally the
+associativity equation
+hf in+p (hgi , pi(ai,j )j∈V n )i∈V m
+
+=
+
+hf ? (gi )i∈V m , pi(ai,j )i,j∈V m+n ,
+
+where the function
+f ? (gi )i∈V m
+
+:
+
+V m+n
+
+−→
+
+V m+n
+
+is defined as follows, for a function f : V m → V m and for a family of functions (gi : V n → V n )i∈V m :
+(
+
+
+f (valk )k∈m l
+if l ∈ m,
+
+(f ?(gi )i∈V m )(valk , walk0 )k∈m,k0 ∈n l =
+g(valk )k∈m (walk0 )k0 ∈n l if l ∈ n.
+Homomorphisms of graded S-algebras are just families of maps ϕm : Am → A0m
+commuting with the operations introduced above.
+
+

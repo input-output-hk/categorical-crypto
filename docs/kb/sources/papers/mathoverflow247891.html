@@ -1,0 +1,1576 @@
+
+<!DOCTYPE html>
+
+
+    <html itemscope itemtype="https://schema.org/QAPage"  class="html__responsive " lang="en">
+
+        <head>
+            
+            <title>ct.category theory - The category of sets and &quot;stateful&quot; functions - MathOverflow</title>
+                        <script src="https://cdn.cookielaw.org/scripttemplates/gpp.stub.js"></script>
+    <script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js" charset="UTF-8" data-document-language="true" data-domain-script="df781aaa-3224-4466-b227-bb6c901339e7"></script>
+    <script type="text/javascript">
+        function OptanonWrapper() { }
+    </script>
+
+<link rel="icon" sizes="32x32" href="https://mathoverflow.net/Content/Sites/mathoverflow/Img/favicon.ico?v=8bbfe38cfc48">
+
+
+<link rel="apple-touch-icon" href="https://mathoverflow.net/Content/Sites/mathoverflow/Img/apple-touch-icon.png?v=8c5ff8612fb4">
+<link rel="image_src" href="https://mathoverflow.net/Content/Sites/mathoverflow/Img/apple-touch-icon.png?v=8c5ff8612fb4"> 
+    <link rel="search" type="application/opensearchdescription+xml" title="MathOverflow" href="/opensearch.xml">
+        <link rel="canonical" href="https://mathoverflow.net/questions/247891/the-category-of-sets-and-stateful-functions" />
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0">
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://mathoverflow.net/questions/247891/the-category-of-sets-and-stateful-functions" />
+    <meta property="og:site_name" content="MathOverflow" />
+    <meta property="og:image" content="https://mathoverflow.net/Content/Sites/mathoverflow/Img/apple-touch-icon@2.png?v=f1c9606b77ff" />
+        <script type="application/ld+json">
+    {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://mathoverflow.net/#website",
+      "name": "MathOverflow",
+      "url": "https://mathoverflow.net",
+      "image": "https://mathoverflow.net/Content/Sites/mathoverflow/Img/apple-touch-icon@2.png?v=f1c9606b77ff",
+      "publisher": {
+        "@id": "https://stackoverflow.com/#organization"
+      }
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://stackoverflow.com/#organization",
+      "name": "Stack Overflow",
+      "url": "https://stackoverflow.com",
+      "logo": "https://stackoverflow.com/Content/Sites/stackoverflow/Img/logo.png?v=0a124c963f5f",
+      "sameAs": [
+        "https://stackoverflow.co/",
+        "https://www.facebook.com/officialstackoverflow/",
+        "https://x.com/stackoverflow",
+        "https://www.linkedin.com/company/stack-overflow",
+        "https://www.youtube.com/c/StackOverflowOfficial",
+        "https://twitter.com/stackoverflow"
+      ],
+      "contactPoint": [
+        {
+          "@type": "ContactPoint",
+          "contactType": "Customer support",
+          "url": "https://stackoverflow.com/contact"
+        },
+        {
+          "@type": "ContactPoint",
+          "contactType": "Stack Ads",
+          "url": "https://stackoverflow.co/advertising/"
+        },
+        {
+          "@type": "ContactPoint",
+          "contactType": "Stack Internal",
+          "url": "https://stackoverflow.co/teams/"
+        },
+        {
+          "@type": "ContactPoint",
+          "contactType": "Stack Data Licensing",
+          "url": "https://stackoverflow.co/api-solutions/"
+        }
+      ],
+      "description": "Q\u0026A for professional and enthusiast programmers"
+    }
+  ]
+}
+</script>
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:domain" content="mathoverflow.net" />
+    <meta name="twitter:title" property="og:title" content="The category of sets and &quot;stateful&quot; functions" />
+    <meta name="twitter:description" property="og:description" content="In some programming languages, there&#x27;s functions whose output can change on the basis of changing internal state; for example, the second time you compute $f(5)$ you might get a different answer. T..." />
+
+    
+<meta itemprop="name" content="The category of sets and &quot;stateful&quot; functions" />
+<meta itemprop="description" content="In some programming languages, there&#x27;s functions whose output can change on the basis of changing internal state; for example, the second time you compute $f(5)$ you might get a different answer. T..." />
+<meta itemprop="image" content="https://mathoverflow.net/Content/Sites/mathoverflow/Img/apple-touch-icon@2.png?v=f1c9606b77ff" />
+<meta itemprop="primaryImageOfPage" content="https://mathoverflow.net/Content/Sites/mathoverflow/Img/apple-touch-icon@2.png?v=f1c9606b77ff" />
+<meta itemprop="url" content="https://mathoverflow.net/questions/247891/the-category-of-sets-and-stateful-functions" />
+    <meta itemprop="isPartOf" content="https://mathoverflow.net/#website" />
+    <meta itemprop="publisher" content="https://stackoverflow.com/#organization" />
+
+<script id="webpack-public-path" type="text/uri-list">https://mathoverflow.net/Content/</script>
+
+<script type="application/json" data-role="module-args" data-module-name="args/options.mod">{"options":{"locale":"en","serverTime":1783770972,"routeName":"Questions/Show","stackAuthUrl":"https://stackauth.com","networkMetaHostname":"meta.stackexchange.com","site":{"name":"MathOverflow","description":"Q\u0026A for professional mathematicians","isNoticesTabEnabled":true,"enableNewTagCreationWarning":true,"insertSpaceAfterNameTabCompletion":false,"id":504,"cookieDomain":".mathoverflow.net","childUrl":"https://meta.mathoverflow.net","negativeVoteScoreFloor":null,"enableSocialMediaInSharePopup":true,"protocol":"https"},"user":{"fkey":"82c5dbe2b7f3a9caa168396099a96d3e7a511e49800de11efbe85662238fb7e5","tid":"72a8606e-644b-4d33-8fe6-575f8943ffdd","rep":0,"isAnonymous":true,"isAnonymousNetworkWide":true},"realtime":{"newest":true,"active":true,"tagged":true,"staleDisconnectIntervalInHours":0},"events":{"postType":{"question":1},"postEditionSection":{"title":1,"body":2,"tags":3}}}}</script>
+<script type="application/json" data-role="module-args" data-module-name="args/settings.mod">{"settings":{"questionLinkTitleReplacement":{"maxReplacementsPerSite":20,"maxNumberOfSitesProcessed":10},"search":{},"markdown":{"enableTables":true},"accounts":{"currentPasswordRequiredForChangingStackIdPassword":true},"freshdesk":{"widgetId":"22000000768"},"snippets":{"renderDomain":"stacksnippets.net","stacksEditorSnippetsEnabledFor":{"Metadata":{"Name":"SubCommunitiesSettings.EnabledFor","Filter":0},"AppliedFilter":0,"IsNobody":true,"All":false,"Anonymous":false,"LoggedIn":false,"ChannelsMembers":false,"Moderators":false,"Employees":false,"Developers":false,"TeamAdmins":false,"AccountIds":[],"ExcludedAccountIds":[],"Serialization":""}},"subscriptions":{"defaultBasicMaxTrueUpSeats":250,"defaultMaxTrueUpSeats":1000,"defaultFreemiumMaxTrueUpSeats":50},"api":{"oneTrustDataLicensingApiConfigId":"019c4e40-2b18-7d09-b854-450af38a31c8"},"site":{"enableUserHovercards":true,"enableImageHttps":true,"stacksEditorPreviewEnabled":true,"forceHttpsImages":true,"allowImageUploads":true},"comments":{},"intercom":{"appId":"inf0secd"},"paths":{"jQueryUICSSPath":"https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.0/themes/smoothness/jquery-ui.css","jQueryUIJSPath":"https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.0/jquery-ui.min.js"},"userMessaging":{},"mentions":{"maxNumUsersInDropdown":50},"questions":{"enableQuestionTitleLengthLiveWarning":true,"questionTitleLengthStartLiveWarningChars":50,"enableSavesFeature":true,"maxTitleSize":150},"tags":{},"auth":{"oauthInPopup":true},"signup":{},"elections":{"opaVoteResultsBaseUrl":"https://www.opavote.com/results/"},"flags":{"allowRetractingFlags":true,"allowRetractingCommentFlags":true},"legal":{"useCustomConsent":false,"oneTrustTCFConfigId":"df781aaa-3224-4466-b227-bb6c901339e7"},"image":{"maxImageUploadSizeInBytesAnimatedGif":2097152,"maxImageUploadSizeInBytes":10485760}}}</script>
+
+<script type="text/javascript">
+    (function () {
+        // see getArgs() in modules.ts
+        function readModuleArgs(moduleName) {
+            const selector = `script[type="application/json"][data-role="module-args"][data-module-name="${moduleName}"]`;
+            return JSON.parse(document.querySelector(selector).innerText);
+        }
+
+        StackExchange = window.StackExchange || {};
+
+        var options = StackExchange.options = readModuleArgs("args/options.mod").options;
+        StackExchange.settings = readModuleArgs("args/settings.mod").settings;
+
+        options.serverTimeOffsetSec = options.serverTime - (new Date()).getTime() / 1000;
+
+        options.enableLogging = (options.user.isEmployee || options.isDebugBuild) && typeof console !== 'undefined' && typeof console.log !== 'undefined';
+    })();
+</script>
+
+
+<script src="https://mathoverflow.net/Content/Js/google-analytics.en.js?v=48615a9a9bc4"></script>
+
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+            <script defer src="https://mathoverflow.net/Content/Js/third-party/npm/@stackoverflow/stacks/dist/js/stacks.min.js?v=79a2fd33ef4b"></script>
+            <script src="https://mathoverflow.net/Content/Js/stub.en.js?v=4fc880400eb0"></script>
+
+            <link rel="stylesheet" type="text/css" href="https://mathoverflow.net/Content/Shared/stacks.css?v=b2264ccf0463">
+            <link rel="stylesheet" type="text/css" href="https://mathoverflow.net/Content/Sites/mathoverflow/primary.css?v=3073f0b0f651">
+
+
+            
+            <link rel="alternate" type="application/atom+xml" title="Feed for question &#x27;The category of sets and &quot;stateful&quot; functions&#x27;" href="/feeds/question/247891">
+<script defer src="https://mathoverflow.net/Content/Js/misc/copy.en.js?v=eaf5f2a0965b"></script><script type="application/json" data-role="module-args" data-module-name="entry-points/misc/copy.mod">{"sortType":4,"numberOfVisibleAnswers":0,"trackQuestions":true,"trackArticles":false,"userReputation":0,"userReputationBand":0,"sendPrizmEvent":false,"sendAEHEvent":true}</script><script>
+    StackExchange.ready(function () {
+
+        StackExchange.using("postValidation", function () {
+            StackExchange.postValidation.initOnBlurAndSubmit($('#post-form'), 2, 'answer');
+        });
+
+
+        StackExchange.question.init({showCitation:true,showAnswerHelp:true,totalCommentCount:6,shownCommentCount:5,enableTables:true,questionId:247891});
+
+        styleCode();
+
+                StackExchange.realtime.subscribeToQuestion('504', '247891');
+                StackExchange.using("gps", function () { StackExchange.gps.trackOutboundClicks('#content', '.js-post-body'); });
+
+
+    });
+</script>
+
+                
+                
+                
+            <link rel="stylesheet" type="text/css" href="https://mathoverflow.net/Content/Shared/Channels/channels.css?v=d431b1be5a03">
+
+            
+            <script src="https://mathoverflow.net/Content/Js/third-party/citation-helper.js?v=a4ec380e29ba"></script>
+<script type="application/json" data-role="module-args" data-module-name="legacy/global/site-includes/index.mod">{"moduleName":"mathHideUserRep"}</script>
+            
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({
+                "HTML-CSS": {
+                    preferredFont: "TeX",
+                    availableFonts: ["STIX", "TeX"],
+                    linebreaks: { automatic: true },
+                    EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+                },
+                tex2jax: {
+                    inlineMath: [["$", "$"], ["\\\\(","\\\\)"]],
+                    displayMath: [["$$", "$$"], ["\\[", "\\]"]],
+                    processEscapes: true,
+                    ignoreClass: "tex2jax_ignore|dno"
+                },
+                TeX: {
+                    extensions: ["begingroup.js"],
+                    noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+                    Macros: { href: "{}" }
+                },
+                messageStyle: "none",
+                styles: { ".MathJax_Display, .MathJax_Preview, .MathJax_Preview > *": { "background": "inherit" } },
+                SEEditor: "mathjaxEditing"
+            });
+        </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS_HTML-full"></script>
+
+
+                <script>
+                    StackExchange.ready(function () {
+                        StackExchange.realtime.init('wss://qa.sockets.stackexchange.com');
+                            StackExchange.realtime.subscribeToReputationNotifications('504');
+                    StackExchange.realtime.subscribeToTopBarNotifications('504');
+                    });
+                </script>
+            <script>StackExchange.init();</script>
+
+            <script>
+                StackExchange.using.setCacheBreakers({"Js/adops.en.js":"6da43f5e0a84","Js/ask.en.js":"","Js/begin-edit-event.en.js":"dd955babf04d","Js/events.en.js":"","Js/explore-qlist.en.js":"ee2a4f8c3992","Js/full-anon.en.js":"36f36cfae924","Js/full.en.js":"9edb63a6488b","Js/google-analytics.en.js":"48615a9a9bc4","Js/highlightjs-loader.en.js":"a4686f666a43","Js/inline-tag-editing.en.js":"8517756a2cb6","Js/keyboard-shortcuts.en.js":"9ce498b8114c","Js/markdown-it-loader.en.js":"9e901e1e3a2c","Js/mentions-transpiled.en.js":"e9ca3423a67f","Js/moderator.en.js":"dcace7b18227","Js/postCollections-transpiled.en.js":"e98fd6d78022","Js/post-validation.en.js":"491be93dc336","Js/question-editor.en.js":"","Js/review-v2-transpiled.en.js":"573e8a6d3754","Js/revisions.en.js":"9dd135bb585f","Js/stacks-editor.en.js":"349bf24cd7ca","Js/tageditor.en.js":"0e636242a887","Js/tageditornew.en.js":"65942433793c","Js/tagsuggestions.en.js":"c54b483b692e","Js/wmd.en.js":"c7d0cf9dc630","Js/mathjax-editing.v3.en.js":"a551e6bf8fa9","Js/mathjax-editing.en.js":"91d74099c2d5"});
+                StackExchange.using("gps", function() {
+                        StackExchange.gps.init(false);
+                });
+            </script>
+            <noscript id="noscript-css"><style>body, .s-topbar { margin-top: 1.9em }</style></noscript>
+
+            
+<script defer src="https://mathoverflow.net/Content/Js/sprinkles/cookie-consent.en.js?v=7ee6963139c5"></script>
+        </head>
+
+    <body class="question-page unified-theme">
+        
+<div id="signup-modal-container"></div>
+<script type="application/json" data-role="module-args" data-module-name="islands/signup-modal/index.mod">{"ContainerElementId":"signup-modal-container","FKey":"82c5dbe2b7f3a9caa168396099a96d3e7a511e49800de11efbe85662238fb7e5","TriggerEvent":"signupModalShow","OauthInPopup":true,"ReturnUrl":"https://mathoverflow.net/questions/247891/the-category-of-sets-and-stateful-functions","ReturnUrlForPopup":"https://mathoverflow.net/users/after-signup/oauth-only","SiteName":"MathOverflow","SiteLogoPath":"https://mathoverflow.net/Content/Sites/mathoverflow/Img/icon-48.png?v=6c004a7b4d5d","AuthProviders":["Google"],"ParentSiteUrl":"","IsInitiallyVisible":false,"IsSignupProductEventsEnabled":false}</script>
+<script defer src="https://mathoverflow.net/Content/Js/webpack-chunks/svelte.en.js?v=94905f07fa5a"></script><script defer src="https://mathoverflow.net/Content/Js/webpack-chunks/stacks-svelte.en.js?v=94e45f550373"></script><script defer src="https://mathoverflow.net/Content/Js/webpack-chunks/9366.en.js?v=c8d4e4e64bf3"></script><script defer src="https://mathoverflow.net/Content/Js/islands/signup-modal.en.js?v=f64ec881ea96"></script>
+
+<script defer>
+    dispatchEvent(new CustomEvent("openSignupModal"));
+</script>
+    
+    
+
+    <div id="one-tap-container"></div>
+<script type="application/json" data-role="module-args" data-module-name="islands/one-tap/index.mod">{"ContainerElementId":"one-tap-container","FKey":"82c5dbe2b7f3a9caa168396099a96d3e7a511e49800de11efbe85662238fb7e5","GoogleClientId":"717762328687-iludtf96g1hinl76e4lc1b9a82g457nn.apps.googleusercontent.com","Autoselect":false,"ReturnUrl":"https%253a%252f%252fmathoverflow.net%252fquestions%252f247891%252fthe-category-of-sets-and-stateful-functions"}</script><script defer src="https://mathoverflow.net/Content/Js/webpack-chunks/svelte.en.js?v=94905f07fa5a"></script><script defer src="https://mathoverflow.net/Content/Js/islands/one-tap.en.js?v=102f0378a2cf"></script>
+
+    <div id="notify-container"></div>
+    <div id="custom-header"></div>
+        
+
+<header class="s-topbar ps-fixed t0 l0 js-top-bar">
+    <a href="#content" class="s-topbar--skip-link">Skip to main content</a>
+	<div class="s-topbar--container">
+			<a href="#" class="s-topbar--menu-btn js-left-sidebar-toggle" aria-haspopup="true" aria-controls="left-sidebar" aria-expanded="false"><span></span></a>
+			<div class="topbar-dialog leftnav-dialog js-leftnav-dialog dno">
+				<div class="left-sidebar js-unpinned-left-sidebar" data-can-be="left-sidebar" data-is-here-when="sm"></div>
+			</div>
+			<a href="#" class="s-topbar--logo network-logo js-gps-track js-network-logo" data-gps-track="stack_exchange_popup.show" aria-haspopup="true" aria-controls="topbar-network-logo-dialog" aria-expanded="false">
+				<svg aria-hidden="true" class="fc-black-200 d:fc-black-350 mtn1 svg-icon iconGlyphNew" width="26" height="31"  viewBox="0 0 26 31"><path fill="currentColor"  d="m22.18 16.32.05.02-.02.01za19 19 0 0 0-2.45 4.14l-.03.07q-.94 2.19-1.29 4.6v.03a18 18 0 0 0-.05 4.85H.01v-4.88h15.94l.1-.6L.69 20.48l1.28-4.7 15.55 4.1.22-.46-13.96-7.96 2.47-4.22 14.16 8.07.34-.4L9.15 3.47 12.65 0l11.78 11.64 1.25 1.23q-1.97 1.5-3.5 3.44"/></svg>
+			</a>
+			<div class="topbar-dialog network-logo-dialog js-network-logo-dialog dno" id="topbar-network-logo-dialog" role="dialog" aria-labelledby="topbar-network-logo-dialog-title" aria-describedby="topbar-network-logo-dialog-body">
+				<div class="dialog-content">
+					<h4 class="bold" id="topbar-network-logo-dialog-title">Stack Exchange Network</h4>
+					<p id="topbar-network-logo-dialog-body">
+						Stack Exchange network consists of 184 Q&amp;A communities including <a href="https://stackoverflow.com">Stack Overflow</a>, the largest, most trusted online community for developers to learn, share their knowledge, and build their careers.
+					</p>
+					<a class="s-btn s-btn__filled" href="https://stackexchange.com"
+				   data-gps-track="stack_exchange_popup.click">Visit Stack Exchange</a>
+					<button class="s-btn s-btn__muted p0 ps-absolute t16 r16 js-close-button" aria-label="Close"><svg aria-hidden="true" class="svg-icon iconClear" width="18" height="18"  viewBox="0 0 18 18"><path  d="M15 4.41 13.59 3 9 7.59 4.41 3 3 4.41 7.59 9 3 13.59 4.41 15 9 10.41 13.59 15 15 13.59 10.41 9z"/></svg></button>
+				</div>
+			</div>
+
+
+
+
+
+		        <form id="search" role="search" action=/search class="s-topbar--searchbar js-searchbar " autocomplete="off">
+                        <div class="s-topbar--searchbar--input-group">
+                             <input name="q"
+                                    type="text"
+                                    role="combobox"
+                                    aria-haspopup="dialog"
+                                    placeholder="Search on MathOverflow&#x2026;"
+                                    value=""
+                                   autocomplete="off"
+                                    maxlength="240"
+                                    class="s-input s-input__search js-search-field wmn1 "
+                                    aria-label="Search"
+                                    aria-controls="top-search" 
+                                    data-controller="s-popover"
+                                    data-action="focus->s-popover#show"
+                                    data-s-popover-placement="bottom-start" />
+                            <svg aria-hidden="true" class="s-input-icon s-input-icon__search svg-icon iconSearch" width="18" height="18"  viewBox="0 0 18 18"><path  d="m18 16.5-5.14-5.18h-.35a7 7 0 1 0-1.19 1.19v.35L16.5 18zM12 7A5 5 0 1 1 2 7a5 5 0 0 1 10 0"/></svg>
+                            <div class="s-popover p0 wmx100 wmn4 sm:wmn-initial js-top-search-popover"
+     id="top-search"
+     role="dialog"
+     aria-label="Search suggestions and help">
+    <div class="s-popover--arrow"></div>
+    <div class="s-popover--content">
+        <div class="js-spinner p24 d-flex ai-center jc-center d-none">
+            <div class="s-spinner s-spinner__sm fc-orange-400">
+                <div class="v-visible-sr">Loading&#x2026;</div>
+            </div>
+        </div>
+
+        <span class="v-visible-sr js-screen-reader-info" role="status" aria-live="polite" aria-atomic="true"></span>
+        <div class="js-ac-results overflow-y-auto hmx3 d-none"></div>
+
+        <div class="js-search-hints"></div>
+    </div>
+</div>
+
+                        </div>
+                </form>
+		
+
+<nav class="h100 ml-auto overflow-x-auto pr12" aria-label="Topbar">
+    <ol class="s-topbar--content">
+    
+    
+    
+        <li>
+            <a href="/help" class="s-topbar--item js-help-button" title="Help Center and other resources" aria-haspopup="true" aria-controls="topbar-help-dialog"
+           data-ga="[&quot;top navigation&quot;,&quot;help menu click&quot;,null,null,null]"><svg aria-hidden="true" class="svg-icon iconHelp" width="18" height="18"  viewBox="0 0 18 18"><path  d="M9 1C4.64 1 1 4.64 1 9s3.64 8 8 8 8-3.64 8-8-3.64-8-8-8m.81 12.13c-.02.71-.55 1.15-1.24 1.13-.66-.02-1.17-.49-1.15-1.2.02-.72.56-1.18 1.22-1.16.7.03 1.2.51 1.17 1.23M11.77 8c-.59.66-1.78 1.09-2.05 1.97a4 4 0 0 0-.09.75c0 .05-.03.16-.18.16H7.88c-.16 0-.18-.1-.18-.15.06-1.35.66-2.2 1.83-2.88.39-.29.7-.75.7-1.24.01-1.24-1.64-1.82-2.35-.72-.21.33-.18.73-.18 1.1H5.75c0-1.97 1.03-3.26 3.03-3.26 1.75 0 3.47.87 3.47 2.83 0 .57-.2 1.05-.48 1.44"/></svg></a>
+            <div class="topbar-dialog help-dialog js-help-dialog dno" id="topbar-help-dialog" role="menu">
+                <div class="modal-content">
+                    <ul>
+                            <li>
+                                <a href="/tour" class="js-gps-track s-block-link" data-gps-track="help_popup.click({ item_type:1 })"
+                           data-ga="[&quot;top navigation&quot;,&quot;tour submenu click&quot;,null,null,null]">
+                                    Tour
+                                    <span class="item-summary">
+                                        Start here for a quick overview of the site
+                                    </span>
+                                </a>
+                            </li>
+                        <li>
+                            <a href="/help" class="js-gps-track s-block-link"
+                           data-gps-track="help_popup.click({ item_type:4 })"
+                           data-ga="[&quot;top navigation&quot;,&quot;help center&quot;,null,null,null]">
+                                Help Center
+                                <span class="item-summary">
+                                    Detailed answers to any questions you might have
+                                </span>
+                            </a>
+                        </li>
+                                    <li>
+                                        <a href="https://meta.mathoverflow.net" class="js-gps-track s-block-link" data-gps-track="help_popup.click({ item_type:2 })"
+                           data-ga="[&quot;top navigation&quot;,&quot;meta submenu click&quot;,null,null,null]">
+                                            Meta
+                                            <span class="item-summary">
+                                                Discuss the workings and policies of this site
+                                            </span>
+                                        </a>
+                                    </li>
+                                <li>
+                                    <a href="https://stackoverflow.co/" class="js-gps-track s-block-link" data-gps-track="help_popup.click({ item_type:6 })"
+                           data-ga="[&quot;top navigation&quot;,&quot;about us submenu click&quot;,null,null,null]">
+                                        About Us
+                                        <span class="item-summary">
+                                            Learn more about Stack Overflow the company, and our products
+                                        </span>
+                                    </a>
+                                </li>
+                    </ul>
+                </div>
+            </div>
+        </li>
+    
+        <li>
+            <a href="https://stackexchange.com" class="s-topbar--item js-site-switcher-button js-gps-track" data-gps-track="site_switcher.show"
+           aria-label="Site switcher"
+           title="A list of all 184 Stack Exchange sites"
+           aria-haspopup="true" aria-expanded="false"
+           data-ga="[&quot;top navigation&quot;,&quot;stack exchange click&quot;,null,null,null]">
+                <svg aria-hidden="true" class="svg-icon iconStackExchange" width="18" height="18"  viewBox="0 0 18 18"><path  d="M15 1H3a2 2 0 0 0-2 2v2h16V3a2 2 0 0 0-2-2M1 13c0 1.1.9 2 2 2h8v3l3-3h1a2 2 0 0 0 2-2v-2H1zm16-7H1v4h16z"/></svg>
+            </a>
+        </li>
+    
+    
+        <li class="js-topbar-dialog-corral">
+                
+
+    <div class="topbar-dialog siteSwitcher-dialog dno" role="menu">
+        <div class="header fw-wrap">
+            <h3 class="flex--item">
+                <a href="https://mathoverflow.net">current community</a>
+            </h3>
+            <div class="flex--item fl1">
+                <div class="ai-center d-flex jc-end">
+                    <button
+                        class="js-close-button s-btn s-btn__muted p0 ml8 d-none sm:d-block"
+                        type="button"
+                        aria-label="Close"
+                    >
+                        <svg aria-hidden="true" class="svg-icon iconClear" width="18" height="18"  viewBox="0 0 18 18"><path  d="M15 4.41 13.59 3 9 7.59 4.41 3 3 4.41 7.59 9 3 13.59 4.41 15 9 10.41 13.59 15 15 13.59 10.41 9z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="modal-content bg-blue-200 current-site-container">
+            <ul class="current-site">
+                    <li class="d-flex">
+                            <div class="fl1">
+                <a href="https://mathoverflow.net"  
+       class="current-site-link d-flex gx8 site-link js-gps-track"
+       data-id="504"
+       data-gps-track="site_switcher.click({ item_type:3 })">
+        <div class="favicon favicon-mathoverflow site-icon flex--item" title="MathOverflow"></div>
+        <span class="flex--item fl1">
+            MathOverflow
+        </span>
+    </a>
+
+    </div>
+    <div class="related-links">
+            <a href="https://mathoverflow.net/help" class="js-gps-track" data-gps-track="site_switcher.click({ item_type:14 })">help</a>
+            <a href="https://chat.stackexchange.com?tab=site&amp;host=mathoverflow.net" class="js-gps-track" data-gps-track="site_switcher.click({ item_type:6 })">chat</a>
+    </div>
+
+                    </li>
+                    <li class="related-site d-flex">
+                            <div class="L-shaped-icon-container">
+        <span class="L-shaped-icon"></span>
+    </div>
+
+                            <a href="https://meta.mathoverflow.net"  
+       class="s-block-link px16 d-flex gx8 site-link js-gps-track"
+       data-id="505"
+       data-gps-track="site.switch({ target_site:505, item_type:3 }),site_switcher.click({ item_type:4 })">
+        <div class="favicon favicon-mathoverflowmeta site-icon flex--item" title="MathOverflow Meta"></div>
+        <span class="flex--item fl1">
+            MathOverflow Meta
+        </span>
+    </a>
+
+                    </li>
+            </ul>
+        </div>
+
+        <div class="header" id="your-communities-header">
+            <h3>
+your communities            </h3>
+
+        </div>
+        <div class="modal-content" id="your-communities-section">
+
+                <div class="call-to-login">
+<a href="https://mathoverflow.net/users/signup?ssrc=site_switcher&amp;returnurl=https%3a%2f%2fmathoverflow.net%2fquestions%2f247891%2fthe-category-of-sets-and-stateful-functions" class="login-link js-gps-track" data-gps-track="site_switcher.click({ item_type:10 })">Sign up</a> or <a href="https://mathoverflow.net/users/login?ssrc=site_switcher&amp;returnurl=https%3a%2f%2fmathoverflow.net%2fquestions%2f247891%2fthe-category-of-sets-and-stateful-functions" class="login-link js-gps-track" data-gps-track="site_switcher.click({ item_type:11 })">log in</a> to customize your list.                </div>
+        </div>
+
+        <div class="header">
+            <h3><a href="https://stackexchange.com/sites">more stack exchange communities</a>
+            </h3>
+            <a href="https://stackoverflow.blog" class="float-right">company blog</a>
+        </div>
+        <div class="modal-content">
+                <div class="child-content"></div>
+        </div>        
+    </div>
+
+        </li>
+    
+            <li><button class="s-topbar--item s-btn s-btn__icon s-btn__muted d-none sm:d-inline-flex js-searchbar-trigger" aria-label="Search" aria-haspopup="true" aria-controls="search" title="Click to show search"><svg aria-hidden="true" class="svg-icon iconSearch" width="18" height="18"  viewBox="0 0 18 18"><path  d="m18 16.5-5.14-5.18h-.35a7 7 0 1 0-1.19 1.19v.35L16.5 18zM12 7A5 5 0 1 1 2 7a5 5 0 0 1 10 0"/></svg></button></li>
+                        <li>
+                            <a href="https://mathoverflow.net/users/login?ssrc=head&returnurl=https%3a%2f%2fmathoverflow.net%2fquestions%2f247891%2fthe-category-of-sets-and-stateful-functions" class="s-topbar--item s-topbar--item__unset s-btn s-btn__outlined ws-nowrap js-gps-track" rel="nofollow"
+                               data-gps-track="login.click" data-ga="[&quot;top navigation&quot;,&quot;login button click&quot;,null,null,null]">Log in</a>
+                        </li>
+                        <li><a href="https://mathoverflow.net/users/signup?ssrc=head&returnurl=https%3a%2f%2fmathoverflow.net%2fquestions%2f247891%2fthe-category-of-sets-and-stateful-functions" class="s-topbar--item s-topbar--item__unset ml4 s-btn s-btn__filled ws-nowrap js-signup-button js-gps-track" rel="nofollow" data-gps-track="signup.topbar.click" data-ga="[&quot;sign up&quot;,&quot;Sign Up Navigation&quot;,&quot;Header&quot;,null,null]">Sign up</a></li>
+    </ol>
+</nav>
+
+
+	</div>
+</header>
+
+	<script>
+		StackExchange.ready(function () { StackExchange.topbar.init(); });
+		StackExchange.scrollPadding.setPaddingTop(50, 10); 
+	</script>
+
+
+
+
+        <header class="site-header">
+            <div class="site-header--container">
+            <a class="site-header--link d-flex ai-center fs-headline1 fw-bold" href="https://mathoverflow.net" aria-label="MathOverflow Home">
+                <img class="h-auto wmx100" src="https://mathoverflow.net/Content/Sites/mathoverflow/Img/logo.svg?v=3a674b060adf" alt="MathOverflow" aria-hidden="true">
+            </a>
+
+            </div>
+        </header>
+
+    <div class="container">
+            <script defer src="https://mathoverflow.net/Content/Js/sprinkles/left-nav-events.en.js?v=2ac13fd60bf6"></script>    
+
+
+
+<div id="left-sidebar" data-is-here-when="md lg" class="left-sidebar js-pinned-left-sidebar ps-relative">
+    <div class="left-sidebar--sticky-container js-sticky-leftnav">
+        <nav aria-label="Primary">
+            <ol class="nav-links">
+                <li>
+                    <ol class="nav-links">
+                        
+
+<li class="ps-relative"  aria-current="false">
+
+
+    <a
+    href="/"
+    class="s-block-link pl8 js-gps-track js-left-sidebar-focus-restore nav-links--link -link__with-icon"
+    
+    data-gps-track="top_nav.click({is_current: false, location:2, destination:8,  has_activity_notification:False});home_nav.click({location:2})"
+    aria-controls=" "
+    data-controller="  "
+    data-s-popover-placement="right"
+    data-left-nav-events-navigation-destination-value=""
+    data-left-nav-events-navigation-location-value=""
+    data-left-nav-events-navigation-activity-notification-value=""
+    data-action=""
+    aria-current="false"
+    data-s-popover-auto-show="true" data-s-popover-hide-on-outside-click="never"
+    >
+        <div class="d-flex ai-center">
+<svg aria-hidden="true" class="svg-icon iconHome" width="18" height="18"  viewBox="0 0 18 18"><path  d="M15 10v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5H0l9-9 9 9zm-8 1v6h4v-6z"/></svg>                <span class="-link--channel-name pl8">Home</span>
+
+        </div>
+    </a>
+</li>
+
+
+
+
+
+
+
+                        
+
+<li class="ps-relative  youarehere"  aria-current="true">
+
+
+    <a id="nav-questions"
+    href="/questions"
+    class="s-block-link pl8 js-gps-track js-left-sidebar-focus-restore nav-links--link -link__with-icon"
+    
+    data-gps-track="top_nav.click({is_current: true, location:2, destination:1,  has_activity_notification:False})"
+    aria-controls=" "
+    data-controller="  "
+    data-s-popover-placement="right"
+    data-left-nav-events-navigation-destination-value=""
+    data-left-nav-events-navigation-location-value=""
+    data-left-nav-events-navigation-activity-notification-value=""
+    data-action=""
+    aria-current="false"
+    data-s-popover-auto-show="true" data-s-popover-hide-on-outside-click="never"
+    >
+        <div class="d-flex ai-center">
+<svg aria-hidden="true" class="svg-icon iconQuestion" width="18" height="18"  viewBox="0 0 18 18"><path  d="m4 15-3 3V4c0-1.1.9-2 2-2h12c1.09 0 2 .91 2 2v9c0 1.09-.91 2-2 2zm7.75-3.97c.72-.83.98-1.86.98-2.94 0-1.65-.7-3.22-2.3-3.83a4.4 4.4 0 0 0-3.02 0 3.8 3.8 0 0 0-2.32 3.83q0 1.93 1.03 3a3.8 3.8 0 0 0 2.85 1.07q.94 0 1.71-.34.97.66 1.06.7.34.2.7.3l.59-1.13a5 5 0 0 1-1.28-.66m-1.27-.9a5 5 0 0 0-1.5-.8l-.45.9q.5.18.98.5-.3.1-.65.11-.92 0-1.52-.68c-.86-1-.86-3.12 0-4.11.8-.9 2.35-.9 3.15 0 .9 1.01.86 3.03-.01 4.08"/></svg>                <span class="-link--channel-name pl8">Questions</span>
+
+        </div>
+    </a>
+</li>
+
+
+
+
+
+
+                            
+
+<li class="ps-relative"  aria-current="false">
+
+
+    <a id="nav-unanswered"
+    href="/unanswered"
+    class="s-block-link pl8 js-gps-track js-left-sidebar-focus-restore nav-links--link -link__with-icon"
+    
+    data-gps-track="top_nav.click({is_current: false, location:2, destination:5,  has_activity_notification:False})"
+    aria-controls=" "
+    data-controller="  "
+    data-s-popover-placement="right"
+    data-left-nav-events-navigation-destination-value=""
+    data-left-nav-events-navigation-location-value=""
+    data-left-nav-events-navigation-activity-notification-value=""
+    data-action=""
+    aria-current="false"
+    data-s-popover-auto-show="true" data-s-popover-hide-on-outside-click="never"
+    >
+        <div class="d-flex ai-center">
+<svg aria-hidden="true" class="svg-icon iconAnswer" width="18" height="18"  viewBox="0 0 18 18"><path  d="M14 15H3c-1.09 0-2-.91-2-2V4c0-1.1.9-2 2-2h12c1.09 0 2 .91 2 2v14zm-1.02-3L9.82 4H8.14l-3.06 8h1.68l.65-1.79h3.15l.69 1.79zm-2.93-3.12H7.9l1.06-2.92z"/></svg>                <span class="-link--channel-name pl8">Unanswered</span>
+
+        </div>
+    </a>
+</li>
+
+
+
+
+
+
+                            
+
+<li class="ps-relative"  aria-current="false">
+
+
+    <a id="nav-askstack"
+    href="https://stackoverflow.com/ai-assist"
+    class="s-block-link h32 pl8 ai-center js-disable-askstack-new-link js-gps-track js-left-sidebar-focus-restore nav-links--link -link__with-icon"
+    
+    data-gps-track="top_nav.click({is_current: false, location:2, destination:33,  has_activity_notification:False})"
+    aria-controls=" "
+    data-controller="  "
+    data-s-popover-placement="right"
+    data-left-nav-events-navigation-destination-value=""
+    data-left-nav-events-navigation-location-value=""
+    data-left-nav-events-navigation-activity-notification-value=""
+    data-action=""
+    aria-current="false"
+    data-s-popover-auto-show="true" data-s-popover-hide-on-outside-click="never"
+    >
+        <div class="d-flex ai-center">
+<div class="d-flex ai-center mln8 mrn8 myn8 bg-purple-400 baw3 bas-solid bc-purple-200 bar-circle fc-white p4"><svg aria-hidden="true" class="fc-white bg-transparent h18 w18 svg-icon iconAnswerAI" width="18" height="18"  viewBox="0 0 18 18"><path  d="M15 1a2 2 0 0 1 2 2v14l-3-3H3c-1.09 0-2-.91-2-2V3c0-1.09.91-2 2-2zM8.2 4.13a.2.2 0 0 0-.37 0l-.57 1.31a3.5 3.5 0 0 1-1.82 1.82l-1.3.57a.2.2 0 0 0 0 .36l1.3.57c.82.35 1.47 1 1.82 1.82l.57 1.3c.07.17.3.17.36 0l.57-1.3a3.5 3.5 0 0 1 1.82-1.82l1.3-.57a.2.2 0 0 0 0-.36l-1.3-.57a3.5 3.5 0 0 1-1.82-1.82zm4.9-1.07a.1.1 0 0 0-.2 0l-.28.66c-.17.4-.5.73-.9.9l-.66.29a.1.1 0 0 0 0 .18l.66.29c.4.17.73.5.9.9l.29.66a.1.1 0 0 0 .18 0l.29-.66c.17-.4.5-.73.9-.9l.66-.29a.1.1 0 0 0 0-.18l-.66-.29c-.4-.17-.73-.5-.9-.9z"/></svg></div>                <span class="-link--channel-name pl8">AI Assist</span>
+
+        </div>
+    </a>
+</li>
+
+
+
+
+    <script>
+        $('.js-disable-askstack-new-link').on("click", function(e) {
+            StackExchange.helpers.toggleAccountPreferenceFlags(4194304, true);
+            return true;
+        });
+    </script>
+
+
+
+                        
+
+<li class="ps-relative"  aria-current="false">
+
+
+    <a
+    href="/tags"
+    class="s-block-link pl8 js-gps-track js-left-sidebar-focus-restore nav-links--link -link__with-icon"
+    
+    data-gps-track="top_nav.click({is_current: false, location:2, destination:2,  has_activity_notification:False})"
+    aria-controls=" "
+    data-controller="  "
+    data-s-popover-placement="right"
+    data-left-nav-events-navigation-destination-value=""
+    data-left-nav-events-navigation-location-value=""
+    data-left-nav-events-navigation-activity-notification-value=""
+    data-action=""
+    aria-current="false"
+    data-s-popover-auto-show="true" data-s-popover-hide-on-outside-click="never"
+    >
+        <div class="d-flex ai-center">
+<svg aria-hidden="true" class="svg-icon iconTags" width="18" height="18"  viewBox="0 0 18 18"><path  d="M9.24 1a3 3 0 0 0-2.12.88l-5.7 5.7a2 2 0 0 0-.38 2.31 3 3 0 0 1 .67-1.01l6-6A3 3 0 0 1 9.83 2H14a3 3 0 0 1 .79.1A2 2 0 0 0 13 1z" opacity=".4"/><path  d="M9.83 3a2 2 0 0 0-1.42.59l-6 6a2 2 0 0 0 0 2.82L6.6 16.6a2 2 0 0 0 2.82 0l6-6A2 2 0 0 0 16 9.17V5a2 2 0 0 0-2-2zM12 9a2 2 0 1 1 0-4 2 2 0 0 1 0 4"/></svg>                <span class="-link--channel-name pl8">Tags</span>
+
+        </div>
+    </a>
+</li>
+
+
+
+
+
+
+
+
+                        <li class="pb24"></li>
+
+
+                            <li class="ps-relative">
+                                <a id="nav-chat"
+                                href=https://chat.stackexchange.com
+                                class="s-block-link pl8 ai-center js-disable-chat-new-link js-ch-popover-controller js-gps-track nav-links--link -link__with-icon"
+                                aria-expanded="true"
+                                aria-current="false"
+                                data-gps-track="chat.click({ is_registered:false, rep_bucket:'new', origin:'MathOverflow' })"
+                                data-controller=" "
+                                >
+                                    <div class="d-flex ai-center">
+                                        <div class="d-flex ai-center mln8 mrn8 myn8 bg-purple-400 baw3 bas-solid bc-purple-200 bar-circle fc-white p4"><svg aria-hidden="true" class="fc-white bg-transparent  svg-icon iconChatTest" width="18" height="18"  viewBox="0 0 18 16"><path d="M17 3C17 1.89543 16.1046 1 15 1H7C5.89543 1 5 1.89543 5 3V5C5 6.10457 5.89543 7 7 7H15C16.1046 7 17 6.10457 17 5V3ZM7 3H15V5H7V3Z" /><path d="M17 10C17 8.89543 16.1046 8 15 8H7C5.89543 8 5 8.89543 5 10V14C5 15.1046 5.89543 16 7 16H15C16.1046 16 17 15.1046 17 14V10ZM7 10H15V14H7V10Z" /><path d="M1 9C1 8.44771 1.44772 8 2 8H3C3.55228 8 4 8.44772 4 9V10C4 10.5523 3.55228 11 3 11H2C1.44772 11 1 10.5523 1 10V9Z" /><path d="M2 1C1.44772 1 1 1.44772 1 2V3C1 3.55228 1.44772 4 2 4H3C3.55228 4 4 3.55228 4 3V2C4 1.44772 3.55228 1 3 1H2Z" /></svg></div>
+                                    </div>
+                                    <span class="-link--channel-name pl8">Chat</span>
+                                   </a>
+                            </li>
+
+
+                        
+
+<li class="ps-relative"  aria-current="false">
+
+
+    <a id="nav-users"
+    href="/users"
+    class="s-block-link pl8 js-gps-track js-left-sidebar-focus-restore nav-links--link -link__with-icon"
+    
+    data-gps-track="top_nav.click({is_current: false, location:2, destination:3,  has_activity_notification:False})"
+    aria-controls=" "
+    data-controller="  "
+    data-s-popover-placement="right"
+    data-left-nav-events-navigation-destination-value=""
+    data-left-nav-events-navigation-location-value=""
+    data-left-nav-events-navigation-activity-notification-value=""
+    data-action=""
+    aria-current="false"
+    data-s-popover-auto-show="true" data-s-popover-hide-on-outside-click="never"
+    >
+        <div class="d-flex ai-center">
+<svg aria-hidden="true" class="svg-icon iconPeople" width="18" height="18"  viewBox="0 0 18 18"><path  d="M17 14c0 .44-.45 1-1 1H9a1 1 0 0 1-1-1H2c-.54 0-1-.56-1-1 0-2.63 3-4 3-4s.23-.4 0-1c-.84-.62-1.06-.59-1-3s1.37-3 2.5-3 2.44.58 2.5 3-.16 2.38-1 3c-.23.59 0 1 0 1s1.55.71 2.42 2.09c.78-.72 1.58-1.1 1.58-1.1s.23-.4 0-1c-.84-.61-1.06-.58-1-3s1.37-3 2.5-3 2.44.59 2.5 3c.05 2.42-.16 2.39-1 3-.23.6 0 1 0 1s3 1.38 3 4"/></svg>                <span class="-link--channel-name pl8">Users</span>
+
+        </div>
+    </a>
+</li>
+
+
+
+
+
+
+
+                        <li class="pb24"></li>
+
+
+
+
+                    </ol>
+                </li>
+
+                
+
+
+            </ol>
+        </nav>
+    </div>
+
+
+
+
+
+
+
+</div>
+
+
+
+        <div id="content" class="" tabindex="-1">
+
+            
+
+
+
+<div itemprop="mainEntity" itemscope itemtype="https://schema.org/Question">
+    <link itemprop="image" href="https://mathoverflow.net/Content/Sites/mathoverflow/Img/apple-touch-icon.png?v=8c5ff8612fb4">
+
+    <div class="inner-content clearfix">
+        
+
+            <div id="question-header" class="d-flex sm:fd-column">
+                        <h1 itemprop="name" class="fs-headline1 ow-anywhere mb8 flex--item fl1"><a href="/questions/247891/the-category-of-sets-and-stateful-functions" class="question-hyperlink">The category of sets and &quot;stateful&quot; functions</a></h1>
+
+                <div class="ml12 aside-cta flex--item sm:ml0 sm:mb12 sm:order-first d-flex jc-end">
+
+                        <div class="ml12 aside-cta flex--item print:d-none">
+                                <a href="/questions/ask" class="ws-nowrap s-btn s-btn__filled">
+        Ask Question
+    </a>
+
+                        </div>
+                </div>
+            </div>
+                <div class="d-flex ai-center fw-wrap pb8 mb16 bb bc-black-200">
+                        <div class="flex--item ws-nowrap mr16 mb8" title="2016-08-20 07:11:43Z">
+                            <span class="fc-black-400 mr2">Asked</span>
+                            <time itemprop="dateCreated"
+                                  datetime="2016-08-20 07:11:43Z">9 years, 10 months ago</time>
+                        </div>
+                        <div class="flex--item ws-nowrap mr16 mb8">
+                            <span class="fc-black-400 mr2">Modified</span>
+                            <a href="?lastactivity" class="s-link s-link__inherit"
+                               title="2016-08-20 07:11:43Z">9 years, 10 months ago</a>
+                        </div>
+                        <div class="flex--item ws-nowrap mb8"
+                             title="Viewed 377 times">
+                            <span class="fc-black-400 mr2">Viewed</span>
+                            377 times
+                        </div>
+                </div>
+
+
+
+            <div id="mainbar" role="main" aria-label="question and answers">
+                
+<div class="question js-question" data-questionid="247891" data-position-on-page="0"
+     data-score="2"
+     data-author-username="goblin GONE"
+     data-should-show-copy-button="False"
+     data-se-share-sheet-license-name="CC BY-SA 3.0"
+     data-author-reputation="3991" 
+     data-is-edited="True"
+     data-creation-source="native"
+     data-creation-method="manual"
+     id="question">
+
+    <div class="post-layout ">
+            <div class="votecell post-layout--left">
+                
+<div class="js-voting-container d-flex jc-center fd-column ai-center gs4 fc-black-300" data-post-id="247891" data-referrer="None">
+        <button class="js-vote-up-btn flex--item s-btn s-btn__muted s-btn__outlined bar-pill bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200"
+                id="upvote-btn-247891"
+                data-controller="s-tooltip"
+                data-s-tooltip-placement="right"
+                title="This question shows research effort; it is useful and clear"
+                aria-pressed="false"
+                aria-label="Up vote"
+                data-selected-classes="fc-theme-primary-100 bc-theme-primary-500 bg-theme-primary-500"
+                data-unselected-classes="bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200">
+            <svg aria-hidden="true" class="svg-icon iconArrowUp" width="18" height="18"  viewBox="0 0 18 18"><path  d="M1 12h16L9 4z"/></svg>
+        </button>
+        <input type="hidden" id="voteUpHash" value="68:3:31e,16:20cc19266948efdb,10:1783770972,16:4e07239afe6ff4c3,6:247891,550c29819c413b30797714e53c04117db2f135869cc413a164dca85463b26786" />
+        <div class="js-vote-count flex--item d-flex fd-column ai-center fc-theme-body-font fw-bold fs-subheading py4"
+             itemprop="upvoteCount"
+             data-value="2">
+2        </div>
+        <button
+            class="js-vote-down-btn js-vote-down-question flex--item mb8 s-btn s-btn__muted s-btn__outlined bar-pill bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200"
+            id=downvote-btn-247891
+            data-controller="s-tooltip"
+            data-s-tooltip-placement="right"
+            title="This question does not show any research effort; it is unclear or not useful"
+            aria-pressed="false"
+            aria-label="Down vote"
+            data-selected-classes="fc-theme-primary-100 bc-theme-primary-500 bg-theme-primary-500"
+            data-unselected-classes="bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200">
+
+            <svg aria-hidden="true" class="svg-icon iconArrowDown" width="18" height="18"  viewBox="0 0 18 18"><path  d="M1 6h16l-8 8z"/></svg>
+        </button>
+        <input type="hidden" id="voteDownHash" value="68:3:31e,16:a65618ce5618c029,10:1783770972,16:618fcbb344493400,6:247891,7aed4fcfa81a03ee6b4f59dd6ceac5cac05e14dd2fc2e1c41bc8b3d16fe43886" />
+
+
+        
+<button class="js-saves-btn s-btn s-btn__unset c-pointer py4"
+        type="button"
+        id="saves-btn-247891"
+        data-controller="s-tooltip"
+        data-s-tooltip-placement="right"
+        data-s-popover-placement=""
+        title="Save this question."
+        data-is-saved="false"
+        aria-label="Save"
+        data-post-id="247891"
+        data-post-type-id="1"
+        data-user-privilege-for-post-click="0"
+        aria-controls=""
+        data-s-popover-auto-show="false"
+>
+    <svg aria-hidden="true" class="fc-theme-primary-400 js-saves-btn-selected d-none svg-icon iconBookmark" width="18" height="18"  viewBox="0 0 18 18"><path  d="M3 17V3c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v14l-6-4z"/></svg>
+    <svg aria-hidden="true" class="js-saves-btn-unselected svg-icon iconBookmarkAlt" width="18" height="18"  viewBox="0 0 18 18"><path  d="m9 10.6 4 2.66V3H5v10.26zM3 17V3c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v14l-6-4z"/></svg>
+</button>
+
+
+
+
+
+
+
+
+    
+    <a class="js-post-issue flex--item s-btn s-btn__unset c-pointer py6 mx-auto" href="/posts/247891/timeline" data-shortcut="T" data-ks-title="timeline" data-controller="s-tooltip" data-s-tooltip-placement="right" title="Show activity on this post." aria-label="Timeline"><svg aria-hidden="true" class="mln2 mr0 svg-icon iconHistory" width="19" height="18"  viewBox="0 0 19 18"><path  d="M3 9a8 8 0 1 1 3.73 6.77L8.2 14.3A6 6 0 1 0 5 9l3.01-.01-4 4-4-4zm7-4h1.01L11 9.36l3.22 2.1-.6.93L10 10z"/></svg></a>
+
+</div>
+
+            </div>
+
+        
+<div class="postcell post-layout--right">
+
+    <span class="d-none">$\begingroup$</span>
+    <div class="s-prose js-post-body" itemprop="text">
+                
+<p>In some programming languages, there's functions whose output can change on the basis of changing internal state; for example, the second time you compute <span class="math-container">$f(5)$</span> you might get a different answer. This doesn't really happen in mathematics. Nonetheless, I'd like to better understand the extent to which mathematics relies on the &quot;statelessness&quot; of mathematical functions.</p>
+<p>To this end, define:</p>
+<blockquote>
+<p><strong>Definition 0.</strong> Given a set <span class="math-container">$X$</span>, view the Kleene closure <span class="math-container">$X^*$</span> as an <span class="math-container">$(\mathbb{N},\leq)$</span> presheaf as follows:</p>
+<ul>
+<li><span class="math-container">$X^*(n) = \{x \in X^* \mid \mathrm{length}(x) = n\} \cong X^n$</span></li>
+<li>If <span class="math-container">$\varphi:a \leq b$</span>, then <span class="math-container">$X^*(\varphi) : X^*(b) \rightarrow X^*(a)$</span> is the restriction map that takes the first <span class="math-container">$a$</span>-many letters of the word and deletes the rest.</li>
+</ul>
+<p><strong>Definition 1.</strong> Given sets <span class="math-container">$X$</span> and <span class="math-container">$Y$</span>, a <em>stateful function</em> <span class="math-container">$X \rightarrow Y$</span> is a natural transform <span class="math-container">$X^* \rightarrow Y^*$</span>, where <span class="math-container">$X^*$</span> is the set of all words in <span class="math-container">$X$</span>. Write <span class="math-container">$\mathbf{Set}^*$</span> for the category whose objects are sets and whose morphisms are stateful functions.</p>
+</blockquote>
+<p>My questions are whether or not this has been studied, and in particular, whether or not there is a sensible answer to the admittedly rather vague question: &quot;What is the internal logic of <span class="math-container">$\mathbf{Set}^*$</span>?&quot;</p>
+    </div>
+
+            <div class="mt24 mb12">
+                <div class="post-taglist d-flex gs4 gsy fd-column">
+                    <div class="d-flex ps-relative fw-wrap">
+                        
+                        <ul class='ml0 list-ls-none js-post-tag-list-wrapper d-inline'><li class='d-inline mr4 js-post-tag-list-item'><a href="/questions/tagged/ct.category-theory" class="s-tag post-tag" title="show questions tagged &#39;ct.category-theory&#39;" aria-label="show questions tagged &#39;ct.category-theory&#39;" rel="tag" aria-describedby="tag-ct.category-theory-tooltip-container" data-tag-menu-origin="Unknown">ct.category-theory</a></li><li class='d-inline mr4 js-post-tag-list-item'><a href="/questions/tagged/lo.logic" class="s-tag post-tag" title="show questions tagged &#39;lo.logic&#39;" aria-label="show questions tagged &#39;lo.logic&#39;" rel="tag" aria-describedby="tag-lo.logic-tooltip-container" data-tag-menu-origin="Unknown">lo.logic</a></li><li class='d-inline mr4 js-post-tag-list-item'><a href="/questions/tagged/ds.dynamical-systems" class="s-tag post-tag" title="show questions tagged &#39;ds.dynamical-systems&#39;" aria-label="show questions tagged &#39;ds.dynamical-systems&#39;" rel="tag" aria-describedby="tag-ds.dynamical-systems-tooltip-container" data-tag-menu-origin="Unknown">ds.dynamical-systems</a></li><li class='d-inline mr4 js-post-tag-list-item'><a href="/questions/tagged/computer-science" class="s-tag post-tag" title="show questions tagged &#39;computer-science&#39;" aria-label="show questions tagged &#39;computer-science&#39;" rel="tag" aria-describedby="tag-computer-science-tooltip-container" data-tag-menu-origin="Unknown">computer-science</a></li></ul>
+                    </div>
+                </div>
+            </div>
+
+    <div class="mb0 ">
+        <div class="mt16 d-flex gs8 gsy fw-wrap jc-end ai-start pt4 mb16">
+            <div class="flex--item mr16 fl1 w96">
+                
+
+
+<div class="js-post-menu pt2" data-post-id="247891" data-post-type-id="1">
+
+    <div class="d-flex gs8 s-anchors s-anchors__muted fw-wrap">
+
+        <div class="flex--item">
+            <a href="/q/247891"
+               rel="nofollow"
+               itemprop="url"
+               class="js-share-link js-gps-track"
+               data-controller="se-share-sheet s-tooltip"
+               data-s-tooltip-placement="top"
+               title="Short permalink to this question"
+               data-gps-track="post.click({ item: 2, priv: 0, post_type: 1 })"
+               data-se-share-sheet-title="Share a link to this question"
+               data-se-share-sheet-subtitle=""
+               data-se-share-sheet-post-type="question"
+               data-se-share-sheet-social="facebook twitter "
+               data-se-share-sheet-location="1"
+               data-se-share-sheet-license-url="https%3a%2f%2fcreativecommons.org%2flicenses%2fby-sa%2f3.0%2f"
+               data-se-share-sheet-license-name="CC BY-SA 3.0"
+               data-s-popover-placement="bottom-start">Share</a>
+        </div>
+
+            <div class="flex--item">
+                <button type="button" class="js-cite-link s-btn s-btn__link">Cite</button>
+            </div>
+
+                    <div class="flex--item">
+                        <a href="/posts/247891/edit" class="js-suggest-edit-post js-gps-track" data-gps-track="post.click({ item: 6, priv: 0, post_type: 1 })" title="">Improve this question</a>
+                    </div>
+
+                <div class="flex--item">
+                    <button type="button"
+                            id="btnFollowPost-247891" class="s-btn s-btn__link js-follow-post js-follow-question js-gps-track"
+                            data-gps-track="post.click({ item: 14, priv: 0, post_type: 1 })"
+                            data-controller="s-tooltip " data-s-tooltip-placement="bottom"
+                            data-s-popover-placement="bottom" aria-controls=""
+                            title="Follow this question to receive notifications">
+                        Follow
+                        <input type="hidden" id="voteFollowHash" value="68:3:31e,16:3c75d0217a60d7ad,10:1783770972,16:8396f849911ca562,6:247891,d44188207a86dad5ad66cb5fb75e894ebe54b4de687901cf3f6dca58662c8a28" />
+                    </button>
+                </div>
+
+
+
+
+
+
+    </div>
+    <div class="js-menu-popup-container"></div>
+</div>
+
+            </div>
+
+                <div class="post-signature flex--item">
+<div class="user-info user-hover ">
+    <div class="d-flex ">
+        <div class="user-action-time fl-grow1">
+            <a href="/posts/247891/revisions" title="show all edits to this post"
+                         class="js-gps-track"
+                         data-gps-track="post.click({ item: 4, priv: 0, post_type: 1 })">edited <span title='2020-06-15 07:27:00Z' class='relativetime'>Jun 15, 2020 at 7:27</span></a>
+        </div>
+        
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/-1/community"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/a007be5a61f6aa8f3e85ae2fc18dd66e?s=64&amp;d=identicon&amp;r=PG" alt="Community&#39;s user avatar" width="32" height="32" class="bar-sm"></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/-1/community" dir="auto">Community</a><span class="flex--item s-badge ml2  s-badge__xs mtn2" title="Community Bot — not a real person. Replies to this bot are not monitored.">Bot</span>
+        <div class="-flair">
+            <span class="reputation-score" title="reputation score " dir="ltr">1</span><span title="2 silver badges" aria-hidden="true"><span class="badge2"></span><span class="badgecount">2</span></span><span class="v-visible-sr">2 silver badges</span><span title="3 bronze badges" aria-hidden="true"><span class="badge3"></span><span class="badgecount">3</span></span><span class="v-visible-sr">3 bronze badges</span>
+        </div>
+    </div>
+</div>
+                </div>
+
+                <div class="post-signature owner flex--item">
+                    <div class="user-info user-hover ">
+    <div class="d-flex ">
+        <div class="user-action-time fl-grow1">
+            asked <span title='2016-08-20 07:11:43Z' class='relativetime'>Aug 20, 2016 at 7:11</span>
+        </div>
+        
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/26080/goblin-gone"><div class="gravatar-wrapper-32"><img src="https://i.sstatic.net/CanIU.png?s=64" alt="goblin GONE&#39;s user avatar" width="32" height="32" class="bar-sm"></div></a>
+    </div>
+    <div class="user-details" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <a href="/users/26080/goblin-gone" itemprop="url" dir="auto">goblin GONE</a><meta itemprop="name" content="goblin GONE"/>
+        <div class="-flair">
+            <span class="reputation-score" title="reputation score " dir="ltr">3,991</span><span title="21 silver badges" aria-hidden="true"><span class="badge2"></span><span class="badgecount">21</span></span><span class="v-visible-sr">21 silver badges</span><span title="41 bronze badges" aria-hidden="true"><span class="badge3"></span><span class="badgecount">41</span></span><span class="v-visible-sr">41 bronze badges</span>
+        </div>
+    </div>
+</div>
+
+
+                </div>
+        </div>
+    </div>
+    <span class="d-none">$\endgroup$</span>
+</div>
+
+
+
+
+            
+
+<span class="d-none" itemprop="commentCount">6</span>
+	<div class="post-layout--right js-post-comments-component" data-has-opted-out="False">
+        <div id="comments-247891" class="comments js-comments-container bt bc-black-200 mt12 " data-post-id="247891" data-min-length="15">
+            <ul class="comments-list js-comments-list"
+                    data-remaining-comments-count="1"
+                    data-canpost="false"
+                    data-cansee="true"
+                    data-comments-unavailable="false"
+                    data-addlink-disabled="true">
+
+                    
+    <li id="comment-609441" itemprop="comment" itemscope itemtype="https://schema.org/Comment" class="comment js-comment " data-comment-id="609441" data-comment-owner-id="41291" data-comment-score="0">
+        <div class="js-comment-actions comment-actions">
+            <div class="comment-score js-comment-score js-comment-edit-hide">
+            </div>
+        </div>
+        <div class="comment-text  js-comment-text-and-form">
+            <div class="comment-body js-comment-edit-hide">
+                <span class="d-none">$\begingroup$</span>
+                <span class="comment-copy" itemprop="text">As you admit yourself, the question is rather vague, so I don&#39;t know how to answer. Still, in case it helps to clarify something - your $\mathbf{Set}^*$ seems to be isomorphic to the coKleisli category of the comonad structure on $\_^*$, with $\varepsilon(x_1,...,x_n)=x_n$ and $\delta(x_1,...,x_n)=((x_1),...,(x_1,...,x_n))$.</span>
+                <span class="d-none">$\endgroup$</span>
+                <div class="d-inline-flex ai-center" itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <div class="d-none" itemprop="name">&#x10DB;&#x10D0;&#x10DB;&#x10E3;&#x10D9;&#x10D0; &#x10EF;&#x10D8;&#x10D1;&#x10DA;&#x10D0;&#x10EB;&#x10D4;</div>
+&ndash;&nbsp;
+                        <a href="/users/41291/%e1%83%9b%e1%83%90%e1%83%9b%e1%83%a3%e1%83%99%e1%83%90-%e1%83%af%e1%83%98%e1%83%91%e1%83%9a%e1%83%90%e1%83%ab%e1%83%94"
+                           title="19,678 reputation"
+                           class="comment-user"
+                           itemprop="url">&#x10DB;&#x10D0;&#x10DB;&#x10E3;&#x10D9;&#x10D0; &#x10EF;&#x10D8;&#x10D1;&#x10DA;&#x10D0;&#x10EB;&#x10D4;</a>
+                </div>
+                <div class="d-none" itemprop="datePublished">2016-08-20 07:53:46 &#x2B;00:00</div>
+                <span class="comment-date" dir="ltr">
+                    <span class="v-visible-sr">Commented</span>
+                    <span title='2016-08-20 07:53:46Z, License: CC BY-SA 3.0' class='relativetime-clean'>Aug 20, 2016 at 7:53</span>
+                </span>
+                        <span title="this comment was edited 1 time">
+                            <svg aria-hidden="true" class="va-text-bottom o50 svg-icon iconPencilSm" width="14" height="14"  viewBox="0 0 14 14"><path fill="#F1B600" d="m2 10.12 6.37-6.43 1.88 1.88L3.88 12H2z"/><path fill="#E87C87" d="m11.1 1.71 1.13 1.12c.2.2.2.51 0 .71L11.1 4.7 9.21 2.86l1.17-1.15c.2-.2.51-.2.71 0"/></svg>
+                        </span>
+            </div>
+        </div>
+    </li>
+    <li id="comment-609517" itemprop="comment" itemscope itemtype="https://schema.org/Comment" class="comment js-comment " data-comment-id="609517" data-comment-owner-id="42716" data-comment-score="0">
+        <div class="js-comment-actions comment-actions">
+            <div class="comment-score js-comment-score js-comment-edit-hide">
+            </div>
+        </div>
+        <div class="comment-text  js-comment-text-and-form">
+            <div class="comment-body js-comment-edit-hide">
+                <span class="d-none">$\begingroup$</span>
+                <span class="comment-copy" itemprop="text">This seems to be essentially the theory of polymorphic list operations ---as in functional programming--- and there&#39;s a host of categorical results there. As for the internal logic, in computer science, lists are used as naive representations for relations and so looking in that direction may be fruitful.</span>
+                <span class="d-none">$\endgroup$</span>
+                <div class="d-inline-flex ai-center" itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <div class="d-none" itemprop="name">Musa Al-hassy</div>
+&ndash;&nbsp;
+                        <a href="/users/42716/musa-al-hassy"
+                           title="141 reputation"
+                           class="comment-user"
+                           itemprop="url">Musa Al-hassy</a>
+                </div>
+                <div class="d-none" itemprop="datePublished">2016-08-20 18:51:49 &#x2B;00:00</div>
+                <span class="comment-date" dir="ltr">
+                    <span class="v-visible-sr">Commented</span>
+                    <span title='2016-08-20 18:51:49Z, License: CC BY-SA 3.0' class='relativetime-clean'>Aug 20, 2016 at 18:51</span>
+                </span>
+            </div>
+        </div>
+    </li>
+    <li id="comment-685427" itemprop="comment" itemscope itemtype="https://schema.org/Comment" class="comment js-comment " data-comment-id="685427" data-comment-owner-id="83644" data-comment-score="0">
+        <div class="js-comment-actions comment-actions">
+            <div class="comment-score js-comment-score js-comment-edit-hide">
+            </div>
+        </div>
+        <div class="comment-text  js-comment-text-and-form">
+            <div class="comment-body js-comment-edit-hide">
+                <span class="d-none">$\begingroup$</span>
+                <span class="comment-copy" itemprop="text">It is unclear what you mean by &quot;natural transform $X*\to Y^*$&quot;. Do you mean &quot;natural transformations between the functors from the functor $X\mapsto X^*$ to $Y\mapsto Y^*$? If yes, note that all pairs of sets $(X,Y)$ have the same hom-set. If no, what&#39;s a natural transform?</span>
+                <span class="d-none">$\endgroup$</span>
+                <div class="d-inline-flex ai-center" itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <div class="d-none" itemprop="name">Thorsten</div>
+&ndash;&nbsp;
+                        <a href="/users/83644/thorsten"
+                           title="141 reputation"
+                           class="comment-user"
+                           itemprop="url">Thorsten</a>
+                </div>
+                <div class="d-none" itemprop="datePublished">2017-08-07 13:25:18 &#x2B;00:00</div>
+                <span class="comment-date" dir="ltr">
+                    <span class="v-visible-sr">Commented</span>
+                    <span title='2017-08-07 13:25:18Z, License: CC BY-SA 3.0' class='relativetime-clean'>Aug 7, 2017 at 13:25</span>
+                </span>
+            </div>
+        </div>
+    </li>
+    <li id="comment-685428" itemprop="comment" itemscope itemtype="https://schema.org/Comment" class="comment js-comment " data-comment-id="685428" data-comment-owner-id="83644" data-comment-score="0">
+        <div class="js-comment-actions comment-actions">
+            <div class="comment-score js-comment-score js-comment-edit-hide">
+            </div>
+        </div>
+        <div class="comment-text  js-comment-text-and-form">
+            <div class="comment-body js-comment-edit-hide">
+                <span class="d-none">$\begingroup$</span>
+                <span class="comment-copy" itemprop="text">And in programming, stateful functions are modelled using the Kleisli-Category of the state monad.</span>
+                <span class="d-none">$\endgroup$</span>
+                <div class="d-inline-flex ai-center" itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <div class="d-none" itemprop="name">Thorsten</div>
+&ndash;&nbsp;
+                        <a href="/users/83644/thorsten"
+                           title="141 reputation"
+                           class="comment-user"
+                           itemprop="url">Thorsten</a>
+                </div>
+                <div class="d-none" itemprop="datePublished">2017-08-07 13:27:08 &#x2B;00:00</div>
+                <span class="comment-date" dir="ltr">
+                    <span class="v-visible-sr">Commented</span>
+                    <span title='2017-08-07 13:27:08Z, License: CC BY-SA 3.0' class='relativetime-clean'>Aug 7, 2017 at 13:27</span>
+                </span>
+            </div>
+        </div>
+    </li>
+    <li id="comment-814742" itemprop="comment" itemscope itemtype="https://schema.org/Comment" class="comment js-comment " data-comment-id="814742" data-comment-owner-id="2383" data-comment-score="0">
+        <div class="js-comment-actions comment-actions">
+            <div class="comment-score js-comment-score js-comment-edit-hide">
+            </div>
+        </div>
+        <div class="comment-text  js-comment-text-and-form">
+            <div class="comment-body js-comment-edit-hide">
+                <span class="d-none">$\begingroup$</span>
+                <span class="comment-copy" itemprop="text">$\DeclareMathOperator\Hom{Hom}$@Thorsten, I think I must misunderstand your [comment](<a href="https://mathoverflow.net/questions/247891/the-category-of-sets-and-stateful-functions#comment685427_247891" title="the category of sets and stateful functions%23comment685427_247891">mathoverflow.net/questions/247891/&hellip;</a>).  What does &quot;all pairs of sets $(X, Y)$ have the same hom-set&quot; mean?  Surely $\Hom_{\mathbf{Set}}(\emptyset, {*}) \ne \Hom_{\mathbf{Set}}({*}, \emptyset)$?</span>
+                <span class="d-none">$\endgroup$</span>
+                <div class="d-inline-flex ai-center" itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <div class="d-none" itemprop="name">LSpice</div>
+&ndash;&nbsp;
+                        <a href="/users/2383/lspice"
+                           title="14,343 reputation"
+                           class="comment-user"
+                           itemprop="url">LSpice</a>
+                </div>
+                <div class="d-none" itemprop="datePublished">2019-03-25 21:16:28 &#x2B;00:00</div>
+                <span class="comment-date" dir="ltr">
+                    <span class="v-visible-sr">Commented</span>
+                    <span title='2019-03-25 21:16:28Z, License: CC BY-SA 4.0' class='relativetime-clean'>Mar 25, 2019 at 21:16</span>
+                </span>
+                        <span title="this comment was edited 1 time">
+                            <svg aria-hidden="true" class="va-text-bottom o50 svg-icon iconPencilSm" width="14" height="14"  viewBox="0 0 14 14"><path fill="#F1B600" d="m2 10.12 6.37-6.43 1.88 1.88L3.88 12H2z"/><path fill="#E87C87" d="m11.1 1.71 1.13 1.12c.2.2.2.51 0 .71L11.1 4.7 9.21 2.86l1.17-1.15c.2-.2.51-.2.71 0"/></svg>
+                        </span>
+            </div>
+        </div>
+    </li>
+
+            </ul>
+	    </div>
+
+        <div id="comments-link-247891" data-rep=50 data-anon=true>
+                    <a
+                        class="js-add-link comments-link dno"
+                        title="Use comments to ask for more information or suggest improvements. Avoid answering questions in comments."
+                        
+                        href="#"
+                        role="button"
+                        data-show-first-time-commenting="False">
+                        
+                    </a>
+                <span class="js-link-separator dno">&nbsp;|&nbsp;</span>
+            <a
+                class="js-show-link comments-link "
+                title="Expand to show all comments on this post"
+                href=#
+                aria-controls="comments-247891"
+                aria-expanded="false"
+                role="button">
+                Show <b>1</b> more comment
+            </a>
+        </div>         
+    </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+                <div id="answers" class="no-answers">
+                        <a name="tab-top"></a>
+                        <div id="answers-header">
+                            <div class="answers-subheader d-flex ai-center mb8">
+                                <div class="flex--item fl1">
+                                    <h2 class="mb0" data-answercount="0">
+                                        <span class="d-none" itemprop="answerCount">0</span>
+                                    </h2>
+                                </div>
+                                <div class="flex--item d-none">
+                                        
+
+<div class="d-flex g4 gsx ai-center sm:fd-column sm:ai-start">
+    <div class="d-flex fd-column ai-end sm:ai-start">
+        <label class="flex--item fs-caption" for="answer-sort-dropdown-select-menu">
+            Sorted by:
+        </label>
+        <a 
+            class="js-sort-preference-change s-link flex--item fs-fine d-none"
+            data-value="ScoreDesc"
+            href="/questions/247891/the-category-of-sets-and-stateful-functions?answertab=scoredesc#tab-top"
+        >
+            Reset to default
+        </a>
+    </div>
+    <div class="flex--item s-select">
+        <select id="answer-sort-dropdown-select-menu">
+                    <option
+                        value=scoredesc
+                        selected=selected
+                    >
+                        Highest score (default)
+                    </option>
+                    <option
+                        value=modifieddesc
+                    >
+                        Date modified (newest first)
+                    </option>
+                    <option
+                        value=createdasc
+                    >
+                        Date created (oldest first)
+                    </option>
+        </select>
+    </div>
+</div>
+
+
+                                </div>
+                            </div>
+
+
+                        </div>
+                                    <h2 class="js-bottom-notice bottom-notice">
+                                        You must <a href="/users/login?ssrc=question_page&amp;returnurl=https%3a%2f%2fmathoverflow.net%2fquestions%2f247891">log in</a> to answer this question.
+                                    </h2>
+                                <div class="js-bottom-notice d-flex w100 md:mb12 md:fd-column ac-stretch" data-loc="1">
+                                    <div class="flex--item ba bc-black-200 bar-md p24 md:p16 mr12 md:mb12 md:mr0 w50 md:w100">
+                                        <div class="d-flex fd-column">
+                                            <p class="flex--item fs-body2 fw-bold fc-black-500 mb8">Start asking to get answers</p>
+                                            <p class="flex--item fs-body1 fc-black-400 mb16">Find the answer to your question by asking.</p>
+                                            <a class="flex--item s-btn s-btn__outlined as-start px32 md:px16" href="/questions/ask">Ask question</a>
+                                        </div>
+                                    </div>
+                                    <div class="flex--item ba bc-black-200 bar-md p24 md:p16 w50 md:w100">
+                                        <div class="d-flex fd-column gsy g16">
+                                            <p class="flex--item fs-body2 fw-bold fc-black-500 mb0">Explore related questions</p>
+                                            <div class="flex--item mb0"><ul class='ml0 list-ls-none js-post-tag-list-wrapper d-inline'><li class='d-inline mr4 js-post-tag-list-item'><a href="/questions/tagged/ct.category-theory" class="s-tag post-tag" title="show questions tagged &#39;ct.category-theory&#39;" aria-label="show questions tagged &#39;ct.category-theory&#39;" rel="tag" aria-describedby="tag-ct.category-theory-tooltip-container" data-tag-menu-origin="Unknown">ct.category-theory</a></li><li class='d-inline mr4 js-post-tag-list-item'><a href="/questions/tagged/lo.logic" class="s-tag post-tag" title="show questions tagged &#39;lo.logic&#39;" aria-label="show questions tagged &#39;lo.logic&#39;" rel="tag" aria-describedby="tag-lo.logic-tooltip-container" data-tag-menu-origin="Unknown">lo.logic</a></li><li class='d-inline mr4 js-post-tag-list-item'><a href="/questions/tagged/ds.dynamical-systems" class="s-tag post-tag" title="show questions tagged &#39;ds.dynamical-systems&#39;" aria-label="show questions tagged &#39;ds.dynamical-systems&#39;" rel="tag" aria-describedby="tag-ds.dynamical-systems-tooltip-container" data-tag-menu-origin="Unknown">ds.dynamical-systems</a></li><li class='d-inline mr4 js-post-tag-list-item'><a href="/questions/tagged/computer-science" class="s-tag post-tag" title="show questions tagged &#39;computer-science&#39;" aria-label="show questions tagged &#39;computer-science&#39;" rel="tag" aria-describedby="tag-computer-science-tooltip-container" data-tag-menu-origin="Unknown">computer-science</a></li></ul></div>
+                                            <p class="flex--item fs-body1 fc-black-400 mb0">See similar questions with these tags.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                </div>
+            </div>
+
+        
+
+            
+<div id="sidebar" class="show-votes" role="complementary" aria-label="sidebar">
+        
+
+
+    <div class="s-sidebarwidget s-sidebarwidget__yellow s-anchors s-anchors__grayscale mb16" data-tracker="cb=1">
+            <ul class="s-sidebarwidget--content s-sidebarwidget__items p0">
+                        <li class="s-sidebarwidget--header">
+                            Featured on Meta
+                        </li>
+        <li class="s-sidebarwidget--item d-flex px16">
+            <div class="flex--item1 fl-shrink0">
+<div class="favicon favicon-stackexchangemeta" title="Meta Stack Exchange"></div>            </div>
+            <div class="flex--item wmn0 ow-break-word">
+                <a href="https://meta.stackexchange.com/questions/418826/partnering-with-communities-to-modernize-policies-norms" class="js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;Featured on Meta&quot;,&quot;https://meta.stackexchange.com/questions/418826/partnering-with-communities-to-modernize-policies-norms&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 3, position: 0, location: questionpage })">Partnering with Communities to Modernize Policies &amp; Norms</a>
+            </div>
+        </li>
+        </ul>
+    </div>
+
+            
+        
+
+
+        <div class="module sidebar-related">
+            <h3 id="h-related">Related</h3>
+            <div class="related js-gps-related-questions" data-tracker="rq=1">
+                    <div class="spacer" data-question-id="263024">
+                        <a href="/questions/263024/does-equality-between-sets-contradict-the-philosophy-behind-structural-set-theor" title="Question score (upvotes - downvotes)" >
+                            <div class="answer-votes default">9</div>
+                        </a>
+                        <a href="/questions/263024/does-equality-between-sets-contradict-the-philosophy-behind-structural-set-theor" class="question-hyperlink">Does equality between sets contradict the philosophy behind structural set theory?</a>
+                    </div>
+                    <div class="spacer" data-question-id="383026">
+                        <a href="/questions/383026/elementary-theory-of-the-category-of-groupoids" title="Question score (upvotes - downvotes)" >
+                            <div class="answer-votes answered-accepted default">13</div>
+                        </a>
+                        <a href="/questions/383026/elementary-theory-of-the-category-of-groupoids" class="question-hyperlink">Elementary theory of the category of groupoids?</a>
+                    </div>
+                    <div class="spacer" data-question-id="456101">
+                        <a href="/questions/456101/a-possible-alternative-model-for-infty-groupoids" title="Question score (upvotes - downvotes)" >
+                            <div class="answer-votes default">6</div>
+                        </a>
+                        <a href="/questions/456101/a-possible-alternative-model-for-infty-groupoids" class="question-hyperlink">A possible alternative model for $\infty$-groupoids</a>
+                    </div>
+                    <div class="spacer" data-question-id="467527">
+                        <a href="/questions/467527/what-are-the-2-categorical-mono-epimorphisms-in-the-2-category-of-relations" title="Question score (upvotes - downvotes)" >
+                            <div class="answer-votes default">5</div>
+                        </a>
+                        <a href="/questions/467527/what-are-the-2-categorical-mono-epimorphisms-in-the-2-category-of-relations" class="question-hyperlink">What are the 2-categorical mono/epimorphisms in the 2-category of relations?</a>
+                    </div>
+                    <div class="spacer" data-question-id="483035">
+                        <a href="/questions/483035/whats-the-deal-with-de-morgan-algebras-and-kleene-algebras" title="Question score (upvotes - downvotes)" >
+                            <div class="answer-votes answered-accepted default">13</div>
+                        </a>
+                        <a href="/questions/483035/whats-the-deal-with-de-morgan-algebras-and-kleene-algebras" class="question-hyperlink">What&#39;s the deal with De Morgan algebras and Kleene algebras?</a>
+                    </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+                 $(function() {
+                     $(".js-gps-related-questions .spacer").on("click", function () {
+                        fireRelatedEvent($(this).index() + 1, $(this).data('question-id'));
+                     });
+
+                 function fireRelatedEvent(position, questionId) {
+                     StackExchange.using("gps", function() {
+                         StackExchange.gps.track('related_questions.click',
+                         {
+                             position: position,
+                             originQuestionId: 247891,
+                             relatedQuestionId: +questionId,
+                             location: 'sidebar',
+                             source: 'Baseline'
+                         });    
+                     });
+                 }
+             });
+         </script>
+
+                    <div id="feed-link" class="js-feed-link">
+        <a href="/feeds/question/247891" title="Feed of this question and its answers">
+            <svg aria-hidden="true" class="fc-orange-400 svg-icon iconRss" width="18" height="18"  viewBox="0 0 18 18"><path  d="M3 1a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm0 1.5c6.9 0 12.5 5.6 12.5 12.5H13C13 9.55 8.45 5 3 5zm0 5c4.09 0 7.5 3.41 7.5 7.5H8c0-2.72-2.28-5-5-5zm0 5c1.36 0 2.5 1.14 2.5 2.5H3z"/></svg>
+            Question feed
+        </a>
+    </div>
+    <aside class="s-modal js-feed-link-modal" tabindex="-1" role="dialog" aria-labelledby="feed-modal-title" aria-describedby="feed-modal-description" aria-hidden="true">
+        <div class="s-modal--dialog js-modal-dialog wmx4" role="document"  data-controller="se-draggable">
+            <h1 class="s-modal--header fw-bold js-first-tabbable" id="feed-modal-title" data-se-draggable-target="handle" tabindex="0">
+                Subscribe to RSS
+            </h1>
+            <div class="d-flex gs4 gsy fd-column">
+                <div class="flex--item">
+                    <label class="d-block s-label c-default" for="feed-url">
+                        Question feed
+                        <p class="s-description mt2" id="feed-modal-description">To subscribe to this RSS feed, copy and paste this URL into your RSS reader.</p>
+                    </label>
+                </div>
+                <div class="d-flex ps-relative">
+                    <input class="s-input" type="text" name="feed-url" id="feed-url" readonly="readonly" value="https://mathoverflow.net/feeds/question/247891" />
+                    <svg aria-hidden="true" class="s-input-icon fc-orange-400 svg-icon iconRss" width="18" height="18"  viewBox="0 0 18 18"><path  d="M3 1a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm0 1.5c6.9 0 12.5 5.6 12.5 12.5H13C13 9.55 8.45 5 3 5zm0 5c4.09 0 7.5 3.41 7.5 7.5H8c0-2.72-2.28-5-5-5zm0 5c1.36 0 2.5 1.14 2.5 2.5H3z"/></svg>
+                </div>
+            </div>
+            <a class="s-modal--close s-btn s-btn__muted js-modal-close js-last-tabbable" href="#" aria-label="Close">
+                <svg aria-hidden="true" class="svg-icon iconClearSm" width="14" height="14"  viewBox="0 0 14 14"><path  d="M12 3.41 10.59 2 7 5.59 3.41 2 2 3.41 5.59 7 2 10.59 3.41 12 7 8.41 10.59 12 12 10.59 8.41 7z"/></svg>
+            </a>
+        </div>
+    </aside>
+
+</div>
+
+    </div>
+
+<script>StackExchange.ready(function(){$.get('/posts/247891/ivc/7c1b?prg=7a6c32b5-44dd-4890-99a7-027fa70ace76');});</script>
+<noscript><div><img src="/posts/247891/ivc/7c1b?prg=7a6c32b5-44dd-4890-99a7-027fa70ace76" class="dno" alt="" width="0" height="0"></div></noscript>
+    <div id="js-follow-ups-flag-modal"></div>
+    <div id="js-follow-ups-mention"></div>
+</div>
+
+
+
+
+<script defer src="https://mathoverflow.net/Content/Js/questions/show.en.js?v=fd2a34b4878f"></script>
+<script type="application/json" data-role="module-args" data-module-name="entry-points/questions/show.mod">{"doMarkObsolete":false,"doTimeOnPage":false,"sendAnswerEditorEventsToAEH":false,"sendAnswerEditorEventsToPrizm":false,"questionId":247891,"sendAuthQuestionVisitToAEH":false,"sendAuthQuestionVisitToPrizm":false,"answerCount":0,"followUpsUIExperimentGroup":"excluded","tags":["ct.category-theory","lo.logic","ds.dynamical-systems","computer-science"]}</script>
+
+
+
+
+<script defer src="https://mathoverflow.net/Content/Js/webpack-chunks/svelte.en.js?v=94905f07fa5a"></script><script defer src="https://mathoverflow.net/Content/Js/webpack-chunks/stacks-svelte.en.js?v=94e45f550373"></script><script defer src="https://mathoverflow.net/Content/Js/webpack-chunks/stacks-svelte-labs.en.js?v=b9cf031e2bdd"></script><script defer src="https://mathoverflow.net/Content/Js/webpack-chunks/8339.en.js?v=4cb8dd34a7f9"></script><script defer src="https://mathoverflow.net/Content/Js/webpack-chunks/7663.en.js?v=c67f16729ba4"></script><script defer src="https://mathoverflow.net/Content/Js/webpack-chunks/3696.en.js?v=7ef09fb6562b"></script><script defer src="https://mathoverflow.net/Content/Js/webpack-chunks/2458.en.js?v=33cc3da05f78"></script><script defer src="https://mathoverflow.net/Content/Js/webpack-chunks/620.en.js?v=a432091814d8"></script><script defer src="https://mathoverflow.net/Content/Js/webpack-chunks/7660.en.js?v=1bf41ee9eec0"></script><script defer src="https://mathoverflow.net/Content/Js/islands/follow-ups.en.js?v=e50c37442820"></script>
+
+<script defer src="https://mathoverflow.net/Content/Js/webpack-chunks/svelte.en.js?v=94905f07fa5a"></script><script defer src="https://mathoverflow.net/Content/Js/webpack-chunks/stacks-svelte.en.js?v=94e45f550373"></script><script defer src="https://mathoverflow.net/Content/Js/islands/follow-ups-flag-modal.en.js?v=43b68c604786"></script>
+<script type="application/json" data-role="module-args" data-module-name="islands/follow-ups-flag-modal/index.mod">{"ContainerElementId":"js-follow-ups-flag-modal","FKey":"82c5dbe2b7f3a9caa168396099a96d3e7a511e49800de11efbe85662238fb7e5","ShowSpamFlag":false,"MergeUnfriendlyAndRudeFlags":false,"EnableCodeOfConduct":true}</script>
+
+
+<div id="js-follow-ups-experiment-group" data-value="test" class="d-none" data-site-url=""></div>
+
+
+
+<div id="redirect-action-modal-container"></div>
+<script type="application/json" data-role="module-args" data-module-name="islands/redirect-action-modal/index.mod">{"ContainerElementId":"redirect-action-modal-container","FKey":"82c5dbe2b7f3a9caa168396099a96d3e7a511e49800de11efbe85662238fb7e5","UpvoteHeaderImageUrl":"https://mathoverflow.net/Content/Img/modal/img-upvote.png?v=fce73bd9724d","DownvoteHeaderImageUrl":"https://mathoverflow.net/Content/Img/modal/img-downvote.png?v=d15b4e291f8c","EnableUpvoteModal":true,"SuggestEditAvailable":true,"PostTagNames":["ct.category-theory","lo.logic","ds.dynamical-systems","computer-science"],"EnableFreeVotesModal":false,"FreeVotesHeaderImageUrl":"https://mathoverflow.net/Content/Img/modal/img-free-votes.png?v=1c5aa3dac50b","FreeVotesEarnReputationHelpCenterUrl":"https://mathoverflow.net/help/whats-reputation","FreeVotesLearnMoreHelpCenterUrl":"https://mathoverflow.net/help/whats-free-votes","HasUpvotePrivilege":false,"EnableDownVoteRepRequiredRedirectActionPopover":true,"AnswerDownVoteRepChange":1}</script>
+<script defer src="https://mathoverflow.net/Content/Js/webpack-chunks/svelte.en.js?v=94905f07fa5a"></script><script defer src="https://mathoverflow.net/Content/Js/webpack-chunks/stacks-svelte.en.js?v=94e45f550373"></script><script defer src="https://mathoverflow.net/Content/Js/islands/redirect-action-modal.en.js?v=257fd22971c2"></script>
+
+        </div>
+    </div>
+
+    
+
+        
+    <footer id="footer" class="site-footer js-footer" role="contentinfo">
+        <div class="site-footer--container">
+            <nav class="site-footer--nav" aria-label="Footer">
+                    <div class="site-footer--col">
+                        <h5 class="-title"><a href="/">MathOverflow</a></h5>
+                        <ul class="-list js-primary-footer-links">
+                                    <li><a class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 2 })" href="/tour">Tour</a></li>
+                                <li><a href="/help" class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 3 })">Help</a></li>
+                                    <li><a class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 5 })" href="https://chat.stackexchange.com?tab=site&host=mathoverflow.net">Chat</a></li>
+                            <li><a class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 13 })" href="/contact">Contact</a></li>
+                                <li><a class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 14 })" href="https://meta.mathoverflow.net">Feedback</a></li>
+                        </ul>
+                    </div>
+                <div class="site-footer--col">
+                    <h5 class="-title"><a class="js-gps-track" data-gps-track="footer.click({ location: 2, link: 1 })" href="https://stackoverflow.co/">Company</a></h5>
+                    <ul class="-list">
+                            <li><a href="https://stackoverflow.com" class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 15})">Stack Overflow</a></li>
+                            <li><a href="https://stackoverflow.co/internal/" class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 29 })">Stack Internal</a></li>
+                            <li><a href="https://stackoverflow.co/data-licensing/" class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 44 })">Stack Data Licensing</a></li>
+                            <li><a href="https://stackoverflow.co/advertising/" class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 21 })">Stack Ads</a></li>  
+                                <li><a class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 1 })" href="https://stackoverflow.co/">About</a></li>
+                        <li><a class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 27 })" href="https://stackoverflow.co/company/press/">Press</a></li>
+                        <li><a class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 7 })" href="https://stackoverflow.com/legal">Legal</a></li>
+                        <li><a class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 8 })" href="https://stackoverflow.com/legal/privacy-policy">Privacy Policy</a></li>
+                        <li><a class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 37 })" href="https://stackoverflow.com/legal/terms-of-service/public">Terms of Service</a></li>
+        <li id="consent-footer-link"><button type="button" data-controller="cookie-settings" data-action="click->cookie-settings#toggle" class="s-btn s-btn__link py4 js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 38 })" data-consent-popup-loader="footer">
+Cookie Settings        </button></li>
+                        <li><a class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link: 39 })" href="https://policies.stackoverflow.co/stack-overflow/cookie-policy">Cookie Policy</a></li>
+                    </ul>
+                </div>
+                <div class="site-footer--col site-footer--categories-nav">
+                    <div>
+                        <h5 class="-title"><a href="https://stackexchange.com" data-gps-track="footer.click({ location: 2, link: 30 })">Stack Exchange Network</a></h5>
+                        <ul class="-list">
+                            <li>
+                                <a href="https://stackexchange.com/sites#technology" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 24 })">
+                                    Technology
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://stackexchange.com/sites#culturerecreation" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 24 })">
+                                    Culture &amp; recreation
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://stackexchange.com/sites#lifearts" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 24 })">
+                                    Life &amp; arts
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://stackexchange.com/sites#science" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 24 })">
+                                    Science
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://stackexchange.com/sites#professional" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 24 })">
+                                    Professional
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://stackexchange.com/sites#business" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 24 })">
+                                    Business
+                                </a>
+                            </li>
+
+                            <li class="mt16 md:mt0">
+                                <a href="https://api.stackexchange.com/" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 24 })">
+                                    API
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="https://data.stackexchange.com/" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 24 })">
+                                    Data
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+            <div class="site-footer--copyright fs-fine md:mt24">
+                <ul class="-list -social md:mb8">
+                    <li><a class="js-gps-track -link" data-gps-track="footer.click({ location: 2, link:4 })" href="https://stackoverflow.blog?blb=1">Blog</a></li>
+                    <li><a href="https://www.facebook.com/officialstackoverflow/" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 31 })">Facebook</a></li>
+                    <li><a href="https://twitter.com/stackoverflow" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 32 })">Twitter</a></li>
+                    <li><a href="https://linkedin.com/company/stack-overflow" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 33 })">LinkedIn</a></li>
+                    <li><a href="https://www.instagram.com/thestackoverflow" class="-link js-gps-track" data-gps-track="footer.click({ location: 2, link: 36 })">Instagram</a></li>
+                </ul>
+
+                <p class="md:mb0">
+                    <span>Site design / logo © 2026 Stack Exchange Inc; </span>
+                    <span>user contributions licensed under </span>
+                    <a class="-link s-link td-underline" href="https://stackoverflow.com/help/licensing">CC BY-SA</a>
+                    <span>. </span>
+                    <span id="svnrev">rev&nbsp;2026.7.9.44099</span>
+                </p>
+            </div>
+        </div>
+
+    </footer>
+
+
+    
+
+
+
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+
+        gtag('consent', 'default', {
+            'ad_storage': 'denied',
+            'analytics_storage': 'denied',
+            'ad_user_data': 'denied',
+            'ad_personalization': 'denied'
+        });
+    </script>
+            <!-- Google tag (gtag.js) -->
+            <script async src="https://www.googletagmanager.com/gtag/js?id=G-S812YQPLT2"></script>
+            <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag() { dataLayer.push(arguments); }
+            </script>
+        <script>
+            function initGa() {
+                var customGA4Dimensions = {};
+
+
+                customGA4Dimensions["requestid"] = "7a6c32b5-44dd-4890-99a7-027fa70ace76";
+
+                    customGA4Dimensions["routename"] = "Questions/Show";
+
+
+                    customGA4Dimensions["post_id"] = "247891";
+
+
+                    customGA4Dimensions["tags"] = "|ct.category-theory|lo.logic|ds.dynamical-systems|computer-science|";
+
+
+                var ga4Settings = {
+                    tracker: gtag,
+                    trackingCodes: [
+                        'G-S812YQPLT2'
+                    ],
+                    consentsToPerformanceCookies: "denied",
+                    consentsToTargetingCookies: "denied",
+                    eventParameters: customGA4Dimensions,
+                    checkForAdBlock: true,
+                    sendTitles: true,
+                    trackClicks: false,
+                };
+
+                StackExchange.ga.init({ GA4: ga4Settings });
+            }
+
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", initGa);
+            } else {
+                initGa();
+            }
+        </script>
+
+    
+
+
+
+
+    
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1979fa05c80d933',t:'MTc4Mzc3MDk3Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+    </html>

@@ -1,0 +1,2495 @@
+Quantitative Graded Semantics and
+Spectra of Behavioural Metrics
+Jonas Forster #
+Friedrich-Alexander-Universität Erlangen-Nürnberg, Germany
+
+Lutz Schröder #
+Friedrich-Alexander-Universität Erlangen-Nürnberg, Germany
+
+Paul Wild #
+Friedrich-Alexander-Universität Erlangen-Nürnberg, Germany
+
+Harsh Beohar #
+University of Sheffield, United Kingdom
+
+arXiv:2306.01487v4 [cs.LO] 27 Jan 2025
+
+Sebastian Gurke #
+Universität Duisburg-Essen, Germany
+
+Barbara König #
+Universität Duisburg-Essen, Germany
+
+Karla Messing #
+Universität Duisburg-Essen, Germany
+
+Abstract
+Behavioural metrics provide a quantitative refinement of classical two-valued behavioural equivalences
+on systems with quantitative data, such as metric or probabilistic transition systems. In analogy
+to the linear-time/ branching-time spectrum of two-valued behavioural equivalences on transition
+systems, behavioural metrics vary in granularity, and are often characterized by fragments of suitable
+modal logics. In the latter respect, the quantitative case is, however, more involved than the
+two-valued one; in fact, we show that probabilistic metric trace distance cannot be characterized
+by any compositionally defined modal logic with unary modalities. We go on to provide a unifying
+treatment of spectra of behavioural metrics in the emerging framework of graded monads, working
+in coalgebraic generality, that is, parametrically in the system type. In the ensuing development
+of quantitative graded semantics, we introduce algebraic presentations of graded monads on the
+category of metric spaces. Moreover, we provide a general criterion for a given real-valued modal
+logic to characterize a given behavioural distance. As a case study, we apply this criterion to obtain
+a new characteristic modal logic for trace distance in fuzzy metric transition systems.
+2012 ACM Subject Classification Theory of computation → Modal and temporal logics
+Keywords and phrases transition systems, modal logics, coalgebras, behavioural metrics
+Related Version Conference Version: https://doi.org/10.4230/LIPIcs.CSL.2025.33
+Funding The fourth author was supported by the EPSRC NIA Grant EP/X019373/1, while the
+remaining authors were supported by the Deutsche Forschungsgemeinschaft (DFG, German Research
+Foundation) – project number 434050016 (SpeQt).
+
+1
+
+Introduction
+
+While qualitative models of concurrent systems are traditionally analysed using various
+notions of two-valued process equivalence, it has long been recognized that for systems
+involving quantitative data, notions of behavioural distance play a useful role as a more finegrained measure of process similarity. Well-known examples include behavioural distances
+on probabilistic transition systems [24, 13, 45], on systems combining nondeterminism and
+probability [8], and on metric transition systems [11, 16]. Like in the two-valued case, where
+
+2
+
+Quantitative Graded Semantics and Spectra of Behavioural Metrics
+
+process equivalences of varying granularity are arranged on the linear-time/branching-time
+spectrum [46], one has a spectrum of behavioural metrics on a given system type that vary
+in granularity (with greater distances thought of as having finer granularity) [15].
+An important point of interest in this context are characteristic modal logics. In the
+two-valued setting, a logic is characteristic for a given behavioural equivalence if the latter
+coincides with the respective induced logical indistinguishability relation, so that behavioural
+inequivalence can be certified by distinguishing formulae (as in the recent proof of the failure
+of unlinkability in the ICAO 9303 e-passport standard [17])). For instance, Hennessy-Milner
+logic is characteristic for bisimilarity [27], and most equivalences on the classical spectrum
+are characterized by fragments of Hennessy-Milner logic [46] that are compositionally defined,
+i.e. given by a choice of modalities and propositional operators equipped with a recursively
+defined semantics (e.g. trace equivalence is characterized by the logic built from diamonds,
+truth, and – optionally – disjunction). In the quantitative setting, a logic is characteristic
+if the induced logical distance coincides with the respective behavioural distance, so that
+high behavioural distance may be certified by means of distinguishing modal formulae [39].
+A prototypical example is quantitative probabilistic modal logic, which is characteristic for
+branching-time behavioural distance on probabilistic transition systems [45]. However, it
+turns out that in general, the quantitative setting behaves less smoothly in this respect than
+the two-valued setting. Indeed, we show as our first main result that for probabilistic metric
+trace distance (on generative probabilistic transition systems in which the set of labels is
+equipped with a metric, i.e. on the probabilistic variant of metric transition systems), there
+does not exist any characteristic quantitative modal logic at all. Here, the term modal logic
+is understood in a fairly broad sense; essentially, we stipulate no more than that, in analogy
+to the two-valued case as discussed above, the logic should be a compositionally defined
+fragment of a bisimulation-invariant next-step logic with unary modalities.
+We subsequently work towards positive results, using the framework of graded semantics [36, 14] to achieve an appropriate level of generality. Graded semantics is parametric
+both in the type of systems (e.g. probabilistic, metric, fuzzy) and in the quantitative semantics
+of systems, i.e. the choice of behavioural distance. The system type is abstracted as an
+endofunctor on a suitable base category following the paradigm of universal coalgebra [42].
+Parametricity in the system semantics, on the other hand, is based on the choice of a
+graded monad, which handles additional semantic identifications (beyond branching-time
+equivalence) by algebraic means, using grades to control the depth of look-ahead. Both
+Kleisli-style coalgebraic trace semantics [26] and the smoother, but less widely applicable
+Eilenberg-Moore-style coalgebraic trace semantics [28] are subsumed by this framework [36].
+Graded semantics has recently been extended to cover behavioural distances in the
+Eilenberg-Moore-style setting [5, 23], and, generalizing the two-valued case [36, 14], a
+canonical notion of quantitative graded logic has been identified. Quantitative graded logics
+are always invariant under the underlying behavioural distance in the sense that formula
+evaluation is nonexpansive, so that logical distance is below behavioural distance. In some
+cases, the reverse inequality, i.e. expressivity of quantitative graded logics, can be established
+by a straightforward generalization of corresponding criteria for the two-valued case. Notably,
+one can show that in the Eilenberg-Moore setting, one essentially always has a characteristic
+modal logic [23], in sharp contrast to our present negative result. The flip side of the coin is
+that Eilenberg-Moore style trace semantics applies to only rather few system types (essentially
+automata with effects), and in particular does not support a metric on the labels as found,
+for instance, in standard metric transition systems.
+Our second, now positive, contribution in the present work is to extend the framework to
+
+J. Forster, P. Wild, L. Schröder, H. Beohar, S. Gurke, B. König, and K. Messing
+
+unrestricted graded semantics, notably including Kleisli-style coalgebraic trace semantics
+and, hence, trace semantics on systems with labels taken from a metric space. For the
+syntactic treatment of spectra of behavioural distances in this sense, we introduce a graded
+extension of quantitative algebra [35] that allows describing graded monads on the category of
+metric spaces by operations and approximate equations. As suggested by our negative result,
+establishing expressivity of graded logics in the general case presents additional challenges
+compared to the two-valued variant and the Eilenberg-Moore case. In particular, it turns
+out that the expressivity criterion needs to be parametric in a strengthening of the inductive
+hypothesis in the induction on depth of look-ahead that it encapsulates; indeed, this happens
+already in strikingly simple cases such as metric streams. We develop a number of example
+applications: We recover results on expressivity of quantitative modal logics for (finite-depth)
+branching-time distances [32, 47, 19, 31], as well as a recent result on expressivity of a
+quantitative modal logic for trace distance in metric transition systems [4], which in fact we
+generalize to systems with metric state space and closed branching. In a concluding case
+study, we moreover identify a new characteristic modal logic for trace distance on fuzzy
+metric transition systems, which turns out to require next-step modalities incorporating a
+constant shift on label distances.
+Omitted proofs and additional details can be found in the appendix.
+
+Related Work We have mentioned previous work on coalgebraic branching-time behavioural
+distances [2, 32, 22, 48, 49, 4, 31] and on graded semantics for two-valued behavioural
+equivalences and preorders [36, 14, 19]. Kupke and Rot [33] study logics for coinductive
+predicates, which generalize branching-time behavioural distances. Generally, our overall
+setup differs from the one used in [33] and elsewhere by working with coalgebras that already
+live on metric spaces (e.g. [41, 52, 45, 22, 25]); this allows covering functors on metric spaces
+that are not liftings of set functors, such as the full Hausdorff functor (which takes closed
+subsets). Recent work on Galois connections for logical distances [4, 5] is highly general (and
+in fact not even tied to state-based systems) but leaves more work to the instantiation than
+the framework of graded monads. Moreover, it is aimed primarily at fixpoint characterizations
+of logical distance, and in fact induces behavioural distance from the logic, while we aim
+to provide logical characterizations of given behavioural distances. Alternative coalgebraic
+approaches to process equivalences coarser than branching time include coalgebraic trace
+semantics in Kleisli [26] and Eilenberg-Moore categories [28], which are both subsumed by the
+paradigm of graded monads [36], as well as an approach in which behavioural equivalences
+are defined via characteristic logics [30]. The Eilenberg-Moore and Kleisli setups can be
+unified using corecursive algebras, which also support, under certain assumptions, a logical
+characterization for these cases [40]. The Eilenberg-Moore approach has been applied to
+linear-time behavioural distances [2]. Recently, some of the present authors used the gradedsemantics approach to Eilenberg-Moore semantics to extract characteristic logics that factor
+through the determinization of a coalgebra [23]. We make use of their notion of graded
+logic and complement their work by considering unrestricted graded semantics, in particular
+covering the more broadly applicable Kleisli-style semantics.
+De Alfaro et al. [11] introduce a linear-time logic for (state-labelled) metric transition
+systems. The semantics of this logic is defined by first computing the set of paths of a
+system, so that propositional operators and modalities have a different meaning than in
+corresponding branching-time logics, while our graded logics are fragments of branching-time
+logics. Fahrenberg et al. [16] present a game-based approach to a spectrum of behavioural
+distances on metric transition systems. A two-valued logic for probabilistic trace semantics
+
+3
+
+4
+
+Quantitative Graded Semantics and Spectra of Behavioural Metrics
+
+(for a discrete set of labels) has been considered in the context of differential privacy [7]. A
+notion of logical distance is then obtained via a real-valued semantics defined using a syntactic
+distance on formulae; this semantics is not compositional (truth values are defined by taking
+infima over the whole logical syntax), so subsequent results relating this logical distance
+to notions of weak anonymity do not contradict our impossibility result on (compositional)
+characteristic logics for probabilistic trace semantics.
+
+2
+
+Preliminaries
+
+Basic familiarity with category theory is assumed (e.g. [1]). We write Set for the category of
+sets and maps. Below, we recall some background on (bounded) metric spaces and universal
+coalgebra.
+Metric spaces The real unit interval [0, 1] will serve as the domain of distances and
+W V
+truth values. Under the usual ordering ≤, [0, 1] forms a complete lattice; we write ,
+W
+for joins and meets in [0, 1] (e.g. i xi = supi xi ), and ∨, ∧ for binary join and meet,
+respectively. We denote truncated addition and subtraction by ⊕ and ⊖, respectively; that
+is, x ⊕ y = min(x + y, 1) and x ⊖ y = max(x − y, 0). These operations form part of a
+structure of [0, 1] as a (co-)quantale; for readability, we refrain from working with more
+general quantales [48, 22].
+▶ Definition 2.1. A (bounded) pseudometric space is a pair (X, d) consisting of a set X and
+a function d : X × X → [0, 1] satisfying the standard conditions of reflexivity (d(x, x) = 0
+for all x ∈ X), symmetry (d(x, y) = d(y, x) for all x, y ∈ X), and the triangle inequality
+(d(x, z) ≤ d(x, y) + d(y, z) for all x, y, z ∈ X); if additionally separation holds (for x, y ∈ X,
+if d(x, y) = 0 then x = y), then (X, d) is a metric space. A function f : X → Y between
+pseudometric spaces (X, dX ) and (Y, dY ) is nonexpansive if dY (f (x), f (y)) ≤ dX (x, y) for all
+x, y ∈ X. Metric spaces and nonexpansive maps form a category Met.
+We often do not distinguish notationally between a (pseudo-)metric space (X, d) and its
+underlying set X. Occasionally we use subscripts to make explicit the carrier to which a
+(pseudo-)metric is associated, i.e. dX is the (pseudo-)metric of the space with carrier X. The
+categorical product (X, dX ) × (Y, dY ) of (pseudo-)metric spaces equips the Cartesian product
+X × Y with the supremum (pseudo-)metric dX×Y ((a, b), (a′ , b′ )) = dX (a, a′ ) ∨ dY (b, b′ ).
+Similarly, the Manhattan tensor ⊞ equips X × Y with the Manhattan (pseudo-)metric
+dX⊞Y ((a, b), (a′ , b′ )) = dX (a, a′ ) ⊕ dY (b, b′ ). We occasionally write elements of the product
+X n+m as vw if v ∈ X n and w ∈ X m . Given (pseudo-)metric spaces X, Y , the nonexpansive
+functions X → Y form a (pseudo-)metric space under the standard supremum distance.
+▶ Example 2.2. We recall some key examples of functors on Set and Met.
+1. We write Pω for the finite powerset functor on Set, and P ω for the lifting of Pω to
+Met given by the Hausdorff metric. Explicitly, for a metric space (X, d) and A, B ∈ Pω X,
+W
+V
+W
+V
+dP ω X (A, B) = ( a∈A b∈B d(a, b)) ∨ ( b∈B a∈A d(a, b)).
+(2.1)
+Both Pω and P ω are monads, with multiplication taking big unions.
+2. Related to the above, the closed Hausdorff monad Pc on Met sends a metric space X to
+the set of closed subsets of X, again equipped with the Hausdorff metric. For a nonexpansive
+function f : X → Y , Pc f sends A ∈ Pc X to the closure of f [A]. Monad multiplication takes
+the closure of the big union.
+
+J. Forster, P. Wild, L. Schröder, H. Beohar, S. Gurke, B. König, and K. Messing
+
+3. Similarly, Dω denotes the functor on Set that maps a set X to the set of finitely
+supported probability distributions on X, and Dω denotes the lifting of Dω to Met that equips
+Dω X with the Kantorovich metric. Explicitly, for a metric space (X, d) and µ, ν ∈ Dω X,
+dDω X (µ, ν) =
+
+W P
+f
+
+x∈X f (x)(µ(x) ⊖ ν(x))
+
+where f ranges over all nonexpansive functions X → [0, 1]. We often write elements of Dω X
+P
+P
+as finite formal sums
+pi · xi , with xi ∈ X and
+pi = 1.
+4. The finite fuzzy powerset functor Fω is given on sets X by Fω X = {A : X → [0, 1] |
+W
+A(x) = 0 for almost all x ∈ X}, and on maps f : X → Y by Fω f (A)(y) = {A(x) | f (x) =
+y} for A ∈ Fω X. That is, Fω X consists of the finite fuzzy subsets of X, given by assigning
+membership degrees in [0, 1] to elements of X, and Fω f acts by taking fuzzy direct images.
+We lift Fω to a functor F ω on metric spaces that equips Fω X with the fuzzy Hausdorff
+distance [48, Example 5.3.1]. Explicitly, dF ω X (A, B) = d0 (A, B) ∨ d0 (B, A) for a metric
+space (X, d) and A, B ∈ Fω X, where
+d0 (A, B) =
+
+W V
+x
+
+y (A(x) ⊖ B(y)) ∨ (A(x) ∧ d(x, y)).
+
+Thus, d0 (A, B) is analogous to the left-hand term in the binary join defining the Hausdorff
+metric (2.1): Both terms can be read intuitively as ‘B is far from A if there is x such that
+x ∈ A and for all y, if y ∈ B then y is far from x’, where d0 (A, B) takes into account that
+the sets A, B are fuzzy (in particular, the ‘if y ∈ B’ is reflected in the contribution of B(y)
+being negative).
+Coalgebra Universal coalgebra [42] has established itself as a way to reason about state-based
+systems at an appropriate level of abstraction. It is based on encapsulating the transition type
+of systems as an endofunctor G : C → C on a base category C. Then, a G-coalgebra (X, γ)
+consists of a C-object X, thought of as an object of states, and a morphism γ : X → GX,
+thought of as assigning to each state a collection of successors, structured according to G. A
+C-morphism h : X → Y is a morphism of G-coalgebras (X, γ) → (Y, δ) if Gh · γ = δ · h.
+For a functor G : Met → Met, one has a canonical notion of branching-time behavioural
+distance dG
+γ on a G-coalgebra (X, γ) [22]. In case G is a lifting of a set functor (which means
+roughly that the underlying set of GX is independent of the metric on X), the general
+definition simplifies as follows: dG
+γ is the least fixpoint of the map d 7→ dG(X,d) ◦ (γ × γ) [2, 22].
+▶ Example 2.3. Throughout the paper, we fix a metric space A of labels. Finitely branching
+metric transition systems with transition labels in A are coalgebras for the functor P ω (A×−).
+(More precisely, a metric transition system is usually assumed to have a set as its state space,
+while P ω (A × −)-coalgebras more generally have a metric space of states, subsuming mere
+sets of states as discrete metric spaces). Similarly, coalgebras for the functor Pc (A × −)
+are closed-branching metric transition systems, where sets of successors can be infinite but
+are required to be closed. With few exceptions (e.g. [22]), most coalgebraic approaches to
+behavioural metrics (e.g. [2, 32, 49, 33]) rely on the functor being a lifting of a Set-functor.
+We work with unrestricted functors on Met, thus, e.g., covering the above-mentioned functor
+Pc (A × −), which is not a lifting of a set functor. We use trace semantics on metric labelled
+transition systems (both finitely branching and closed-branching) as a running example of
+concepts as they appear throughout the text.
+Quantitative Coalgebraic Modal Logic We proceed to introduce the requisite notion of
+quantitative coalgebraic modal logic [44, 32, 49, 23], in a formulation geared towards easing
+
+5
+
+6
+
+Quantitative Graded Semantics and Spectra of Behavioural Metrics
+
+the extraction of invariant fragments for various semantics [23], and instantiated to the
+category of metric spaces. The notion of quantitative coalgebraic modal logic will also serve
+as the yardstick for our negative result on characteristic modal logics for probabilistic metric
+trace semantics (Section 3).
+Syntactically, a modal logic is a triple L = (Θ, O, Λ) where Θ is a set of truth constants, O
+is a set of propositional operators, each with associated finite arity, and Λ is a set of modal
+operators, also each with an associated finite arity. For readability, we restrict to unary
+modal operators; extending our positive results to modal operators of higher arity is simply
+a matter of adding indices. The set of formulae of L is then given by the grammar
+ϕ ::= c | p(ϕ1 , . . . , ϕn ) | Lϕ
+
+(c ∈ Θ, p ∈ O n-ary, L ∈ Λ).
+
+Formulae are interpreted in G-coalgebras for a given functor G : Met → Met, and take values
+in the truth value object Ω = [0, 1], which we equip with the standard metric dΩ (x, y) = |x−y|.
+Moreover, the semantics is parametric in the following components:
+For every c ∈ Θ, a nonexpansive map ĉ : 1 → Ω.
+For p ∈ O with arity n, a nonexpansive map JpK : Ωn → Ω
+For L ∈ Λ, a nonexpansive map JLK : GΩ → Ω
+The evaluation of a formula ϕ on a G-coalgebra (X, γ) is then a nonexpansive map JϕKγ : X →
+Ω, inductively defined by
+!
+
+ĉ
+
+JcKγ = (X −
+→1−
+→ Ω)
+
+⟨Jϕ1 Kγ ,...,Jϕn Kγ ⟩
+
+Jp(ϕ1 , . . . , ϕn )Kγ = (X −−−−−−−−−−−→ Ωn −−→ Ω)
+γ
+
+GJϕKγ
+
+JpK
+
+JLϕKγ = (X −
+→ GX −−−−→ GΩ −−→ Ω)
+JLK
+
+▶ Example 2.4. We briefly exemplify the semantics of modalities: Take the functor G =
+P ω (A×(−)) modelling metric transition systems (Example 2.3), and define the interpretation
+W
+J♢a K : P ω (A × Ω) → Ω of modalities ♢a , for a ∈ A, by J♢a K(U ) = (b,v)∈U (1 − d(a, b)) ∧ v.
+Then, roughly speaking, the degree to which a state in a metric transition system satisfies a
+formula ♢a ϕ is the degree to which it has a b-successor that satisfies ϕ, for some b that is
+close to a. (The use of 1 − d(a, b) is owed to the usual discrepancy between 1 representing
+‘true’ but also ‘far apart’.)
+In the framework defined so far, truth constants are interchangeable with nullary propositional operators, but in the setting of graded logics (Section 6), the two concepts will
+play syntactically and semantically distinct roles. In particular, invariance w.r.t. a target
+semantics (Theorem 6.6) will in general hold only for formulae of uniform depth, that is,
+formulae in which all occurrences of truth constants are nested under the same number of
+modal operators. In cases where there are no truth constants, all formulae are uniform. We
+write Lunif for the set of uniform-depth L-formulae.
+▶ Definition 2.5. Logical distance under the logic L on a G-coalgebra (X, γ) is the pseudoW
+metric dL given by dL (x, y) = {dΩ (JϕKγ (x), JϕKγ (y)) | ϕ ∈ Lunif }.
+Logical distance is always a lower bound for branching-time behavioural distance [32, 49, 22];
+we discuss details in Remark 7.10.
+
+J. Forster, P. Wild, L. Schröder, H. Beohar, S. Gurke, B. König, and K. Messing
+
+3
+
+Probabilistic Metric Trace Semantics
+
+Finitely branching probabilistic metric transition systems over a metric space of transition
+labels A are coalgebras for the functor Gprob = Dω (A ⊞ (−)) (cf. Examples 2.2 and 2.3).
+The probabilistic (metric) trace semantics [9] of a probabilistic transition system calculates,
+at each depth n, a distribution over length-n traces. One then obtains a notion of depthn probabilistic trace distance dptrace
+, which takes Kantorovich distances of depth-n trace
+n
+distributions under the Manhattan distance on traces. Formal definitions are as follows.
+▶ Definition 3.1. We write A⊞n for the n-fold Manhattan tensor A ⊞ · · · ⊞ A. Let (X, γ)
+be a Gprob -coalgebra. For each x ∈ X, the depth-n trace distribution µnx ∈ Dω (A⊞n )
+P
+is inductively defined as µn+1
+(aw) = y∈X γ(x)(a, y)µny (w) for a ∈ A and w ∈ An , with
+x
+µ0x ∈ Dω (A⊞0 ) ∼
+= Dω (1) being the unique distribution on the singleton set 1. The probabilistic
+W
+trace distance on X is dptrace = n<ω dptrace
+, where dptrace
+(x, y) = dDω (A⊞n ) (µnx , µny ).
+n
+n
+Consider the following concrete example, where we assume that d(b, c) = 0.5.
+b
+x
+
+1
+2
+
+a
+1
+c
+
+1
+2
+
+b
+a
+1
+
+1
+
+a
+1
+
+1
+4
+
+c
+
+a
+
+y
+3
+4
+
+For n ≥ 2 we then have by the above definition that µnx = 12 aban−2 + 12 acan−2 while µny =
+1
+n−2
++ 34 acan−2 . The distance of the two relevant traces is given by d(aban−2 , acan−2 ) =
+4 aba
+d(a, a) ⊕ d(b, c) ⊕ d(a, a) ⊕ . . . ⊕ d(a, a) = 0.5. Calculating the Kantorovich distance of trace
+distributions then gives us that d(µnx , µny ) = 14 d(aban−2 , acan−2 ) = 0.125, and by extension
+dptrace (x, y) = 0.125.
+One would now like to have a logic that characterizes the trace distance dptrace . However,
+we establish the following impossibility result instead:
+▶ Theorem 3.2. Let L = (Θ, O, Λ) be a coalgebraic modal logic with unary modalities for
+the functor Gprob , over a non-discrete metric space A of labels. Then dL ̸= dptrace .
+In other words, no quantitative coalgebraic modal logic with unary modalities has a compositionally defined fragment that characterizes probabilistic metric trace distance. The
+restriction to coalgebraic modal logics effectively means only that modal logics should be
+invariant under the standard branching-time semantics and have only next-step modalities [38, 43]. Theorem 3.2 implies in particular that the logic featuring modalities ♢a for a ∈ A,
+with ♢a ϕ being the expected truth value of ϕ restricted to a-successors, fails to characterize
+probabilistic metric trace distance (even though it characterizes two-valued probabilistic
+trace equivalence [6, 14]). In fact, it can even be shown that giving up the requirement of
+interpretations of modalities being nonexpansive does not help.
+Proof sketch (Theorem 3.2). Suppose that L is invariant under probabilistic metric trace
+semantics (dL ≤ dptrace ); we show that L fails to be expressive (dL ̸≥ dptrace ). As an
+intermediate step, we show that invariance under probabilistic metric trace semantics implies
+that modal operators are affine maps. Then calculation shows that affine modalities are
+unable to distinguish the states x and y in the following system, where d(a, b) = v < 1, to a
+degree greater than v 2 , even though the behavioural distance of x and y under probabilistic
+trace semantics is v.
+
+7
+
+8
+
+Quantitative Graded Semantics and Spectra of Behavioural Metrics
+
+y
+
+x
+xa
+
+1
+2
+
+a
+1
+
+a b
+
+1
+2
+
+xb
+
+yb
+
+1
+2
+
+b
+1
+
+b
+1
+
+a b
+
+1
+2
+
+a
+1
+
+ya
+
+◀
+
+We leave the question of whether a characteristic logic with higher-arity modalities exists as
+an open problem.
+While expressive quantitative coalgebraic logics for branching-time semantics exist for
+a wide variety of systems [32, 49, 22, 25], this is thus apparently not always the case for
+linear-time semantics. The no-go result above emphasizes the challenges of the quantitative
+setting and the need for a theory of quantitative coalgebraic logics beyond branching time.
+In the following, we will address precisely this problem, by adopting techniques from the
+theory of graded semantics and highlighting issues unique to the metric setting.
+
+4
+
+Graded Monads and Graded Algebras
+
+The framework of graded semantics [14, 36] is based on the central notion of graded monads,
+which algebraically describe the structure of observable behaviours, in particular identifications beyond branching time, at each finite depth. Here, depth is understood as look-ahead,
+measured in terms of the number of transition steps.
+▶ Definition 4.1. A graded monad M = ((Mn )n∈N , η, (µn,k )n,k∈N ) on a category C consists
+of a family of functors Mn : C → C for n ∈ N and natural transformations η : Id → M0 (the
+unit) and µn,k : Mn Mk → Mn+k for all n, k ∈ N (the multiplications), subject to essentially
+the same laws as ordinary monads up to the insertion of grades; specifically, one has unit laws
+µ0,n · ηMn = id Mn = µn,0 · Mn η and an associative law µn+k,m · µn,k Mm = µn,k+m · Mn µk,m .
+In particular, (M0 , η, µ00 ) is an ordinary (non-graded) monad.
+The understanding of the data constituting a graded monad is similar as for plain monads:
+Roughly speaking (this will be made more precise in Section 5), Mn X may be thought of as
+a space of terms of depth n, modulo given identities, over variables from X; µnk substitutes
+depth-k terms into a depth-n term, obtaining a depth-(n + k) term; and η converts variables
+into terms of depth 0.
+▶ Example 4.2. We discuss graded monads modelling the linear-time end of the spectrum,
+noting that graded monads cover also branching-time (Remark 7.10) and intermediate
+semantics, involving simulation, readiness, failures etc. [14]. A Kleisli distributive law is
+a natural transformation λ : F T → T F where F is a functor and T a monad, subject to
+coherence with the monad structure [26]. This yields a graded monad with Mn = T F n [36];
+here, T may be understood as defining the branching type of the system, and F as defining a
+type of accepted structure. We will use the following instance of this construction as a running
+example: Take F = A × (−) and T = P ω or T = Pc (corresponding to nondeterministic
+branching). Then λ(a, U ) = {(a, x) | x ∈ U } defines a distributive law λ : A × T (−) →
+T (A × (−)) (in particular, λ is nonexpansive). We obtain the graded metric trace monads
+Mn = T (An × (−)).
+Graded monads come with a graded analogue of Eilenberg-Moore algebras, which play a
+central role in the semantics of graded logics [36, 14].
+
+J. Forster, P. Wild, L. Schröder, H. Beohar, S. Gurke, B. König, and K. Messing
+
+▶ Definition 4.3 (Graded Algebra). Let M be a graded monad in C. A graded Mn -algebra
+((Ak )k≤n , (amk )m+k≤n ) consists of a family of C-objects Ai and morphisms amk : Mm Ak →
+Am+k satisfying essentially the same laws as a monad algebra, up to insertion of the grades.
+Specifically, we have a0m · ηAm = id Am for m ≤ n, and whenever m + r + k ≤ n, then
+m,r+k
+am+r,k · µm,r
+· Mm ar,k . An Mn -homomorphism of Mn -algebras A and B is a family
+Ak = a
+(fk : Ak → Bk )k≤n of maps such that whenever m + k ≤ n, then fm+k · am,k = bm,k · Mm fk .
+Graded Mn -Algebras and their homomorphisms form a category Algn (M).
+That is, elements of a graded algebra are stratified by depth, and applying an operation of
+depth m to elements of depth k yields elements of depth m + k, For n = 1, this definition
+instantiates as follows: An M1 -algebra is a tuple (A0 , A1 , a00 , a01 , a10 ), such that 1) (A0 , a00 )
+and (A1 , a01 ) are M0 -algebras. 2) (Homomorphy) a10 : M1 A0 → A1 is an M0 -homomorphism
+(M1 A0 , µ01 ) → (A1 , a01 ). 3) (Coequalization) a10 · M1 a00 = a10 · µ10 , i.e. the following
+diagram commutes (without necessarily being a coequalizer):
+M 1 M 0 A0
+
+M1 a00
+µ10
+
+M 1 A0
+
+a10
+
+A1
+
+(4.1)
+
+It is easy to see that ((Mk X)k≤n , (µm,k )m+k≤n ) is an Mn -algebra for every C-object X.
+Again, M0 -algebras are just (non-graded) algebras for the monad (M0 , η, µ00 ). The semantics
+of modalities will later need the following property:
+▶ Definition 4.4 (Canonical algebras). Let (−)0 : Alg1 (M) → Alg0 (M) be the functor taking
+an M1 -algebra A = ((Ak )k≤1 , (amk )m+k≤1 ) to the M0 -algebra (A0 , a00 ). An M1 -algebra A
+is canonical if it is free over (A)0 , i.e. if for every M1 -algebra B and M0 -homomorphism
+f : (A)0 → (B)0 , there is a unique M1 -homomorphism g : A → B such that (g)0 = f .
+▶ Lemma 4.5. ([14, Lemma 5.3]) An M1 -algebra A is canonical iff (4.1) is a coequalizer
+diagram in the category of M0 -algebras.
+
+5
+
+Graded Quantitative Theories
+
+Monads on Set are induced by equational theories [34]. By equipping each operation with an
+assigned depth and requiring each axiom to be of uniform depth, one obtains a notion of graded
+equational theory which, modulo size issues, can be brought into bijective correspondence
+with graded monads [36]. On the other hand, Mardare et al. [35] introduce a system of
+quantitative equational reasoning, with formulae of the form s =ϵ t understood as “s differs
+from t by at most ϵ”. These quantitative equational theories induce monads on the category
+of metric spaces. We introduce a graded version of this system to present graded monads in
+Met, keeping to finitary operations (and hence finite branching) for ease of presentation.
+▶ Definition 5.1 (Graded signatures, uniform terms). A graded signature consists of an
+algebraic signature Σ and a function δ : Σ → N assigning a depth to each algebraic operation.
+Uniform depth of terms is then defined inductively: Variables have uniform depth 0, and for
+m-ary f ∈ Σ, f (t1 , . . . , tm ) has uniform depth n+k if δ(f ) = n and all ti have uniform depth k.
+In particular, constants c ∈ Σ, as terms, have uniform depth n for all n ≥ δ(c). We write
+TΣ
+n X, or just Tn X, for the set of terms of uniform depth n over X. A substitution of uniform
+depth n is a function σ : X → Tn Y . Such a substitution extends to a map σ : Tk X → Tk+n Y
+on terms for all k ∈ N, where as usual one defines σ(f (t1 , . . . , tm )) = f (σ(t1 ), . . . , σ(tm )). A
+substitution is uniform-depth if it is of uniform depth n for some n.
+
+9
+
+10
+
+Quantitative Graded Semantics and Spectra of Behavioural Metrics
+
+▶ Definition 5.2 (Graded quantitative theory). For a set Z, we let E(Z) denote the set of
+quantitative equalities z1 =ϵ z2 where z1 , z2 ∈ Z and ϵ ∈ [0, 1]. Given a set X of variables,
+S
+we then write E(T(X)) = n∈N E(Tn (X)); that is, E(T(X)) is the set of uniform-depth
+quantitative equalities among Σ-terms over X. A quantitative theory T = (Σ, δ, E) consists
+of a graded signature (Σ, δ) and a set E ⊆ P(E(X)) × E(TX) of axioms. Axioms (Γ, s =ϵ t)
+are written in the form Γ ⊢ s =ϵ t; we refer to Γ as the context of the axiom. The depth of
+Γ ⊢ s =ϵ t is that of s =ϵ t. We say that T is depth-1 if all its operations and axioms have
+depth at most 1.
+The context Γ of an axiom Γ ⊢ s =ϵ t forms a constraint on the variables that is required in
+order for s =ϵ t to hold. Correspondingly, derivability of quantitative equalities in E(T(X))
+over a graded quantitative theory T = (Σ, δ, E) in a context Γ0 ∈ P(E(X)) is defined
+inductively by the following rules:
+(triang)
+
+t =ϵ s s =ϵ′ u
+t =ϵ+ϵ′ u
+
+(refl)
+
+s =0 s
+
+{t =ϵ′ s | ϵ′ > ϵ}
+t =ϵ s
+
+(wk)
+
+t =ϵ s ′
+(ϵ ≥ ϵ)
+t =ϵ ′ s
+
+(ax)
+
+{σ(u) | u ∈ Γ}
+((Γ, t =ϵ s) ∈ E)
+σ(t) =ϵ σ(s)
+
+(arch)
+
+(sym)
+
+(nexp)
+
+t =ϵ s
+s =ϵ t
+(assn)
+
+ϕ
+
+(ϕ ∈ Γ0 )
+
+t1 =ϵ s1
+...
+tn =ϵ sn
+f (t1 , . . . , tn ) =ϵ f (s1 , . . . , sn )
+
+where σ is a uniform-depth substitution. Note the difference between rules (ax) and (assn):
+Quantitative equalities from the theory can be substituted into, while this is not sound for
+quantitative equalities from the context. A graded quantitative equational theory presents a
+graded monad M on Met where Mn X is the set of terms of uniform depth n over variables
+in X, quotiented by the equivalence relation that identifies terms s, t if s =0 t is derivable
+in context X, with the distance dMn ([s], [t]) = ϵ of equivalence classes [s], [t] ∈ Mn X being
+the least ϵ such that s =ϵ t is derivable (which exists by (arch)). Multiplication collapses
+terms-over-terms, and the unit maps an element of x ∈ X to [x] ∈ M0 X.
+▶ Remark 5.3. The above system for quantitative reasoning follows Ford et al. [20] in slight
+modifications to the original (ungraded) system [35]. In particular, we make do without a
+cut rule, and allow substitution only into axioms (substitution into derived equalities is then
+admissible [20]). We include the rule (nexp) ensuring that all operations are nonexpansive,
+i.e. the induced graded monad is enriched (acts nonexpansively on functions).
+We recall that a graded monad is depth-1 [36, 14] if µnk and M0 µ1k are epi-transformations
+and the diagram below is a coequalizer of M0 -algebras for all X and n < ω:
+M1 M0 Mn X
+
+M1 µ0n
+10
+
+µ
+
+M1 Mn X
+
+µ1n
+
+M1+n X.
+
+(5.1)
+
+Mn
+
+By Lemma 4.5 the following is then immediate:
+▶ Proposition 5.4. ([14, Corollary 5.4]) If M is a depth-1 graded monad, then for every
+n ∈ N and every object X, the M1 -algebra with carriers Mn X, Mn+1 X and multiplications
+as algebra structure is canonical.
+We briefly refer to canonical algebras as per the above proposition as being of the form Mn X.
+Crucially, we establish a metric variant of a result on depth-1 graded monads on Set [36]:
+▶ Theorem 5.5. Graded monads on Met presented by depth-1 graded quantitative theories
+are depth-1.
+
+J. Forster, P. Wild, L. Schröder, H. Beohar, S. Gurke, B. König, and K. Messing
+
+▶ Remark 5.6. A depth-1 graded monad M can be reconstructed from its constituents of
+depth at most one, i.e. from M0 , M1 , η, and the µnk for n + k ≤ 1 [14]. Graded semantics
+(Section 6) does however make use of the full structure of M also at higher depths.
+Presentations of graded trace monads We proceed to investigate the quantitative-algebraic
+presentation of graded trace monads that are given by a Kleisli distributive law of the functor
+A × (−) (with A being the space of action labels) over a monad (Example 4.2). Given a
+function k : [0, 1]2 → [0, 1] with suitable properties, we write ⊗ for the tensor that equips
+the Cartesian product of two sets with the metric dA⊗B ((a, b), (a′ , b′ )) = k(d(a, a′ ), d(b, b′ ))
+n
+generated by k. This induces trace distances on Ap
+, n ≥ 0, by viewing An as the n-fold tensor
+of A. Examples include the Euclidean (k(x, y) = x2 + y 2 ), supremum (k(x, y) = max(x, y)),
+and Manhattan (k(x, y) = x ⊕ y) distances. The fact that k computes distances of traces
+recursively “one symbol at a time” translates into uniform depth-1 equations:
+▶ Definition 5.7. Let T = (Σ, E) be a quantitative algebraic presentation of a (plain)
+monad T on Met. We define a graded quantitative theory T [A] by including the operations
+and equations of T at depth 0, along with unary depth-1 operations a for all labels a ∈ A,
+and as depth-1 axioms the distributive laws ⊢ a(f (x1 , . . . , xn )) =0 f (a(x1 ), . . . , a(xn )) for all
+a ∈ A and f ∈ Σ, as well as the distance axioms x =ϵ y ⊢ a(x) =k(d(a,b),ϵ) b(y).
+The obvious candidate for a Kleisli distributive law inducing the graded monad presented by
+the theory T [A] is the family of maps λX : A ⊗ T X → T (A ⊗ X) given by
+λX (a, t) = T ⟨a, id X ⟩⊗ (t)
+
+(5.2)
+
+where ⟨a, id X ⟩⊗ takes x ∈ X to (a, x) ∈ A ⊗ X. However, these maps λX may fail to be
+nonexpansive, depending on T and ⊗; for instance, this happens for T = Dω and ⊗ being
+Cartesian product × (which carries the supremum distance):
+▶ Example 5.8. Put X = {x, y} where d(x, y) = 1, and s = 0.5 · x + 0.5 · y, t = 1 · x ∈ Dω X.
+Clearly d(s, t) = 0.5. Given a, b ∈ A with d(a, b) = 0.5, we have d((a, s), (b, t)) = 0.5 in
+A×Dω X while d(λX (a, s), λX (b, t)) = d(0.5·(a, x)+0.5·(a, y), 1·(b, x)) = 0.75 in Dω (A×X).
+Nonexpansiveness is, of course, needed to obtain a graded monad on Met, and as we show
+later (Remark 6.3), its failure may cause undesirable effects. In the case of Manhattan
+distance, nonexpansiveness always holds:
+▶ Lemma 5.9. The maps λX as per (5.2) are nonexpansive as maps A ⊞ T X → T (A ⊞ X).
+In case the λX as per (5.2) are nonexpansive, we do in fact have that the distributive law λ
+and the algebraic theory T [A] induce the same graded monad:
+▶ Lemma 5.10. Let λX be defined by (5.2). If λX : A ⊗ T → T (A ⊗ (−)) is nonexpansive for
+all X, then the λX form a Kleisli distributive law λ : A ⊗ T → T (A ⊗ (−)), and the graded
+monad induced by λ according to Example 4.2 is presented by the quantitative equational
+theory T [A] as per Definition 5.7.
+▶ Example 5.11. In our running example of finitely branching metric trace semantics, it is
+easy to check that the distributive law claimed in Example 4.2 is indeed nonexpansive, so
+the induced graded monad is, by Lemma 5.10, presented by the corresponding theory as per
+Definition 5.7, and in particular is depth-1. Explicitly, recall [35, Corollary 9.4] that P ω is
+a monad, presented in quantitative algebra by the usual axioms of join semilattices for a
+
+11
+
+12
+
+Quantitative Graded Semantics and Spectra of Behavioural Metrics
+
+binary join operation + and a constant 0 (nonexpansiveness of + is enforced by the deduction
+rules). The quantitative graded theory presenting the graded metric trace monad P ω (An × −)
+according to Lemma 5.10 has depth-0 operators + and 0 as above and adds unary depth-1
+operations a for all a ∈ A, subject to axioms (for a, b ∈ A, ϵ ∈ [0, 1])
+⊢ a(0) =0 0
+
+⊢ a(x + y) =0 a(x) + a(y)
+
+x =ϵ y ⊢ a(x) =ϵ∨dA (a,b) b(y).
+
+The distribution of the operations a over the join semilattice structure effectively implements
+trace equivalence, and the last axiom determines the metric on traces, which in this case is
+taken to be the supremum metric.
+
+6
+
+Graded Quantitative Semantics and Graded Logics
+
+We proceed to introduce the framework of graded quantitative semantics, to study spectra of
+behavioural metrics for various system types. By ‘spectra’ we informally refer to collections
+of process comparisons of varying granularity that arise by observing a specific system type in
+different ways, as exemplified by the classical linear-time/branching-time spectrum on labelled
+transition systems [46]. Generally, a graded semantics [36] (M, α) of a functor G : C → C
+consists of a graded monad M and a natural transformation α : G → M1 . Intuitively, Mn 1
+(where 1 is a terminal object of C) is a domain of behaviours observable after n transition
+steps, with α determining behaviours after one step. For a G-coalgebra (X, γ), we inductively
+define behaviour maps γ (n) : X → Mn 1 assigning to a state in X its behaviour after n steps:
+M0 !·η
+
+M1 γ (n)
+
+α·γ
+
+γ (0) : X −−−−→ M0 1
+
+µ1n
+
+γ (n+1) : X −−→ M1 X −−−−−→ M1 Mn 1 −−→ Mn+1 1
+
+For C = Met, these maps induce a notion of graded behavioural distance (for readability, we
+refrain from working with more general C, such as categories of relational structures [20]):
+▶ Definition 6.1 (Graded behavioural distance). Given a graded semantics α : G → M1 of a
+functor G on Met, (graded) behavioural distance is the pseudometric on states in G-coalgebras
+W
+(X, γ) given by dα (x, y) = n∈N dMn 1 (γ (n) (x), γ (n) (y)) for x, y ∈ X.
+▶ Example 6.2. The metric trace semantics of finitely branching metric transition systems [11,
+15] and closed-branching metric transition systems is captured by the graded metric trace
+monads Mn = P ω (An × −) and Mn = Pc (An × −) (Example 4.2), respectively (with α being
+identity). The behaviour maps calculate, at each depth n, sets of length-n traces, whose
+distance is given by the Hausdorff distance induced by the supremum metric on traces.
+▶ Remark 6.3. In cases where nonexpansiveness of α or the natural transformations of M
+does not hold (e.g. if one attempts to construct M using a family of maps (5.2) that fails to
+be nonexpansive, cf. Example 5.8), other expected properties can fail. For instance, it can
+happen that trace distance exceeds branching time distance (while for trace semantics induced
+by nonexpansive graded semantics, general properties of graded semantics imply that trace
+distance is below branching-time distance, in tune with the two-valued setting where trace
+equivalence is coarser than bisimilarity). Example 5.8 manifests in the Dω (A × −)-coalgebra
+(i.e. generative probabilistic metric transition system) shown below, where A = {a, b, c, d}
+with relevant distances d(a, b) = 0.5 and d(c, d) = 1:
+c
+x
+
+1
+2
+
+a
+1
+
+c
+1
+d
+
+1
+2
+
+a
+1
+
+b
+1
+
+y
+
+J. Forster, P. Wild, L. Schröder, H. Beohar, S. Gurke, B. König, and K. Messing
+
+Here, we have length-n trace distributions µnx = 12 ·(acan−2 )+ 12 ·(adan−2 ) and µny = 1·(bcan−2 )
+for n ≥ 2. When the metric on traces is defined via supremum distance, instead of Manhattan
+W
+distance as in Section 3, the trace distance of the states x and y is n∈N d(µnx , µny ) = 0.75,
+while their branching-time distance (cf. Section 2) is 0.5.
+We have the following criterion for invariance of a logic under a graded semantics (α, M),
+with M depth-1, for a functor G : Met → Met that we fix from now on; recall from Section 2
+that we use Ω to denote the unit interval [0, 1] equipped with Euclidean distance.
+▶ Definition 6.4 (Graded logic). Let o : M0 Ω → Ω be an M0 -algebra structure on Ω. A
+logic L is a graded logic (for (α, M)) if the following hold:
+1. For n-ary p ∈ O, the semantics JpK is an M0 -algebra homomorphism (Ω, o)n → (Ω, o).
+2. For each L ∈ Λ, there is an associated nonexpansive map LLM : M1 Ω → Ω such that the
+α
+
+Ω
+semantics JLK : GΩ → Ω factors as JLK = (GΩ −−→
+M1 Ω −−→ Ω), and such that the
+tuple (Ω, Ω, o, o, LLM) constitutes an M1 -algebra (that is, LLM satisfies homomorphy and
+coequalization, cf. Section 2). We abuse notation and write LLM to denote the M1 -algebra
+(Ω, Ω, o, o, LLM).
+
+LLM
+
+Notice the different treatment of nullary propositional operators and truth constants: The
+former are required to be interpreted as homomorphisms 1 → (Ω, o) in a graded logic, while
+no such condition is imposed on truth constants. In many examples, α = id, in which case
+condition 2 just states that (Ω, Ω, o, o, JLK) is an M1 -algebra (non-identity α are associated,
+for instance, with readiness and failure semantics [14]).
+▶ Definition 6.5. We say that L is invariant with respect to a graded semantics (α, M) if
+dL ≤ dα holds in all G-coalgebras; expressive if dL ≥ dα ; and characteristic if dL = dα .
+▶ Theorem 6.6 ([23, Proposition 21]). Let L be a graded logic for (α, M). Then the evaluation
+maps JϕKγ of uniform-depth L-formulae ϕ on G-coalgebras (X, γ) are nonexpansive w.r.t.
+behavioural distance dα , and hence L is invariant.
+The assumption of uniform depth cannot be removed in general [23].
+▶ Example 6.7. We have a graded logic Lmtrace for metric trace semantics (Example 6.2)
+featuring modalities ♢a for all a ∈ A as in Example 2.4, a single truth constant 1, and no
+propositional operators. We equip the set Ω = [0, 1] of truth values with the usual P ω -algebra
+(i.e. join semilattice) structure ([0, 1], ∨, 0), and let 1̂ : 1 → [0, 1] take the value 1. The logic
+Lmtrace remains invariant under metric trace semantics when extended with propositional
+operators that are nonexpansive join-semilattice morphisms, such as ∨. Analogously we
+define the logic Lcmtrace for trace semantics of closed-branching metric transition systems.
+Notice that the interpretation of 1 fails to be homomorphic, so 1 needs to be a truth constant.
+
+7
+
+Expressivity Criteria
+
+We proceed to adapt expressivity criteria appearing in previous work on two-valued behavioural equivalences [14, 19] to the quantitative setting, which poses quite specific challenges. A
+key role in the treatment of expressivity of logics will be played by the notion of initiality [1].
+▶ Definition 7.1. A family of maps (fi : A → B)i∈I between metric spaces A and B is
+initial if A carries the smallest (pseudo-)metric making all maps fi nonexpansive, explicitly:
+W
+d(x, y) = i d(fi (x), fi (y)).
+
+13
+
+14
+
+Quantitative Graded Semantics and Spectra of Behavioural Metrics
+
+Using this notion, the definition of expressivity can be rephrased as follows: An invariant
+logic L is expressive if for every G-coalgebra (X, γ), the family of all evaluation maps JϕKγ
+of uniform-depth formulae ϕ is initial on (X, dα ).
+▶ Remark 7.2. In the branching-time case, a stronger notion of expressivity, roughly phrased
+as density of the set of depth-n formulae in the set of nonexpansive properties at depth n,
+follows from expressivity under certain additional conditions [22, 47, 48, 50, 32], using latticetheoretic variants of the Stone-Weierstraß theorem. The analogue of the Stone-Weierstraß
+theorem in general fails for coarser semantics. Also, for semantics coarser than branching
+time, expressivity in the sense of Definition 6.5 can often be established using more economic
+sets of propositional operators (e.g. no propositional operators at all), for which density will
+clearly fail.
+Our expressivity result is based on propagating initiality through an induction on depth.
+Unlike in the Eilenberg-Moore case [23], this requires, in many examples, to strengthen the
+inductive invariant; we treat this systematically as follows:
+▶ Definition 7.3. An initiality invariant is a property Φ of sets A ⊆ Met(X, Ω) of nonexpansive functions such that (i) every family of maps satisfying Φ is initial, and (ii) Φ is
+upwards closed w.r.t. subset inclusion.
+▶ Example 7.4.
+1. Initiality itself is an initiality invariant. If Φ is initiality, then we say
+‘initial-type’ for ‘Φ-type’.
+2. We say that A ⊆ Met(X, Ω) is normed isometric if whenever d(x, y) > ϵ for x, y ∈ X
+and ϵ > 0, then there is some f ∈ A such that |f (x) − f (y)| > ϵ and f (x) ∨ f (y) = 1. Normed
+isometry is an initiality invariant.
+Our expressivity criterion then takes the following shape:
+▶ Definition 7.5. Let Φ be an initiality invariant. A graded logic L = (Θ, O, Λ) with truth
+value object (Ω, o) is Φ-type depth-0 separating if the family of maps {o · M0 ĉ : M0 1 → Ω | c ∈
+Θ} has property Φ. Moreover, L is Φ-type depth-1 separating if whenever A is a canonical
+M1 -algebra of the form Mn 1 (Proposition 5.4) and A is a set of M0 -homomorphisms A0 → Ω
+that has property Φ and is closed under the propositional operators in O, then the set
+Λ(A) := {LLM• (g) : A1 → Ω | L ∈ Λ, g ∈ A}
+has property Φ, where LLM• (g) : A1 → Ω is the (by canonicity, unique) morphism extending
+the M0 -algebra morphism g to an M1 -algebra morphism A → LLM (Definition 6.4).
+▶ Theorem 7.6 (Expressivity). Let Φ be an initiality invariant, and suppose that a graded
+logic L is both Φ-type depth-0 separating and Φ-type depth-1 separating. Then L is expressive.
+▶ Remark 7.7. Our definition of separation differs from notions used for two-valued logics [14,
+19] and for quantitative graded semantics induced by Eilenberg-Moore distributive laws [23],
+which overall have turned out to be much more well-behaved than the more general setting of
+the present work. The most obvious novelty is the use of an initiality invariant Φ strengthening
+the induction hypothesis in the inductive proof of Theorem 7.6. We will see that this is
+needed even in very simple examples in our more general setting. Moreover, we have phrased
+separation in terms of the specific canonical algebras Mn 1 on which it is needed, rather than
+on unrestricted canonical algebras. This allows exploiting additional properties of Mn 1, e.g.
+that for graded monads Mn = T F n arising from Kleisli distributive laws (Example 4.2), Mn 1
+is free as an M0 -algebra.
+
+J. Forster, P. Wild, L. Schröder, H. Beohar, S. Gurke, B. König, and K. Messing
+
+▶ Example 7.8.
+1. Metric Streams: A simple example for failure of initial-type separation
+(Example 7.4) are metric streams, i.e. streams over a metric space of labels (A, dA ); these
+are coalgebras for the functor G = A × −. Behavioural distance on streams is captured
+by the graded monad Gn = An × {−}. The logic L consisting of the truth constant 1
+and modalities ♢a for all a ∈ A, with interpretation J♢a K : A × [0, 1] → [0, 1] given by
+(b, v) 7→ (1 − dA (a, b)) ∧ v, is Φ-type depth-0 separating and Φ-type depth-1 separating for Φ
+being normed isometry, and hence expressive by Theorem 7.6. (The modality ♢a restricts the
+corresponding modality for metric transition systems as per Examples 2.4 and 6.7 to metric
+streams: a state satisfies ♢a ϕ to the degree that its output is close to a and its successor
+satisfies ϕ). On the other hand, L fails to be initial-type depth-1 separating, illustrating the
+necessity of the general form of Theorem 7.6.
+2. Metric transition systems: The graded logics Lmtrace and Lcmtrace for metric trace
+semantics (Example 6.7), in the version with no propositional operators, are Φ-type depth-0
+separating and Φ-type depth-1 separating for Φ being normed isometry, and hence are
+expressive by Theorem 7.6. We thus improve on an example from recent work based on
+Galois connections [4], where application of the general framework required the inclusion
+of propositional shift operators (which were subsequently eliminated in an ad-hoc manner),
+and we generalize to systems with closed branching on a metric state space.
+3. Probabilistic metric trace semantics is modelled straightforwardly as a graded semantics
+using a graded trace monad (Example 4.2). By Theorem 3.2, however, there is no graded
+logic for probabilistic metric trace semantics that satisfies the conditions of Theorem 7.6.
+▶ Remark 7.9. In a recent approach based on Galois connections [4, 5], logics are related
+to fixpoints of behaviour functions induced by the logic itself (similar to approaches that
+define trace semantics via intended characteristic logics [30]), while our present interest is in
+providing logical characterizations of given behavioural distances. The Galois framework is
+highly general, and in fact not even tied to coalgebraic modelling, or in fact to state-based
+systems of any kind [4], but correspondingly offers less concrete recipes. Instantiated to
+our current setup, the key condition of compatibility appearing in op. cit. roughly speaking
+amounts to initial-type depth-1 separation of the logic w.r.t. its own Kantorovich lifting [2, 5].
+▶ Remark 7.10 (Branching-time semantics). Any functor G yields a graded monad given by
+iterated application of G, that is Mn = Gn , and by unit and multiplication being identity [36].
+In general, the finite-depth branching-time semantics of a G-coalgebra (X, γ) is defined via
+!
+G!
+its canonical cone (pi : X → Gi 1)i<ω into the final sequence 1 ←
+− G1 ←− G2 1 ← . . . of G.
+The pi are defined inductively by p0 = ! : X → 1 and pi+1 = Gpi · γ. This semantics is
+captured by the graded monad Mn = Gn and α = id [36]. More specifically, the finite-depth
+W
+branching-time behavioural distance of states x, y ∈ X is i<ω d(pi (x), pi (y)), and thus agrees
+with the graded behavioural distance obtained via the graded semantics in the graded monad
+Mn = Gn . This monad has M0 = id, so that the corresponding graded logics are just
+branching-time logics without further restriction [36, 14]. Coalgebraic quantitative logics of
+this kind have received some recent attention [22, 47, 48, 50, 11, 29, 32]. Suppose Λ is a finite
+separating set of modalities, i.e. the maps JLK · Gf : GX → Ω, with L ranging over modalities
+and f over nonexpansive maps X → Ω, form an initial family. Moreover, let O contain
+truth 1, meet ∧, fuzzy negation ¬ (i.e. ¬x = 1 − x), and truncated addition of constants
+(−) ⊕ c. Then one shows using a variant of the Stone-Weierstraß theorem [50] that the graded
+logic L given by Λ, O, and Θ = ∅ is initial-type depth-0 separating and initial-type depth-1
+separating. By Theorem 7.6, we obtain that L is expressive. Previous work on quantitative
+branching-time logics [50, 32, 47, 48, 22] discusses, amongst other things, conditions on G
+that allow concluding expressivity even for infinite-depth behavioural distance.
+
+15
+
+16
+
+Quantitative Graded Semantics and Spectra of Behavioural Metrics
+
+8
+
+Case Study: Fuzzy Metric Trace Semantics
+
+We apply the recipe outlined above to obtain a characteristic logic for trace distance on
+fuzzy metric transition systems. That is, we proceed as follows: We cast fuzzy metric trace
+distance as a graded semantics using a suitable depth-1 graded monad M, and check that M
+is depth-1 using the techniques outlined in Section 5. We then identify a corresponding
+graded logic L, verifying the requirements of Definition 6.4. Invariance of L then follows
+automatically (Theorem 6.6). Finally, we show expressivity using Theorem 7.6.
+A fuzzy A-labelled metric transition system (fuzzy metric LTS) [12, 53, 54, 29]) consists
+of a set (or metric space) X of states and a fuzzy transition relation R : X × A × X → [0, 1],
+with A a metric space. A fuzzy LTS (X, R) is finitely branching if {(a, y) | R(x, a, y) > 0} is
+finite for every x ∈ X. Equivalently, a finitely branching fuzzy LTS is a coalgebra for the
+functor F ω (A × (−)) (cf. Example 2.2.4).
+A natural fuzzy trace semantics of fuzzy transition systems assigns to each state x of a
+fuzzy LTS (X, R) a fuzzy trace set Tr(x) ∈ Fω (A∗ ) where
+Tr(x)(a1 . . . an ) =
+
+W Vn
+{ i=1 R(xi−1 , ai , xi ) | x = x0 , x1 , . . . , xn ∈ X}.
+
+This notion of trace relates, for instance, to a notion of fuzzy path that is implicit in the
+semantics of fuzzy computation tree logic [37] and to notions of fuzzy language accepted by
+fuzzy automata (e.g. [3]). We obtain a notion of fuzzy trace distance dT of states x, y, given by
+the distance of Tr(x), Tr(y) in F ω (A∗ ), i.e. under fuzzy Hausdorff distance (Example 2.2.4)
+w.r.t. the metric on A∗ that is the supremum metric on each An , and assigns distance 1
+to traces of different lengths. To capture this distance in a graded semantics, consider
+the distributive law λ : A × F ω (−) → F ω (A × −) given by λ(a, U )(a, x) = U (x) and
+λ(a, U )(b, x) = 0 for b ̸= a. By Example 4.2 we thus obtain the graded fuzzy metric trace
+monad Mn = F ω (An × (−)). The monad F ω can be presented by the following quantitative
+equational theory: Take a binary operation +, a constant 0, and unary operations r for
+every r ∈ [0, 1]. Impose strict equations (=0 ) saying that +, 0 form a join semilattice
+structure and that the operations r define an action of the monoid ([0, 1], ∧) (i.e. 1(x) = x,
+r(s(x)) =0 (r ∧ s)(x)). Finally, impose axioms x =ϵ y ⊢ r(x) =ϵ s(y) for r, s ∈ [0, 1] such that
+|r − s| ≤ ϵ. By Lemma 5.10, the graded fuzzy trace monad Mn = F ω (An × X) is presented by
+the above algebraic description of F ω at depth 0, with additional depth-1 unary operations a
+for a ∈ A and depth-1 equations a(x + y) =0 a(x) + a(y), a(0) =0 0, a(r(x)) =0 r(a(x)), and
+x =ϵ y ⊢ a(x) =ϵ∨d(a,b) b(y).
+Fuzzy metric trace logic interprets the additional operations r ∈ [0, 1] on the truth
+value object [0, 1] by r(x) = r ∧ x, and otherwise uses the same quantitative join semilattice
+structure as for metric trace semantics (Example 6.7). We include the truth constant 1 and
+modal operators ♢ca for a ∈ A and c ∈ [0, 1] ∩ Q, with interpretation J♢ca K : M1 [0, 1] → [0, 1]
+W
+given by J♢ca K(A) = b∈A,v∈[0,1] A(b, v) ∧ v ∧ (c ⊖ d(a, b)). (When A is discrete, then ♢1a is the
+usual fuzzy diamond modality, e.g. [18]). Thus, a state x in a fuzzy metric transition system
+satisfies ♢ca ϕ to the degree that x has a b-successor y with b close to a and y satisfying ϕ;
+crucially, ‘closeness’ of b to a needs to be shifted down as governed by the parameter c.
+This logic is initial-type depth-0 separating and initial-type depth-1 separating, and hence
+expressive for fuzzy trace distance by Theorem 7.6; both this result and the logic itself appear
+to be new (the case with A discrete is partially covered in work on Galois connections [5]).
+Indeed for non-discrete A, the logic with only ♢1a instead of all ♢ca fails to be expressive. The
+logic remains invariant when extended with additional nonexpansive propositional operators
+that are F ω -homomorphic, such as ∨.
+
+J. Forster, P. Wild, L. Schröder, H. Beohar, S. Gurke, B. König, and K. Messing
+
+9
+
+Conclusions
+
+We have shown that there is no unary quantitative coalgebraic modal logic characterizing
+a natural notion of quantitative trace distance on probabilistic metric transition systems.
+Moving onwards from this observation, we have developed a generic framework for lineartime/branching-time spectra of behavioural distances on state-based systems in coalgebraic
+generality, covering, for instance, metric, probabilistic, and fuzzy transition systems. Unlike
+previous work on Eilenberg-Moore-style coalgebraic trace distances [5, 23], the framework
+covers also systems with labels from a metric space. The key abstractions in the framework are
+based on the notion of a graded monad on the category of metric spaces and an arising notion
+of quantitative graded semantics. We have provided a graded quantitative algebraic system
+for the description of such graded monads (extending and modifying the existing non-graded
+system [35]). Moreover, we have established sufficient conditions for canonical invariant
+quantitative graded logics [23] to be expressive for given quantitative graded semantics, and
+we have exploited this result to obtain expressive logics for some instances of Kleisli-type
+trace semantics [26], notably including a new result for fuzzy metric trace semantics.
+One important next step in the development will be to identify a generic game-based
+characterization of behavioural distances in the framework of graded semantics, generalizing
+work specific to metric transition systems [15] and building on game-based concepts for twovalued graded semantics [21]. Also, there is interest in computing distinguishing quantitative
+formulae (cf. [10, 51] for the two-valued branching-time setting), generalizing recent results
+for the branching-time case [39] to spectra of coarser semantics.
+References
+1
+
+2
+3
+4
+
+5
+
+6
+
+7
+
+8
+
+Jiří Adámek, Horst Herrlich, and George E. Strecker. Abstract and Concrete Categories.
+John Wiley and Sons, 1990. Reprint: http://www.tac.mta.ca/tac/reprints/articles/17/
+tr17abs.html.
+Paolo Baldan, Filippo Bonchi, Henning Kerstan, and Barbara König. Coalgebraic behavioral
+metrics. Log. Methods Comput. Sci., 14(3), 2018. doi:10.23638/LMCS-14(3:20)2018.
+Radim Belohlávek. Determinism and fuzzy automata. Inf. Sci., 143(1-4):205–209, 2002.
+doi:10.1016/S0020-0255(02)00192-5.
+Harsh Beohar, Sebastian Gurke, Barbara König, and Karla Messing. Hennessy-Milner theorems
+via Galois connections. In Bartek Klin and Elaine Pimentel, editors, Computer Science Logic,
+CSL 2023, volume 252 of LIPIcs, pages 12:1–12:18. Schloss Dagstuhl – Leibniz-Zentrum für
+Informatik, 2023. doi:10.4230/LIPIcs.CSL.2023.12.
+Harsh Beohar, Sebastian Gurke, Barbara König, Karla Messing, Jonas Forster, Lutz Schröder,
+and Paul Wild. Expressive quantale-valued logics for coalgebras: An adjunction-based
+approach. In Olaf Beyersdorff, Mamadou Moustapha Kanté, Orna Kupferman, and Daniel
+Lokshtanov, editors, Theoretical Aspects of Computer Science, STACS 2024, volume 289 of
+LIPIcs, pages 10:1–10:19. Schloss Dagstuhl – Leibniz-Zentrum für Informatik, 2024. doi:
+10.4230/LIPICS.STACS.2024.10.
+Marco Bernardo and Stefania Botta. A survey of modal logics characterising behavioural
+equivalences for non-deterministic and stochastic systems. Math. Struct. Comput. Sci., 18(1):29–
+55, 2008. doi:10.1017/S0960129507006408.
+Valentina Castiglioni, Konstantinos Chatzikokolakis, and Catuscia Palamidessi. A logical
+characterization of differential privacy via behavioral metrics. In Kyungmin Bae and Peter
+Ölveczky, editors, Formal Aspects of Component Software, FACS 2018, volume 11222 of LNCS,
+pages 75–96. Springer, 2018. doi:10.1007/978-3-030-02146-7.
+Valentina Castiglioni, Daniel Gebler, and Simone Tini. Logical characterization of bisimulation metrics. In Mirco Tribastone and Herbert Wiklicky, editors, Quantitative Aspects of
+
+17
+
+18
+
+Quantitative Graded Semantics and Spectra of Behavioural Metrics
+
+9
+
+10
+
+11
+12
+
+13
+
+14
+
+15
+16
+
+17
+
+18
+19
+
+20
+
+21
+
+22
+
+23
+
+Programming Languages and Systems, QAPL 2016, volume 227 of EPTCS, pages 44–62, 2016.
+doi:10.4204/EPTCS.227.
+Ivan Christoff. Testing equivalences and fully abstract models for probabilistic processes.
+In Jos C. M. Baeten and Jan Willem Klop, editors, Theories of Concurrency: Unification
+and Extension, CONCUR 1990, volume 458 of LNCS, pages 126–140. Springer, 1990. doi:
+10.1007/BFb0039056.
+Rance Cleaveland. On automatically explaining bisimulation inequivalence. In Edmund M.
+Clarke and Robert P. Kurshan, editors, Computer Aided Verification, CAV 1990, volume 531
+of LNCS, pages 364–372. Springer, 1990. doi:10.1007/BFB0023750.
+Luca de Alfaro, Marco Faella, and Mariëlle Stoelinga. Linear and branching system metrics.
+IEEE Trans. Software Eng., 35(2):258–273, 2009. doi:10.1109/TSE.2008.106.
+Liliana D’Errico and Michele Loreti. Modeling fuzzy behaviours in concurrent systems.
+In Giuseppe F. Italiano, Eugenio Moggi, and Luigi Laura, editors, Theoretical Computer
+Science, 10th Italian Conference, ICTCS 2007, pages 94–105. World Scientific, 2007. doi:
+10.1142/9789812770998_0012.
+Josée Desharnais, Vineet Gupta, Radha Jagadeesan, and Prakash Panangaden. Metrics for
+labelled Markov processes. Theor. Comput. Sci., 318(3):323–354, 2004. doi:10.1016/j.tcs.
+2003.09.013.
+Ulrich Dorsch, Stefan Milius, and Lutz Schröder. Graded monads and graded logics for
+the linear time - branching time spectrum. In Wan J. Fokkink and Rob van Glabbeek,
+editors, Concurrency Theory, CONCUR 2019, volume 140 of LIPIcs, pages 36:1–36:16. Schloss
+Dagstuhl - Leibniz-Zentrum für Informatik, 2019. doi:10.4230/LIPIcs.CONCUR.2019.36.
+Uli Fahrenberg and Axel Legay. The quantitative linear-time-branching-time spectrum. Theor.
+Comput. Sci., 538:54–69, 2014. doi:10.1016/j.tcs.2013.07.030.
+Uli Fahrenberg, Axel Legay, and Claus Thrane. The quantitative linear-time–branching-time
+spectrum. In Supratik Chakraborty and Amit Kumar, editors, Foundations of Software
+Technology and Theoretical Computer Science, FSTTCS 2011, volume 13 of LIPIcs, pages
+103–114. Schloss Dagstuhl – Leibniz-Zentrum für Informatik, 2011. doi:10.4230/LIPIcs.
+FSTTCS.2011.103.
+Ihor Filimonov, Ross Horne, Sjouke Mauw, and Zach Smith. Breaking unlinkability of the
+ICAO 9303 standard for e-passports using bisimilarity. In Kazue Sako, Steve A. Schneider,
+and Peter Y. A. Ryan, editors, Computer Security, ESORICS 2019, volume 11735 of LNCS,
+pages 577–594. Springer, 2019. doi:10.1007/978-3-030-29959-0\_28.
+Melvin Fitting. Many-valued modal logics. Fund. Inform., 15:235–254, 1991. doi:10.3233/
+FI-1991-153-404.
+Chase Ford, Stefan Milius, and Lutz Schröder. Behavioural preorders via graded monads. In
+Logic in Computer Science, LICS 2021, pages 1–13. IEEE, 2021. doi:10.1109/LICS52264.
+2021.9470517.
+Chase Ford, Stefan Milius, and Lutz Schröder. Monads on categories of relational structures.
+In Fabio Gadducci and Alexandra Silva, editors, Algebra and Coalgebra in Computer Science,
+CALCO 2021, volume 211 of LIPIcs, pages 14:1–14:17. Schloss Dagstuhl - Leibniz-Zentrum
+für Informatik, 2021. doi:10.4230/LIPIcs.CALCO.2021.14.
+Chase Ford, Stefan Milius, Lutz Schröder, Harsh Beohar, and Barbara König. Graded monads
+and behavioural equivalence games. In Christel Baier and Dana Fisman, editors, Logic in
+Computer Science, LICS 2022, pages 61:1–61:13. ACM, 2022. doi:10.1145/3531130.3533374.
+Jonas Forster, Sergey Goncharov, Dirk Hofmann, Pedro Nora, Lutz Schröder, and Paul Wild.
+Quantitative Hennessy-Milner theorems via notions of density. In Bartek Klin and Elaine
+Pimentel, editors, Computer Science Logic, CSL 2023, volume 252 of LIPIcs, pages 22:1–22:20.
+Schloss Dagstuhl – Leibniz-Zentrum für Informatik, 2023. doi:10.4230/LIPIcs.CSL.2023.22.
+Jonas Forster, Lutz Schröder, Paul Wild, Harsh Beohar, Sebastian Gurke, and Karla Messing.
+Graded semantics and graded logics for Eilenberg-Moore coalgebras. In Barbara König and
+
+J. Forster, P. Wild, L. Schröder, H. Beohar, S. Gurke, B. König, and K. Messing
+
+24
+
+25
+
+26
+27
+28
+29
+
+30
+31
+
+32
+
+33
+34
+
+35
+
+36
+
+37
+
+38
+39
+
+Henning Urbat, editors, Coalgebraic Methods in Computer Science, CMCS 2024, volume 14617
+of LNCS, pages 114–134. Springer, 2024. doi:10.1007/978-3-031-66438-0\_6.
+Alessandro Giacalone, Chi-Chang Jou, and Scott Smolka. Algebraic reasoning for probabilistic
+concurrent systems. In Manfred Broy, editor, Programming concepts and methods, PCM 1990,
+pages 443–458. North-Holland, 1990.
+Sergey Goncharov, Dirk Hofmann, Pedro Nora, Lutz Schröder, and Paul Wild. Kantorovich
+functors and characteristic logics for behavioural distances. In Orna Kupferman and Pawel
+Sobocinski, editors, Foundations of Software Science and Computation Structures, FoSSaCS
+2023, volume 13992 of LNCS, pages 46–67. Springer, 2023. doi:10.1007/978-3-031-30829-1\
+_3.
+Ichiro Hasuo, Bart Jacobs, and Ana Sokolova. Generic trace semantics via coinduction. Log.
+Methods Comput. Sci., 3(4), 2007. doi:10.2168/LMCS-3(4:11)2007.
+Matthew Hennessy and Robin Milner. Algebraic laws for nondeterminism and concurrency. J.
+ACM, 32(1):137–161, 1985. doi:10.1145/2455.2460.
+Bart Jacobs, Alexandra Silva, and Ana Sokolova. Trace semantics via determinization. J.
+Comput. Syst. Sci., 81(5):859–879, 2015. doi:10.1016/j.jcss.2014.12.005.
+Manisha Jain, Alexandre Madeira, and Manuel A. Martins. A fuzzy modal logic for fuzzy
+transition systems. In Amy P. Felty and João Marcos, editors, Logical and Semantic Frameworks
+with Applications, LSFA 2019, volume 348 of ENTCS, pages 85–103. Elsevier, 2019. doi:
+10.1016/j.entcs.2020.02.006.
+Bartek Klin and Jurriaan Rot. Coalgebraic trace semantics via forgetful logics. Log. Methods
+Comput. Sci., 12(4), 2016. doi:10.2168/LMCS-12(4:10)2016.
+Yuichi Komorida, Shin-ya Katsumata, Clemens Kupke, Jurriaan Rot, and Ichiro Hasuo.
+Expressivity of quantitative modal logics : Categorical foundations via codensity and
+approximation. In Logic in Computer Science, LICS 2021, pages 1–14. IEEE, 2021.
+doi:10.1109/LICS52264.2021.9470656.
+Barbara König and Christina Mika-Michalski. (metric) bisimulation games and real-valued
+modal logics for coalgebras. In Sven Schewe and Lijun Zhang, editors, Concurrency Theory,
+CONCUR 2018, volume 118 of LIPIcs, pages 37:1–37:17. Schloss Dagstuhl - Leibniz-Zentrum
+für Informatik, 2018. doi:10.4230/LIPIcs.CONCUR.2018.37.
+Clemens Kupke and Jurriaan Rot. Expressive logics for coinductive predicates. Log. Methods
+Comput. Sci., 17(4), 2021. doi:10.46298/lmcs-17(4:19)2021.
+F. E. J. Linton. Some aspects of equational categories. In S. Eilenberg, D. K. Harrison,
+S. MacLane, and H. Röhrl, editors, Proceedings of the Conference on Categorical Algebra,
+pages 84–94. Springer, 1966. doi:10.1007/978-3-642-99902-4_3.
+Radu Mardare, Prakash Panangaden, and Gordon D. Plotkin. Quantitative algebraic reasoning.
+In Martin Grohe, Eric Koskinen, and Natarajan Shankar, editors, Logic in Computer Science,
+LICS 2016, pages 700–709. ACM, 2016. doi:10.1145/2933575.2934518.
+Stefan Milius, Dirk Pattinson, and Lutz Schröder. Generic trace semantics and graded monads.
+In Lawrence S. Moss and Pawel Sobocinski, editors, Algebra and Coalgebra in Computer Science,
+CALCO 2015, volume 35 of LIPIcs, pages 253–269. Schloss Dagstuhl - Leibniz-Zentrum für
+Informatik, 2015. doi:10.4230/LIPIcs.CALCO.2015.253.
+Haiyu Pan, Yongming Li, Yongzhi Cao, and Zhanyou Ma. Model checking computation tree
+logic over finite lattices. Theor. Comput. Sci., 612:45–62, 2016. doi:10.1016/j.tcs.2015.10.
+014.
+Dirk Pattinson. Expressive logics for coalgebras via terminal sequence induction. Notre Dame
+J. Formal Log., 45(1):19–33, 2004. doi:10.1305/NDJFL/1094155277.
+Amgad Rady and Franck van Breugel. Explainability of probabilistic bisimilarity distances for
+labelled Markov chains. In Orna Kupferman and Pawel Sobocinski, editors, Foundations of
+Software Science and Computation Structures, FoSSaCS 2023, volume 13992 of LNCS, pages
+285–307. Springer, 2023. doi:10.1007/978-3-031-30829-1\_14.
+
+19
+
+20
+
+Quantitative Graded Semantics and Spectra of Behavioural Metrics
+
+40
+41
+
+42
+43
+44
+
+45
+46
+
+47
+
+48
+
+49
+50
+
+51
+
+52
+
+53
+
+54
+
+Jurriaan Rot, Bart Jacobs, and Paul Blain Levy. Steps and traces. J. Log. Comput., 31(6):1482–
+1525, 2021. doi:10.1093/logcom/exab050.
+Jan J. M. M. Rutten. Relators and metric bisimulations. In Bart Jacobs, Larry Moss, Horst
+Reichel, and Jan J. M. M. Rutten, editors, Coalgebraic Methods in Computer Science, CMCS
+1998, volume 11 of ENTCS, pages 252–258. Elsevier, 1998. doi:10.1016/S1571-0661(04)
+00063-5.
+Jan J. M. M. Rutten. Universal coalgebra: a theory of systems. Theor. Comput. Sci.,
+249(1):3–80, 2000. doi:10.1016/S0304-3975(00)00056-6.
+Lutz Schröder. Expressivity of coalgebraic modal logic: The limits and beyond. Theor. Comput.
+Sci., 390(2-3):230–247, 2008. doi:10.1016/j.tcs.2007.09.023.
+Lutz Schröder and Dirk Pattinson. Description logics and fuzzy probability. In Toby Walsh,
+editor, International Joint Conference on Artificial Intelligence, IJCAI 2011, pages 1075–1081.
+IJCAI/AAAI, 2011. doi:10.5591/978-1-57735-516-8/IJCAI11-184.
+Franck van Breugel and James Worrell. A behavioural pseudometric for probabilistic transition
+systems. Theor. Comput. Sci., 331(1):115–142, 2005. doi:10.1016/j.tcs.2004.09.035.
+Rob J. van Glabbeek. The linear time - branching time spectrum I. In Jan A. Bergstra,
+Alban Ponse, and Scott A. Smolka, editors, Handbook of Process Algebra, pages 3–99. NorthHolland/Elsevier, 2001. doi:10.1016/b978-044482830-9/50019-9.
+Paul Wild and Lutz Schröder. Characteristic logics for behavioural metrics via fuzzy lax
+extensions. In Igor Konnov and Laura Kovács, editors, Concurrency Theory, CONCUR 2020,
+volume 171 of LIPIcs, pages 27:1–27:23. Schloss Dagstuhl - Leibniz-Zentrum für Informatik,
+2020. doi:10.4230/LIPIcs.CONCUR.2020.27.
+Paul Wild and Lutz Schröder. A quantified coalgebraic van Benthem theorem. In Stefan
+Kiefer and Christine Tasson, editors, Foundations of Software Science and Computation
+Structures, FOSSACS 2021, volume 12650 of LNCS, pages 551–571. Springer, 2021. doi:
+10.1007/978-3-030-71995-1\_28.
+Paul Wild and Lutz Schröder. Characteristic logics for behavioural hemimetrics via fuzzy lax
+extensions. Log. Methods Comput. Sci., 18(2), 2022. doi:10.46298/lmcs-18(2:19)2022.
+Paul Wild, Lutz Schröder, Dirk Pattinson, and Barbara König. A van Benthem theorem for
+fuzzy modal logic. In Anuj Dawar and Erich Grädel, editors, Logic in Computer Science, LICS
+2018, pages 909–918. ACM, 2018. doi:10.1145/3209108.3209180.
+Thorsten Wißmann, Stefan Milius, and Lutz Schröder. Explaining behavioural inequivalence
+generically in quasilinear time. In Serge Haddad and Daniele Varacca, editors, Concurrency
+Theory, CONCUR 2021, volume 203 of LIPIcs, pages 32:1–32:18. Schloss Dagstuhl – LeibnizZentrum für Informatik, 2021. doi:10.4230/LIPICS.CONCUR.2021.32.
+James Worrell. Coinduction for recursive data types: partial orders, metric spaces and omegacategories. In Horst Reichel, editor, Coalgebraic Methods in Computer Science, CMCS 2000,
+volume 33 of ENTCS, pages 337–356. Elsevier, 2000. doi:10.1016/S1571-0661(05)80356-1.
+Hengyang Wu, Taolue Chen, Tingting Han, and Yixiang Chen. Bisimulations for fuzzy
+transition systems revisited. Int. J. Approx. Reason., 99:1–11, 2018. doi:10.1016/j.ijar.
+2018.04.010.
+Hengyang Wu, Yixiang Chen, Tian-Ming Bu, and Yuxin Deng. Algorithmic and logical
+characterizations of bisimulations for non-deterministic fuzzy transition systems. Fuzzy Sets
+Syst., 333:106–123, 2018. doi:10.1016/j.fss.2017.02.008.
+
+J. Forster, P. Wild, L. Schröder, H. Beohar, S. Gurke, B. König, and K. Messing
+
+A
+
+Appendix: Additional Details and Omitted Proofs
+
+We give details and proofs omitted in the main body.
+
+A.1
+
+Details for Section 2 (Preliminaries)
+
+Details for Example 2.2
+We show explicitly that Pc : Met → Met is a monad. For the unit laws, we need to show
+that
+1. µX ◦ Pc ηX = id Pc X : Let Y ∈ Pc X, by unraveling of definitions we have to show that
+µ ◦ Pc ηX (Y ) is the closure of Y , which is already closed.
+2. µX ◦ ηPc X = id Pc X : Let Y ∈ Pc X, then we again have to show that µ ◦ ηPc X (Y ) is the
+closure of Y , which is already closed.
+For assosciativity, let Y ∈ Pc Pc Pc X. We show that in both paths of the diagram, the result
+is the closure of {w | w ∈ z, z ∈ y, y ∈ Y }. On the one hand we have
+µX · Pc µX (Y ) = µX ({µX (Z) | Z ∈ Y })
+[
+= µX ({
+W | Z ∈ Y })
+W ∈Z
+
+=
+
+[ [
+
+W
+
+Z∈Y W ∈Z
+
+=
+
+[ [
+
+W
+
+Z∈Y W ∈Z
+
+For the seccond path we utilize the following lemma
+▶ Lemma A.1. Let X be a metric space, and let A ⊆ P(X) be a subspace of P(X) equipped
+S
+S
+with the Hausdorff metric. Then Y ∈A Y = Y ∈A Y .
+S
+Proof. The inclusion ⊇ is obvious. For the inclusion ⊆ pick x ∈ Y ∈A Y . Let ϵ > 0. We
+S
+need to show that there is y ∈ Y ∈A Y such that d(x, y) < ϵ. By definition of closure,
+S
+there is y ′ ∈ Y ∈A Y such that d(x, y ′ ) < 2ϵ . This implies there is Y ∈ A with y ′ ∈ Y .
+Further, by definition of closure there must be Y ′ ∈ A such that d(Y, Y ′ ) < 2ϵ . By definition
+of the Hausdorff metric, there must be y ∈ Y ′ such that d(y, y ′ ) < 2ϵ . So d(x, y) ≤
+d(x, y ′ ) + d(y ′ , y) ≤ ϵ.
+◀
+Then it follows that
+µX · µPc X (Y ) = µX (
+
+[
+
+Z)
+
+Z∈Y
+
+[
+
+=
+
+S
+
+W∈
+
+Z∈Y
+
+Z
+
+[
+
+=
+
+S
+
+W∈
+
+=
+
+W
+
+Z∈Y
+
+[ [
+Z∈Y W ∈Z
+
+W
+
+(Lemma A.1)
+
+W
+
+(Associativity of monad multiplication of P)
+
+Z
+
+21
+
+22
+
+Quantitative Graded Semantics and Spectra of Behavioural Metrics
+
+A.2
+
+Details for Section 3 (Probabilistic Metric Trace Semantics)
+
+Figure 1 States with probabilistic trace distance v and logical distance < v 2 .
+
+y
+
+x
+xa
+
+1
+2
+
+a
+1
+
+a b
+
+1
+2
+
+xb
+
+yb
+
+b
+1
+
+1
+2
+
+a b
+
+b
+1
+
+1
+2
+
+ya
+
+a
+1
+
+Proof of Theorem 3.2
+For the sake of deriving a contradiction, assume that L is invariant and expressive. Consider
+the transition systems pictured in Figure 1. Here, a, b ∈ A with a ̸= b and d(a, b) = v < 1.
+The depth-2 behaviour of x is 0.5(a, a) + 0.5(b, b), and that of y is 0.5(a, b) + 0.5(b, a). It is
+easy to see that the behavioural distance of these length-2 trace distributions is v. We show
+that the deviations of truth values of L-formulae between x and y stay away from that value,
+specifically below v 2 < v, contradicting expressivity.
+First, note that x and y are behaviourally equivalent up to depth-1, and hence agree on
+formulae of depth at most 1; we thus restrict attention to formulae of depth at least 2 (where
+we do not insist on uniform depth but exclude top-level depth-1 subformulae). Let L ∈ Λ be
+a modal operator, interpreted as JLK : Dω (A ⊞ [0, 1]) → [0, 1]. Then we have the following:
+▷ Claim A.2. The interpretation JLK satisfies the equation
+X
+
+ X
+
+X
+pi (ai ,
+JLK
+qij vij ) = JLK
+pi qij (ai , vij )
+i∈I
+
+j∈Ji
+
+(A.1)
+
+i∈I,j∈Ji
+
+where the outer sum on the left hand side and the sum on the right hand side are formal
+sums describing probability distributions on A ⊞ [0, 1], while the inner sum on the left hand
+side is just an arithmetic sum.
+Proof (Claim A.2). Let x0 and x1 be states in coalgebras with probabilistic trace distance 1
+(such states exist because A contains labels with positive distance and the distance on A⊞n
+is Manhattan distance). By expressivity, for every ϵ > 0, there is a formula ϕϵ such that
+d(Jϕϵ Kγ (x0 ), Jϕϵ Kγ (x1 )) > 1 − ϵ (w.l.o.g. we assume Jϕϵ K(x0 ) < ϵ and Jϕϵ K(x1 ) > 1 − ϵ). Now
+we construct a new coalgebra (X ′ , γ ′ ) extending (X, γ) with new states xp for p ∈ [0, 1], with
+successor distributions γ ′ (xp ) = γ(x1 ) +p γ(x0 ). The probabilistic trace distance of x0 and
+xp is p, while the probabilistic trace distance between xp and x1 is 1 − p. By invariance,
+p − ϵ < Jϕϵ K(xp ) < p + ϵ. We construct a coalgebra (X ′′ , γ ′′ ) that extends (X ′ , γ ′ ) with two
+new states l, r, which receive successor distributions
+X
+X
+X
+γ ′′ (l) =
+pi (ai ,
+qij xvij ) γ ′′ (r) =
+pi qij (ai , xvij )
+i∈I
+
+j∈Ji
+
+i∈I,j∈Ji
+
+It is clear that l and r are probabilistically trace equivalent. Now Dω (A ⊞ Jϕϵ K) ◦ γ ′′ (l) has
+distance at most ϵ from the argument on the left hand side of (A.1), and symmetrically
+Dω (A ⊞ Jϕϵ K) ◦ γ ′′ (r) has distance at most ϵ from the argument on the right hand side.
+
+J. Forster, P. Wild, L. Schröder, H. Beohar, S. Gurke, B. König, and K. Messing
+
+Since JLK is nonexpansive (being the interpretation of a modal operator in a coalgebraic
+modal logic over Met), we have that
+
+
+X
+X
+JLK 
+pi (ai ,
+qij vij ) =
+i∈I
+
+j∈Ji
+
+
+
+X
+X
+qij xvij ) =
+pi (ai ,
+JLK  lim Dω (A ⊞ Jϕϵ K) 
+
+
+ϵ→0
+
+i∈I
+
+
+
+j∈Ji
+
+
+
+JLK  lim Dω (A ⊞ Jϕϵ K) 
+ϵ→0
+
+
+X
+
+pi qij (ai , xvij ) =
+
+i∈I,j∈Ji
+
+
+
+
+X
+
+JLK 
+
+pi qij (ai , vij )
+
+i∈I,j∈Ji
+
+(A.2)
+◀
+
+We call distributions from Dω (A ⊞ [0, 1]) L-equivalent if they are identified under JLK.
+P
+Then any distribution I pi (ai , vi ) is, by equation (A.1), L-equivalent to one of the form
+P
+I pi vi (ai , 1) + pi (1 − vi )(ai , 0). Now let ϕ be a depth-1 formula, and put va = JϕKγ (xa ) =
+JϕKγ (ya ) (where the second equality holds because xa and ya are probabilistically trace
+equivalent) and vb = JϕKγ (xb ) = JϕKγ (yb ). Then |va − vb | ≤ v by invariance. We have
+JLϕKγ (x) = JLK · Dω (A ⊞ JϕKγ )(0.5(a, xa ) + 0.5(b, xb )) = JLK(0.5(a, va ) + 0.5(b, vb ))
+
+JLϕKγ (y) = JLK · Dω (A ⊞ JϕKγ )(0.5(a, yb ) + 0.5(b, ya )) = JLK(0.5(a, vb ) + 0.5(b, va )).
+
+The distribution JLϕKγ (x) is thus L-equivalent to µ = 0.5va (a, 1) + 0.5(1 − va )(a, 0) +
+0.5vb (b, 1) + 0.5(1 − vb )(b, 0), while JLϕKγ (y) is L-equivalent to ν = 0.5vb (a, 1) + 0.5(1 −
+vb )(a, 0) + 0.5va (b, 1) + 0.5(1 − va )(b, 0). We give an upper bound on d(µ, ν). Without loss
+of generality, assume va ≤ vb . Then the following distribution π is a coupling of µ and ν:
+π = 0.5va ((a, 1), (a, 1))
+
++ 0.5(1 − vb )((a, 0), (a, 0))
+
++ 0.5va ((b, 1), (b, 1))
+
++ 0.5(1 − vb )((b, 0), (b, 0))
+
+(A.3)
+
++ 0.5(vb − va )((b, 1), (a, 1)) + 0.5(vb − va )((a, 0), (b, 0))
+By the Kantorovich-Rubinstein duality, d(µ, ν) is bounded by the expected value by Eπ d of d
+under π. In the calculation of Eπ d, the first two lines in Equation (A.3) contribute 0. Thus,
+Eπ d = 0.5(vb − va )d((b, 1), (a, 1)) + 0.5(vb − va )d((a, 0), (b, 0))
+≤ 0.5vd((b, 1), (a, 1)) + 0.5vd((a, 0), (b, 0))
+= 0.5v 2 + 0.5v 2
+= v2
+where in the inequality, we use that vb − va ≤ v. Since JLK is nonexpansive, d(µ, ν) ≤ v 2
+implies |JLK(µ) − JLK(ν)| ≤ v 2 , and therefore |Lϕ(x) − Lϕ(y)| ≤ v 2 , as claimed.
+◀
+
+▶ Remark A.3. We note that for coalgebraic logics in the sense we employ here, which live
+natively in the category of metric spaces, interpretations JLK : Dω (A ⊞ [0, 1]) → [0, 1] of
+modalities L are nonexpansive by definition. We can strengthen our impossibility result by
+
+23
+
+24
+
+Quantitative Graded Semantics and Spectra of Behavioural Metrics
+
+letting the modal logic live over Set, in the sense that interpretations JLK can be unrestricted
+maps; for purposes of the present discussion, we refer to such modalities as set-based. Under
+a mild additional assumption on the logic, we can show that this relaxation does not actually
+provide additional room for maneuvering:
+▷ Claim A.4. If L is an invariant and expressive set-based coalgebraic logic for probabilistic
+metric trace semantics, and there is a formula ϕ and states x0 and x1 in a coalgebra
+(X, γ) such that JϕK(x0 ) = 0 and JϕK(x1 ) = 1, then for every modal operator L in L, the
+interpretation JLK is nonexpansive.
+Proof. Assume for the sake of contradiction that there are s, t ∈ Dω (A ⊞ [0, 1]), such that
+d(JLK(s), JLK(t)) > d(s, t). Since the logic is assumed to be invariant, x0 and x1 must
+have probabilistic metric trace distance 1. We define a new coalgebra (X ′ , γ ′ ) extending
+(X, γ) with new states x̄, ȳ, and xp for p ∈ (0, 1), with successor distributions given by
+γ ′ (xp ) = γ(x1 ) +p γ(x0 ), γ ′ (x̄) = s′ , and γ ′ (ȳ) = t′ , where s′ , t′ ∈ Dω (A ⊞ X ′ ) are defined
+by substituting all values p ∈ [0, 1] in s, t with xp . The state xp is easily seen to have trace
+distance p (respectively 1 − p) from x0 (x1 ). Therefore, because of invariance, JϕK(xp ) = p.
+The probabilistic metric trace distance of x̄ and ȳ is at most d(s′ , t′ ) = d(s, t). On the other
+hand,
+d(JLϕKγ (x̄), JLϕKγ (ȳ))
+
+= d(JLK(Dω (A ⊞ JϕKγ )(s′ )), JLK(Dω (A ⊞ JϕKγ )(t′ ))
+
+= d(JLK(s), JLK(t))
+> d(s, t),
+
+so L is not invariant with respect to probabilistic trace distance, contradiction.
+
+A.3
+
+◀
+
+Details for Section 5 (Graded Quantitative Theories)
+
+Proof of Theorem 5.5
+Let T = (Σ, δ, E) be a depth-1 graded quantitative equational theory and M the graded
+monad it induces.
+1. We show that Diagram (5.1) is a coequalizer. Elements of M1 Mn X are represented as
+equivalence classes [s] of depth-1-terms over depth-n terms over variables from X; we briefly
+refer to such terms s as layered terms. More presicely speaking, the element of [s] ∈ M1 Mn X
+represented by s is formed by first taking the equivalence classes of the lower depth-n terms,
+and then taking the equivalence class of the depth-1 tern over Mn X thus obtained. We
+write s̄ for the collapse of s into a deptn-n + 1 term over X, so s̄ represents the element
+1n
+µ10 ([s]) ∈ Mn+1 X. Given layered terms s, t, d(µ1n
+X ([s]), µX ([t])) = ϵ implies that there is a
+proof for s̄ =ϵ t̄ in the context ΓX = {x =δ y | x, y ∈ X, d(x, y) = δ}.
+Approximate equalities of layered terms in M1 Mn X are derived by regarding the lower
+depth-n terms as variables, assembled in a context Γ0 containing all derivable approximate
+equalities among then, and then applying the usual derivation system to the upper depth-1
+10
+terms. The coequalizer of M1 µ0n
+X and µ Mn X as in (5.1) is formed by additionally allowing
+deriviation steps using strict equalities where depth-0 operations are shifted from the upper
+depth-1 layer to the lower depth-n layer. Equivalently (by (nexp), which on strict equalities
+acts like a congruence rule), this amounts to using as assumptions, instead of just Γ0 , all
+approximate equalities u =ϵ v among depth-0 terms u, v over depth-n terms over X (i.e.
+representatives of elements of M0 Mn X) that hold in Mn X (i.e. the elements of M0 Mn X
+
+J. Forster, P. Wild, L. Schröder, H. Beohar, S. Gurke, B. König, and K. Messing
+
+represented by u, v are identified up to ϵ by µ0n ); that is, we assume, in the upper-layer
+depth-1 deriviations, not only the metric structure of Mn X but also the structure of Mn X
+as an M0 -algebra. We write ∆ for the set of these assumptions.
+We now claim that whenever s̄ =ϵ t̄ is derivable in context ΓX for layered terms s, t,
+then s =ϵ t is derivable, as a depth-1 approximate equality, from the assumptions in ∆ (of
+course, like the usual assumptions on variables, the assumptions in ∆ cannot be substituted
+into). By the above discussion, it follows that (5.1) is indeed a coequalizer. We proceed by
+induction on the derivation of s̄ =ϵ t̄, distinguishing cases on the last step. We note that
+since s̄, t̄ have depth at least 1, the case for (assn) does not occur. The remaining cases are
+as follows.
+(refl): In this case, the layered terms s and t collapse into syntactically identical terms,
+which implies that they differ only by shifting depth-0 operations between the upper
+depth-1 layer and the lower depth-n layer, and hence are derivably equal under ∆.
+Steps using (sym), (triang), (wk), and (arch) can just be copied. As an example, we
+treat the case for (triang) in detail: Since approximate equalities derivable in context ΓX
+are uniform-depth and use only variables from ΓX , the intermediate term used in the last
+step is necessarily a depth-n + 1 term over X, and therefore a collapse w̄ of some layered
+term w. That is, we have concluded s̄ =ϵ t̄ from s̄ =δ1 w̄ and w̄ =δ2 t̄ where ϵ = δ1 + δ2 .
+By induction, s =δ1 w and w =δ2 t are derivable under ∆, and then the same holds for
+s =ϵ t.
+(nexp): Nonexpansiveness of an operation f is equivalently phrased as an axiom x1 =ϵ
+y1 , . . . , xn =ϵ yn ⊢ f (x1 , . . . , xn ) =ϵ f (y1 , . . . , yn ), so we omit this case, referring to the
+case for (ax).
+(ax): In this case, we have applied an axiom Γ ⊢ u =ϵ v, and derived σ(u) =ϵ σ(v) from
+σ(x) =δ σ(y) for all (x =δ y) ∈ Γ. First we consider the case that u, v are depth-0. Then
+for (x =δ y) ∈ Γ, σ(x) and σ(y) have depth n + 1, and hence arise by collapsing layered
+terms wx , wy ; by induction, wx =δ wy is derivable under ∆, and again applying Γ ⊢ u =ϵ v,
+we obtain that σ ′ (u) = σ ′ (v) is derivable under ∆ where σ ′ is the substitution given by
+σ ′ (x) = wx . Since the layered terms σ ′ (u) and σ ′ (v) collapse to s̄ and t̄, respectively, they
+differ from s and t, respectively, only by shifting depth-0 operations between the layers,
+and hence s =ϵ t is derivable under ∆.
+The remaining case is that u, v have depth 1. In this case, for (x =δ y) ∈ Γ, σ(x) and σ(y)
+have depth n, and σ(x) =δ σ(y) is derivable, hence in ∆. We write uσ and vσ for the
+layered terms with depth-1 layer given by u and v, respectively, and depth-n layer given
+by σ. Then uσ =ϵ vσ is derivable under ∆. The layered terms uσ and vσ differ from s
+and t, respectively, at most by shifting depth-0 operations between the depth-1 layer and
+the depth-n layer, so s =ϵ t is also derivable under ∆.
+2. Second, we show that the µnk are epi. The µ1k are (regular) epimorphisms since
+diagram 5.1 is a coequalizer diagram. This implies that all µnk are epi. To see this, first
+note that each µ0k is split epi by the unit law µ0k ηMk = idMk . We show that µnk is epi by
+induction on n. The base cases n ≤ 1 are already discharged. For the step from n to n + 1,
+recall the associative law µn+1,k µ1n Mk = µ1,m+k M1 µnk . We have that µ1,m+k is epi, and
+by induction, so is M1 µnk . Thus, both sides of the associative law are epi. It follows that
+µ(n+1)k is epi as desired.
+◀
+
+A.4
+
+Details on Presentations of graded trace monads
+
+Fix k : [0, 1]2 → [0, 1] such that
+
+25
+
+26
+
+Quantitative Graded Semantics and Spectra of Behavioural Metrics
+
+1. x + y ≥ z and x′ + y ′ ≥ z ′ implies k(x, x′ ) + k(y, y ′ ) ≥ k(z, z ′ ).
+2. k(x, y) = 0 if and only if x = y = 0
+Put dA⊗B ((a, b), (a′ , b′ )) = k(d(a, a′ ), d(b, b′ )).
+▶ Lemma A.5. The function dA⊗B defined above is a metric on the set A × B.
+Proof. For reflexivity, we have that dA⊗B ((a, b), (a, b)) = k(dA (a, a), dB (b, b)) = k(0, 0) = 0.
+For positivity, suppose that dA⊗B ((a, b), (a′ , b′ )) = 0. Then k(d(a, a′ ), d(b, b′ )) = 0, implying
+d(a, a′ ) = 0 and thus a = a′ and similarly b = b′ , therefore (a, a′ ) = (b, b′ ). For the triangle
+inequality, we have that
+dA⊗B ((a, b), (a′ , b′ )) + dA⊗B ((a′ , b′ ), (a′′ , b′′ ))
+= k(d(a, a′ ), d(b, b′ )) + k(d(a′ , a′′ ), d(b′ , b′′ ))
+≥ k(d(a, a′′ ), d(b, b′′ ))
+= dA⊗B ((a, b), (a′′ , b′′ )).
+◀
+▶
+Lemma A.6. The p-norms for 1 ≤ p ∈ N with discount factor δ ∈ (0, 1], i.e. k(x, y) =
+p
+p
+xp + (δy)p , satisfy these conditions.
+Proof. For the second condition: It is clear that k(0, 0) = 0. So suppose k(x, y) = 0. This
+is the case if and only if xp + (δy)p = 0, which in turn implies x = y = 0. For the first
+condition, suppose that x + y ≥ z and x′ + y ′ ≥ z ′ . Then
+k(x, x′ ) + k(y, y ′ )
+p
+p
+= p xp + (δy)p + p x′p + (δy ′ )p
+p
+≥ p (x + x′ )p + ((δy) + (δy ′ ))p (Minkowski inequality)
+p
+√
+≥ p z p + (δz ′ )p (Monotonicity of +, p − and δ·)
+= k(z, z ′ )
+◀
+▶ Lemma A.7. The sup norm k(x, y) = x ∨ δy satisfies these conditions.
+Proof. Satisfaction of the second condition is obvious, we show the first condition. Assume
+x+y ≥ z and x′ +y ′ ≥ z ′ . Then k(x, x′ )+k(y, y ′ ) = (x∨δx′ )+(y∨δy ′ ) ≥ (x+y)∨(δx′ +δy ′ ) ≥
+z ∨ δz ′ = k(z, z ′ )
+◀
+
+Proof of Lemma 5.9
+Let (a, s), (b, t) ∈ A ⊞ T X where s = g(x1 , . . . , xn ) and t = h(y1 , . . . , ym ) are terms of
+T X written in form of an algebraic equational theory associated to T . Then we have that
+d((a, s), (b, t)) = d(a, b) ⊕ d(s, t). Therefore
+d(λX (a, s), λX (b, t))
+= d(g((a, x1 ), . . . , (a, xn )), h(((b, y1 ), . . . , (b, ym ))))
+≤ d(g((a, x1 ), . . . , (a, xn )), g(((b, x1 ), . . . , (b, xn ))))
+⊕ d(g((b, x1 ), . . . , (b, xn )), h(((b, y1 ), . . . , (b, ym ))))
+≤ d(a, b) ⊕ d(g((b, x1 ), . . . , (b, xn )), h(((b, y1 ), . . . , (b, ym ))))
+= d(a, b) ⊕ d(s, t) = d((a, s), (b, t))
+
+◀
+
+J. Forster, P. Wild, L. Schröder, H. Beohar, S. Gurke, B. König, and K. Messing
+
+Proof of Lemma 5.10
+We proceed in two parts. First, we show that (Mn X)n∈N is a quantitative graded T [A]
+algebra, i.e. a quantitative algebra [35], extended with grades in the obvious way (generalized
+from the set-based concept [14]). Second, we show that (Mn X)n∈N is generated from X vie
+the operations of T [A]. Lastly, we prove completeness of the axioms with respect to this
+algebra. We interpret depth-0 operations on Mn X = T (A⊗n ⊗ X), ensuring satisfaction
+of T , using the fact that T is the monad generated by T , so that every set T Y is a
+free T -algebra. Depth-1 operations a are given by the functions an : T (A⊗n ⊗ −) →
+T (A⊗n+1 ⊗ −) defined by an (s) = λA⊗n ⊗X (a, s). For satisfaction of the distributivity axiom,
+let v1 , . . . , vn ∈ T (A⊗n ⊗ X), represented as T -terms, and let g be an n-ary operation of T ;
+then a(g(v1 , . . . , vn )) = λ(a, g(v1 , . . . , vn )) = T ⟨a, id A⊗n ⊗X ⟩(t) = g((a, v1 ), . . . , (a, vn )). For
+the distance axiom x =ϵ y ⊢ a(x) =k(d(a,b),ϵ) b(y), let s, t ∈ T (A⊗n ⊗ −). Then we have
+d(a(s), b(t)) = d(λX (a, s), λX (b, t))
+≤ dA⊗T (A⊗n ⊗X) ((a, s), (b, t))
+= k(d(a, b), d(s, t)),
+using nonexpansiveness of λ in the second step.
+Generatedness of Mn X under these operations is then clear. For completeness, we
+show that low distances in Mn X are derivable using quantitative equational reasoning:
+Let s, t ∈ Mn X = T (A⊗m ⊗ X). By generatedness, we can write s, t as terms s =
+g(σ1 (x1 ), . . . , σn (xn )), t = h(ρ1 (y1 ), . . . , (ρm (ym )) where g, h are T -terms, σi , ρi ∈ A⊗n ,
+and xi , yi ∈ X for i = 1, . . . , n. Let Γ contain all distances among x1 , . . . , xn , y1 . . . . , yn .
+Assume d(s, t) ≤ ϵ, then we need to show that Γ ⊢ s =ϵ t. By completeness of the theory T
+for T , it is clear that Γ′ ⊢ s =ϵ t where Γ′ contains all distances among the trace-poststate pairs
+σ1 (x1 ), . . . , σn (xn )), ρ1 (y1 ), . . . , ρn (yn )). So we reduce to proving that distances of these traces
+can be derived, i.e. Γ ⊢ (a1 , . . . , an , x) =ϵ′ (b1 , . . . , bn , y) if d((a1 , . . . , an , x), (b1 , . . . , bn , y)) ≤
+ϵ′ . This is immediate by induction over n, where the inductive step applies the distance
+axiom.
+◀
+
+A.5 Details for Section 6
+(Graded Quantitative Semantics and Graded Logics)
+A.5.1
+
+Graded Behavioural Distance is Below Branching-Time
+Behavioural Distance
+
+We next substantiate the claim that every graded behavioural distance is below branchingtime behavioural distance; this needs some forward references to Sections 6 and 7. In fact,
+it is even true that every graded behavioural distance is below finite-depth branching-time
+distance as summarized in Remark 7.10. This, in turn, is immediate from the fact that the
+behaviour maps as introduced in Section 6 factors through the final sequence, as stated
+formally in the next lemma.
+▶ Lemma A.8. Let (M, α) be a graded semantics of a functor G on metric spaces. The
+morphisms γ (i) : X → Mn 1 factor through pi : X → Gi 1 as defined in Remark 7.10.
+Proof. We show the claim by induction on i. For i = 0 we have by naturality of η that
+γ (0) = M0 ! · ηX = η1 ·!X = η1 · p0 . For the inductive step assume that γ (i) = fi · pi . Then we
+have
+
+27
+
+28
+
+Quantitative Graded Semantics and Spectra of Behavioural Metrics
+
+γ (i+1) = µ1n · M1 γ (n) · α · γ
+
+(Def. γ (i+1) )
+
+= µ1n · M1 fi · M1 pi · αX · γ
+
+(IH)
+
+1n
+
+· M1 fi · αGi X · Gpi · γ
+
+1n
+
+· M1 fi · αGi X · pi+1
+
+=µ
+=µ
+
+(Naturality of α)
+(Def. pi+1 )
+
+◀
+
+Proof of Theorem 6.6
+The proof of Theorem 6.6 [23, Proposition 21] is based on the evaluation JϕKγ : X → Ω of a
+uniform depth-n formula ϕ factoring through Mn 1 via a map JϕKM . Since these facts are
+used in the proof of Theorem 7.6, we recall the details here.
+We define for each uniform depth-n formula ϕ an M0 -algebra homomorphism
+JϕKM : Mn 1 → Ω and show that on a coalgebra (X, γ), we have JϕKγ = JϕKM · γ (n) .
+The claim then follows from the fact that the JϕKM are nonexpansive and dα (x, y) ≥
+dMn 1 (γ (n) (x), γ (n) (y)) for x, y ∈ X. We define JϕKM recursively as follows.
+M ĉ
+
+o
+
+0
+JcKM = M0 1 −−−
+→ M0 Ω −
+→ Ω for c ∈ Θ;
+
+Jp(ϕ1 , . . . , ϕk )KM = JpK · ⟨Jϕ1 KM , . . . , Jϕk KM ⟩ for p ∈ O k-ary;
+
+JLϕKM = LLM• (Jϕ′ KM ) for L ∈ Λ and JLK = LLM · αΩ as per Definition 6.4.
+Here, the definition of modal operators is by freeness of the canonical algebra, that is,
+LLM• (Jϕ′ KM ) is the unique morphism that makes the following square commute:
+M1 Mn 1
+
+M1 Jϕ′ KM
+
+M1 Ω
+
+µ1n
+LLM• (Jϕ′ KM )
+
+Mn+1 1
+
+(A.4)
+
+LLM
+
+Ω
+
+It is straightforward to show by induction on the depth of ϕ that the morphism JϕKM defines
+a homomorphism of M0 -algebras (Mn 1, µ0n ) and (Ω, o), which is needed for JLϕKM to be
+defined.
+Given a coalgebra (X, γ) and a depth-n formula ϕ of L, we now show by induction on ϕ
+that JϕKγ = JϕKM · γ (n) .
+For the case of ϕ = c ∈ Θ we have, by unfolding definitions, that JcKγ = ĉ·!X and
+JϕKM · γ (n) = o · M0 ĉ · M0 !X · ηX , which are the outer paths in the following diagram:
+X
+
+!
+
+ηX
+
+M0 X
+
+1
+
+ĉ
+
+η1
+M0 !
+
+M0 1
+
+M0 ĉ
+
+Ω
+ηΩ
+
+id
+
+M0 Ω
+
+o
+
+Ω
+
+The squares commute by naturality of η, while commutativity of the triangle is implied by o
+being an M0 -algebra.
+The step for formulae of the form ϕ = p(ϕ1 , . . . , ϕn ) is immediate from the definitions.
+For ϕ = Lϕ′ with ϕ′ being of uniform depth n, we have
+
+J. Forster, P. Wild, L. Schröder, H. Beohar, S. Gurke, B. König, and K. Messing
+
+JϕKγ = JLK · GJϕ′ Kγ · γ
+
+= LLM · αΩ · GJϕ′ Kγ · γ
+
+= LLM · M1 Jϕ′ Kγ · αX · γ
+′
+
+= LLM · M1 Jϕ KM · M1 γ
+
+(naturality of α)
+
+(n)
+
+· αX · γ
+
+= LLM• (Jϕ′ KM ) · µ1n · M1 γ (n) · αX · γ
+= JϕKM · γ
+
+(n+1)
+
+(induction)
+(A.4)
+(definitions)
+◀
+
+A.6
+
+Details for Section 7 (Expressivity Criteria)
+
+Details for Remark 7.2
+We make explicit the fact that given an initial family A of P ω -homomorphisms (i.e. quantitative join semilattice homomorphisms) A → [0, 1], the closure of A under all admissible
+propositional operators (i.e. P ω -homomorphisms [0, 1]k → [0, 1]) may not be dense in the
+space of all P ω -homomorphisms A → [0, 1], even when A is free. Take for instance the
+P ω -algebra P ω (X, dX ) where X = {a, b, c} with d(a, b) = d(b, c) = 0.3 and d(a, c) = 0.4.
+We attempt to recover the P ω -homomorphism f : P ω (X, dX ) → [0, 1] uniquely defined by
+f ({a}) = 0.6, f ({b}) = 0.8, f ({c}) = 1 and f ({d}) = 0. We define a set A as above as
+consisting of all join semilattice homomorphisms g where either a) g ̸≤ f or b) g({c}) < 1.
+This set of functions is initial. We show that A is also closed under the propositional
+operators mentioned above: Let o : [0, 1]n → [0, 1] be a join semilattice homomorphism, and
+let g1 , . . . , gn ∈ A. We have to show that o⟨gi ⟩ ∈ A. It is clear that o⟨gi ⟩ is a join semilattice
+morphism. For the remaining property, we distinguish cases as follows.
+Suppose that o(1, . . . , 1) < 1. Then by monotonicity of join semilattice morphisms,
+o(⟨gi ⟩i≤n ({c})) < 1, so o⟨gi ⟩ ∈ A.
+Otherwise, o(1n ) = 1. By join continuity, the set J = {j ∈ {1, . . . , n} | o(0j−1 10n−j−1 ) =
+1} is nonempty. Since o preserves the empty join, i.e. o(0n ) = 0, we know by nonexpansiveness that
+o(0j−1 v0n−j−1 ) = v
+
+for all j ∈ J.
+
+(A.5)
+
+If gj ({c}) < 1 for all j ∈ J, then o(⟨gi ⟩i≤n ({c})) < 1 by join continuity, so o⟨gi ⟩ ∈ A as
+claimed. Otherwise, we have j ∈ J such that gj ({c}) = 1. Since gj ∈ A, this means that
+we have z ∈ X such that gj (z) > f (z), implying by (A.5) that o(0j−1 gj (z)0n−j−1 ) =
+gj (z) > f (z) and thus o(⟨gi ⟩i≤n (z)) > f (z) by monotonicity. Thus, o⟨gi ⟩ ̸≤ f , so
+o⟨gi ⟩ ∈ A.
+On the other hand, it is clear that A is not dense in Alg0 (M )(P ω (X), [0, 1]).
+
+Proof of Theorem 7.6
+Since uniform depth-n formulae ϕ factor through Mn 1 via algebra homomorphisms
+JϕKM : Mn 1 → Ω, as shown in the Proof of Theorem 6.6, we only have to show that the
+closure of the family of maps
+{JϕKM : Mn 1 → [0, 1] | ϕ is a depth-n formula}
+
+29
+
+30
+
+Quantitative Graded Semantics and Spectra of Behavioural Metrics
+
+under the propositional operators in O has property Φ and is thus initial for each n. We
+proceed by induction on n. The base case n = 0 is immediate by Φ-type depth-0 separation.
+For the inductive step let A denote the set of evaluations Mn 1 → Ω of depth-n formulae. By
+the induction hypothesis, A has property Φ. By definition, A is closed under propositional
+operators in O. By Φ-type depth-1 separation, it follows that set
+{LLM• (JϕKM ) | L ∈ Λ, ϕ a depth-n formula}
+has property Φ, proving the claim.
+
+◀
+
+Details on Example 7.8.1 (Metric Streams)
+In the following, we write Lstream for the logic of metric streams featuring only the truth
+constant 1 and modalities ♢a for a ∈ A.
+▶ Lemma A.9. Lstream is normed isometric depth-0 and normed isometric depth-1 separating.
+ˆ
+Proof. For normed isometric depth-0 separation, note that M0 1 = 1 and that J⊤K = M0 ⊤
+is defined by ∗ 7→ 1, so that {J⊤K} is normed isometric. For normed isometric depth-1
+separation, note that since M0 = id in the present case, canonical M1 -algebras have the form
+id : GA0 → A1 = GA0 = A × A0 . Let A be such a canonical M1 -algebra, and let A be a
+normed isometric set of morphisms A0 → Ω. Let (a, v), (b, w) ∈ M1 A0 = A × A0 . Since A is
+normed isometric, there is f ∈ A such that f (v) = 1 and f (w) = 1 − d(v, w). To show that
+Λ(A) is normed isometric, we show that J♢a K• (f ) ∈ Λ(A) exhibits the required properties.
+On the one hand, we have
+J♢a K• (f )((a, v))
+
+= J♢a K((a, f (v))
+
+= min{1 − d(a, a), f (v)}
+= f (v)
+=1
+
+and on the other hand,
+J♢a K• (f )((b, w))
+
+= J♢a K((b, f (w)))
+
+= min{1 − d(a, b), f (w)}
+= min{1 − d(a, b), 1 − d(v, w)}
+= 1 − max{d(a, b), d(v, w)}
+= 1 − d((a, v), (b, w)).
+◀
+▶ Proposition A.10. Lstream is not initial-type depth-1 separating.
+Proof. Let A = {a, b} with d(a, b) = 0.8. Let A be a canonical M1 -algebra (described as in
+the proof of Lemma A.9) with A0 = {v, w} where d(v, w) = 0.5. The map f : A0 → Ω defined
+by f (w) = 0.25 and f (v) = 0.75 is thus initial; we show that Λ({f }) = {J♢a K• (f ), J♢b K• (f )}
+
+J. Forster, P. Wild, L. Schröder, H. Beohar, S. Gurke, B. König, and K. Messing
+
+(a set of maps A1 = A × A0 → Ω) is not, thus proving the claim (recall that there are no
+propositional operators). For J♢a K• (f ), we have
+|J♢a K• (f )((a, v)) − J♢a K• (f )((b, w))|
+
+= |J♢a K((a, f (v))) − J♢a K((b, f (w))|
+
+= | min{1 − d(a, a), f (v)} − min{1 − d(a, b), f (w)}|
+= |f (v) − min{1 − d(a, b), f (w)}|
+= |0.75 − min{0.2, 0.25}| = 0.55
+Moreover, for J♢b K• (f ), we have
+|J♢b K• (f )((a, v)) − J♢b K• (f )((b, w))|
+
+= |J♢b K((a, f (v))) − J♢b K((b, f (w))|
+
+= | min{1 − d(b, a), f (v)} − min{1 − d(b, b), f (w)}|
+= | min{1 − d(b, a), f (v)} − f (w)}|
+= | min{0.2, 0.75} − 0.25}| = 0.05.
+Since d((a, v), (b, w)) = 0.8, this shows that Λ(A) is not initial.
+
+◀
+
+Details for Example 7.8.2 (Metric Transition Systems)
+▶ Lemma A.11. The graded quantitative theory in Example 5.11 induces the graded monad
+P ω (Ln × −)
+Proof. By Lemma 5.10, it suffices to show that the natural transformation λ : A × P ω − →
+P ω (A×−) given by λX (a, S) = {(a, s) | s ∈ S} is nonexpansive. Let (a, S), (b, T ) ∈ A×P ω X
+for a metric space X. Then
+d(λX (a, S), λX (b, T ))
+_ ^
+
+=
+d((a, s), (b, t)) ∨
+s∈S t∈T
+
+=
+
+_ ^
+
+=
+
+≤ d(a, b) ∨
+
+
+
+_ ^
+
+
+d(a, b) ∨ d(s, t)
+
+t∈T s∈S
+
+d(a, b) ∨
+
+s∈S
+
+d((a, s), (b, t))
+
+t∈T s∈S
+
+
+d(a, b) ∨ d(s, t) ∨
+
+s∈S t∈T
+
+_
+
+_ ^
+
+^
+
+d(s, t)
+
+
+
+t∈T
+
+_ ^
+s∈S t∈T
+
+
+d(s, t) ∨
+
+∨
+
+_
+
+d(a, b) ∨
+
+t∈T
+
+_ ^
+
+^
+
+
+d(s, t)
+
+s∈S
+
+d(s, t)
+
+
+
+t∈T s∈S
+
+= d((a, S), (b, T )).
+◀
+▶ Lemma A.12. The logic for trace semantics given in Example 6.7 is expressive.
+Proof. As indicated in Example 7.8.2, we use Theorem 7.6, with normed isometry as the
+initiality invariant. Depth-0 separation is straightforward. For depth-1 separation, we proceed
+according to Remark 7.7 and exploit that canonical M1 -algebras of the form Mn 1 are free as
+M0 -algebras, which in the case at hand means they are quantitative join semilattices carrying
+the Hausdorff metric. That is, we are given a canonical M1 -algebra A such that A0 = P ω (X)
+where X is a metric space, and then A1 = P ω (A × X). Let A be a normed isometric set of
+
+31
+
+32
+
+Quantitative Graded Semantics and Spectra of Behavioural Metrics
+
+nonexpansive join-semilattice morphisms A → Ω. We have to show that Λ(A) is normed
+isometric. So let S, T ∈ P ω (A × X) such that d(S, T ) > ϵ. Without loss of generality, this
+means that we have (a, x) ∈ S such that d({(a, x)}, T ) > ϵ. Put
+Ca,ϵ (T ) = {y ∈ X | ∃(b, y) ∈ T. d(a, b) ≤ ϵ}.
+Then d({x}, Ca,ϵ (T )) > ϵ in A0 = P ω (X). To see this, let y ∈ Ca,ϵ (T ), i.e. (b, y) ∈ T for
+some b such that d(a, b) ≤ ϵ. Then d((a, x), (b, y)) > ϵ because d((a, x), T ) > ϵ, and hence
+d(x, y) > ϵ, as required.
+It follows that d({x} ∪ Ca,ϵ (T ), Ca,ϵ (T )) > ϵ. Since A is normed isometric, we thus have
+f ∈ A such that
+|f ({x} ∪ Ca,ϵ (T )) − f (Ca,ϵ (T ))| > ϵ
+and moreover f ({x} ∪ Ca,ϵ (T )) ∨ f (Ca,ϵ (T )) = 1. Since f , being a join semilattice morphism,
+is monotone w.r.t. set inclusion, this implies that f ({x} ∪ Ca,ϵ (T )) = 1 and f (Ca,ϵ (T )) <
+1 − ϵ, and moreover f ({x} ∪ Ca,ϵ (T )) = f (x) ∨ f (Ca,ϵ (T )), so f ({x}) = 1. It follows that
+♢a (f )(S) = 1. It remains to show that ♢a (f )(T ) < 1 − ϵ. So let (b, y) ∈ T ; we have to show
+that f (y) ∧ (1 − d(a, b)) < 1 − ϵ. We distinguish cases:
+d(a, b) ≤ ϵ: Then y ∈ Ca,ϵ (T ). Since f (Ca,ϵ (T )) < 1 − ϵ and f preserves joins, we have
+f (y) < 1 − ϵ, which implies the claim.
+d(a, b) > ϵ: Then 1 − d(a, b) < 1 − ϵ, which implies the claim.
+◀
+
+A.7
+
+Details for Section 8 (Case Study: Fuzzy Metric Trace Semantics)
+
+The Fuzzy Finite Powerset Monad
+The fuzzy finite powerset monad Fω on Set is given as follows. For a set X, Fω X is the
+set of maps X → [0, 1] with finite support. For a map f : X → Y , Fω f takes fuzzy direct
+W
+images; explicitly, for S ∈ Fω X and y ∈ Y , Fω f (S)(y) = x∈X|f (x)=y S(x). The unit η takes
+singletons; explicitly, ηX (x)(x) = 1, and ηX (x)(y) = 0 for y ̸= x. Finally, the multiplication µ
+W
+takes fuzzy big unions; explicitly, µX (S)(x) = S∈Fω (X) S(S) ∧ S(x).
+We lift Fω to a functor F ω on metric spaces by means of the Kantorovich lifting
+construction [2], applied to the evaluation function ev ♢ : Fω [0, 1] → [0, 1] given by
+_
+ev ♢ (S) =
+S(v) ∧ v,
+v∈[0,1]
+
+equivalently presented as the predicate lifting ♢ : [0, 1]− → [0, 1]Fω − given by
+_
+♢X (f )(S) =
+S(x) ∧ f (x)
+x∈X
+
+for f ∈ [0, 1]X and S ∈ Fω (X). Explicitly, for a metric space X = (X, d), the metric on
+F ω X is thus given by
+_
+d(S, T ) =
+|♢X (f )(S) − ♢X (f )(T )|.
+(A.6)
+f ∈Met(X,[0,1])
+
+This metric has an equivalent Hausdorff-style characterization [48, Example 5.3.1] as
+_^
+
+d(S, T ) =
+(S(x) ⊖ T (y)) ∨ (S(x) ∧ d(x, y)) ∨
+x
+
+y
+
+_^
+
+(T (y) ⊖ S(x)) ∨ (T (y) ∧ d(x, y)) (A.7)
+y
+
+x
+
+J. Forster, P. Wild, L. Schröder, H. Beohar, S. Gurke, B. König, and K. Messing
+
+(in loc. cit., only the asymmetric case is mentioned, but note [49, Lemma 5.10]1 ).
+This metric in fact lifts the monad Fω to a monad on Met: The unit is clearly nonexpansive. Nonexpansiveness of the multiplication, i.e. of fuzzy big union, is seen by
+means of the Kantorovich description A.6; in fact, it suffices to show that every map
+♢X (f ) : Fω X → [0, 1] ∼
+= Fω 1 is a morphism of Fω -algebras. Indeed, we can then argue as
+follows: By definition, the family of all ♢X (f ) is initial, so it suffices to show that ♢X (f )µX
+is nonexpansive for all f ; but Fω -homomorphy of ♢X (f ) means that these maps equal
+µ1 Fω ♢(f ). The map Fω ♢(f ) is nonexpansive because ♢(f ) is nonexpansive and F ω lifts Fω ;
+nonexpansiveness of µ1 follows from the fact that join and meet are nonexpansive operations
+on [0, 1].
+So we check that ♢X (f ) is a morphism of Fω -algebras. Note that under the isomorphism
+Fω 1 ∼
+= [0, 1], µ1 corresponds to ev ♢ , and under the usual Yoneda correspondence [43] between
+ev ♢ and ♢, ♢X (f ) = ev ♢ Fω f . But Fω f is a morphism of free F-algebras, and so is ev ♢ ,
+since µ1 is.
+We claim that F ω is presented by the following quantitative algebraic theory. We have
+unary operations r for all r ∈ [0, 1], a constant 0, and a binary operation +. These are
+subject to strict equations saying that 0, + form a join semilattice structure; strict equations
+stating that the operations r form an action of ([0, 1], ∧), with 0 as zero element:
+1(x) = x
+
+r(s(x)) = (r ∧ s)(x)
+
+0(x) = 0;
+
+and the following axioms governing distance:
+x =ϵ y ⊢ r(x) =ϵ s(y)
+under the side condition that |r − s| ≤ ϵ. Using nonexpansiveness of joins, one derives
+X
+X
+x 1 =ϵ y 1 , . . . , x n =ϵ y n ⊢
+ri (xi ) =ϵ
+si (yi ),
+(A.8)
+i
+
+i
+
+again under the side condition that |ri − si | ≤ ϵ for all i, where we use big sum notation in
+the evident sense.
+It is clear that the operations and strict equations induce Fω . To see that the full theory
+induces F ω , it remains to show two things:
+Axiom (A.8) is sound over F ω X: Since we have already shown that F ω is a monad, it
+suffices to show that (A.8) holds in F{x1 , . . . , xn , y1 , . . . , yn } for x1 , . . . , xn , y1 , . . . , yn ∈ X
+(with every variable interpreted by itself, and distances inherited from X). But this is
+immediate from the Hausdorff description of the distance: By symmetry, it suffices to show
+that the left-hand term in the maximum in (A.7) is at most ϵ. This follows from the fact that
+by the side conditions of (A.8), (ri ⊖ si ) ∨ (ri ∧ d(xi , yi )) ≤ (ri ⊖ si ) ∨ d(xi , yi ) ≤ ϵ for all i.
+Completeness: Low distances in F ω X are derivable. Let S, T ∈ F ω X such that d(S, T ) ≤
+P
+P
+ϵ; read S, T as terms S = x S(x)(x), T = x T (x)(x). We have to show that Γ ⊢ S =ϵ T
+is derivable where Γ records the distances of all elements of the (finite) supports of S and T .
+W V
+Now d(S, T ) ≤ ϵ implies that x y (S(x) ⊖ T (y)) ∨ (S(x) ∧ d(x, y)) ≤ ϵ. That is, for every x
+there exists yx such that (S(x) ⊖ T (yx )) ∨ (S(x) ∧ d(x, yx )) ≤ ϵ. This means that
+1
+
+In more detail, one applies [48, Lemma 5.10] to obtain that the Kantorovich lax extension [48] agrees
+with the Kantorovich lifting [2] on pseudometrics when we additionally consider the dual modality □
+of ♢; this Kantorovich lifting, in turn, is easily seen to coincide with (A.6). On the other hand, applying
+the characterization given in [48, Example 5.3.1] both to ♢ and, dualizing appropriately, to □ in the
+Kantorovich lax extension yields (A.7).
+
+33
+
+34
+
+Quantitative Graded Semantics and Spectra of Behavioural Metrics
+
+1. S(x) ≤ T (yx ) ⊕ ϵ, and
+2. either d(x, yx ) ≤ ϵ or S(x) ≤ ϵ. In the latter case, we may take yx = x, ensuring both
+S(x) ≤ T (yx ) ⊕ ϵ and, again, d(x, yx ) ≤ ϵ.
+By the strict equational laws, it follows that
+X
+Γ⊢S=
+(S(x) ∧ (T (y) ⊕ ϵ))(x).
+
+(A.9)
+
+d(x,y)≤ϵ
+
+Analogously, we obtain
+X
+Γ⊢T =
+((S(x) ⊕ ϵ) ∧ T (y))(y).
+
+(A.10)
+
+d(x,y)≤ϵ
+
+Using (A.8) and equations (A.9) and (A.10), we obtain that Γ ⊢ S =ϵ T is derivable as
+desired.
+
+Graded Logics for Fuzzy Metric Trace Semantics
+To see that the given logic is indeed a graded logic, we have to show that J♢ca K : G[0, 1] =
+M1 [0, 1] → [0, 1] is an M1 -algebra. In terms of the algebraic description of M, this means
+that J♢ca K should represent term evaluation w.r.t. the M0 -algebra structure of [0, 1] (which
+consists in the usual join semilattice structure of [0, 1] and additionally the interpretation of
+unary operations r, for r ∈ [0, 1], as taking meets with r) and suitably chosen nonexpansive
+c
+c
+interpretations b♢a : [0, 1] → [0, 1] of the unary depth-1 operations b for b ∈ A; we take b♢a
+to be the map v 7→ v ∧ (c − d(a, b)) on [0, 1] for all a. For depth-0 operations, the fact that
+J♢ca K agrees with term evaluation then just amounts to the homomorphy condition, which is
+checked straightforwardly. For the depth-1 operation a, we calculate as follows (exploiting
+P
+that every depth-0 term over Ω = [0, 1] can be normalized to have the form
+ri (vi ) with
+ri , vi ∈ [0, 1]):
+P
+J♢ca K(b( ri (vi )))
+P
+= J♢ca K( ri (b(vi )))
+(equivalence of depth-1 terms)
+W
+= i ri ∧ vi ∧ (c − d(a, b))
+(definition of J♢ca K)
+c W
+= b♢a ( i ri ∧ vi ),
+W
+P
+and i ri ∧ vi is the evaluation of the term i ri ∧ vi in [0, 1].
+It is straightforward to check that the logic is initial-type depth-0 separating. In the
+proof that it is also initial-type depth-1 separating, we extend the logic to include modal
+operators ♢ca for all c ∈ [0, 1]; the claim for the original logic, where we restrict to rational c,
+then follows immediately from the fact that the semantics of ♢ca depends nonexpansively
+on c. So let A be a canonical M1 -algebra with free 0-part A0 = FX (so A1 = F(A × X)),
+and let A be an initial family of maps A0 → [0, 1]. We have to show that the family Λ(A) of
+maps A1 → [0, 1] is again initial. So let S, T ∈ F ω (A × X) such that d(S, T ) ≥ ϵ. W.l.o.g.
+this means that there exist a, x such that
+^
+(S(a, x) ⊖ T (b, y)) ∨ (S(a, x) ∧ d((a, x), (b, y))) ≥ ϵ.
+(A.11)
+b,y
+
+Now define Ta,ϵ ∈ F ω X by
+X
+Ta,ϵ =
+T (b, y)(y).
+y,d(a,b)≤ϵ
+
+J. Forster, P. Wild, L. Schröder, H. Beohar, S. Gurke, B. König, and K. Messing
+
+By (A.11), we then have
+d(S(a, x)(x), Ta,ϵ ) ≥ ϵ.
+
+(A.12)
+
+By the Hausdorff-style description of the metric on F(A × X), it is immediate that
+d(S(a, x)(x) + Ta,ϵ , Ta,ϵ ) ≥ d(S(a, x)(x), Ta,ϵ ), so
+d(S(a, x)(x) + Ta,ϵ , Ta,ϵ ) ≥ ϵ.
+
+(A.13)
+
+Since A is an initial family and the maps in A are M0 -morphisms, in particular monotone
+w.r.t. the ordering of F ω X as a join semilattice, it follows that we have f ∈ A such that
+f (Ta,ϵ ) ≤ c − ϵ where c = f (S(a, x)(x) + Ta,ϵ ). Since f is an M0 -morphism, it follows that
+f (S(a, x)(x)) = c, and f (S(a, x)(x)) = S(a, x) ∧ f (x), so
+L♢ca M• (f )(S) ≥ S(a, x) ∧ f (x) ∧ (c − d(a, a)) = c.
+We are thus done once we show that L♢ca M• (f )(T ) ≤ c − ϵ. By definition of L♢ca M• (f )(T ), this
+means we have to show for b ∈ A and y ∈ X that T (b, y) ∧ f (y) ∧ (c − d(a, b)) ≤ c − ϵ. We
+distinguish cases on d(a, b):
+d(a, b) ≤ ϵ: Then T (b, y) ≤ Ta,ϵ (y), and hence T (b, y)(y) ≤ Ta,ϵ . Since f (Ta,ϵ ) ≤
+c − ϵ and f is an M0 -morphism, in particular is monotone, we have T (b, y) ∧ f (y) =
+f (T (b, y)(y)) ≤ f (Ta,ϵ ) ≤ c − ϵ, which implies the claim.
+d(a, b) > ϵ: Then c − d(a, b) < c − ϵ, which implies the claim.
+Failure of expressivity of the logic with only ♢1a Consider the F ω (A × −)-coalgebra (X, γ)
+where X = {x, y, z}, γ(x) = 0.5(a(z)), γ(y) = 0.5(b(z)), and γ(z) = 0, where d(a, b) = 0.5.
+The fuzzy metric trace distance of x, y is 0.25. However, we have J♢1a 1K(x) = 0.5 = J♢1a 1K(y),
+and similarly for ♢1b , so the logical distance of x and y in the logic with only ♢1a , ♢1b is
+0. To witness the distance of 0.25 logically, we require the modal operator ♢0.5
+a ; indeed,
+0.5
+0.5
+J♢a 1K(x) = 0.5, while J♢a 1K(y) = 0.25.
+
+35
+
+

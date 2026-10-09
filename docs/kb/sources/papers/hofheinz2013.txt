@@ -1,0 +1,244 @@
+J. Cryptol. (2013) 26: 375–441
+DOI: 10.1007/s00145-012-9127-4
+
+Polynomial Runtime and Composability
+Dennis Hofheinz
+Karlsruhe Institute of Technology, Karlsruhe, Germany
+Dennis.Hofheinz@cwi.nl
+
+Dominique Unruh
+University of Tartu, Tartu, Estonia
+
+Jörn Müller-Quade
+Karlsruhe Institute of Technology, Karlsruhe, Germany
+Communicated by Ran Canetti.
+Received 14 January 2009
+Online publication 17 August 2012
+Abstract. We devise a notion of polynomial runtime suitable for the simulationbased security analysis of multi-party cryptographic protocols. Somewhat surprisingly,
+straightforward notions of polynomial runtime lack expressivity for reactive tasks
+and/or lead to an unnatural simulation-based security notion. Indeed, the problem has
+been recognized in previous works, and several notions of polynomial runtime have
+already been proposed. However, our new notion, dubbed reactive polynomial time, is
+the first to combine the following properties:
+– it is simple enough to support simple security/runtime analyses,
+– it is intuitive in the sense that all intuitively feasible protocols and attacks (and
+only those) are considered polynomial-time,
+– it supports secure composition of protocols in the sense of a universal composition theorem.
+We work in the Universal Composability (UC) protocol framework. We remark that
+while the UC framework already features a universal composition theorem, we develop
+new techniques to prove secure composition in the case of reactively polynomial-time
+protocols and attacks.
+Key words. Universal composability, Polynomial runtime, Multi-party protocols,
+Protocol composition.
+
+1. Introduction
+1.1. Introduction to the Problem
+The security of cryptographic protocols is often based on the hardness of certain computational problems, e.g., inverting a given trapdoor one-way permutation. Breaking the
+
+© International Association for Cryptologic Research 2012
+
+376
+
+D. Hofheinz, D. Unruh, and J. Müller-Quade
+
+protocol security then requires solving the underlying computational problem. To prove
+this, one generally considers reductions; i.e., one translates a successful cryptographic
+attack on the protocol security into an algorithm that solves the underlying computational problem. For such a reduction to work, the complexity of the protocol runs must
+be bounded, so that the protocol situation can be translated into the setting in which the
+computational assumption is formulated. Typically, computational assumptions are formulated against algorithms which are probabilistic polynomial-time. That means, one
+usually assumes that an arbitrary but fixed polynomial upper-bounds the runtime of the
+algorithm.
+Thus it is not merely of aesthetic interest to find a notion that captures the notion of
+polynomial-time complexity for cryptographic protocols. It is also a practical necessity
+to conduct security proofs.
+Our goal in this contribution is to find a useful and meaningful notion of polynomialtime complexity for cryptographic protocols that matches the intuition of what is feasible. In particular, the induced security notion should be useful when analyzing the
+composition of protocols.
+More specifically, we endeavor to find a notion of polynomial time together with a
+variant of the UC security notion such that the following requirements are fulfilled.
+Flexibility: All “intuitively feasible” protocols and protocol tasks (and only those)
+
+should be considered polynomial-time. In particular, natural protocol tasks like secure channels should be polynomial-time and should not be excluded for formal reasons.
+Soundness: All “intuitively feasible” attacks (i.e., adversaries) should be considered
+polynomial-time. Otherwise, we would have no guarantee that a secure protocol will
+withstand real-world attacks. In particular, in the context of universal composability
+the very important “dummy adversary” should be polynomial-time.
+Completeness: Only “intuitively feasible” attacks should be considered polynomialtime. Otherwise, the resulting security notion would be too strong and the security of
+protocols could not be reduced to computational hardness assumptions.
+Composability: The security notion should support secure composition of an arbitrary
+number of concurrent protocol instances in arbitrary contexts (universal composition).
+Simplicity: The notion should be easy to formulate, and for all practical cases, it should
+be easy to decide whether a protocol or attack runs in polynomial time.
+Note that flexibility can be seen as a dual to soundness and completeness. In particular, flexibility captures the feasibility of protocols, while soundness resp. completeness
+capture the feasibility of attacks. Thus, this distinction distinguishes requirements on
+algorithms from requirements on adversaries.
+The UC Framework Since we strive for composability, we work in the Universal Composability (UC) protocol framework [5,8].1 The UC framework [5,8] defines the security of a protocol (often called the real protocol) by comparison with an ideal protocol.
+1 We stress that our observations and results apply as well in any other protocol framework in which
+security is defined through an interactive simulation. In particular, our results also apply in the frameworks
+of reactive simulatability (RSIM) [4,29], SPPC [14], inexhaustible interactive Turing machines (IITMs) [26],
+Task-probabilistic input/output automata (PIOA) [11,12], and environmental security [19, Sect. 7.7.2].
+
+Polynomial Runtime and Composability
+
+377
+
+The ideal protocol usually comprises only a single trusted machine, called an ideal functionality, which is secure by construction. The ideal protocol can be thought of as the
+specification of the protocol task that should be achieved by the real protocol. In the UC
+framework, the real protocol is considered to be a secure implementation of the ideal
+protocol if only those attacks are possible in the real protocol that are also possible in
+the ideal protocol. More precisely, for any adversary that interacts with (attacks) the real
+protocol, there is a corresponding adversary (the simulator) that interacts with the ideal
+protocol such that no protocol environment interacting with both the protocol and the
+adversary can distinguish between an execution of the real and an execution of the ideal
+protocol. In this case we say that the real protocol emulates the ideal protocol. To be
+able to use computational assumptions in the protocol design, one usually requires the
+adversary, the simulator, the environment, and both the ideal and the real protocol to be
+polynomial-time.
+Since ideal functionalities can model very different protocol tasks, the UC framework is very versatile. Furthermore, it gives very strong composability guarantees: If a
+protocol π emulates a protocol φ, and a protocol ρ that uses the ideal protocol φ as a
+subprotocol emulates some ideal functionality F , then after replacing φ by its implementation π , ρ still emulates F . This enables the modular design of security protocols.
+We give a detailed overview of the UC framework in Sect. 2.
+1.2. Our Work
+Our Approach: Reactively Polynomial-Time Protocols We propose a new notion of
+polynomial runtime for cryptographic protocols, that of reactive polynomial time. The
+basic intuition behind our notion is that a protocol should be considered polynomialtime as long as it is not possible to make it run more than a polynomial number of steps.
+However, the precise polynomial bounding the number of steps should depend on the
+context in which the protocol runs. For example, if the protocol runs in a context that
+gives extremely long input, the protocol should be allowed to run longer. On the other
+hand, we should not allow contexts that input messages of superpolynomial length; it
+would be too restrictive to require that the protocol run in polynomial time on superpolynomial inputs. Thus we restrict the contexts to a priori polynomial-time machines,
+i.e., machines whose running time, in any situation, is bounded by a fixed polynomial
+(depending only on the machine). Note that a priori polynomial time is the classical
+notion of polynomial time for reactive machines, employed, e.g., in [5,29]. We then get
+the following definition of reactive polynomial time.
+Definition 1 (Reactive polynomial time (informal)). A protocol π runs in reactive
+polynomial time iff for any a priori polynomial-time machine Z, there is a polynomial
+p, such that the network π ∪ {Z} (in which Z interacts with π ) runs, with overwhelming
+probability, at most p steps.
+It is easy to see that according to this definition, the polynomial p bounding the
+running time of π may depend on Z (and thus be large enough so that π can process
+all inputs coming from Z). On the other hand, since Z is a priori polynomial-time, π
+is not required to run in polynomial time on superpolynomially long inputs or on inputs
+that are infeasible to find.
+
+378
+
+D. Hofheinz, D. Unruh, and J. Müller-Quade
+
+Notice that we only require π ∪ {Z} to have runtime p with overwhelming probability, not with probability 1. This may seem like an unnecessary complication, yet this
+relaxation is essential to allow for a composition theorem; see Sect. 9.1 for a detailed
+explanation and proof. (We remark, however, that it is not essential whether the considered protocol context is polynomial-time or only polynomial-time with overwhelming
+probability; see Sect. 4, p. 403 for an explanation.)
+It should also be noted that being reactively polynomial-time is a property of the
+protocol as a whole, not of the individual machines (unlike the property of being a priori
+polynomial-time).
+Given the notion of reactive polynomial time, we can now rephrase the notion of UC
+with respect to reactively polynomial-time protocols.
+Definition 2 (UC with respect to reactive polynomial time (informal)). We call an
+adversary A valid for a protocol π iff π ∪ {A} (the protocol π running together with
+the adversary A) is reactively polynomial-time, and analogously for simulators.
+Let π and φ be protocols. We say that π emulates φ iff for any adversary A that is
+valid for π there is a simulator S that is valid for φ such that no a priori polynomial-time
+environment Z can distinguish between π ∪ {A} and φ ∪ {S}.
+Notice that the only difference from the classical notion of UC [5] is that we do not
+quantify over a priori polynomial-time adversaries and simulators, but instead over valid
+adversaries and simulators, i.e., over adversaries and simulators that keep the protocol
+reactively polynomial-time.
+The advantage of this notion is that it behaves better than classical UC when the
+protocols are reactive polynomial-time (and not just a priori polynomial-time). For example, we get the following composition theorem.
+Theorem 3 (Universal composition theorem (informal)). Let π , φ, and ρ be protocols.
+Let ρ π denote the protocol where ρ invokes an arbitrary number of instances of π as
+subprotocols, and analogously for ρ φ . Assume that π and ρ π are reactively polynomialtime, and that π emulates φ. Then ρ π emulates ρ φ .
+We stress that with respect to classical notions of UC, this theorem only holds if
+π and φ are a priori polynomial time. Yet, considering only a priori polynomial-time
+protocols would exclude many natural protocols (see Sect. 1.4).
+There is one noteworthy limitation to our composition theorem: It takes as an explicit
+assumption that ρ π is reactively polynomial-time. Thus, in order to apply the theorem,
+one needs to manually verify that the composed protocol ρ π is reactively polynomialtime in order to derive its security with the composition theorem. Fortunately, in most
+cases the runtime of a protocol is simple to analyze, while its security is the interesting
+property.
+Simplicity We claim that our definitions are quite simple. Of course, simplicity is both
+a matter of taste, as well as a matter of comparison with other notions. The most basic
+notion, a priori polynomial time (which is used in [5,29]), is arguably simpler than our
+notion, but it excludes protocols whose running time depends on the input length, and
+
+Polynomial Runtime and Composability
+
+379
+
+it is subject to certain technical artifacts (see our discussion in Sect. 1.4). Prior notions
+that try to solve the problems of a priori polynomial time are, in our opinion, more complicated than those involving reactive polynomial time. Often, they have to introduce
+distinctions of various types of channels between machines; the maximum allowed running time depends in different ways on the amount of communication on the different
+channels types. (Canetti [8] distinguishes six types of tapes for input/output, subrouting
+invocation/results, and incoming/outgoing messages; Hofheinz et al. [21] introduces
+a special connection between environment and adversary that is counted differently.)
+Other approaches introduce some methods of filtering unneeded incoming communication so that it does not waste runtime. (Backes [1], and Backes et al. [4] introduce
+length functions that allow one to close down a connection; Datta et al. [14] extends
+this approach to guards, i.e., general-purpose filters on incoming connections.) Other
+approaches use artificial padding of inputs or outputs in order to satisfy certain length
+requirements that come from the definition of polynomial time. (In some notions, a
+functionality leaking some length l can be securely realized if it sends l in unary encoding while it cannot be realized if it sends l in binary; see Sect. 8. See also our discussion
+on padding in Sect. 3.) Our notion of reactive polynomial time does not need any such
+technical tools in the network and machine model.
+Of course, the question remains of whether it is simple to check if a given protocol is reactive polynomial-time; in general, this is an undecidable problem. (Even for
+a priori polynomial time, this problem is undecidable.) We believe, however, that for a
+natural protocol, it is easy to see that it is reactively polynomial-time: In most cases,
+there will be a (simple-to-find) upper bound on the running time that is a polynomial
+of the total length of the protocol inputs. Deciding whether a given adversary is valid
+may be harder. In contrast to protocols, we cannot expect that adversaries are in any
+way natural. Fortunately, we show that, without loss of generality, one can assume a
+particular adversary, the dummy adversary (Theorem 19). This adversary just forwards
+all messages; its running time is trivial to analyze.
+Flexibility We claim that the notion of a reactively polynomial-time protocol captures
+all intuitively feasible protocol tasks (and only those). We admit that such a claim is
+hard to formally substantiate, since the set of intuitively feasible protocol tasks is not
+formally defined. However, it is clear that the notion of reactive polynomial time generalizes a priori and a posteriori polynomial runtime bounds as discussed above. Furthermore, it is easily verified that the problematic use cases described in Sect. 1.3 below
+can be modeled as reactively polynomial-time protocols (resp. ideal functionalities).
+On the other hand, a reactively polynomial-time protocol along with a valid adversary
+behaves efficiently in any given a priori polynomial-time protocol context (except with
+small probability). In particular, such a system can be simulated (up to negligible error)
+inside one single machine that is polynomial-time in the usual, static sense (i.e., a priori
+polynomial). Hence, every reactively polynomial-time protocol is efficient in this sense.
+Summarizing, we claim that our notion is flexible.
+Soundness and Completeness We consider only adversaries that are valid, i.e., adversaries that, together with the protocol, are reactively polynomial-time. This implies that
+the adversary never (up to negligible probability) runs more than a polynomial number
+
+380
+
+D. Hofheinz, D. Unruh, and J. Müller-Quade
+
+of steps (Lemma 12). Thus only “intuitively feasible” attacks are considered; we achieve
+completeness. On the other hand, if the protocol is reactively polynomial-time, all reasonable adversaries are considered: We consider all adversaries that do not make the
+protocol lose its reactive polynomial time property, i.e., all adversaries that do not “introduce” superpolynomial-time computations. Thus all “intuitively feasible” attacks are
+covered; we achieve soundness. Moreover, we stress that none of the technical artifacts
+discussed in Sect. 1.4 occur. In particular, neither adversaries nor protocol machines can
+be “exhausted”; that is, we do not get the artificial condition that a machine is forced
+to ignore messages because the environment sends too many inputs. Additionally, in
+our notion the important “dummy adversary” is valid (Theorem 19), which is important
+both for composability and soundness. On the other hand, using reactively polynomialtime adversaries induces a security notion that lies (strictly) in between the traditional
+UC security notion and the relaxation of UC discussed in [27] (Theorem 41). Thus, our
+new notion still provides a reasonable and useful definition of security.
+Composability Concerning composability, our notion has a certain (unavoidable) limitation: If two networks S1 , S2 are both reactively polynomial-time, the network S1 ∪ S2
+consisting of all machines in S1 and S2 is not necessarily reactively polynomial-time.
+This stands in contrast to other notions of polynomial time such as a priori polynomial
+time. Yet, we claim that this limitation is an unavoidable consequence of the flexibility requirement. There are machines that, on their own, would be intuitively considered to be polynomial-time, yet the composition of several such machines would not
+be polynomial-time with respect to any reasonable definition. For example, two machines that echo all incoming data should be polynomial-time individually, but if they
+are combined to echo each other’s messages, their running time is unbounded. Since
+the flexibility requirement demands that such (intuitively polynomial-time) machines are
+considered polynomial-time, it is not possible to satisfy flexibility and composability simultaneously.
+However, the most important aspect of the composability requirement is satisfied by
+our notion, namely that security (as opposed to running time) is preserved under composition.
+We demonstrate that our notion induces a composable security notion by proving the
+universal composition theorem (Theorems 3 and 21). This proof is considerably more
+complex than proofs of composability for previous notions of polynomial runtime (such
+as, e.g., the proofs from [3,5,8,14]). Ironically, this complexity seems to result from the
+simplicity of our notion; in the proof, it is necessary to prove that certain combinations of
+protocol pieces are still reactively polynomial-time. The good news is that these results
+do not have to be proven during the design of the protocol (except for the condition
+that ρ π is reactively polynomial-time). As a consequence, our composition theorem
+needs only relatively few assumptions, which might come in very handy during protocol
+design. We now provide further details.
+Common Structure of (Universal) Composition Theorems Stated very briefly, a (universal) composition theorem states that whenever one protocol instance is secure, then
+multiple protocol instances are also secure, even when used in arbitrary contexts. In the
+UC framework, security means existence of a simulator. Hence, to prove a UC composition theorem, one usually (explicitly) constructs a simulator S ∞ for many protocol
+
+

@@ -1,0 +1,1005 @@
+Logical Methods in Computer Science
+Vol. 14(3:19)2018, pp. 1–16
+https://lmcs.episciences.org/
+
+Submitted
+Published
+
+Feb. 24, 2018
+Sep. 14, 2018
+
+FREE COMPLETE WASSERSTEIN ALGEBRAS
+RADU MARDARE, PRAKASH PANANGADEN, AND GORDON D. PLOTKIN
+Department of Computer Science, Aalborg University
+e-mail address: mardare@cs.aau.dk
+School of Computer Science, McGill University
+e-mail address: prakash@cs.mcgill.ca
+Laboratory for Foundations of Computer Science, School of Informatics, University of Edinburgh
+e-mail address: gdp@inf.ed.ac.uk
+
+Abstract. We present an algebraic account of the Wasserstein distances Wp on complete
+metric spaces, for p ≥ 1. This is part of a program of a quantitative algebraic theory
+of effects in programming languages. In particular, we give axioms, parametric in p, for
+algebras over metric spaces equipped with probabilistic choice operations. The axioms say
+that the operations form a barycentric algebra and that the metric satisfies a property
+typical of the Wasserstein distance Wp . We show that the free complete such algebra over
+a complete metric space is that of the Radon probability measures with finite moments
+of order p, equipped with the Wasserstein distance as metric and with the usual binary
+convex sums as operations.
+
+1. Introduction
+The denotational semantics of probabilistic programs generally makes use of one or another
+monad of probability measures. In [16, 8], Lawvere and Giry provided the first example of
+such a monad, over the category of measurable spaces; Giry also gave a second example,
+over Polish spaces. Later, in [13, 12], Jones and Plotkin provided a monad of evaluations
+over directed complete posets. More recently, in [10], Heunen, Kammar, et al provided such
+a monad over quasi-Borel spaces.
+Metric spaces (and nonexpansive maps) form another natural category to consider.
+The question then arises as to what metric to take over probability measures, and the
+Kantorovich-Wasserstein, or, more generally, the Wasserstein distances of order p > 1
+(generalising from p = 1), provide natural choices. A first result of this kind was given in [2],
+where it was shown that the Kantorovich distance provides a monad over the subcategory of
+1-bounded complete separable metric spaces.
+One purpose of such monads is to make probabilistic choice operations available, and
+so an algebraic account of the monads in terms of these operations is of interest; we focus
+here on such results in the metric context. Barycentric algebras axiomatise probabilistic
+choice. They have binary convex combination operations x +r y, for r ∈ [0, 1]; one can think
+
+l
+
+LOGICAL METHODS
+IN COMPUTER SCIENCE
+
+c
+DOI:10.23638/LMCS-14(3:19)2018
+
+CC
+
+Radu Mardare, Prakash Panangaden, and Gordon D. Plotkin
+Creative Commons
+
+2
+
+RADU MARDARE, PRAKASH PANANGADEN, AND GORDON D. PLOTKIN
+
+of x +r y as choosing to continue with x with probability r and with y with probability 1 − r.
+The operations are required to obey appropriate laws.
+In this paper we show that the Wasserstein distance of order p yields a monad Pp on
+the category of complete metric spaces and nonexpansive maps and that this monad can
+be characterised as the free algebra monad for barycentric algebras over complete metric
+spaces where the barycentric operations are required to be nonexpansive and are subject to
+an appropriate Wasserstein condition. The probability measures in Pp (X) are required to be
+Radon (equivalently, tight) and to have finite p-moment. The important Kantorovich case
+of this result, where p = 1, was essentially already established in [6], as it is an immediate
+consequence of Theorem 5.2.1 there.
+In [17] a somewhat different direction was taken where monads on (extended) metric
+spaces are defined algebraically, using a quantitative analogue of equational logic where equations give an upper bound on the distance between two elements, and algebras are extended
+metric spaces equipped with nonexpansive operations. One then seeks to characterise the
+action of the monad on as wide a variety of spaces as possible.
+This is part of a program begun in [17] to establish a quantitative algebraic theory of
+effects in programming languages. In particular, in [17] we gave axioms, parametric in p,
+for algebras equipped with probabilistic choice operations and showed the free complete
+such algebras over a complete 1-bounded separable metric space X are the probability
+measures on X with the Wasserstein distance, equipped with the usual binary convex sum
+operations. Comparing this result to the results in this paper and in [6], it is worth remarking
+that probability measures on 1-bounded spaces automatically have finite moments, and
+probability measures on separable complete spaces are automatically Radon.
+In Section 2, we discuss the Wasserstein distance, Wp of order p between probability
+measures on a metric space X. In Theorem 2.6 we show that the distance is a metric on the
+Radon probability measures with finite moments of order p. To do so, we make use of a
+result in [4] that the triangle inequality holds for all probability measures if X is separable.
+Here, and throughout the paper, we reduce the general case to the separable case using a
+lemma, due to Basso, which states that the support of any probability measure on a metric
+space is separable.
+Next, in Theorem 2.7 we show that if X is complete then the Wasserstein metric of
+order p on the Radon probability measures with finite moments of order p is also complete
+and is generated by the probability measures with finite support. To do this, we make use
+of the well-known result that if X is complete and separable then the Wasserstein metric of
+order p on all probability measures over X with finite moments of order p is also complete
+and separable, being generated by the rational measures with finite support in a countable
+basis of X (see, e.g., [24, Theorem 6.18] and the bibliographic discussion there). The section
+concludes with a side-excursion, a discussion of weak convergence: Theorem 2.12 generalises
+the characterisation of the topology induced by the Wasserstein metrics in terms of weak
+convergence given by [24, Theorem 6.9] from complete separable spaces to all complete
+spaces.
+In Section 3 we discuss the algebraic aspect of these spaces. In particular, in Theorem 3.6
+we show that the Radon probability measures with finite moments of order p on a complete
+metric space X, equipped with the Wp metric and binary convex sums, form the free complete
+Wasserstein algebra of order p over X. To do this, we first characterise the free Wasserstein
+algebra of order p over a metric space; the characterisation follows straightforwardly from
+the well-known characterisation of the free barycentric algebra over a set as the natural such
+
+FREE COMPLETE WASSERSTEIN ALGEBRAS
+
+3
+
+algebra on the finite probability measures on the set. Having done so, we pass to the case of
+complete metric spaces using a general theorem on completions of metric algebras, combined
+with Theorem 2.7.
+Finally, we discuss some loose ends. First, there is a certain disconnect between our
+work and that of [17] in that here we use standard metric spaces, whereas there the more
+general framework of extended metric spaces is employed where distances can be infinite.
+We sketch how to bridge this disconnect at the end of Section 3. Second, there are other
+natural algebraic approaches
+Pto probability. Convex spaces are an algebraic formulation of
+finite convex combinations ni=1 ri xi . Midpoint algebras have a midpoint operation x ⊕ y:
+one can think of x ⊕ y as providing a fair choice between x and y, and so being equivalent
+to x +0.5 y. We sketch how our algebraic characterisation of the Wasserstein monads on
+complete metric spaces can be rephrased in terms of either of these alternative approaches.
+We affectionately dedicate this paper to Furio Honsell on the occasion of his 60th
+birthday.
+2. The Wasserstein distance
+We begin with some technical preliminaries on Radon probability measures and couplings
+and their support. For general background on probability measures on topological and
+metric spaces see [7, 19]. By probability measure we mean a Borel probability measure.
+Given such a probability measure µ on a Hausdorff space X, we say that a Borel set B is
+compact inner regular (for µ) if:
+µ(B) = sup{µ(C) | C compact, C ⊆ B}
+Then µ is Radon if all Borel sets are compact inner regular for it, and tight if X is compact
+inner regular for it (equivalently, if for any Borel set B and ε > 0 there is a compact set C
+such that µ(B\C) < ε). Every Radon measure is tight, every tight probability measure on a
+metric space is Radon, and every probability measure on a separable complete metric space
+is tight.
+The support of a probability measure µ on a topological space X is
+supp(µ) =def {x ∈ X | µ(U ) > 0 for all open U containing x}
+Note that the support is always a closed set. If µ is Radon then supp(µ) has measure 1. If
+the support of µ is finite then µ is Radon and can be written uniquely, up to order, as a
+finite convex sum of Dirac measures, viz:
+X
+µ=
+µ(s)δ(s)
+s∈supp(µ)
+
+(writing µ(s) instead of µ({s})). We say that µ is rational if all the µ(s) are.
+The following very useful lemma is due to Basso [1]. It enables us, as he did, to establish
+results about probability measures on metric spaces by applying results about probability
+measures on separable metric spaces to their supports.
+Lemma 2.1. Every probability measure on a metric space has separable support.
+Proof. Let µ be a probability measure on a metric space. For every ε > 0 let Cε be a
+maximal set of points in supp(µ) with the property that all points are at distance ≥ ε
+apart. As any two open balls with centre in Cε and radius 12 ε are disjoint and each such ball
+has µ-measure > 0, Cε is countable (were it uncountable, we would have an uncountable
+
+4
+
+RADU MARDARE, PRAKASH PANANGADEN, AND GORDON D. PLOTKIN
+
+collection of reals with any denumerable subset summable, and no such collection exists).
+By the maximality of Cε , any point
+in supp(µ) is at distance < ε from some point in Cε . It
+S
+follows that the countable set n≥0 C2−n is dense in supp(µ).
+A coupling γ between two probability measures µ and ν on a topological space X is
+a probability measure on X 2 whose left and right marginals (= pushforwards along the
+projections) are, respectively, µ and ν. We gather some facts about such couplings:
+Lemma 2.2. Let γ be a coupling between two probability measures µ and ν on a topological
+space X. Then:
+supp(γ) ⊆ supp(µ) × supp(ν)
+Further, if µ and ν are tight, so is γ. Moreover, in the case that X is a metric space, if µ
+and ν are Radon, so is γ.
+Proof. For the first part, suppose that (x, y) ∈ supp(γ) and let U be an open neighbourhood
+of x. Then U × Y is an open neighbourhood of (x, y) and so µ(U ) = γ(U × Y ) > 0. So
+x ∈ supp(µ). Similarly y ∈ supp(ν).
+For the second part, choose ε > 0. As µ and ν are tight, X and Y are compact inner
+regular for them. So there are compact sets C ⊆ X and D ⊆ Y such that µ(X\C) < 12 ε
+and ν(Y \D) < 12 ε. Then we have:
+γ((X × Y )\(C × D)) =
+=
+=
+≤
+=
+<
+
+γ((X × Y )\((C × Y ) ∩ (X × D)))
+γ(((X × Y )\(C × Y )) ∪ ((X × Y )\(X × D)))
+γ(((X\C) × Y ) ∪ (X × (Y \D)))
+γ((X\C) × Y ) + γ(X × (Y \D))
+µ(X\C) + ν(Y \D)
+ε
+
+So, as ε was arbitrary, X × Y is compact inner regular for γ, as required. The last part is
+immediate as all tight probability measures on metric spaces are Radon.
+We now turn to the Wasserstein distance. A probability measure µ on a metric space X
+is said to have finite moment of order p, where p ≥ 1, if, for some (equivalently all) x0 ∈ X,
+the integral
+Z
+d(x0 , −)p dµ
+is finite To see that the existence of the p-th moment does not depend on the choice of x0 ,
+recollect the inequality (a + b)p ≤ 2p−1 (ap + bp ) for a, b ∈ R+ and p ≥ 1. Then, for any
+x, y, z ∈ X, we have:
+d(x, y)p ≤ 2p−1 (d(x, z)p + d(z, y)p )
+
+(2.1)
+
+and the conclusion follows, taking z = x0 and y to be any other choice. Note that finite
+probability measures with finite support have finite moments of all orders.
+Example 2.3. One can obtain examples of measures with countable support,
+and with or
+P
+without finite moments, by using the fact that the Dirichlet series ζ(s) = n≥1 n1s converges
+for reals s > 1 and diverges for s = 1. Taking the natural numbers as a metric space with the
+usual Euclidean metric d(m, n) = |m − n|, one sees that, for q ≥ 1, the discrete probability
+1
+measure Dq where Dq (n) = ζ(q + 1)−1 nq+1
+for n ≥ 1 and Dq (0) = 0, has finite p-moment if,
+and only if, p < q.
+
+FREE COMPLETE WASSERSTEIN ALGEBRAS
+
+5
+
+The Wasserstein distance of order p, Wp is defined between probability measures with
+finite moments of order p by:
+ Z
+1/p
+p
+Wp (µ, ν) = inf dX dγ
+γ
+
+where γ runs over the couplings between µ and ν. To see that it is well-defined for probability
+measures with finite p-moment, one again invokes (1), this time to get an integrable upper
+bound on dpX as follows:
+Z
+Z
+Z
+Z
+Z
+p
+p−1
+p
+p
+p−1
+p
+dX dγ ≤ 2 ( d(−, x0 ) dγ + d(x0 , −) dγ) = 2 ( d(−, x0 ) dµ + d(x0 , −)p dν)
+The Wasserstein distance in monotonic in p, that is, Wp (µ, ν) ≤ Wq (µ, ν) for 1 ≤ p ≤ q and
+µ,
+R ν with finite Rmoments of order q. This is an immediate consequence of the inequality
+( f p dµ)1/p ≤ ( f q dµ)1/q , which holds for any probability measure µ and any f ≥ 0 with
+f q integrable w.r.t. µ (this inequality is itself a straightforward consequence of Hölder’s
+inequality).
+We need two lemmas relating probability measures on a metric space with probability
+measures on a closed subset of the space. Let C be a closed subset of a metric space X. We
+write i∗ (µ) for the pushforward of a finite measure µ on C along the inclusion i : C → X of
+C in X, so i∗ (µ)(B) = µ(B ∩ C); and we write r(ν) for the restriction of a finite measure ν
+on X to a finite measure on C, so r(ν)(B) = ν(B). Note that r(i∗ (µ)) = µ.
+Lemma 2.4. Let C be a closed subset of a metric space X.
+(1) If µ is a Radon probability measure on C, then i∗ (µ) is a Radon probability measure on
+X with the same support as µ. Further, i∗ (µ) has finite moment of order p if µ does.
+(2) If ν is a Radon probability measure on X with support included in C then r(ν) is a
+Radon probability measure on C, and we have:
+ν = i∗ (r(ν))
+If, further, ν has finite moment of order p, so does r(ν).
+Proof. (1) Let µ be a Radon probability measure on C, and note that C must then be
+non-empty. It is straightforward to check that i∗ (µ) is a Radon probability measure on
+X with the same support as µ. Next, choosing x0 ∈ C, as
+Z
+Z
+p
+dX (x0 , −) d(i∗ µ) = dC (x0 , −)p dµ
+we see that i∗ (µ) has finite moment of order p if µ does.
+(2) Let ν be a Radon probability measure on X with support included in C. It is straightforward to check that r(ν) is a Radon probability measure on C. Regarding the equality,
+for any Borel set B of X we have:
+i∗ (r(ν))(B) = r(ν)(B ∩ C) = ν(B ∩ C) = ν(B)
+with the last equality holding as ν is Radon and the support of ν is included in C.
+Finally, r(ν) has finite moment of order p if ν does, as, choosing x0 ∈ C, we have:
+Z
+Z
+Z
+dC (x0 , −)p d(r(ν)) = dX (x0 , −)p d(i∗ (r(ν))) = dX (x0 , −)p dν
+Lemma 2.5. Let C be a closed subset of a metric space X. Then
+
+6
+
+RADU MARDARE, PRAKASH PANANGADEN, AND GORDON D. PLOTKIN
+
+(1) For any Radon probability measures µ, ν on X with finite moments of order p we have:
+Wp (µ, ν) = Wp (i∗ (µ), i∗ (ν))
+(2) For any Radon probability measures µ, ν on X with finite moments of order p whose
+support is included in C, we have:
+Wp (µ, ν) = Wp (r(µ), r(ν))
+Proof. (1) Let γ be a coupling between µ and ν. Then (i × i)∗ (γ) is a coupling between i∗ (µ)
+and i∗ (ν), as (π0 )∗ ((i × i)∗ (γ)) = i∗ ((π0 )∗ (γ)) = i∗ (µ), and similarly for ν. We also have:
+Z
+Z
+p
+dX d((i × i)∗ γ) = dpC dγ
+As γ was chosen arbitrarily, we therefore have:
+Wp (µ, ν) ≥ Wp (i∗ (µ), i∗ (ν))
+For the reverse inequality, let γ be a coupling between i∗ (µ) and i∗ (ν). By Lemma 2.4.1,
+i∗ (µ) and i∗ (ν) are Radon. So, by Lemma 2.2, γ is also Radon. Also, supp(γ) ⊆ C × C,
+since supp(i∗ (µ)) ⊆ C and supp(i∗ (ν)) ⊆ C. So, by Lemma 2.4.2, r(γ) is a Radon
+probability measure on C 2 and γ = (i × i)∗ (r(γ)).
+Further, r(γ) is a coupling between µ and ν, for:
+r(γ)(B × C) =
+=
+=
+=
+=
+
+γ(B × C)
+γ((B × X) ∩ (C × C))
+γ(B × X) (as supp(γ) ⊆ C × C)
+µ(B)
+r(µ)(B)
+
+and similarly for ν. We then have:
+Z
+Z
+Z
+p
+p
+dX dγ = dX d((i × i)∗ (rγ)) = dpC d(rγ)
+As γ was chosen arbitrarily, we therefore have, as required:
+Wp (i∗ (µ), i∗ (ν)) ≥ Wp (µ, ν)
+(2) Using part (1), we have:
+Wp (µ, ν) = Wp (i∗ (r(µ)), i∗ (r(ν))) = Wp (r(µ), r(ν))
+With these technical lemmas established, we can now prove two theorems on spaces of
+Radon probability measures. For any metric space X and p ≥ 1, define Pp (X) to be the set
+of Radon probability measures on X with finite moments of order p, equipped with the Wp
+distance. For the first theorem we use the result in [4] that the triangle inequality holds for
+all probability measures if X is separable.
+Theorem 2.6. Let X be a metric space. Then Pp (X) is a metric space.
+Proof. First Wp (µ, µ) = 0 for any µ ∈ Pp (X) as ∆∗ µ, the pushforward of µ along the
+diagonal ∆ : X → X × X, is a coupling between µ and itself. For the converse, choose
+µ, ν ∈ Pp (X), and suppose Wp (µ, ν) = 0. Then W1 (µ, ν) = 0, as Wq is monotonic in q. It
+follows that µ = ν as W1 is a metric on P1 (X) (see, e.g., [5, 1]).
+Symmetry is evident. To show the triangle inequality, suppose that µ, ν, ω ∈ Pp (X).
+Let C be the closed set supp(µ) ∪ supp(ν) ∪ supp(ω), separable by Lemma 2.1. Then r(µ),
+
+FREE COMPLETE WASSERSTEIN ALGEBRAS
+
+7
+
+r(ν) and r(ω) are probability measures on the separable space C, and so by [4], we have
+Wp (r(µ), r(ω)) ≤ Wp (r(µ), r(ν)) + Wp (r(ν), r(ω)). Then, by Lemmas 2.5.2 and 2.4.2, we see
+that Wp (µ, ω) ≤ Wp (ν, ω) + Wp (ν, ω), as required.
+For the second theorem we use the result that the metric space of all probability measures
+with finite moments of order p on a complete and separable space is also complete and
+separable, being generated by the rational measures with finite support in a countable basis
+of the space.
+Theorem 2.7. Let X be a complete metric space. Then Pp (X) is a complete metric space
+generated by the finitely supported probability measures on X.
+Proof. To show that Pp (X)
+S is complete, let hµi ii be a Cauchy sequence in Pp (X). Let C be
+the closure in Pp (X) of i supp(µi ). By Lemma 2.1, each set supp(µi ) is separable, and so
+C is itself separable, being the closure of a countable union of separable sets. Further, C
+is complete as it is a closed subset of a complete space. So Pp (C) is complete. Applying
+Lemmas 2.4.2 and 2.5.2, we see that hr(µi )ii is a Cauchy sequence in Pp (C). Let µ be its
+limit there. As Lemma 2.5.1 shows that i∗ is an isometric embedding, we see that hi∗ (r(µi ))ii
+is a Cauchy sequence in Pp (C) with limit i∗ (µ). But, by Lemma 2.4.2, hi∗ (r(µi ))ii is hµi ii .
+To see that the finitely supported probability measures are dense in Pp (X), choose
+µ ∈ Pp (X) and ε > 0. Then, taking C to be the separable closed set supp(µ), we have
+r(µ) ∈ Pp (C). Then, as Pp (C) is generated by the rational measures with finite support,
+there is a finitely supported probability measure α ∈ Pp (C) at distance ≤ ε from r(µ), and
+so we see that i∗ (α) is at distance ≤ ε from µ. Finally, i∗ (α) is finitely supported as, by
+Lemma 2.4.1, it has the same support as α.
+It is interesting to consider how the different Wasserstein metrics generate the various
+Pp (X) starting from the same basis, i.e., the probability measures with finite support. As
+Wp is monotonic in p when p ≤ q, any sequence Cauchy in the Wq metric is also Cauchy in
+the Wp metric. So the difference must be that sequences of probability measures with finite
+support can be Cauchy in the Wp metric, but not in the Wq metric when p < q. Examples
+of this phenomenon can be found by building on Example 2.3:
+Example 2.8. Set
+
+0
+
+
+
+1
+ζ(q + 1)−1 nq+1
+P
+Dq,m (n) =
+1
+1 − ζ(q + 1)−1 m
+
+i=1 nq+1
+
+
+0
+
+(n = 0)
+(1 ≤ n ≤ m)
+(n = m + 1)
+(n > m + 1)
+
+Note that Dq,m and Dq agree for 1 ≤ n ≤ m, but the rest of the mass of Dq is concentrated
+on Dq,m at m + 1. Then the sequence Dq,m converges to Dq in the Wp metric when p < q,
+but is not Cauchy w.r.t. Wp when p = q.
+We pause our development to examine the topologies induced by the Wasserstein metrics.
+In the case of separable such spaces it is known that these metrics topologise a suitable
+notion of weak convergence, see [23, Theorem 7.12]. It turns out that we can again use our
+techniques and generalise these results to all complete metric spaces.
+Given a metric space X and probability measures µi (i ≥ 0) and µ on X, we say that
+the µi converge
+weakly
+R
+R to µ, and write µi −→ µ if, for all continuous bounded f : X → R,
+we have f dµi −→ f dµ; an equivalent formulation is that limi µi (U ) ≥ µ(U ) for every
+open set U (see [19, Theorem 6]).
+
+8
+
+RADU MARDARE, PRAKASH PANANGADEN, AND GORDON D. PLOTKIN
+
+Lemma 2.9. Let C ⊆ X be a closed subset of a metric space and let µi (i ≥ 0) and µ be
+probability measures on C. Then we have:
+µi −→ µ
+
+⇐⇒
+
+i∗ (µi ) −→ i∗ (µ)
+
+where ι : C → X is the inclusion map.
+Proof. We use the equivalent formulation of weak convergence in terms of measures of open
+sets. In one direction, suppose that µi −→ µ. Then i∗ (µi ) −→ i∗ (µ), since for every open
+subset U ⊆ X, and any probability measure ν on C, we have i∗ (ν)(U ) = ν(U ∩ X). In the
+other direction, suppose that i∗ (µi ) −→ i∗ (µ). Then µi −→ µ since for any open set U of C
+there is an open set V of X such that U = V ∩ C and then, for any probability measure ν
+on C, we have ν(U ) = i∗ (ν)(V ).
+Lemma 2.10. Let C be a separable closed subset of a complete metric space X, and let
+i : C → X be the inclusion map. Then, for any probability measures αi (i ≥ 0) and α on
+C, and any x0 ∈ C, the following are equivalent, and hold independently of the choice of
+x0 ∈ C:
+R
+R
+p
+p
+(1) i∗ (αi ) −→ i∗ (α)
+R and dX p(x0 , −) diR∗ (αi ) −→ pdX (x0 , −) di∗ (α).
+(2) αi −→ α and dC (x0 , −) dαi −→ dC (x0 , −) dα.
+(3) For all continuous functions f R: C → R such that |f (x)| ≤ c(1 + dC (x0 , x)p ) for all
+x ∈ C, for some c ∈ R, one has f dαi −→ f dα.
+(4) For all continuous functions f :RX → R such that |f (x)| ≤ c(1 + dX (x0 , x)p ) for all
+x ∈ X, for some c ∈ R, one has f di∗ (αi ) −→ f di∗ (α).
+Proof. As C is separable and complete, by [23, Theorem 7.12], (2) and (3) are equivalent. and
+hold independently of the choice of x0 ∈ C. As, further, (4) trivially implies (1), it suffices to
+prove that (1) implies (2) and (3) implies (4),Rfor any x0 ∈ C. The
+R first of these implications
+follows using Lemma 2.9 and the fact that dC (x0 , −)p dαi = dX (x0 , −)p di∗ (αi ), for all
+i ≥ 0, and similarly for α. For the second of these implications, one again uses Lemma 2.9
+and notes that if f : X → R is a continuous function such that |f (x)| ≤ c(1 + dX (x0 , x)p )
+for all x ∈ X, for some c ∈ R, then f i : C → R Ris a continuous
+R function such that
+|(f i)(x)| ≤ c(1 + dC (x0 , x)p ), for all X ∈ C and that f di∗ (αi ) = (f i)dαi , and similarly
+for α.
+Theorem 2.11. Let X be a complete metric space and choose µi (i ≥ 0) and µ in Pp (X).
+Then the following two conditions hold independently of the choice of x0 ∈ X and are
+equivalent:
+R
+R
+(1) µi −→ µ and d(x0 , −)p dµi −→ d(x0 , −)p dµ,
+p
+(2) For all continuous functions
+R f : X → R such that |f (x)| ≤ c(1 + d(x0 , x) ) for all x ∈ X,
+for some c ∈ R, one has f dµi −→ f dµ.
+Proof. First, choose a, b ∈ X. Next, choose a separable closed set C ⊆ X containing a and b
+and including the supports of the µi (i ≥ 0) and µ. Then, taking αi = r(µi ) (i ≥ 0) and
+α = r(µ) in Lemma 2.10, we see that (1) and (2) hold independently of the choice of x0 ∈ C
+(e.g., whether choosing a or b) and are equivalent for any such choice as µi = i∗ (αi ), for all
+i ≥ 0, and µ = i∗ (α). As a and b were chosen arbitrarily from X, the conclusion follows.
+If either of the two equivalent conditions of Theorem 2.11 hold for µi (i ≥ 0) and µ in
+Pp (X) and any choice of x0 ∈ X, where X is a complete metric space, we say that the µi
+converge p-weakly to µ, and write µi −→p µ.
+
+FREE COMPLETE WASSERSTEIN ALGEBRAS
+
+9
+
+Theorem 2.12. For any complete metric space X, the Wasserstein distance Wp metricises
+p-weak convergence in Pp (X).
+Proof. Choose µi (i ≥ 0) and µ in Pp (X) to show that µi −→p µ iff µi converges to µ
+w.r.t. the Wasserstein distance Wp in X. To this end, let C ⊆ X be a closed separable set
+containing the supports of the µi and µ (and so necessarily nonempty), and set αi = r(µi )
+and α = r(µ) and let x0 be an element of C. By [24, Theorem 6.9] we have that αi −→p α
+iff αi converges to α w.r.t. the Wasserstein distance Wp in C. So it suffices to show (i) that
+µi −→p µ iff αi −→p α, and (ii) that µi converges to µ w.r.t. the Wasserstein distance Wp
+in X iff αi converges to α w.r.t. the Wasserstein distance Wp in C.
+That (i) holds follows from the definition of p-weak convergence and the equivalence
+between parts (1) and (2) of Lemma 2.10 applied to the αi , α, and x0 . That (ii) holds follows
+from the fact that, by Lemma 2.5.1, the inclusion of C in X is an isometric embedding.
+
+3. Wasserstein algebras
+We begin with an account of barycentric algebras. We then move on to quantitative algebras,
+by which we mean algebras over metric spaces. After some general considerations on these
+we move on to Wasserstein algebras of order p, and our main theorem, characterising the
+Wasserstein monads Pp .
+A barycentric algebra (or abstract convex set) is a set X equipped with binary operations
++r for every real number r ∈ [0, 1] such that the following equational laws hold:
+x +1 y = x
+
+(B1)
+
+x +r x = x
+
+(B2)
+
+x +r y = y +1−r x
+
+(SC)
+
+(x +p y) +r z = x +pr (y + r−pr z)
+
+provided r < 1, p < 1
+
+(SA)
+
+1−pr
+
+SC stands for skew commutativity and SA for skew associativity. Homomorphisms of
+barycentric algebras are termed affine.
+One can inductively define finite convex sums in a barycentric algebra by:
+n
+n
+X
+X
+ri
+ri xi = x1 +r1
+xi
+1 − r1
+i=1
+
+i=2
+
+for n > 2, r1 6= 1, with the other cases being evident. Note that affine maps preserve such
+finite convex sums. Finite convex sums have been axiomatised as convex spaces (or convex
+algebras) where the sums are required to obey the projection axioims:
+n
+X
+δik xi = xk
+i=1
+
+where δik is the Kronecker symbol, and the barycentre axioms:
+n
+m
+m
+n
+X
+X
+X
+ X
+
+ri
+sik xk =
+ri sik xk
+i=1
+
+k=1
+
+k=1
+
+i=1
+
+With the above definition of finite sums, barycentric algebras form convex spaces, and indeed
+the two categories of algebras are equivalent under this correspondence.
+
+10
+
+RADU MARDARE, PRAKASH PANANGADEN, AND GORDON D. PLOTKIN
+
+Probability measures on a measurable space, and subclasses of them, naturally form
+barycentric algebras under the standard binary pointwise convex combination operations:
+(µ +r ν)(B) = rµ(B) + (1 − r)ν(B)
+In particular, for any set X, the barycentric algebra Pf (X) of probability measures over X
+with finite support is the free barycentric algebra over X, with universal arrow the Dirac
+delta function (see [18, 20]); if f : X → B is a map to a barycentric algebra B, then the
+unique extension of f : X → B along δ is given by:
+X
+µ(s)f (s)
+f (µ) =
+s∈supp(µ)
+
+Barycentric algebras originate with the work of M.H. Stone in [21], and convex spaces with
+that of T. Šwirszcz in [22]. For further bibliographic references and historical discussion, see,
+e.g., [14].
+Turning to quantitative algebras, we work with the category of metric spaces and
+nonexpansive maps, and its subcategory of complete metric spaces. These categories have
+all finite products with the one-point metric space as the final object and with the max
+metric on binary products X × Y , where:
+dX×Y (hx, yi, hx0 , y 0 i) = max{dX (x, x0 ), dY (y, y 0 )}
+We remark that nonexpansive maps are continuous.
+A finitary signature Σ is a collection of operation symbols f and an assignment of
+an arity n ∈ N to each; given such a signature, we write f : n to indicate that f is an
+operation symbol of arity n. A (metric space) quantitative Σ-algebra (X, fX (f ∈ Σ)) is then
+a metric space X equipped with a nonexpansive function fX : X n → X for each operation
+symbol f : n. We often omit the suffix on the operation symbol and also confuse the metric
+space with the algebra. A homomorphism h : X → Y of Σ-algebras is a nonexpansive map
+h : X → Y such that for all f : n and x1 , . . . , xn ∈ X we have:
+h(fX (x1 , . . . , xn )) = fY (h(x1 ), . . . , h(xn ))
+This defines a category of quantitative Σ-algebras and homomorphisms; it has an evident
+subcategory of complete quantitative Σ-algebras.
+For any p ≥ 1, a Wasserstein (barycentric) algebra of order p is a quantitative algebra
+(X, +r : X 2 → X (r ∈ [0, 1])) forming a barycentric algebra such that for all x, x0 , y, y 0 ∈ X
+we have:
+d(x +r y, x0 +r y 0 )p ≤ rd(x, x0 )p + (1 − r)d(y, y 0 )p
+(∗)
+We remark that the hypothesis of non-expansiveness of the +r is redundant as, setting
+m = max{d(x, x0 ), d(y, y 0 )}
+we have:
+
+d(x +r y, x0 +r y 0 ) ≤ (rd(x, x0 )p + (1 − r)d(y, y 0 )p )1/p
+≤ (rmp + (1 − r)mp )1/p
+= m
+We gather some other remarks about convex combinations. Recollect that a function
+f : X → Y between metric spaces is α-Hölder continuous if, for all x, y ∈ X, we have
+d(f x, f y) ≤ M d(x, y)α for some constant M .
+Lemma 3.1. Let (X, +r (r ∈ [0, 1])) be a Wasserstein algebra of order p. Then:
+
+FREE COMPLETE WASSERSTEIN ALGEBRAS
+
+11
+
+(1) The functions +r are r1/p -Lipschitz in their first argument and (1 − r)1/p -Lipschitz in
+their second argument.
+(2) Considered as a function of r, x +r y is 1/p-Hölder continuous.
+(3) The following generalisation of equation (∗) to finite convex sums holds:
+P
+P
+Pn
+0 p
+d( ni=1 ri xi , ni=1 ri x0i )p ≤
+i=1 ri d(xi , xi )
+Proof. (1) Taking y = y 0 (x = x0 ) in (∗) we respectively obtain:
+d(x +r y, x0 +r y) ≤ r1/p d(x, x0 )
+
+and d(x +r y, x +r y 0 ) ≤ (1 − r)1/p d(y, y 0 )
+
+as required.
+(2) Fix x, y ∈ X and choose r, s ∈ [0, 1]. Suppose that s ≤ r and set e = r − s. Assuming
+e 6= 1, we have
+x +r y = x +e (x +s/1−e y) and x +s y = y +e (x +s/1−e y)
+So by part 1 we have
+d(x +r y, x +s y) ≤ e1/p d(x, y)
+This also holds when e = 1 as then r = 1 and s = 0. As e = d(r, s), we therefore have:
+d(x +r y, x +s y) ≤ d(x, y)d(r, s)1/p
+By symmetry this also holds when r ≤ s. As p ≥ 1, 0 < 1/p ≤ 1, so, as a function of r,
+x +r y is 1/p-Hölder continuous, as required.
+(3) This is a straightforward induction.
+For any metric space X, we turn Pp (X) into a barycentric algebra by equipping it with
+the standard convex combination operations. It is evident that µ +r ν has finite moment of
+order p if µ and ν do.
+Lemma 3.2. For any metric space X, Pp (X) forms a Wasserstein algebra of order p.
+Proof. We need only show that for any µ, µ0 , ν, ν 0 ∈ Pp (X) and r ∈ [0, 1] we have:
+Wp (µ +r ν, µ0 +r ν 0 )p ≤ rWp (µ, µ0 )p + (1 − r)Wp (ν, ν 0 )p
+(recalling that theWasserstein condition implies nonexpansivness of the operations). To
+this end, choose µ, µ0 , ν, ν 0 ∈ Pp (X). Let α be a coupling between µ and µ0 and let β be a
+coupling between ν and ν 0 . Then α +r β is a coupling between µ +r ν and µ0 +r ν 0 , and we
+have:
+R p
+R p
+R
+dX d(α +r β) =
+dX dα +r dpX dβ
+The conclusion then follows, as we have:
+
+R
+Wp (µ +r ν, µ0 +r ν 0 )p = inf γ RdpX dγ
+
+≤ inf α,β R dpX d(α +rRβ)
+
+= inf α,βR dpX dα
++r dpX dβ
+
+
+R
+= inf α
+dpX dα +r inf β
+dpX dβ
+= Wp (µ, ν)p +r Wp (µ0 , ν 0 )p
+We next turn to characterising the free Wasserstein algebras of order p. For any metric
+space X, let Fp (X) be the sub-Wasserstein algebra of order p of Pp that consists of the
+finitely supported probability measures.
+Theorem 3.3. For any metric space X, Fp (X) is the free Wasserstein algebra of order p
+over X, with universal arrow the Dirac delta function δ : X → Fp (X).
+
+12
+
+RADU MARDARE, PRAKASH PANANGADEN, AND GORDON D. PLOTKIN
+
+Proof. First, δ : X → Fp (X) is an isometric embedding, since, for any x, y ∈ X, the only
+coupling between δ(x) and δ(y) is δ(hx, yi), and so we have:
+Wp (δ(x)), δ(y)) = (d(x, y)p )1/p = d(x, y)
+Next, let f : X → W be any nonexpansive affine map to a Wasserstein algebra B of
+order p. As a set, Fp (X) is the free barycentric algebra over X with unit the Dirac function,
+and the unique affine map f : Fp (X) → W extending f along the unit is given by the
+formula:
+X
+µ(s)f (s)
+f (µ) =
+s∈supp(µ)
+
+So it only remains to show that f is nonexpansive. Let µ, ν be finitely supported probability
+measures with respective finite non-empty supports S and T . Let γ be a coupling between
+them. Then γ has support ⊆ S × T . Consequently we can write it as a convex sum, as
+follows:
+X
+γ=
+γ(hs, ti)δ(hs, ti)
+s∈S,t∈T
+
+As µ and ν are the marginals of γ, we have:
+X
+µ=
+γ(hs, ti)δ(s) and ν =
+s∈S,t∈T
+
+X
+
+γ(hs, ti)δ(t)
+
+s∈S,t∈T
+
+We can now calculate:
+P
+P
+d(f (µ), f (ν)) = d(f ( s∈S,t∈T γ(hs, ti)δ(s)), f ( s∈S,t∈T γ(hs, ti)δ(t)))
+P
+P
+= d( s∈S,t∈T γ(hs, ti)f (δ(s)), s∈S,t∈T γ(hs, ti)f (δ(t)))
+P
+P
+= d( s∈S,t∈T γ(hs, ti)f (s), ( s∈S,t∈T γ(hs, ti)f (t))
+(as f = f δ)
+P
+1/p
+p
+≤
+s∈S,t∈T γ(hs, ti)d(f (s), f (t))
+(by Lemma 3.1.3)
+1/p
+P
+p
+≤
+s∈S,t∈T γ(hs, ti)d(s, t)
+(as f is nonexpansive)
+R p 1/p
+=
+dX dγ
+As γ was an arbitrary coupling between µ and ν we therefore have
+d(f (µ), f (ν)) ≤ Wp (µ, ν)
+as required.
+To characterise the free complete Wasserstein algebras of order p, we need two lemmas,
+one on the completion of metric spaces, and the other on the completion of quantitative
+Σ-algebras. The usual completion X of a metric space X by equivalence classes [x] of Cauchy
+sequences is the free complete metric space over X, with universal arrow the isometric
+embedding cX : X → X, where cX (x) = [hxin∈N ]. That is, for any complete metric space Y
+and nonexpansive function f : X → Y there is a unique nonexpansive function f : X → Y
+extending f along cX . This function is given by the formula:
+f ([x]) = lim f (xn )
+n
+
+FREE COMPLETE WASSERSTEIN ALGEBRAS
+
+13
+
+There is a simple criterion for when an isometric embedding of a metric space in another is
+a universal arrow:
+Lemma 3.4. Let θ : X → Y be an isometric embedding of metric spaces with Y complete,
+and θ(X) generating Y . Then Y is the free complete metric space over X, with universal
+arrow θ.
+Proof. We can assume without loss of generality that θ is an inclusion mapping. We show
+that θ is an isometry. To show it is onto, choose y ∈ Y . As X generates Y , y is a limit of
+some Cauchy sequence x in X and we have
+θ([x]) = lim θ(xn ) = lim xn = y
+n
+
+n
+
+as required.
+To show θ preserves distances, we calculate:
+d(θ([x]), θ([y]) = d(lim xn , lim yn ) = lim d(xn , yn ) = d([x], [y])
+n
+
+n
+
+n
+
+So θ is indeed an isometry. It follows that θ is a universal arrow as cX is, and we are
+done.
+The criterion of Lemma 3.4 extends to Σ-algebras:
+Lemma 3.5. Let X, Y be quantitative Σ-algebras and let θ : X → Y be both an algebra
+homomorphism and an isometric embedding. Suppose that Y is complete as a metric space,
+and θ(X) generates Y as a metric space. Then Y is the free complete quantitative Σ-algebra
+over X, with universal arrow θ.
+Proof. We can assume without loss of generality that θ is an inclusion mapping. Let
+h : X → Z be any nonexpansive homomorphism from X to a complete quantitative algebra
+Z. By Lemma 1, h extends to a unique nonexpansive map h : Y → Z, and we only have to
+show that this is a homomorphism. Taking a binary operation f as an example, let x, y be
+in Y . As X generates Y as a metric space there are Cauchy sequences x and y in X with
+respective limits x and y, and we calculate:
+h(fY (x, y)) =
+=
+=
+=
+=
+=
+=
+=
+=
+=
+
+h(fY (limn xn , limn yn ))
+h(limn fY (xn , yn ))
+limn h(fY (xn , yn ))
+limn h(fX (xn , yn ))
+limn h(fX (xn , yn ))
+limn fZ (h(xn ), h(yn ))
+fZ (limn h(xn ), limn h(yn ))
+fZ (limn h(xn ), limn h(yn ))
+fZ (h(limn xn ), h(limn yn ))
+fZ (h(x), h(y))
+
+We can now prove our main theorem on free complete Wasserstein algebras of order p:
+Theorem 3.6. For any complete metric space X, Pp (X) is the free complete Wasserstein
+algebra of order p over X, with universal arrow the Dirac delta function.
+Proof. Theorem 2.7 and Lemma 3.2 tell us that Pp (X) is a complete Wasserstein algebra of
+order p. It therefore remains to prove it is the free one over X, with unit the Dirac delta
+function.
+
+14
+
+RADU MARDARE, PRAKASH PANANGADEN, AND GORDON D. PLOTKIN
+
+First, by Theorem 3.3, Fp (X) is the free Wasserstein algebra of order p over X, with
+universal arrow the Dirac function.
+Second, Pp (X) is the free complete Wasserstein algebra of order p over Fp (X), with
+universal arrow the inclusion. To see this, first note that Fp (X) is a sub-quantitative algebra
+of Pp (X) that, by Theorem 2.7, generates Pp (X), So, by Lemma 3.5, Pp (X) is the free
+complete quantitative algebra with signature the +r over Fp (X), with universal arrow the
+inclusion. It is therefore, in particular, the free complete Wasserstein algebra of order p over
+Fp (X), with universal arrow the inclusion.
+Combining these two free algebra assertions, we see that, as required, Pp (X) is the
+free complete Wasserstein algebra of order p over X, with universal arrow the Dirac delta
+function.
+There is a disconnect between the present work and that in [17] where extended metrics
+are used. We sketch the straightforward extension of the above freeness results to extended
+metric spaces. An extended metric is a function d : X 2 → R+ to the extended reals, defined in
+the usual way, but using the natural extension of addition to R+ , where x + ∞ = ∞ + x = ∞
+and the natural extension of the order where x ≤ ∞; see [3] for information on such spaces.
+The topology on an extended metric space (X, d) is defined in the usual way using open
+balls. Nonexpansive functions are defined in the usual way, and are continuous. Cauchy
+sequences are defined in the usual way, as are then complete extended metric spaces. The
+completion of an extended metric space is defined as usual and the function cX : X → X so
+obtained is an isometry and is universal.
+The analogue of Lemma 3.4 then goes through, with the same proof, as does that of
+Lemma 3.5, with the evident definitions of quantitative Σ-algebras over extended metric
+spaces and their homomorphisms. Next, the Wasserstein algebras of order p over an extended
+metric space are also defined as before, and the extension of Lemma 3.2 to extended metric
+spaces then goes through, with the same proofs, as do the following extensions of Theorems 3.3
+and 3.6:
+Theorem 3.7. For any metric space X, Fp (X) is the free extended metric Wasserstein
+algebra of order p over X, with universal arrow the Dirac delta function δ : X → Fp (X).
+Theorem 3.8. For any complete metric space X, Pp (X) is the free complete extended metric
+Wasserstein algebra of order p over X, with universal arrow the Dirac delta function.
+We remark that in [17] the Wasserstein algebras of order p are axiomatised using
+quantitative equational logic. This logic makes use of quantitative equations, which have
+the form t =r u, where t and u are terms built as usual from a finitary signature, and
+r ∈ [0, 1]. If t and u denote elements a and b of an extended metric space X, then t =r u
+holds if, and only if, dX (a, b) ≤ r. The following axiom scheme of quantitative equational
+logic axiomatises the Wasserstein algebras of order p:
+x =q1 y, x0 =q2 y 0 ` x +r x0 =e y +r y 0
+where q1 , q2 , q, e range over rationals in [0, 1] such that rq1p + (1 − r)q2p ≤ ep .
+Our discussion has been in terms of barycentric algebras, but, as common in algebra,
+other axiomatisations are possible. As an immediate example, noting that the categories
+of barycentric algebras and convex spaces are equivalent, let us define Wasserstein convex
+spaces of order p to be quantitative convex spaces which obey the natural Wasserstein
+
+FREE COMPLETE WASSERSTEIN ALGEBRAS
+
+15
+
+condition of order p for convex spaces, viz that, for all n ≥ 1 we have:
+P
+P
+Pn
+0 p
+d( ni=1 ri xi , ni=1 ri x0i )p ≤
+i=1 ri d(xi , xi )
+Then the categories of Wasserstein barycentric algebras of order of p and Wasserstein convex
+spaces of order of p are equivalent, as are their subcategories of algebras over complete metric
+spaces. One then immediately obtains from the above work characterising free Wasserstein
+barycentric algebras of order of p corresponding results characterising free Wasserstein
+convex spaces of order of p.
+The situation is more complex if we consider instead midpoint (or mean-value or medial
+mean) algebras, see, e.g., [15, 9]. These algebras are the commutative, idempotent, medial
+groupoids. That is, they have a binary operation, which we write as ⊕, subject to the
+following laws:
+x⊕y =y⊕x
+
+(C)
+
+x⊕x=x
+
+(I)
+
+(x ⊕ u) ⊕ (v ⊕ z) = (x ⊕ v) ⊕ (u ⊕ z)
+
+(M)
+
+One can define binary convex combinations x +r y in these algebras where r ≤ 1 is a dyadic
+fraction (i.e., one of the form 2mn ), and they obey analogues of the barycentric axioms. The
+free such algebra over a set consists of all finite probability distributions with dyadic weights,
+see [11, Theorems 2.14 and 2.15].
+Every barycentric algebra evidently yields a midpoint algebra by setting x ⊕ y = x +0.5 y,
+and we then have a full and faithful functor to the category of midpoint algebras, which acts
+as the identity on morphisms; however it is not an equivalence of categories, as not every
+midpoint algebra can be extended to a barycentric algebra with the same carrier 1.
+The situation changes when we move to quantitative algebras. Define Wasserstein
+midpoint algebras of order p to be quantitative midpoint algebras which satisfy the condition
+d(x ⊕ y, x0 ⊕ y 0 )p ≤ d(x, x0 )p ⊕ d(y, y 0 )p
+Then, following the argument of Theorem 3.3, we see that, for any metric space X, Fp (X),
+with its natural midpoint algebra structure, is the free Wasserstein midpoint algebra of order
+p over X. Next, note that, for complete X, Pp (X) is even generated by the finite probability
+distributions with dyadic fractional weights, as, by Lemma, x +r y is Hölder continuous in r,
+and so, if a sequence rn in [0, 1] converges to r, then the sequence x +rn y is Cauchy and
+converges to x +r y. With that, now following the argument of Theorem 3.6, we see that
+Pp (X) forms the free complete Wasserstein midpoint algebra of order p over X.
+The construction of midpoint algebras from barycentric algebras yields a full and faithful
+functor from the category of Wasserstein barycentric algebras of order p over complete metric
+spaces to Wasserstein midpoint algebras of order p over complete metric spaces. We now
+sketch a proof that this is in fact an equivalence of categories. It suffices to show that every
+complete Wasserstein midpoint algebra of order p can be extended to a complete Wasserstein
+barycentric algebra of order p with the same carrier. Let A be such a midpoint algebra.
+1The free midpoint algebra over two generators (a and b, say) cannot be so extended. It consists of all
+
+formal dyadic fractional convex combinations of a and b. If, for the sake of contradiction, there was such an
+extension then we would have a +r b = a +s b for some r and s with r not a dyadic fraction and s a dyadic
+fraction. But, according to a lemma of Neumann (see [18, Lemma 4]), if the equation a +r b = a +s b holds
+for two different r, s ∈ (0, 1) in a barycentric algebra, then it holds for all different r, s ∈ (0, 1) in that algebra.
+So, in our case, taking r, s ∈ (0, 1) to be two different dyadic fractions we obtain the desired contradiction.
+
+16
+
+RADU MARDARE, PRAKASH PANANGADEN, AND GORDON D. PLOTKIN
+
+There is a unique nonexpansive morphism h : Pp (A) → A of Wasserstein midpoint algebras
+of order p extending the identity on A along the unit. Using this, one inherits the Hölder
+continuity of +r on A, for dyadic r from that on Pp (A). Then one can define x +r y ∈ A
+for x, y ∈ A as the limit of the sequence x +rn y where rn is a chosen sequence of dyadic
+fractions converging to r, noting that the sequence x +rn y is Cauchy by Hölder continuity.
+References
+[1] G. Basso, A Hitchhiker’s guide to Wasserstein distances, available at: http://n.ethz.ch/~gbasso/, 2015.
+[2] F. van Breugel, The metric monad for probabilistic nondeterminism, Unpublished note, available at
+http://www.cse.yorku.ca/~franck/research/drafts/monad.pdf, 2005.
+[3] D. Burago, Y.D. Burago, and S. Ivanov, A course in metric geometry, Vol. 33, American Mathematical
+Society, 2001.
+[4] P. Clement and W. Desch, An elementary proof of the triangle inequality for the Wasserstein metric,
+Proceedings of the American Mathematical Society, 136(1), 333–339, 2008.
+[5] D.E. Edwards, A simple proof in Monge-Kantorovich duality theory, Studia Math., 200(1), 67–77, 2010.
+[6] T. Fritz and P. Perrone, A Probability Monad as the Colimit of Finite Powers, arXiv: 1712.05363, 2017.
+[7] D.H. Fremlin, Measure Theory, Volume 4: Topological Measure Spaces, Torres Fremlin, 2006.
+[8] M. Giry, A categorical approach to probability theory, Categorical aspects of topology and analysis, Lecture
+Notes in Mathematics, Vol. 915, 68–85, Springer, 1982.
+[9] R. Heckmann, Probabilistic domains, Proc. 19th. International Colloquium on Trees in Algebra and
+Programming, Lecture Notes in Computer Science, Vol. 787, 142–156, Springer, 1994.
+[10] C. Heunen, O. Kammar, S. Staton, and H. Yang, A convenient category for higher-order probability
+theory, Proc. 32nd. Annual Symposium on Logic in Computer Science, 1–12, IEEE, 2017.
+[11] J. Ježek and T. Kepka, Free commutative idempotent abelian groupoids and quasigroups, Acta Universitatis Carolinae, Mathematica et Physica, 17(2), 13–19, 1976.
+[12] C. Jones, Probabilistic non-determinism, Ph.D. Thesis, Department of Computer Science, The University
+of Edinburgh, 197 pages, available at https://www.era.lib.ed.ac.uk/handle/1842/413, 1990.
+[13] C. Jones and G.D. Plotkin, A probabilistic powerdomain of evaluations, Proc. 4th. Annual Symposium
+on Logic in Computer Science, pp. 186–195, IEEE, 1989.
+[14] K. Keimel and G.D. Plotkin, Mixed powerdomains for probability and nondeterminism, Logical Methods
+in Computer Science, 13(1:2), 1–84, 2017.
+[15] S. Kermit, Cancellative medial means are arithmetic, Duke Math J., 37, 439–445,1970.
+[16] F.W. Lawvere, The category of probabilistic mappings, Preprint, available at https://ncatlab.org/
+nlab/files/lawvereprobability1962.pdf, 1962.
+[17] R. Mardare, P. Panangaden, and G.D. Plotkin, Quantitative Algebraic Reasoning, Proc. 31st Annual
+Symposium on Logic in Computer Science, 700–709, 2016.
+[18] W.D. Neumann, On the quasivariety of convex subsets of affine spaces, Archiv der Mathematik, 21:11–16,
+1970.
+[19] K.R. Parthasarathy, Probability measures on metric spaces, Academic Press, 1967.
+[20] A.B. Romanowska and J.D.H. Smith, Modes, World Scientific, Singapore, 2002.
+[21] M.H. Stone, Postulates for the barycentric calculus, Annali di Matematica Pura ed Applicada, Serie IV,
+29, 25–30, 1942.
+[22] T. Šwirszcz, Monadic functors and convexity, emphBulletin de l’Académie Polonaise des Sciences, Ser.
+Sci. Math. Astronom. Phys, 22, 39–42, 1974.
+[23] C. Villani, Topics in optimal transportation, Vol. 58 of Graduate Studies in Mathematics, American
+Mathematical Society, 2003.
+[24] C. Villani, Optimal transport: old and new, Vol. 338, Springer Science & Business Media, 2008.
+
+This work is licensed under the Creative Commons Attribution License. To view a copy of this
+license, visit https://creativecommons.org/licenses/by/4.0/ or send a letter to Creative
+Commons, 171 Second St, Suite 300, San Francisco, CA 94105, USA, or Eisenacher Strasse
+2, 10777 Berlin, Germany
+
+

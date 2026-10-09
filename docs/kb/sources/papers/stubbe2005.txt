@@ -1,0 +1,2865 @@
+Categorical structures enriched in a quantaloid:
+categories, distributors and functors
+
+arXiv:math/0409473v1 [math.CT] 24 Sep 2004
+
+Isar Stubbe∗
+May 10, 2004
+
+Abstract
+We thoroughly treat several familiar and less familiar definitions and results
+concerning categories, functors and distributors enriched in a base quantaloid
+Q. In analogy with V-category theory we discuss such things as adjoint functors, (pointwise) left Kan extensions, weighted (co)limits, presheaves and free
+(co)completion, Cauchy completion and Morita equivalence. With an appendix
+on the universality of the quantaloid Dist(Q) of Q-enriched categories and distributors.
+
+1
+
+Introduction
+
+The theory of categories enriched in a symmetric monoidal closed category V is, by
+now, well known [Bénabou, 1963, 1965; Eilenberg and Kelly, 1966; Lawvere, 1973;
+Kelly, 1982]. For such a V with “enough” (co)limits the theory of V-categories,
+distributors and functors can be pushed as far as needed: it includes such things as
+(weighted) (co)limits in a V-category, V-presheaves on a V-category, Kan extensions
+of enriched functors, Morita theory for V-categories, and so on.
+Monoidal categories are precisely one-object bicategories [Bénabou, 1967]. It is
+thus natural to ask in how far V-category theory can be generalized to W-category
+theory, for W a general bicategory. But, whereas in V-category theory one usually
+assumes the symmetry of the tensor in V (which is essential to show that V is itself a
+V-category with hom-objects given by the right adjoint to tensoring), in working over
+a general bicategory W we will have to sacrifice this symmetry: tensoring objects
+in V corresponds to composing morphisms in W and in general it simply does not
+make sense for the composition g ◦ f of two arrows f, g to be “symmetric”.
+On the other hand, we can successfully translate the notion of closedness of a
+monoidal category V to the more general setting of a bicategory W: ask that, for
+∗
+
+Département de Mathématique, Université de Louvain, Chemin du Cyclotron 2, 1348 Louvainla-Neuve (Belgique), i.stubbe@math.ucl.ac.be.
+
+1
+
+any object X of W and any arrow f : A
+
+/ B in W, both functors
+
+− ◦ f : W(B, X)
+
+/ W(A, X) : x 7→ x ◦ f,
+
+(1)
+
+f ◦ − : W(X, A)
+
+/ W(X, B) : x 7→ f ◦ x
+
+(2)
+
+{f, −} : W(A, X)
+
+/ W(B, X) : y 7→ {f, y},
+
+(3)
+
+[f, −] : W(X, B)
+
+/ W(X, A) : y 7→ [f, y].
+
+(4)
+
+have respective right adjoints
+
+Such a bicategory W is said to be closed. Some call an arrow such as {f, y} a (right)
+extension and [f, y] a (right) lifting (of y through f ).
+Finally, by saying that V has “enough limits and colimits” is in practice often
+meant that V has small limits and small colimits. In a bicategory W the analogue is
+straightforward: now ask for W to have in its hom-categories small limits and small
+colimits (i.e. W is locally complete and cocomplete).
+So, to summarize, when trying to develop category theory over a base bicategory
+W rather than a base monoidal category V, it seems reasonable to work with a base
+bicategory which is closed, locally complete and locally cocomplete. Note that in
+such a bicategory W, due to its closedness, composition always distributes on both
+sides over colimits of morphisms:
+f ◦ (colimi∈I gi ) ∼
+= colimi∈I (f ◦ gi ),
+(colimj∈J fj ) ◦ g ∼
+= colimj∈J (fj ◦ g).
+
+(5)
+(6)
+
+That is to say, the local colimits are stable under composition. (But this does not
+hold in general for local limits!)
+We will focus on a special case of these closed, locally complete and locally cocomplete bicategories: namely, we study such bicategories whose hom-categories are
+moreover small and skeletal. Thus the hom-categories are simply complete lattices.
+We will write the local structure as an order, and local limits and colimits of morphisms as their infimum, resp. supremum—so for arrows with same domain and
+V
+W
+codomain we have things like f ≤ f ′ , i∈I fi , j∈J gj , etc. In particular (5) and (6)
+become
+W
+W
+f ◦ ( i gi ) = i (f ◦ gi ),
+W
+W
+( j fj ) ◦ g = j (fj ◦ g).
+
+(7)
+(8)
+
+The adjoint functor theorem says that the existence of the adjoints (3) and (4)
+to the composition functors (1) and (2) (not only implies but also) is implied by
+their distributing over suprema of morphisms as in (7) and (8). Such bicategories
+– whose hom-categories are complete lattices and whose composition distributes on
+both sides over arbitrary suprema – are called quantaloids. A one-object quantaloid
+2
+
+is a quantale1 . So a quantaloid Q is a Sup-enriched category (and a quantale is
+monoid in Sup).
+We will argue below that “V-category theory” can be generalized to “Q-category
+theory”, where now Q denotes a quantaloid. This is a particular case of the theory
+of “W-category theory” as pioneered by [Bénabou, 1967; Walters, 1981; Street,
+1983a]. But we feel that this particular case is also of particular interest: many
+examples of bicategory-enriched categories are really quantaloid-enriched. In our
+further study of categorical structures enriched in a quantaloid we rely heavily on
+the basic theory of Q-categories, distributors and functors; however, often we could
+not find an appropriate reference for one or another basic fact. With this text we
+wish to provide such a reference.
+A first further study, in [Stubbe, 2004a], is concerned with “variation and enrichement”, in the sense of [Betti et al., 1983; Gordon and Power, 1997, 1999]. This
+is a development of the notion of weighted colimit in a Q-enriched category; in particular, a tensored and cotensored Q-category has all weighted colimits (as in section
+5 below) if and only if it has all conical colimits, if and only if its underlying order
+has suprema of objects of the same type. This allows for a detailed analysis of the
+biequivalence between Q-modules and cocomplete Q-categories.
+The subject of [Stubbe, 2004b] is that of presheaves on Q-semicategories (“categories without units”), along the lines of [Moens et al., 2002]; it generalizes the
+theory of regular modules on rings without units. The point is that certain “good
+properties” of the Yoneda embedding for Q-categories (see section 6 below) are no
+longer valid for Q-semicategories—for example, a presheaf on a Q-semicategory is
+not canonically the weighted colimit of representables. Enforcing precisely this latter condition defines what is called a “regular presheaf” on a Q-semicategory; there
+is an interesting theory of “regular Q-semicategories”.
+[Borceux and Cruciani, 1998] gives an elementary description of ordered objects
+in the topos of sheaves on a locale Ω. This turns out to be all about enriched Ωsemicategories that admit an appropriate Cauchy completion. In [Stubbe, 2004c] we
+describe more generally the theory of Q-semicategories that admit a well-behaved
+Cauchy completion, that we want to call “Q-orders” (based on the material in section
+7). Such Q-orders can equivalently be described as categories enriched in the splitidempotent completion of Q, and so provide a “missing link” between [Walters, 1981]
+and [Borceux and Cruciani, 1998].
+1
+
+It was C. Mulvey [1986] who introduced the word ‘quantale’ in his work on (non-commutative)
+C -algebras as a contraction of ‘quantum’ and ‘locale’.
+∗
+
+3
+
+2
+
+Quantaloids
+
+A sup-lattice is an antisymmetrically ordered set2 (X, ≤) for which every subset
+W
+X ′ ⊆ X has a supremum X ′ in X. A morphism of sup-lattices f : (X, ≤) / (Y, ≤)
+/ Y that preserves arbitrary suprema. It is well-known that supis a map f : X
+lattices and sup-morphisms constitute a symmetric monoidal closed category Sup.
+
+Definition 2.1 A quantaloid Q is a Sup-enriched category.
+F : Q / Q′ of quantaloids is a Sup-enriched functor.
+
+A homomorphism
+
+In principle we don’t mind a quantaloid having a proper class of objects. Thus quantaloids and homomorphisms form an illegitimate category QUANT; small quantaloids define a (true) subcategory Quant. A quantaloid with one object is often thought
+of as a monoid in Sup, and is called a quantale.
+In elementary terms, a quantaloid Q is a category whose hom-sets are actually
+sup-lattices, in which composition distributes on both sides over arbitrary suprema
+of morphisms. In the same vein, a homomorphism F : Q / Q′ is a functor of (the
+underlying) categories that preserves arbitrary suprema of morphisms.
+/ C, (hi : X
+/Y)
+For arrows f : A / B, g: B
+in a quantaloid Q we use notaW i∈I
+/
+/ Y and hi ≤ hj : X
+/
+/ Y for
+C for composition, and i hi : X
+tions like g ◦ f : A
+its local structure; Q(A, B) is the hom-lattice of arrows from A to B. The identity
+arrow on an object A ∈ Q is written 1A : A / A. The bottom element of a suplattice Q(A, B) will typically be denoted by 0A,B . With these notations for identity
+and bottom, we can write a “Kronecker delta”
+(
+1A : A / A
+if A = B,
+δA,B : A / B =
+/
+B otherwise.
+0A,B : A
+As we may consider Sup to be a “simplified version of Cat”, we may regard
+quantaloids as “simplified bicategories”. Notably, a quantaloid Q has small homcategories with stable local colimits, and therefore it is closed. Considering mor/ C we note the respective adjoints to composition in
+phisms f : A / B and g: B
+Q as − ◦ f ⊣ {f, −} and g ◦ − ⊣ [g, −]; that is to say, for any h: A / C we have that
+g ◦ f ≤ h iff ≤ [g, h] iff g ≤ {f, h}. Note furthermore that every diagram of 2-cells
+in a quantaloid trivially commutes.
+There are a couple of lemmas involving [−, −] and {−, −}, that hold in any
+quantaloid, upon which we rely quite often. Let us give a short overview.
+Lemma 2.2 We work in a quantaloid Q.
+2
+
+By an “ordered set” we mean a set endowed with a transitive, reflexive relation; it is what is
+often called a “preordered set”. We will be explicit when we mean one such relation that is moreover
+antisymmetric, i.e. a “partial order”.
+
+4
+
+/ C and h: A
+1. For f : A / B, g: B
+W
+/ C | y ◦ f ≤ h}.
+{f, h} = {y: B
+
+/ C, [g, h] =
+
+W
+
+{x: A
+
+/ B | g ◦ x ≤ h} and
+
+2. The following are equivalent:
+(a) f ⊣ g: B
+
+o
+
+/ A in Q (i.e. 1A ≤ g ◦ f and f ◦ g ≤ 1B );
+o
+(b) (f ◦ −) ⊣ (g ◦ −): Q(−, B) / Q(−, A) in Sup;
+o
+(c) (− ◦ g) ⊣ (− ◦ f ): Q(B, −) / Q(A, −) in Sup;
+
+(d) (g ◦ −) = [f, −]: Q(−, B)
+
+/ Q(−, A) in Sup;
+
+(e) (− ◦ f ) = {g, −}: Q(B, −)
+
+/ Q(A, −) in Sup.
+
+3. An arrow f : A / B has a right adjoint if and only if [f, 1B ] ◦ f = [f, f ]; in this
+/ A in Q has a left adjoint
+case the right adjoint to f is [f, 1B ]. Dually, g: B
+if and only if g ◦ {g, 1B } = {g, g}; in this case the left adjoint to g is {g, 1B }.
+/
+
+4. For f, f ′ : A / B and g, g′ : B
+only if g′ ≤ g.
+5. Any f : A
+
+/
+
+/ A such that f ⊣ g and f ′ ⊣ g ′ , f ≤ f ′ if and
+
+/ B induces, for every X ∈ Q0 , an adjunction
+
+[−, f ] ⊣ {−, f }: Q(X, B)
+
+o
+
+/ Q(A, X)op .
+
+By Q(A, X)op is meant the sup-lattice Q(A, X) with opposite order.
+6. For arrows with suitable domain and codomain we have the (dual) identities
+[f, [g, h]] = [g ◦ f, h] and {k, {m, n}} = {k ◦ m, n}, and the (self-dual) identity
+[x, {y, z}] = {z, [x, y]}.
+7. For arrows with suitable domain and codomain, [h, g]◦[g, f ] ≤ [h, f ] and dually
+{l, m} ◦ {k, l} ≤ {k, m}; also 1dom(f ) ≤ [f, f ] and dually 1cod(f ) ≤ {f, f }.
+Sup may also be thought of as an “infinitary version of Ab”; a quantaloid is then
+like a “ring(oid) with infinitary (and idempotent) sum”. This point of view helps
+to explain some of the terminology below—especially when we talk about “matrices
+with elements in a quantaloid Q” in the appendix.
+Example 2.3 Any locale Ω is a (very particular) quantale. Further on we’ll denote
+2 for the two-element boolean algebra. Given a locale Ω, [Walters, 1981] uses the
+quantaloid of relations in Ω: the objects of Rel(Ω) are the elements of Ω, the homlattices are given by Rel(Ω)(u, v) = {w ∈ Ω | w ≤ u ∧ v} with order inherited from
+Ω, composition is given by infimum in Ω, and the identity on an object u is u itself.
+This quantaloid is very particular: it equals its opposite.
+Example 2.4 The extended non-negative reals R+ ∪ {+∞} form a (symmetric)
+quantale for the opposite order and addition as binary operation [Lawvere, 1973].
+5
+
+Example 2.5 The ideals in a commutative ring R form a (symmetric) quantale.
+When R is not commutative, the two-sided ideals still form a (symmetric) quantale.
+But, as G. Van den Bossche [1995] points out (but she credits B. Lawvere for this
+idea), there is also quite naturally a “quantaloid of ideals” containing a lot more
+information than just the two-sided ideals. Denoting QR for this structure, define
+that it has two objects, 0 and 1; the hom-sup-lattices are
+QR (0, 0) = additive subgroups of R which are Z(R)-modules,
+QR (0, 1) = left-sided ideals of R,
+QR (1, 0) = right-sided ideals of R,
+QR (1, 1) = two-sided ideals of R,
+with sum of additive subgroups as supremum:
+X
+[
+Ik = {finite sums of elements in
+Ik }.
+k∈K
+
+k∈K
+
+Composition in QR is the multiplication of additive subgroups, as in
+I ◦ J = {finite sums i1 j1 + ... + in jn with all ik ∈ I and all jk ∈ J};
+and the identity arrow on 1 is R and that on 0 is Z(R). (By Z(R) we denote the
+center of R). For a commutative R, this quantaloid QR is equivalent as Sup-category
+to the quantale of ideals in R.
+More examples can be found in the literature, e.g. [Rosenthal, 1996].
+
+3
+
+Three basic definitions
+
+In the following Q always denotes a quantaloid. By a Q-typed set X we mean a set
+X to every element of which is associated an object of Q: for every x ∈ X there is
+a tx in Q (which is called the type of x in Q). The notation with a “t” for the types
+of elements in a Q-typed set is generic; i.e. even for two different Q-typed sets X
+and Y , the type of an x ∈ X is written tx, and that of a y ∈ Y is ty. A Q-typed
+set X is just a way of writing a set-indexed family (tx)x∈X of objects (i.e. a small
+discrete diagram) in Q. If Q is a small quantaloid, then a Q-typed set is an object
+of the slice category Set/Q0 .
+Definition 3.1 A Q-enriched category (or Q-category for short) A consists of
+- objects: a Q-typed set A0 ,
+- hom-arrows: for all a, a′ ∈ A0 , an arrow A(a′ , a): ta
+satisfying
+
+6
+
+/ ta′ in Q,
+
+- composition-inequalities: for all a, a′ , a′′ ∈ A0 , A(a′′ , a′ ) ◦ A(a′ , a) ≤ A(a′′ , a)
+in Q,
+- identity-inequalities: for all a ∈ A0 , 1ta ≤ A(a, a) in Q.
+Definition 3.2 A distributor Φ: A ❝ / B between two Q-categories is given by
+- distributor-arrows: for all a ∈ A0 , b ∈ B0 , an arrow Φ(b, a): ta
+
+/ tb in Q
+
+satisfying
+- action-inequalities: for all a, a′ ∈ A0 , b, b′ ∈ B0 , B(b′ , b) ◦ Φ(b, a) ≤ Φ(b′ , a) and
+Φ(b, a) ◦ A(a, a′ ) ≤ Φ(b, a′ ) in Q.
+Definition 3.3 A functor F : A
+- object-mapping: a map F : A0
+
+/ B between Q-categories is
+/ B0 : a 7→ F a
+
+satisfying
+- type-equalities: for all a ∈ A0 , ta = t(F a) in Q,
+- action-inequalities: for all a, a′ ∈ A0 , A(a′ , a) ≤ B(F a′ , F a) in Q.
+None of these definitions requires any of the usual diagrammatic axioms (associativity and identity axioms for the composition in a category, coherence of the action
+on a distributor with the composition in its (co)domain category, the functoriality
+of a functor) simply because those conditions, which require the commutativity of
+certain diagrams of 2-cells in the base quantaloid Q, hold trivially! It is therefore
+a property of, rather than an extra structure on, a given set A0 of elements with
+/ ta (for a, a′ ∈ A0 ) to be a Qtypes in Q together with hom-arrows A(a′ , a): ta′
+category; in other words, if these data determine a Q-category, then they do so in
+only one way. Similar for distributors and functors: it is a property of a given collection of arrows Φ(b, a): ta / tb whether or not it determines a distributor between
+/ B0 whether
+Q-categories A and B, as it is a property of an object mapping F : A0
+or not it determines a functor.
+Our Q-categories are by definition small: they have a set of objects. As a
+consequence, the collection of distributors between two Q-categories is always a small
+set too, and so is the collection of functors between two Q-categories. (However, we
+will soon run into size-related trouble: our base quantaloid Q having a proper class
+of objects will conflict with the Q-categories being small, in particular in matters
+related to cocompleteness of Q-categories. When doing categorical algebra over Q
+we will therefore suppose that Q is small too. But this hypothesis is not necessary
+at this point.)
+Note that for a distributor Φ: A ❝ / B, for all a ∈ A and b ∈ B,
+_
+Φ(b, a) = 1tb ◦ Φ(b, a) ≤ B(b, b) ◦ Φ(b, a) ≤
+B(b, b′ ) ◦ Φ(b′ , a) ≤ Φ(b, a),
+b′ ∈B
+
+7
+
+W
+W
+that is to say, b′ ∈B B(b, b′ ) ◦ Φ(b′ , a) = Φ(b, a); a′ ∈A Φ(b, a′ ) ◦ A(a′ , a) = Φ(b, a) is
+analogous. A Q-category A is itself a distributor from A to A; and the identities
+W
+above become, for all a, a′′ ∈ A, a′ ∈A A(a′′ , a′ )◦A(a′ , a) = A(a′′ , a). These identities
+allow to say, in 3.4, with a suitable definition for the composition of distributors,
+that “A is the identity distributor on A”.
+There is a notational issue that we should comment on. We have chosen to
+write the composition of arrows in a base quantaloid Q “from right to left”: the
+/ Z is g ◦ f : X
+/ Z. Therefore we have chosen to
+/ Y and g: Y
+composite of f : X
+write the hom-arrows in a Q-enriched category A also “from right to left”: for two
+objects a, a′ ∈ A, the hom-arrow A(a′ , a) goes from ta to ta′ . Doing so it is clear
+that, for example, the composition-inequality in A is written A(a′′ , a′ ) ◦ A(a′ , a) ≤
+A(a′′ , a), with the pivot a′ nicely in the middle, which we find very natural. Our
+notational conventions are thus basically those of R. Street’s seminal paper [1983a];
+other authors have chosen other notations.
+The next proposition displays the calculus of Q-categories and distributors.
+Proposition 3.4 Q-categories are the objects, and distributors the arrows, of a
+quantaloid Dist(Q) in which
+- the composition Ψ ⊗B Φ: A ❝ / C of two distributors Φ: A ❝ / B and Ψ: B ❝ / C
+has as distributor-arrows, for a ∈ A0 and c ∈ C0 ,
+_
+(Ψ ⊗B Φ)(c, a) =
+Ψ(c, b) ◦ Φ(b, a);
+b∈B0
+
+- the identity distributor on a Q-category A has as distributor-arrows precisely
+the hom-arrows of the category A itself, so we simply write it as A: A ❝ / A;
+W
+- the supremum i∈I Φi : A ❝ / B of given distributors (Φi : A ❝ / B)i∈I is calculated elementwise, thus its distributor-arrows are, for a ∈ A0 and b ∈ B0 ,
+_
+_
+( Φi )(b, a) =
+Φi (b, a).
+i∈I
+
+i∈I
+
+The proof of the fact that the data above define a quantaloid is straightforward.
+Actually, Dist(Q) is a universal construction on Q in QUANT: there is a fully faithful
+homomorphism of quantaloids
+
+
+
+
+(9)
+Q / Dist(Q): f : A / B 7→ (f ): ∗A ❝ / ∗B
+
+sending an object A ∈ Q to the Q-category with only one object, say ∗, of type
+t∗ = A, and hom-arrow 1A , and a Q-arrow f : A / B to the distributor (f ): ∗A ❝ / ∗B
+whose single element is f . This turns out to be the universal direct-sum-and-splitmonad completion of Q in QUANT. The appendix gives details. (Even for a small
+base quantaloid Q, Dist(Q) has a proper class of objects; so large quantaloids arise
+8
+
+as universal constructions on small ones. Therefore we do not wish to exclude large
+quantaloids a priori.)
+Since Dist(Q) is a quantaloid, it is in particular closed; the importance of this fact
+cannot be overestimated. Let for example Θ: A ❝ / C and Ψ: B ❝ / C be distributors
+between Q-categories, then [Ψ, Θ]: A ❝ / B is the distributor with distributor-arrows,
+for a ∈ A0 and b ∈ C0 ,
+i
+h
+i
+^ h
+Ψ(c, b), Θ(c, a) ,
+(10)
+Ψ, Θ (b, a) =
+c∈C0
+
+where the liftings on the right are calculated in Q. A similar formula holds for
+{−, −}.
+The category of Q-categories and functors is the obvious one.
+Proposition 3.5 Q-categories are the objects, and functors the arrows, of a category Cat(Q) in which
+/ C is
+- the composition G ◦ F : A / C of two functors F : A / B and G: B
+/
+C0 : a 7→ G(F (a));
+determined by the composition of object maps G ◦ F : A0
+
+- the identity functor 1A : A / A on a Q-category A is determined by the identity
+/ A0 : a 7→ a.
+object map 1A : A0
+Every functor between Q-categories induces an adjoint pair of distributors, and
+the resulting inclusion of the functor category in the distributor category – although
+straightforward – is a key element for the development of the theory of Q-enriched
+categories.
+/ B, the QProposition 3.6 For Q-categories and functors F : A / B and G: C
+/ tc, one for each (a, c) ∈ A0 × C0 , determine a distribuarrows B(Gc, F a): ta
+3
+tor B(G−, F −): A ❝ / C. In particular, for any functor F : A / B the distributors
+B(1B −, F −): A ❝ / B and B(F −, 1B −): B ❝ / A are adjoint in the quantaloid Dist(Q):
+B(1B −, F −) ⊣ B(F −, 1B −).
+
+Proof : For any a, a′ ∈ A0 and c, c′ ∈ C0 , C(c′ , c) ◦ B(Gc, F a) ◦ A(a, a′ ) ≤ B(Gc′ , Gc) ◦
+B(Gc, F a) ◦ B(F a, F a′ ) ≤ B(Gc′ , F a) by functoriality of F and G and composition
+in B. So B(G−, F −) is a distributor from A to B.
+To see that B(1B −, F −) ⊣ B(F −, 1B −) in Dist(Q), we must check two inequalities: the unit of the adjunction is due to the composition in B and functoriality of F , B(F −, 1B −) ⊗B B(1B −, F −) = B(F −, F −) ≥ A(−, −); the counit follows from the fact that {F a | a ∈ A0 } ⊆ B0 and – again – composition in B,
+B(1B −, F −) ⊗A B(F −, 1B −) ≤ B(1B −, −) ⊗B B(−, 1B −) = B(−, −).
+✷
+In the following we use the abbreviated notations B(−, F −) = B(1B −, F −) and
+B(F −, −) = B(F −, 1B −).
+3
+
+There is a converse: for any distributor Φ: A ❝ / C there is a – universal – way in which
+/ B and G: C
+/ B.
+Φ = B(G−, F −) for certain functors F : A
+
+9
+
+Proposition 3.7 Sending a functor to the left adjoint distributor that it induces,
+as in
+
+
+
+
+Cat(Q) / Dist(Q): F : A / B 7→ B(−, F −): A ❝ / B ,
+is functorial. Sending a functor to the right adjoint determines a similar contravariant functor.
+
+Proof : Trivially an identity functor 1A : A / A is mapped onto the identity distributor A(−, 1A −) = A(−, −): A ❝ / A. And if F : A / B and G: B / C, then we want
+C(−, G ◦ F −) = C(−, G−) ⊗B B(−, F −) but also this holds trivially: read the right
+hand side of the equation as the action of B on C(−, G−).
+✷
+The category Cat(Q) inherits the local structure from the quantaloid Dist(Q) via
+/
+/ B,
+the functor Cat(Q) / Dist(Q): we put, for two functors F, G: A
+
+
+F ≤ G ⇐⇒ B(−, F −) ≤ B(−, G−)
+⇐⇒ B(G−, −) ≤ B(F −, −) .
+
+Thus every hom-set Cat(Q)(A, B) is (neither antisymmetrically nor cocompletely)
+ordered, and composition in Cat(Q) distributes on both sides over the local order:
+Cat(Q) is a 2-category, and the functor in 3.7 is a 2-functor which is the identity
+on objects, “essentially faithful” (but not full), and locally fully faithful. (The
+contravariant version of this functor reverses the local order!)
+In general the “opposite” of a Q-category A is not again a Q-category, but
+rather a Qop -category: of course Aop is defined to have the same Q-typed set of
+objects as A, but the hom-arrows are reversed: for objects a, a′ put Aop (a′ , a) =
+A(a, a′ ). Similarly, for a distributor Φ: A ❝ / B between Q-categories we may define
+an opposite distributor between the opposite categories over the opposite base—
+but this distributor will go in the opposite direction: Φop : Bop ❝ / Aop is defined
+❝/
+by Φop (a, b) = Φ(b, a). F For Φ ≤ Ψ: A ❝ / B in Dist(Q) it is quite obvious that
+❝
+/
+Φop ≤ Ψop : Bop ❝ / Aop in Dist(Qop ). Finally, for a functor F : A / B between Q/ Bop of
+categories, the same object mapping a 7→ F a determines an arrow F op : Aop
+/
+/
+/ Bop in Cat(Qop ).
+Cat(Qop ). But if F ≤ G: A / B in Cat(Q) then Gop ≤ F op : Aop
+It is obvious that applying the “op” twice, always gives back the original structure.
+Proposition 3.8 “Taking opposites” determines isomorphisms
+Dist(Q) ∼
+= Dist(Qop )op and Cat(Q) ∼
+= Cat(Qop )co
+of 2-categories (where the “co” means: reversing order in the homs).
+These isomorphisms allow us to “dualize” all notions and results concerning Qenriched categories. For example, the dual of ‘left Kan extension’ in Cat(Q) is ‘right
+Kan extension’, and whereas the former help to characterize left adjoints in Cat(Q),
+the latter do the same for right adjoints. As another example, the dual of ‘weighted
+colimit’ in a Q-category, is ‘weighted limit’; the former are ‘preserved’ by all left
+adjoint functors, the latter by right adjoint ones. Some notions are self-dual, like
+‘equivalence’ of categories, or ‘Cauchy complete’ category.
+10
+
+Example 3.9 In a quantaloid Q, the arrows whose codomain is some object Y
+are the objects of a Q-category that we will denote – anticipating 6.1 – as PY :
+/ Y ) = X and PY (f ′ , f ) = [f ′ , f ]. Similarly – and again anticipating
+put t(f : X
+further results – we denote P † X for the Q-category whose objects are Q-arrows with
+/ Y ) = Y , and P † X(f ′ , f ) = {f, f ′ }.
+domain X, with types t(f : X
+Example 3.10 Recall that 2 denotes the 2-element Boolean algebra; 2-categories
+are orders, distributors are ideal relations, and functors are order-preserving maps.
+Example 3.11 Consider a sheaf F on a locale Ω; it determines a Rel(Ω)-category F
+whose objects are the partial sections of F , the type of a section s being the largest
+u ∈ Ω on which it is defined, and whose hom-arrows F(s′ , s) are, for sections s, s′ of
+types u, u′ , the largest v ≤ u ∧ u′ on which (restrictions of) s and s′ agree [Walters,
+1981].
+Example 3.12 A category enriched in the quantale R ∪ {+∞} (cf. 2.4) is a “generalized metric space” [Lawvere, 1973]: the enrichment itself is a binary distance function taking values in the positive reals. In particular is the composition-inequality
+in such an enriched category the triangular inequality. A functor between such generalized metric spaces is a distance decreasing application. (These metric spaces
+are “generalized” in that the distance function is not symmetric, that the distance
+between two points being zero doesn’t imply their being identical, and that the
+distance between two points may be infinite.)
+Example 3.13 A (not necessarily commutative) ring R determines a QR -enriched
+category (with QR as in 2.5): denoting it as CommR , its objects of type 0 are the
+elements of R, its objects of type 1 are the elements of Z(R), and hom-arrows are
+given by commutators: Comm(r, s) = {x ∈ R | rx = xs}.
+
+4
+
+Some direct consequences
+
+Underlying orders
+For an object A of a quantaloid Q, denote by ∗A the one-object Q-category whose
+hom-arrow is the identity 1A . Given a Q-category A, the set {a ∈ A0 | ta = A} is
+in bijection with Cat(Q)(∗A , A): any such object a determines a “constant” functor
+/ A “picks out” an object a ∈ A. We
+/ A; and any such functor F : ∗A
+∆a: ∗A
+may thus order the objects of A by ordering the corresponding constant functors;
+we will speak of the underlying order (A0 , ≤) of the Q-category A. Explicitly, for
+two objects a, a′ ∈ A0 we have that a′ ≤ a if and only if A := ta = ta′ and for all
+x ∈ A0 , A(x, a′ ) ≤ A(x, a) in Q, or equivalently A(a′ , x) ≥ A(a, x), or equivalently
+1A ≤ A(a′ , a). Whenever two objects of A are equivalent in A’s underlying order
+(a ≤ a′ and a′ ≤ a) then we say that they are isomorphic objects (and write a ∼
+= a′ ).
+
+11
+
+Example 4.1 In the Q-category PY , whose objects are Q-arrows with codomain
+Y and whose hom-arrows are given by [−, −], the underlying order coincides with
+/
+/ Y it is the same to say that f ≤ g
+the local order in Q. More precisely, for f, g: X
+in (PY )0 as to say that f ≤ g in Q(X, Y ).
+/
+
+It is immediate that F ≤ G: A / B in Cat(Q) if and only if, for all a ∈ A0 ,
+F a ≤ Ga in the underlying order of B. This says that the local structure in the
+2-category Cat(Q) is “pointwise order”. Equivalently we could have written that
+F ≤ G if and only if 1ta ≤ B(F a, Ga) for all a ∈ A0 , which exhibits the resemblance
+with the usual notion of “enriched natural transformation”.
+
+Adjoints and equivalences
+An arrow F : A / B is left adjoint to an arrow G: B / A in Cat(Q) (and G is then
+right adjoint to F ), written F ⊣ G, if 1A ≤ G ◦ F and F ◦ G ≤ 1B . Due to the
+2-category Cat(Q) being locally ordered, we needn’t ask any of the usual triangular
+coherence diagrams. The unicity of adjoints in the quantaloid Dist(Q) and the locally
+fully faithful Cat(Q) / Dist(Q) allow for the following equivalent expression.
+Proposition 4.2 F : A / B is left adjoint to G: B
+B(F −, −) = A(−, G−): B ❝ / A in Dist(Q).
+
+/ A in Cat(Q) if and only if
+
+Further, F : A / B is an equivalence in Cat(Q) if there exists a G: B / A such
+that G ◦ F ∼
+= 1A and F ◦ G ∼
+= 1B (in which case also G is an equivalence). Again
+because Cat(Q) is locally ordered, this is the same as saying that F is both left
+and right adjoint to some G. Again the functor Cat(Q) / Dist(Q) gives equivalent
+expressions.
+Proposition 4.3 Given functors F : A / B and G: B / A constitute an equivalence
+in Cat(Q) if and only if B(−, F −): A ❝ / B and A(−, G): B ❝ / A constitute an isomorphism in Dist(Q), if and only if B(F −, −): B ❝ / A and A(−, G−): A ❝ / B constitute
+an isomorphism in Dist(Q).
+For ordinary categories and functors it is well known that the equivalences are
+precisely the fully faithful functors which are essentially surjective on objects. This
+holds for Q-enriched categories too: say that a functor F : A / B is fully faithful if
+∀ a, a′ ∈ A0 : A(a′ , a) = B(F a′ , F a) in Q,
+and that is essentially surjective on objects whenever
+∀ b ∈ B0 , ∃ a ∈ A0 : F a ∼
+= b in B.
+In fact, F is fully faithful if and only if the unit of the adjunction B(−, F −) ⊣
+B(F −, −) in Dist(Q) saturates to an equality; and if F is essentially surjective on
+12
+
+objects then necessarily the co-unit of this adjunction saturates to an equality (but
+a functor F : A / B for which the co-unit of the induced adjunction is an equality
+– which is sometimes said to have a “dense image” – is not necessarily essentially
+surjective on objects).
+Proposition 4.4 An arrow F : A / B in Cat(Q) is an equivalence if and only if it
+is fully faithful and essentially surjective on objects.
+Proof : Suppose that F is an equivalence, with inverse equivalence G. Then, by functoriality of F and G, and since G◦F ∼
+= 1A , A(a′ , a) ≤ B(F a′ , F a) ≤ A(GF a′ , GF a) =
+A(a′ , a) for all a, a′ ∈ A0 . Further, using F ◦ G ∼
+= 1B , it follows that b ∼
+= F Gb, and
+Gb ∈ A0 as required. Conversely, supposing that F is fully faithful and essentially surjective on objects, choose – using the essential surjectivity of F – for any
+b ∈ B0 one particular object Gb ∈ A0 for which F Gb ∼
+= b. Then the object mapping
+/
+A0 : b 7→ Gb is fully faithful itself (and therefore also functorial) due to the
+B0
+fully faithfulness of F : B(b′ , b) = B(F Gb′ , F Gb) = A(Gb′ , Gb) for all b, b′ ∈ B0 . It is
+the required inverse equivalence.
+✷
+The following is well known for ordinary categories, and holds for Q-categories
+too; it will be useful further on.
+o
+
+Proposition 4.5 Suppose that F ⊣ G: B / A in Cat(Q). Then F is fully faithful if
+and only if G ◦ F ∼
+= 1A , and G is fully faithful if and only if F ◦ G ∼
+= 1B . If moreover
+o
+G ⊣ H: A / B in Cat(Q) then F is fully faithful if and only if H is fully faithful.
+Proof : F ⊣ G in Cat(Q) implies B(F −, F −) = A(−, G ◦ F −) in Dist(Q); and F
+is fully faithful if and only if B(F −, F −) = A(−, −) in Dist(Q). So, obviously, F
+is fully faithful if and only if A(−, G ◦ F −) = A(−, −) in Dist(Q), or equivalently,
+G◦F ∼
+= 1A in Cat(Q). Likewise for the fully faithfulness of G. Suppose now that
+F ⊣ G ⊣ H, then A(G ◦ F −, −) = B(F −, H−) = B(−, G ◦ H−), which implies that
+A(G ◦ F −, −) = A(−, −) if and only if B(−, G ◦ H−) = A(−, −) so the result follows.
+✷
+
+Left Kan extensions
+/ C, the left Kan extension
+Given Q-categories and functors F : A / B and G: A
+of F along G is – in so far it exists – a functor K: C / B such that K ◦ G ≥ F in a
+universal way: whenever K ′ : C / B satisfies K ′ ◦ G ≥ F , then K ′ ≥ K. If the left
+Kan extension of F along G exists, then it is essentially unique; we denote it hF, Gi.
+/ B is the reflection of F ∈ Cat(Q)(A, B) along
+So hF, Gi: C
+
+− ◦ G: Cat(Q)(C, B)
+
+/ Cat(Q)(A, B): H 7→ H ◦ G.
+
+Left adjoint functors may be characterized in terms of left Kan extensions; this
+uses the idea of functors that preserve Kan extensions. Suppose that the left Kan
+13
+
+/ B exists; then a functor F ′ : B
+/ B′ is said to preserve hF, Gi
+extension hF, Gi: C
+′
+′
+if hF ◦ F, Gi exists and is isomorphic to F ◦ hF, Gi. And hF, Gi is absolute if it is
+preserved by any F ′ : B / B′ .
+
+Proposition 4.6 For a functor F : A
+equivalent:
+
+/ B between Q-categories the following are
+
+1. F has a right adjoint;
+2. h1A , F i exists and is absolute;
+3. h1A , F i exists and is preserved by F itself.
+In this case, h1A , F i is the right adjoint of F .
+Proof : For (1⇒2), suppose that F ⊣ G; we’ll prove that G is the absolute left Kan
+extension of 1A along F . The unit of the adjunction already says that G◦F ≥ 1A ; and
+if K: B / A is another functor such that K ◦ F ≥ 1A , then necessarily K = K ◦ 1B ≥
+K◦(F ◦G) = (K◦F )◦G ≥ 1A ◦G = G, using now the unit of the adjunction. So indeed
+G∼
+= h1A , F i. Let now F ′ : A / B′ be any functor; we claim that F ′ ◦G is the left Kan
+extension of F ′ ◦ 1A along F . Already (F ′ ◦ G) ◦ F = F ′ ◦ (G ◦ F ) ≥ F ′ ◦ 1A is obvious
+(using the unit of the adjunction); and if K ′ : B / B′ is another functor such that
+K ′ ◦F ≥ F ′ ◦1A , then K ′ = K ′ ◦1B ≥ K ′ ◦(F ◦G) = (K ′ ◦F )◦G ≥ (F ′ ◦1A )◦G = F ′ ◦G.
+Thus, G is the absolute left Kan extension of 1A along F .
+(2⇒3) being trivial, we now prove (3⇒1); it suffices to prove that F ⊣ h1A , F i.
+But the wanted unit h1A , F i◦F ≥ 1A is part of the universal property of the left Kan
+extension; and using the hypothesis that h1A , F i is preserved by F itself, we have
+F ◦ h1A , F i = hF, F i which is smaller than 1B by the universal property of hF, F i
+(since 1B ◦ F ≥ F ).
+✷
+The dual of this result says that a functor F : A / B has a left adjoint in Cat(Q) if
+and only if the right Kan extension of 1A along F exists and is absolute, if and only
+if this right Kan extension exists and is preserved by F . Of course, the definition of
+right Kan extension is the dual of that of left Kan extension: given F : A / B and
+/B
+G: A / C in Cat(Q), the right Kan extension of F along G is a functor (F, G): C
+op
+op
+op
+op
+op
+op
+/ B is the left Kan extension of F along G in Cat(Q ).
+such that (F, G) : C
+In elementary terms: there is a universal inequality (F, G) ◦ G ≤ F in Cat(Q).
+After having introduced weighted colimits in a Q-category, we will discuss pointwise left Kan extensions: particular colimits that enjoy the universal property given
+above.
+
+Skeletal categories
+To any order corresponds an antisymmetric order by passing to equivalence classes of
+elements of the order. For Q-enriched categories this can be imitated: say that a Qcategory A is skeletal if no two different objects in A are isomorphic; equivalently this
+14
+
+says that, for any Q-category C, Cat(Q)(C, A) is an antisymmetric order, i.e. that
+Cat(Q)(C, A)
+
+/ Dist(Q)(C, A): F 7→ A(−, F −)
+
+is injective. Any Q-category is then equivalent to its “skeletal quotient”.
+Proposition 4.7 For a Q-category A, the following data define a skeletal Q-category Askel :
+o
+n
+- objects: (Askel )0 = [a] = {x ∈ A0 | x ∼
+= a} a ∈ A0 , with type function
+t[a] = ta;
+- hom-arrows: for any [a], [a′ ] ∈ (Askel )0 , Askel ([a′ ], [a]) = A(a′ , a).
+The object mapping [−]: A
+
+/ Askel : x 7→ [x] determines an equivalence in Cat(Q).
+
+Proof : The construction of Askel is well-defined, because:
+- as a set the quotient of A0 by ∼
+= is well-defined (· ∼
+= · is an equivalence);
+- t[a] is well-defined (all elements of the equivalence class [a] necessarily have
+the same type since they are isomorphic);
+- for any a′ ∼
+= b′ and a ∼
+= b in A, A(b′ , b) = A(a′ , a), so Askel ([a′ ], [a]) is welldefined.
+Askel inherits “composition” and “identities” from A, so it is a Q-category. And Askel
+is skeletal: if [a] ∼
+= [a′ ] in (Askel )0 then necessarily a ∼
+= a′ in A0 , which by definition
+′
+implies that [a] = [a ].
+/ (Askel )0 : x 7→ [x] determines a functor which is obviously
+The mapping A0
+fully faithful and essentially surjective on objects, so by 4.4 it is an equivalence in
+Cat(Q).
+✷
+Skeletal Q-categories can be taken as objects of a full sub-2-category of Cat(Q),
+respectively a full sub-quantaloid of Dist(Q); the proposition above then says that
+Catskel (Q) / Cat(Q) is a biequivalence of 2-categories, and Distskel (Q) / Dist(Q) is
+then an equivalence of quantaloids. Catskel (Q) is locally antisymmetrically ordered,
+so the obvious 2-functor
+
+
+
+
+Catskel (Q) / Distskel (Q): F : A / B 7→ B(−, F −): A ❝ / B
+
+is the identity on objects, faithful (but not full), and locally fully faithful.
+
+Example 4.8 The Q-categories PY and P † X as defined in 3.9 are skeletal.
+Example 4.9 Taking Q = 2, the skeletal 2-categories are precisely the antisymmetric orders, i.e. the partial orders (cf. 3.10).
+15
+
+Example 4.10 The Rel(Ω)-category associated to a sheaf on Ω, as in 3.11, is skeletal.
+Later on we will encounter important Q-categories which are always skeletal:
+the categories PA and P † A of (contravariant and covariant) presheaves on a given
+Q-category A, and also A’s Cauchy completion Acc . (The reason, ultimately, that
+these Q-categories are skeletal, is that the hom-objects of the quantaloid Q are
+antisymmetrically ordered.)
+
+5
+
+Weighted (co)limits
+
+Colimits
+We consider a functor F : A / B and a distributor Θ: C ❝ / A between Q-categories.
+Since F determines a distributor B(F −, −): B ❝ / A, and by closedness of the quantaloid Dist(Q), we can calculate the universal lifting [Θ, B(F −, −)]: B ❝ / C. A func/ B is the Θ-weighted colimit of F if it represents the universal lifting:
+tor G: C
+B(G−, −) = [Θ, B(F −, −)]. If the Θ-weighted colimit of F exists, then it is necessarily essentially unique. It therefore makes sense to speak of “the” colimit and to
+denote it by colim(Θ, F ); its universal property is thus that
+
+ h
+i
+B colim(Θ, F )−, − = Θ, B(F −, −) in Dist(Q).
+The following diagrams picture the situation:
+
+Θ❝
+C
+
+F
+
+/B
+
+B(F −, −)
+❝
+AO o
+B
+
+
+
+
+
+i
+❝h
+Θ❝
+
+
+
+Θ,
+B(F
+−,
+−)
+
+
+≤
+
+AO
+
+C
+
+AO
+Θ❝
+
+F
+
+/
+?B
+
+colim(Θ, F )
+
+C
+
+We wish to speak of “those Q-categories that admit all weighted colimits”, i.e. cocomplete Q-categories. But there is a small problem (the word is well-chosen).
+Lemma 5.1 A cocomplete Q-category B has at least as many objects as the base
+quantaloid Q.
+Proof : For each X ∈ Q, consider the empty diagram in B weighted by the empty
+/ B must exist by cocompleteness
+distributor with domain ∗X . Then colim(∅, ∅): ∗X
+of B; it “picks out” an object of type X in B—thus B must have such an object in
+the first place.
+✷
+So, by the above, would the base quantaloid have a proper class of objects, then
+so would all cocomplete Q-enriched categories. This is a problem in the framework of this text, because we didn’t even bother defining “large” Q-categories, let
+16
+
+alone develop a theory of Q-categories that is sensitive to these size-related issues.
+Therefore, from now on, we are happy to work with a small base quantaloid Q. The
+problem of “small” versus “large” then disappears: also “small” Q-categories can
+be cocomplete.
+Next up is a collection of lemmas that will help us calculate colimits. (There will
+be some abuse of notation: for a distributor Φ: ∗A ❝ / A and a functor F : A / B,
+colim(Φ, F ) is in principle a functor from ∗A to B. But such a functor simply “picks
+out” an object of type A in B. Therefore we will often think of colim(Φ, F ) just as
+being that object. Of course, when the domain of the weight has more than one
+object, then any colimit with that weight is really a functor!)
+Lemma 5.2
+1. For (Φi : C ❝ / A)i∈I and F : A / B, if all colimits involved exW
+ist, then colim( i Φi , F ) is the supremum of the colim(Φi , F ) in the order
+Cat(Q)(C, B):
+_
+_
+colim(Φi , F ).
+colim( Φi , F ) ∼
+=
+i
+
+i
+
+2. For any F : A
+
+/ B, colim(A, F ) (exists and) is isomorphic to F .
+
+3. For Φ: D ❝ / C, Θ: C ❝ / A and F : A / B, suppose that colim(Θ, F ) exists; then
+colim(Φ, colim(Θ, F )) exists if and only if colim(Θ ⊗C Φ, F ) exists, in which
+case they are isomorphic.
+4. For Θ: C ❝ / A and F : A / B, colim(Θ, F ) exists if and only if, for all objects
+c ∈ C0 , colim(Θ(−, c), F ) exists; then colim(Θ, F )(c) ∼
+= colim(Θ(−, c), F ).
+Proof : (1) By assumption,
+
+
+h_
+i
+_
+C colim( Φi , F )−, −
+=
+Φi , B(F −, −)
+i
+
+i
+
+=
+
+^h
+i
+
+i
+Φi , B(F −, −)
+
+
+^ 
+=
+B colim(Φi , F )−, −
+i
+
+W
+from which it follows that colim( i Φi , F ) is the supremum of the colim(Φi , F ) in
+Cat(Q)(C, B).
+(2) Trivially, [A(−, −), B(F −, −)] = B(F −, −).
+(3) By a simple calculation
+h
+
+i h h
+ii h
+i
+Φ, B colim(Θ, F )−, − = Φ, Θ, B(F −, −) = Θ ⊗C Φ, B(F −, −)
+
+so the Φ-weighted colimit of colim(Θ, F ) and the Θ ⊗C Φ-weighted colimit of F are
+the same thing.
+
+17
+
+/ B is a functor satisfying, for all c ∈ C0
+(4) Necessity is easy: colim(Θ, F ): C
+and b ∈ B0 ,
+
+ h
+i
+B colim(Θ, F )(c), b = Θ(−, c), B(F −, b) ;
+
+this literally says that colim(Θ, F )(c) is the Θ(−, c)-weighted colimit of F (which
+thus exists). As for sufficiency, we prove that the mapping
+/ B0 : c 7→ colim(Θ(−, c), F )
+
+K: C0
+
+is a functor: C(c′ , c) ≤ B(Kc′ , Kc) because
+B(Kc′ , Kc) = B(Kc′ , −) ⊗B B(−, Kc)
+n
+o
+=
+B(Kc, −), B(Kc′ , −)
+nh
+i h
+io
+=
+Φ(−, c), B(F −, −) , Φ(−, c′ ), B(F −, −)
+
+and, with slight abuse of notation4 ,
+nh
+i h
+io
+C(c′ , c) ≤ Φ(−, c), B(F −, −) , Φ(−, c′ ), B(F −, −)
+h
+i
+⇐⇒ Φ(−, c′ ) ⊗∗tc′ C(c′ , c) ⊗∗tc Φ(−, c), B(F −, −) ≤ B(F −, −)
+
+which holds because Φ(−, c′ )⊗∗t c′ C(c′ , c) ≤ Φ(−, c) and by the universal property of
+the “[−, −]”. This functor K has, by construction, the required universal property
+for it to be the Φ-weighted colimit of F .
+✷
+
+/
+
+Lemma 5.3 For F ≤ G: A / B and Θ: C ❝ / A, suppose that colim(Θ, F ) and
+colim(Θ, G) exist; then colim(Θ, F ) ≤ colim(Θ, G). In particular, if F ∼
+= G then
+colim(Θ, F ) exists if and only if colim(Θ, G) exists, in which case they are isomorphic.
+Proof : [−, −] is order-preserving in its second variable, so
+h
+i h
+i
+B(colim(Θ, F )−, −) = Θ, B(F −, −) ≥ Θ, B(G−, −) = B(colim(Θ, G)−, −),
+
+hence colim(Θ, F ) ≤ colim(Θ, G) as claimed. The second part of the statement is
+similar.
+✷
+Let us point out two important consequences.
+Corollary 5.4 A Q-category B is cocomplete if and only if it admits colimits of the
+identity functor 1B : B / B weighted by distributors into B whose domains are oneobject Q-categories5 : for every φ: ∗B ❝ / B in Dist(Q), there exists an object b ∈ B,
+4
+
+/ tc′ is thought of as a one-element distributor ∗tc ❝ / ∗tc′ .
+The Q-arrow C(c′ , c): tc
+Later we will call those distributors contravariant presheaves, so B is cocomplete if and only if
+it admits colimits of 1B weighted by contravariant presheaves on B.
+5
+
+18
+
+necessarily of type tb = B, such that
+h
+i
+B(b, −) = φ, B in Dist(Q).
+
+Proof : One direction is trivial. For the other, consider a weight Θ: C / A and a
+functor F : A / B. Then
+h
+i h h
+ii h
+i
+Θ, B(F −, −) = Θ, B(−, F −), B = B(−, F −) ⊗A Θ, B(1B −, −)
+so that colim(Θ, F ): C / B exists if and only if colim(B(−, F −) ⊗A Θ, 1B ): C
+exists. But the latter exists if and only if, for all objects c ∈ C,
+
+
+/B
+colim B(−, F −) ⊗A Θ(−, c), 1B : ∗tc
+exists—which they do by hypothesis.
+
+/B
+
+✷
+
+Example 5.5 A 2-enriched category A is an ordered set, and a distributor φ: ∗ ❝ / A
+is a down-closed subset of A. Since [φ, A] is the up-closed set of lower bounds of φ,
+it is representable if and only if the supremum of φ exists in A. Cocompleteness of
+A as 2-category is thus the same thing as cocompleteness of A as order (since it is
+equivalent to ask for the suprema of all subsets or only the suprema of down-closed
+sets).
+W
+Corollary 5.6 Given (Fi : A / B)i∈I in Cat(Q), if the i B(−, Fi −)-weighted colimit of 1B exists, then it is their supremum in the order Cat(Q)(A, B):
+
+_
+_
+Fi ∼
+B(−, Fi −), 1B .
+= colim
+i
+
+i
+
+Proof : The colimit, supposed to exist, satisfies
+
+
+h_
+i
+_
+B colim( B(−, Fi −), 1B )−, −
+=
+B(−, Fi −), B
+i
+
+i
+
+=
+
+^h
+
+B(−, Fi −), B
+
+i
+
+=
+
+^
+
+i
+
+B(Fi −, −).
+
+i
+
+W
+It follows straightforwardly that colim( i B(−, Fi −), 1B ) is the supremum of the Fi .
+✷
+This corollary thus says that, if there is a functor F : A / B such that B(F −, −) =
+V
+/ B)i∈I , then F is the supremum of the Fi . In pari B(Fi −, −) for given (Fi : A
+ticular, for an object a ∈ A it follows that F a is the supremum of the Fi a in the
+underlying order (B, ≤).
+19
+
+Example 5.7 Concerning the result in 5.6, it is not true that each supremum in
+the order Cat(Q)(A, B) is necessarily a weighted colimit in B. Consider the orders
+
+1 s
+0
+
+c ❍
+s
+
+s
+
+a
+
+sd
+❍
+✟✟
+❍
+✟
+✟❍
+❍❍s
+s✟✟
+
+b
+
+then the order morphisms f (0) = a, f (1) = c and g(0) = b, g(1) = c admit the
+supremum h(0) = h(1) = c, but clearly h(0) is not the supremum of f (0) and g(0).
+This implies that h is not the weighted colimit determined by f and g as in 5.6.
+
+Limits
+A limit in a Q-category A is a colimit in the opposite category of A. This simple
+definition hides the difficulty that A is a Q-category but Aop is a Qop -category.
+Let us therefore make the definition of limit in A elementary in terms of Q-enriched
+structures: for a distributor Φ: B ❝ / C in Dist(Q) and a functor F : B / A in Cat(Q),
+the Φ-weighted limit of F is – whenever it exists – a functor lim(Φ, F ): C / A in
+Cat(Q) such that
+
+ n
+o
+A −, lim(Φ, F ) − = Φ, A(−, F −) in Dist(Q).
+These diagrams picture the situation:
+CO
+
+CO ?
+
+CO
+Φ❝
+
+lim(Φ, F )
+
+≥
+
+Φ❝
+
+o
+?? n
+?? Φ, A(−, F −)
+??
+❝??
+Φ❝
+??
+??
+?
+/A
+C
+
+B
+
+F
+
+/A
+
+A(−, F −)
+
+B
+
+F
+
+
+/A
+
+A Q-category A is complete when the Qop -category Aop is cocomplete; by 5.4 we
+know that this is so precisely when for all φ: ∗A ❝ / Aop in Dist(Qop ), the φ-weighted
+colimit of 1Aop exists in Cat(Qop ); in terms of Q-enriched structures, this occurs
+precisely when for every6 φ: A ❝ / ∗A in Dist(Q), there is an object a ∈ A, necessarily
+of type ta = A, such that
+n
+o
+A(−, a) = φ, A in Dist(Q).
+6
+
+Later we will call such a distributor a covariant presheaf on A.
+
+20
+
+Proposition 5.8 For any Q-category A and any φ: A ❝ / ∗A in Dist(Q), lim(φ, 1A )
+exists if and only if colim({φ, A}, 1A ) exists, in which case they are isomorphic.
+Proof : First suppose that a = lim(φ, 1A ) exists: A(−, a) = {φ, A}. But then, using
+that A(−, a) ⊣ A(a, −) in Dist(Q), A(a, −) = [A(−, a), A] = [{φ, A}, A], which says
+that a is the {φ, A}-weighted colimit of 1A .
+Conversely, to say that a = colim({φ, A}, 1A ) exists, means that A(a, −) =
+[{φ, A}, A]. Again using the adjunction A(−, a) ⊣ A(a, −), and by calculation with
+[−, −] and {−, −} in Dist(Q) it follows that A(−, a) = {[{φ, A}, A], A} = {φ, A}, so
+that indeed a is the φ-weighted colimit of 1A .
+✷
+This proposition is valid for categories enriched in any quantaloid Q, hence also
+for Qop -categories; translating the result in 5.8 for Qop -categories in terms of Qcategories, we obtain its dual: for any ψ: ∗A ❝ / A in Dist(Q), colim(ψ, 1A ) exists if
+and only if lim([ψ, A], 1A ) exists, in which case they are isomorphic.
+Example 5.9 Applied to 2-enriched categories, i.e. ordered sets, 5.8 says that the
+infimum of an up-closed subset equals the supremum of the down-set of its lower
+bounds (and dually, the supremum of a down-closed subset equals the infimum of
+the up-closed set of its upper bounds).
+The following is then an immediate consequence of 5.4 and 5.8.
+Proposition 5.10 A Q-category is complete if and only if it is cocomplete.
+This does not mean that “the theory of complete Q-categories” is the same as “the
+theory of cocomplete Q-categories” (although it is its dual): even though the objects
+are the same, the appropriate morphisms are not. For example, the free cocompletion
+of a Q-category is different from its free completion (see further).
+
+Absolute (co)limits and (co)continuous functors
+Given a distributor Θ: A ❝ / B and a functor F : B / C between Q-categories for
+which colim(Θ, F ): C / B exists, a functor F ′ : B / B′ is said to preserve this colimit
+if colim(Θ, F ′ ◦ F ) exists and is isomorphic to F ′ ◦ colim(Θ, F ). The functor F ′ is
+cocontinuous if it preserves all colimits that exist in B. And colim(Θ, F ) is absolute
+if it is preserved by any functor F ′ : B / B′ .
+Continuous functors and absolute limits are defined dually. For all of the following results we don’t bother explicitly writing the dual statements, even though we
+may use them further on.
+Proposition 5.11 If Θ: C ❝ / A is a left adjoint in Dist(Q), then any colimit with
+weight Θ is absolute7 .
+7
+
+A converse can be proved too: if any Θ-weighted colimit is absolute, then Θ is left adjoint
+[Street, 1983b].
+
+21
+
+Proof : If Θ ⊣ Ψ in Dist(Q) and colim(Θ, F ) exists, then necessarily
+
+ h
+i
+B colim(Θ, F )−, − = Θ, B(F −, −) = Ψ ⊗A B(F −, −).
+
+From this it is obvious that, for any F ′ : B / B′ ,
+
+
+
+
+B F ′ ◦ colim(Θ, F )−, −
+= B colim(Θ, F )−, − ⊗B B′ (F −, −)
+= Ψ ⊗A B(F −, −) ⊗B B′ (F ′ −, −)
+
+= Ψ ⊗A B(F ′ ◦ F −, −)
+h
+i
+= Θ, B(F ′ ◦ F −, −)
+
+so colim(Θ, F ′ ◦ F ) exists and is isomorphic to F ′ ◦ colim(Θ, F ).
+
+Proposition 5.12 If F ′ : B
+ous8 .
+
+✷
+
+/ B′ is a left adjoint in Cat(Q), then it is cocontinu-
+
+Proof : Suppose that F ′ ⊣ G in Cat(Q)—i.e. B′ (F ′ −, −) ⊣ B(G−, −) in Dist(Q). For
+any colimit
+F
+F′ / ′
+/
+AO
+B
+?B
+Θ❝
+
+colim(Θ, F )
+
+C
+we can then calculate
+
+
+
+
+= B colim(Θ, F )−, − ⊗B B′ (F ′ −, −)
+B′ F ′ ◦ colim(Θ, F )−, −
+h
+i
+= Θ, B(F −, −) ⊗B B′ (F ′ −, −)
+n
+h
+io
+=
+B(G−, −), Θ, B(F −, −)
+h n
+oi
+= Θ, B(G−, −), B(F −, −)
+h
+i
+= Θ, B(F −, −) ⊗B B′ (F ′ −, −)
+h
+i
+= Θ, B′ (F ′ ◦ F −, −)
+
+which shows that colim(Θ, F ′ ◦ F ) exists and equals F ′ ◦ colim(Θ, F ).
+
+Corollary 5.13 Consider a fully faithful right adjoint G: B
+cocomplete, then so is A.
+8
+
+If B is cocomplete, then also the converse holds—see 6.8.
+
+22
+
+✷
+
+/ A in Cat(Q); if B is
+
+Proof : Let us write F : A
+
+/ B for G’s left adjoint; now consider any colimit diagram
+
+DO
+Φ❝
+C
+
+H
+
+/A
+?
+
+~
+
+F
+⊥
+/B
+G oooo7
+
+oo
+ooo
+o
+o
+ooo
+oocolim(Φ,
+G ◦ H)
+o
+o
+oo
+o
+o
+o
+
+Then by cocontinuity of F we have F ◦ colim(Φ, G ◦ H) ∼
+= colim(Φ, F ◦ G ◦ H) (thus
+in particular the existence of the right hand side, the dotted arrow in the diagram),
+and by fully faithfulness of G (see 4.5), colim(Φ, F ◦ G ◦ H) ∼
+✷
+= colim(Φ, H).
+The following two corollaries are now immediate.
+Corollary 5.14 Consider a string of three adjoints in Cat(Q),
+
+Ao
+
+F
+⊥
+G
+⊥
+H
+
+#
+;B,
+
+with F fully faithful. If B is cocomplete, then so is A.
+Corollary 5.15 If F : A / B is an equivalence in Cat(Q), then both F and its inverse equivalence are cocontinuous, and A is cocomplete if and only if B is.
+
+6
+
+Presheaves
+
+Contravariant presheaves
+Principally the “contravariant presheaves on a Q-category A” should be the objects
+of a Q-category PA which “classifies” distributors into A:
+for every Q-category C, Dist(Q)(C, A) ≃ Cat(Q)(C, PA).
+
+(11)
+
+(Here we ask a priori for an equivalence of orders, but it will prove to be an isomorphism of sup-lattices.) Putting C = ∗C in the above equivalence dictates that a
+contravariant presheaf of type C ∈ Q on A is a distributor ∗C ❝ / A.
+In what follows we will systematically use small greek letters – instead of capital
+ones – to denote such contravariant presheaves; the elements of such a φ: ∗C ❝ / A
+/ ta (instead of φ(a, ∗), thus stressing the fact that the
+will be written as φ(a): C
+action of ∗C on φ is trivial).
+The precise sense in which a distributor φ: ∗C ❝ / A is contravariant, is the following: the action of A on φ can be written as A(a′ , a) ≤ {φ(a), φ(a′ )} (for all
+23
+
+a, a′ ∈ A0 ). A contravariant presheaf on A may thus be thought of as a “functor on
+Aop with values in Q” sending a to φ(a). To make this precise: indeed, a 7→ φ(a) is
+a functor between Aop and (P † C)op (see 3.9) in Cat(Qop ), or equivalently a functor
+between A and P † C in Cat(Q)co (by the duality in 3.8).
+Since we agreed to work over a small base quantaloid Q, the collection of contravariant presheaves on a Q-category A forms a Q-typed set9 . We now need to
+enrich this set in Q in such a way that the classifying property in (11) holds.
+Proposition 6.1 For any Q-category A, the following defines the Q-category PA
+of contravariant presheaves on A:
+- objects: (PA)0 = {φ: ∗C ❝ / A in Dist(Q) | C ∈ Q} with types t(φ: ∗C ❝ / A) =
+C;
+- hom-arrows: for φ: ∗C ❝ / A and ψ: ∗C ′ ❝ / A put PA(ψ, φ): C
+single element of the distributor [ψ, φ]: ∗C ❝ / ∗C ′ .
+
+/ C ′ to be the
+
+This Q-category is skeletal, and it satisfies the equivalence in (11) as follows:
+- for a distributor Φ: C ❝ / A the corresponding functor FΦ : C
+C0 onto Φ(−, c): tc ❝ / A;
+
+/ PA maps c ∈
+
+- and for a functor F : C / PA the corresponding distributor ΦF : C ❝ / A has
+elements, for (c, a) ∈ C0 × A0 , ΦF (a, c) = F (c)(a).
+Proof : With the properties of “[−, −]” in Dist(Q) it is easily verified that PA is a
+Q-category. For φ, ψ ∈ PA, observe that φ ≤ ψ in (PA)0 if and only if tφ = tψ =: C
+❝/
+and (1C ) ≤ PA(φ, ψ), that is to say, φ, ψ: ∗C ❝ / A and 1C ≤ [φ, ψ] in Dist(Q),
+❝/
+thus precisely when φ ≤ ψ: ∗C ❝ / A. This shows that the underlying order on the
+objects of PA (which are certain distributors) coincides with their order as arrows
+in Dist(Q)—so it is antisymmetric, i.e. PA is a skeletal Q-category. As for the
+equivalence of orders in (11), it is easily seen that the mappings F 7→ ΦF and
+Φ 7→ FΦ as in the statement of the proposition define a bijection:
+- for any c ∈ C0 , FΦF (c) = ΦF (−, c) = F (c), so FΦF = F ,
+- for any (c, a) ∈ C0 × A0 , ΦFΦ (a, c) = FΦ (c)(a) = Φ(a, c), so ΦFΦ = Φ.
+This bijection preserves order in both directions:
+Φ ≤ Ψ in Dist(C, A)
+⇐⇒ ∀(c, a) ∈ C0 × A0 : Φ(a, c) ≤ Ψ(a, c) in Q(tc, ta)
+⇐⇒ ∀c ∈ C0 : FΦ (c) ≤ FΨ (c) in ((PA)0 , ≤)
+⇐⇒ FΦ ≤ FΨ in Cat(Q)(C, PA)
+9
+
+Would the objects of the base category Q form a class, then the collection of contravariant
+presheaves on A would be large! The reason – ultimately – is that PA is a cocomplete category—
+see 5.1 and 6.4.
+
+24
+
+and likewise
+F ≤ G in Cat(Q)(C, PA)
+⇐⇒ ∀c ∈ C0 : F (c) ≤ G(c) in ((PA)0 , ≤)
+⇐⇒ ∀(c, a) ∈ C0 × A0 : ΦF (a, c) ≤ ΦG (a, c) in Q(tc, ta)
+⇐⇒ ΦF ≤ ΦG in Dist(C, A).
+✷
+
+Example 6.2 For a Q-object Y , the Q-category of contravariant presheaves on ∗Y
+is denoted PY instead of P(∗Y )—see also 3.9.
+Very often there will be an abuse of notation: for φ: ∗C ❝ / A and ψ: ∗C ′ ❝ / A there
+is a distributor [ψ, φ]: ∗C ❝ / ∗C ′ with precisely one element (because it goes between
+one-object categories); therefore we defined PA(ψ, φ) to be the single element of
+this distributor, for we want PA(ψ, φ) to be a Q-arrow. But more often than not
+we will simply write PA(ψ, φ) = [ψ, φ], thus identifying a quantaloid Q with the
+full subcategory of Dist(Q) determined by the one-object Q-categories whose homarrows are identities (see also (9) and the appendix).
+The equivalence of orders in (11) has a nice side-effect: Cat(Q)(C, PA) is – by
+skeletality of PA – an antisymmetric order which is order-isomorphic to the suplattice Dist(Q)(C, A), thus it is a sup-lattice too. In particular are F 7→ ΦF and
+Φ 7→ FΦ sup-morphisms.
+To the identity distributor A: A ❝ / A corresponds, under the equivalence in (11),
+the functor
+
+
+YA : A / PA : a 7→ A(−, a): ∗ta ❝ / A
+which is, of course, the Yoneda embedding for A. The presheaf A(−, a): ∗ta ❝ / A
+is said to be represented by a ∈ A0 . We can now prove the “Yoneda lemma” for
+presheaves on a Q-enriched category.
+
+Proposition 6.3 For any Q-category A, any object a ∈ A0 and any φ: ∗C ❝ / A in
+Dist(Q), PA(YA a, φ) = φ(a). As a consequence, the Yoneda embedding YA : A / PA
+is fully faithful.
+Proof : Using that A(−, a) ⊣ A(a, −) in Dist(Q), we have by definition of PA(−, −)
+that PA(YA a, φ) = [A(−, a), φ] = A(a, −) ⊗A φ = φ(a).
+✷
+An – almost – immediate but non the less important consequence of 6.1 is the
+following.
+Proposition 6.4 The category PB of contravariant presheaves on a Q-category B
+is cocomplete.
+
+25
+
+Proof : Given a distributor Θ: C ❝ / A and a functor F : A / PB, to F corresponds
+a unique distributor ΦF : A ❝ / B and, in turn, to ΦF ⊗A Θ: C ❝ / B corresponds a
+unique functor FΦF ⊗A Θ : C / PB. We claim that this latter functor is the colimit of
+F weighted by Θ: for any c ∈ C and β ∈ PB we should verify that
+
+ h
+i
+PB FΦF ⊗A Θ (c), β = Φ(−, c), PB(F −, β) .
+The left hand side equals [Φ(−, c), [F −, β]] and the right hand side equals
+h
+i h
+i h
+h
+ii
+(ΦF ⊗A Θ)(−, c), β = ΦF ⊗A Θ(−, c), β = Θ(−, c), ΦF , β .
+
+Since [F −, β] = [ΦF , β], the required universality holds.
+
+Corollary 6.5 For any φ: ∗C ❝ / A, the φ-weighted colimit of YA : A
+and) is φ itself.
+
+✷
+
+/ PA (exists
+
+In other words, every contravariant presheaf on a Q-category A is canonically the
+colimit of representable presheaves: colim(φ, YA ) = φ (and we may write an equality
+instead of merely an isomorphism, for PA is skeletal).
+Here is another result that should sound familiar.
+Proposition 6.6 The Yoneda embedding YA : A
+
+/ PA is continuous.
+
+Proof : Consider a weighted limit (which happens to exist) in A, like so:
+CO
+lim(Φ, F )
+
+Φ❝
+B
+
+F
+
+
+/A
+
+YA
+
+/ PA
+
+Then, for any c ∈ C0 ,
+
+
+
+ n
+o
+YA ◦ lim(Φ, F ) (c) = A −, lim(Φ, F )(c) = Φ(c, −), A(−, F −)
+and therefore
+
+h n
+oi
+−, Φ, A(−, F −)
+n h
+io
+=
+Φ, −, A(−, F −)
+n
+o
+=
+Φ, PA(−, YA ◦ F −)
+
+PA(−, YA ◦ lim(Φ, F )−) =
+
+so YA ◦ lim(Φ, F ) is lim(Φ, YA ◦ F ).
+
+✷
+
+When YA : A / PA is a right adjoint, then A is cocomplete (combine 5.13 with
+6.3 and 6.4). Also the converse can be shown; actually, PA is the free cocompletion
+of A in Cat(Q). To make this precise in an elegant way, it is useful to treat pointwise
+left Kan extensions first.
+26
+
+Pointwise left Kan extensions
+If for F : B / A and G: B / C in Cat(Q) the C(G−, −)-weighted colimit of F exist,
+then it is the left Kan extension of F along G; so hF, Gi ∼
+= colim(C(G−, −), F )
+whenever the right hand side exists. By lemma 5.2 we know that in this case
+/ B on objects is given by the colimit formula hF, Gi(c) ∼
+the action of hF, Gi: C
+=
+colim(C(G−, c), F ). Such a colimit weighted by the right adjoint distributor determined by some functor is therefore said to be a pointwise left Kan extension. (Note
+that, for a pointwise left Kan extension, the two notions of absoluteness, one relevant
+for Kan extensions and the other relevant for colimits, coincide.)
+A Q-category is said to admit all pointwise left Kan extensions when it admits
+all colimits of this special kind. A cocomplete Q-category then certainly admits all
+pointwise left Kan extensions. (For a cocomplete B, any functor G: A / C thus
+determines an adjunction
+h−, Gi ⊣ (− ◦ G): Cat(Q)(C, B)
+
+o
+
+/ Cat(Q)(A, B).
+
+This has been called the “meta-adjointness” associated to the concept of Kan extension.) But it is also true that a Q-category admitting all pointwise Kan extensions,
+is cocomplete! This follows from 5.4 in combination with 6.9 below; note that the
+Yoneda embedding plays a crucial rôle.
+/ C in Cat(Q) the pointwise
+Proposition 6.7 Suppose that for F : B / A and G: B
+left Kan extension of F along G exists. If G is fully faithful, then hF, Gi ◦ G ∼
+= F.
+
+Proof : It is easily seen that, hF, Gi being a pointwise left Kan extension,
+hF, Gi ◦ G ∼
+=F
+⇐⇒ B(hF, Gi ◦ G−, −) = B(F −, −)
+⇐⇒ C(G−, −) ⊗C B(hF, Gi−, −) = B(F −, −)
+h
+i
+⇐⇒ C(G−, −) ⊗C C(G−, −), B(F −, −) = B(F −, −)
+
+⇐⇒ C(G−, −) ⊗C C(−, G−) ⊗A B(F −, −) = B(F −, −)
+⇐⇒ C(G−, G−) ⊗A B(F −, −) = B(F −, −)
+so if G is fully faithful, i.e. C(G−, G−) = A, then the above holds.
+
+✷
+
+Proposition 6.8 Let A be a cocomplete Q-category; then the cocontinuous functors
+with domain A coincide with the left adjoints.
+Proof : One direction is a consequence of 5.12. To prove the other, let F : A / B be
+a cocontinuous functor. By cocompleteness of A, h1A , F i not only exists but is even
+pointwise, i.e. it is a colimit, so it must be preserved by F . By 4.6 we conclude that
+F is a left adjoint.
+✷
+27
+
+Proposition 6.9 A functor F : A / B has a pointwise left Kan extension along
+YA : A / PA if and only if, for every φ ∈ PA, the φ-weighted colimit of F exists. In
+/ PA, and hF, YA i ◦ YA ∼
+/ B is left adjoint to hYA , F i: B
+this case, hF, YA i: PA
+=
+F . Actually, hF, YA i is then the essentially unique cocontinuous factorization of F
+through YA .
+Proof : If by hypothesis, hF, YA i = colim(PA(YA −, −), F ) exists, then hF, YA i(φ) =
+colim(PA(YA −, φ), F ) = colim(φ, F ) because PA(YA −, φ) = φ. Conversely, supposing that B allows colimits of F weighted by presheaves on A, colim(PA(YA −, −), F )
+exists because, for all φ = PA(YA −, φ), colim(PA(YA −, φ), F ) exists (see 5.2).
+Since PA is cocomplete, hYA , F i exists, is pointwise, and can thus be computed
+as hYA , F i(b) ∼
+= colim(B(F −, b), YA ) ∼
+= B(F −, b). It is then a matter of applying 4.2
+to prove the adjunction:
+hF, YA i ⊣ hYA , F i
+
+
+
+
+⇐⇒ ∀φ ∈ PA, ∀b ∈ B : B hF, YA i(φ), b = PA φ, hYA , F i(b)
+
+ h
+i
+⇐⇒ ∀φ ∈ PA, ∀b ∈ B : B colim(φ, F ), b = φ, B(F −, b)
+
+which holds by the definition of colimit.
+Finally, by fully faithfulness of YA and 6.7 it follows that F factors through
+/ B be another cocontinuous functor such that
+YA as hF, YA i. Would now G: PA
+∼
+F = G ◦ YA then – by cocontinuity and using the fact that any presheaf φ ∈ PA is
+canonically the colimit of representables – G and hF, YA i agree on all objects of PA:
+G(φ) = G(colim(φ, YA ))
+∼
+= colim(φ, G ◦ YA )
+∼
+= colim(φ, F )
+= hF, YA i(φ).
+✷
+
+Corollary 6.10 A Q-category A is cocomplete if and only if YA : A
+adjoint in Cat(Q).
+
+/ PA is a right
+
+Proof : If YA is right adjoint, apply 5.13 to YA , using 6.3 and 6.4. If A is cocomplete,
+apply 6.9 to the identity functor 1A : A / A: h1A , YA i ⊣ hYA , 1A i = YA .
+✷
+
+Free cocompletion
+Applying 6.9 we easily obtain that, for two Q-categories A and B, with B cocomplete, any functor F : A / B factors through YA : A / PA by the essentially unique
+28
+
+cocontinuous – even left adjoint – functor hF, YA i: PA / B. Let now Cocont(Q)
+denote the sub-2-category of Cat(Q) whose objects are the cocomplete Q-categories,
+and whose morphisms are the cocontinuous functors, or equivalently (by 6.8) the
+left adjoint ones; there is a forgetful 2-functor U : Cocont(Q) / Cat(Q). The above
+then says that, for Q-categories A and B, with B cocomplete, the Yoneda embedding
+YA : A / PA induces a natural equivalence of orders
+− ◦ YA : Cocont(Q)(PA, B)
+
+∼/
+
+Cat(Q)(A, B)
+
+with inverse F 7→ hF, YA i.
+Proposition 6.11 The presheaf construction provides a left (bi)adjoint to the ino
+clusion of Cocont(Q) in Cat(Q): P ⊣ U : Cocont(Q) / Cat(Q).
+For any two Q-categories A and B, we have – by 6.1 and the above – equivalences
+Dist(Q)(A, B)
+
+∼/
+
+Cat(Q)(A, PB)
+
+sending a Φ: A ❝ / B to hFΦ , YA i: PB
+6.1). We can prove more.
+
+∼/
+
+Cocont(Q)(PA, PB)
+
+/ PA (with FΦ : B
+
+(12)
+
+/ PA: b 7→ Φ(−, b) as in
+
+Proposition 6.12 The locally ordered10 category Cocont(Q) has stable local colimits, and the action
+
+
+
+
+/ PB
+Dist(Q) / Cocont(Q): Φ: A ❝ / B 7→ hFΦ , YA i: PA
+
+is a 2-functor which is locally an equivalence.
+
+Proof : We already know that Cocont(Q) is a 2-category; we must show that it has
+stable local colimits. By 5.6 we know how to compute suprema in Cat(Q)(A, B)
+whenever B is cocomplete; we may thus apply this to given arrows (Fi : A / B)i∈I
+in Cocont(Q):
+
+_
+_
+Fi := colim
+B(−, Fi −), 1B .
+i∈I
+
+i∈I
+
+W
+
+But we must show that i Fi is still a cocontinuous functor (for a priori it is merely
+a functor); equivalently (by cocompleteness of A), we may assume that each Fi is a
+W
+left adjoint in Cat(Q), and show that i Fi itself is a left adjoint in Cat(Q). Let us
+write Fi ⊣ Gi for such adjunctions; then, by 5.6 and its dual11 ,
+_
+^
+^
+^
+B( Fi −, −) =
+B(Fi −, −) =
+A(−, Gi −) = A(−, Gi −).
+i
+
+i
+
+i
+
+10
+
+i
+
+... but not antisymmetrically so!
+The dual of 5.6 says the following: if A is a complete category, then the infimum of functors
+/ A)i∈I exists in Cat(Q)(B, A), and is given by the Wi A(Gi −, −)-weighted limit of 1A .
+(Gi : B
+V
+V
+V
+This means exactly that this infimum i Gi satisfies A(−, i Gi −) = i A(−, Gi −). By 5.10 any
+complete category is also cocomplete, so this applies in this case!
+11
+
+29
+
+W
+V
+That is to say, i Fi ⊣ i Gi in Cat(Q). As for the stability of these local colimits,
+/ C in Cocont(Q); then
+take for example (Fi : A / B)i∈I and G: B
+
+_
+_
+B(−, Fi −), 1B
+G ◦ ( Fi ) = G ◦ colim
+i
+
+i
+
+∼
+= colim
+
+_
+
+
+B(−, Fi −), G
+
+
+ i
+_
+∼
+(−,
+F
+−),
+1
+colim
+C(−,
+G−)
+⊗
+=
+i
+C
+B
+i
+
+∼
+= colim
+
+
+_
+(−, G ◦ Fi −), 1C
+i
+
+_
+=
+(G ◦ Fi )
+i
+
+because G is cocontinuous. Now consider F : A / B and (Gi : B
+any a ∈ A0
+
+_
+
+_
+C(−, Gi −), 1C (F a)
+( Gi ) ◦ F (a) = colim
+
+/ C)i∈I , then for
+
+i
+
+i
+
+∼
+= colim
+
+∼
+= colim
+
+_
+
+i
+_
+
+C(−, Gi −) ⊗B B(−, F a), 1C
+
+
+
+C(−, Gi (F a)), 1C )
+
+i
+
+∼
+= colim
+
+_
+
+C(−, Gi ◦ F −), 1C )(a)
+
+i
+
+=
+
+_
+i
+
+
+(Gi ◦ F ) (a)
+
+W
+W
+by properties of the colimit – see 5.2 – so ( i Gi ) ◦ F = i (Gi ◦ F ).
+To prove the functoriality of the action described in the statement of the proposition, first observe that for an identity distributor A: A ❝ / A, both hYA , YA i and
+1PA are cocontinuous (left adjoint) factorizations of YA through YA , so – applying 6.11 – at least they are isomorphic functors; PA being skeletal implies that this
+isomorphism is an equality. For Φ: A ❝ / B and Ψ: B ❝ / C, to check that hFΨ , YB i ◦
+hFΦ , YA i = hFΨ⊗B Φ , YA i in Cat(Q)(PA, PC), it suffices to see – again by 6.11 and by
+skeletality of PC – that hFΨ , YB i ◦ hFΦ , YA i is a cocontinuous factorization of FΨ⊗B Φ
+through YA . As composition of left adjoints, hFΨ , YB i ◦ hFΦ , YA i is left adjoint. And
+since hFΦ , YA i ◦ YA = FΦ , it suffices to show that hFΨ , YB i ◦ FΦ ∼
+= FΨ⊗Φ . But for any
+a ∈ A one calculates that
+
+
+
+
+hFΨ , YB i ◦ FΦ (a) = hFΨ , YB i Φ(−, a)
+
+
+= colim Φ(−, a), FΨ
+
+
+=
+Ψ ⊗B Φ (−, a)
+= FΨ⊗B Φ (a).
+30
+
+That this functor is really a 2-functor, and that it is locally an equivalence, follows
+from the preceding remarks, in particular (12).
+✷
+Restricting to skeletal cocomplete Q-categories, Cocontskel (Q) is a quantaloid and the
+2-functor above corestricts to a quantaloid homomorphism Dist(Q) / Cocontskel (Q)
+that induces sup-isomorphisms between the hom-sup-lattices.
+Example 6.13 For a 2-category A, i.e. an ordered set, PA is set of down-sets of
+A, ordered by inclusion. The Yoneda embedding YA : A / PA sends an element to
+the principal down-set that it determines. An eventual left adjoint to YA is “taking
+the supremum”. The isomorphism Dist(2)(A, B) ∼
+= Cocontskel (2)(PA, PB) says that
+an ideal relation between given orders is the same thing as a sup-morphism between
+the sup-lattices of down-sets of those orders. In fact, Cocontskel (2) = Sup.
+
+Covariant presheaves, free completion
+The results in the previous sections may be dualized; one obtains that “the Qcategory of covariant presheaves on A is A’s free completion in Cat(Q)”. Let us
+quickly do this exercise.
+A covariant presheaf of type C ∈ Q on a Q-category A is a distributor φ: A ❝ / ∗C .
+Covariant presheaves form the object-set of a Q-category P † A, whose hom-arrows
+are, for φ: A ❝ / ∗C and ψ: A ❝ / ∗C ′ ,
+P † A(ψ, φ) = single element of {φ, ψ} in Dist(Q).
+This Q-category satisfies
+for every Q-category C, Dist(Q)(A, C) ≃ Cat(Q)co (C, P † A),
+
+(13)
+
+and it is complete. There is a Yoneda embedding YA† : A / P † A, sending an object
+a ∈ A to the representable distributor A(a, −): A ❝ / ∗ta , which is fully faithful. A
+is complete if and only if YA† is a left adjoint in Cat(Q); but in any case is YA†
+cocontinuous.
+Continuous functors whose domain is a complete Q-category, coincide with the
+right adjoints. Denoting Cont(Q) for the sub-2-category of Cat(Q) whose objects
+are complete Q-categories and arrows are continuous functors, we have
+P † ⊣ U : Cont(Q)
+
+o
+
+/ Cat(Q);
+
+that is, P † A is the free completion of A in Cat(Q). Furthermore, Cont(Q) has
+stable local limits, and there is 2-functor, which is locally an equivalence, like so:
+Dist(Q) / Cont(Q)coop sends a distributor Φ: A / B to the right Kan extension
+(F Φ , YA† ): P † B / P † A, where F Φ : B / P † A is determined by Φ through the equivalence in (13).
+
+31
+
+Since a Q-category is complete if and only if it is cocomplete, and since between
+such categories continuous (cocontinuous) functors coincide with right adjoints (left
+adjoints), there is an isomorphism of (locally cocompletely ordered) 2-categories
+
+
+
+
+∼/
+/A
+/ F ∗: B
+Cocont(Q) o
+Cont(Q)coop : F : A / B o
+
+where F ⊣ F ∗ in Cat(Q). Considering only skeletal objects, this restricts to an
+coop
+isomorphism of quantaloids Cocontskel (Q) ∼
+= Contskel (Q).
+Assembling previous results we obtain that: for a Q-category A, YA : A / PA is
+a right adjoint if and only if YA† : A / P † A is a left adjoint; this is precisely the case
+when A is (co)complete. It is interesting to take a closer look at this result. First
+observe that, in any case, there is an adjunction
+[−, A]
+PA h
+
+⊥
+
+)
+
+P †A
+
+{−, A}
+in Cat(Q), where the functors involved are obtained by calculating {−, −} and [−, −]
+in Dist(Q):
+
+
+
+
+/ P † A: φ: ∗A ❝ / A 7→ [φ, A]: A ❝ / ∗A ,
+[−, A]: PA
+{−, A}: P † A
+
+
+
+/ PA: ψ: A ❝ / ∗A
+
+
+
+
+
+7→ {ψ, A}: ∗A ❝ / A .
+
+Now considering the diagram of Q-categories and functors
+
+R
+Y†
+ A
+
+
+
+P †A o
+
+3Ak
+ :::
+
+::
+
+:
+
+
+L
+
+{−, A}
+
+::
+::
+/ 
+
+YA::
+
+[−, A]
+
+PA
+
+we have on the one hand that, if L ⊣ YA is known, then R := L ◦ {−, A} is right
+adjoint to YA† ; and dually, if YA† ⊣ R is known, then L := R ◦ [−, A] is left adjoint to
+YA . Actually, L(φ) = colim(φ, 1A ) and R(ψ) = lim(ψ, 1A ) (whenever one, thus also
+the other, exists), so that the crux of this construction is really the statement in 5.8.
+
+Example 6.14 Take 2-categories, then Cont(2) ≃ Inf = Contskel (2). For a 2category A, P † A is the set of up-sets of A, ordered by containment (reverse inclusion); YA† sends an element of A to the corresponding principal up-set. An eventual
+right adjoint to YA† is “infimum”. It is well-known that Sup ∼
+= Inf coop in QUANT
+by passing from left-adjoints to right-adjoints in Cat(2). The adjunction between
+32
+
+PA (down-sets of A, ordered by inclusion) and P † A (up-sets of A, ordered by containment) is constituted by the left adjoint that sends a down-set to the up-set of
+its upper bounds, and the right adjoint that sends an up-set to the down-set of its
+lower bounds.
+Example 6.15 For a Q-object X, the category of covariant presheaves on ∗X is
+denoted P † X rather than P † (∗X ) (cf. 3.9).
+
+7
+
+Cauchy completion and Morita equivalence
+
+Cauchy complete categories
+A left adjoint distributor Φ: C ❝ / A is often called a Cauchy distributor (into A); we
+will systematically denote its right adjoint as Φ∗ :
+Φ❝
+Ah
+
+⊥
+
+(
+
+B.
+
+❝
+
+Φ∗
+In particular, a Cauchy presheaf φ: ∗C ❝ / A is a contravariant presheaf with a right
+adjoint φ∗ : A ❝ / ∗C , whose elements are φ∗ (a): ta / C.
+A Cauchy distributor Φ: C ❝ / A is said to converge (to a functor F : C / A)
+if (there exists a functor F : C / A such that) Φ = B(−, F −)—or equivalently,
+Φ∗ = B(F −, −). A Cauchy distributor Φ: C ❝ / A need not converge, but if it does
+then the functor F : C / A that it converges to, is essentially unique. We are interested in those Q-categories in which “all Cauchy distributors converge”: say that
+A is Cauchy complete if, for all C, any Cauchy distributor Φ: C ❝ / A converges. In
+other words, letting Map(Dist(Q))(C, A) denote the full subcategory of Dist(Q)(C, A)
+whose objects are the Cauchy distributors (“maps”), A is Cauchy complete if and
+only if, for every C, the mapping
+Cat(Q)(C, A)
+
+/ Map(Dist(Q))(C, A): F 7→ A(−, F −)
+
+is surjective; recalling that it is always “essentially injective”, we thus ask for it to
+be an equivalence.
+Fortunately, to have Cauchy completeness, convergence of the Cauchy presheaves
+suffices!
+Proposition 7.1 A Q-category A is Cauchy complete if and only if all Cauchy
+presheaves on A converge (i.e. are representable).
+o ❝
+
+Proof : We only need to prove the “if”. Let Φ ⊣ Φ∗ : A ❝ / C, then for each c ∈ C0 ,
+o ❝
+Φ(−, c) ⊣ Φ∗ (c, −): A ❝ / C, because Φ ⊗C C(−, c) = Φ(−, c) and C(c, −) ⊗C Φ∗ =
+Φ∗ (c, −), and by composition of adjoints. By assumption there exists for each c ∈ C0
+33
+
+/ A – that we will henceforth identify with the single element of
+a functor F c: ∗tc
+type tc that it picks out – such that A(−, F c) = Φ(−, c) or equivalently, A(F c, −) =
+/ A0 : c 7→ F c is functorial: since C ≤ Φ∗ ⊗A Φ
+Φ∗ (c, −). But the object mapping C0
+it follows that
+
+C(c′ , c) ≤ Φ∗ (c′ , −) ⊗A Φ(−, c) = A(F c′ , −) ⊗A A(−, F c) = A(F c′ , F c).
+Clearly Φ ⊣ Φ∗ converges to the functor F : C
+
+/ A: c 7→ F c.
+
+✷
+
+The next proposition explains Cauchy completeness as “admitting all Cauchyweighted colimits”.
+Proposition 7.2 A Q-category is Cauchy complete if and only if it admits all colimits weighted by a Cauchy distributor, if and only if it admits all colimits weighted
+by a Cauchy (contravariant) presheaf.
+Proof : Let B be Cauchy complete; given a Cauchy distributor Φ: C ❝ / A and a
+functor F : A / B, the Φ-weighted colimit of F is the functor K: C / B to which
+the Cauchy distributor B(−, F −) ⊗A Φ converges:
+h
+i
+B(K−, −) = Φ∗ ⊗A B(F −, −) = Φ, B(F −, −) .
+
+Suppose now that B admits all colimits weighted by a Cauchy presheaf; then every
+such Cauchy presheaf is representable because φ: ∗C ❝ / B (with φ ⊣ φ∗ ) converges
+to colim(φ, 1B ):
+
+ h
+i
+B colim(φ, 1B )−, − = φ, B(1B −, −) = φ∗ ⊗B B(−, −) = φ∗ .
+By 7.1 B is Cauchy complete. (The remaining implication is trivial.)
+
+✷
+
+‘Cauchy completeness’ is a self-dual notion: a Q-category A is Cauchy complete
+if and only if the Qop -category Aop is. (This really follows directly from the definition.) Therefore we have – by dualizing the statement of 7.2, using that ‘Cauchy
+completeness’ is a self-dual notion – at once the following.
+Proposition 7.3 A Q-category A is Cauchy complete if and only if it admits all limits weighted by a right adjoint distributor, if and only if it admits all limits weighted
+by a right adjoint (covariant) presheaf.
+In the rest of this section we work in terms of colimits.
+Example 7.4 Every 2-enriched category A is Cauchy complete: a down-set of A
+(i.e. a contravariant presheaf on A) is Cauchy if and only if it is principal (i.e. a
+representable presheaf).
+
+34
+
+Example 7.5 The Rel(Ω)-category associated to a sheaf on a locale Ω (see 3.11)
+is (skeletal and) Cauchy complete. In fact, it is also symmetric in the sense that it
+equals its opposite (which makes sense because Rel(Ω)op = Rel(Ω)). [Walters, 1981]
+proves that sheaves on Ω are precisely the symmetric, skeletal, Cauchy complete
+Rel(Ω)-categories. Dropping symmetry and skeletality, Cauchy complete Rel(Ω)categories are ordered sheaves on Ω [Betti et al., 1983; Stubbe, 2004c].
+Example 7.6 Consider again Lawvere’s generalized metric spaces (see 3.12); let A
+denote such a space. In [Lawvere, 1973] it is proved that a left adjoint distributor
+from a one-point space into A is precisely (an equivalence class of) a Cauchy sequence
+in A—and it is therefore that left adjoint distributors are also called Cauchy distributors. Cauchy completeness of A as enriched category coincides with its Cauchy
+completeness as metric space (“all Cauchy sequences/distributors converge”).
+
+Cauchy completing a category
+Not every Q-category A is Cauchy complete; still we are interested in “classifying”
+the Cauchy distributors on A: we want to construct a Q-category Acc such that
+for every Q-category C, Map(Dist(Q))(C, A) ≃ Cat(Q)(C, Acc ).
+
+(14)
+
+Much like the construction of PA we have the following proposition (the proof of
+which is much like that of 6.1, so it is omitted).
+Proposition 7.7 For any Q-category A, the “Cauchy completion Acc of A” is, by
+definition, the full subcategory of PA determined by the Cauchy presheaves on A:
+(Acc )0 = {φ ∈ (PA)0 | φ is Cauchy}.
+This Q-category is skeletal and it satisfies (14):
+- for a Cauchy distributor Φ: C ❝ / A the corresponding functor FΦ : C
+maps c ∈ C0 onto the Cauchy presheaf Φ(−, c): tc ❝ / A;
+
+/ Acc
+
+- and for a functor F : C / Acc the corresponding Cauchy distributor ΦF : C ❝ / A
+has elements, for (c, a) ∈ C0 × A0 , ΦF (a, c) = F (c)(a) (and its right adjoint
+has elements Φ∗F (c, a) = F (c)∗ (a)).
+Note that the hom-arrows in Acc are identical to those in PA, but since objects
+φ, ψ ∈ Acc have right adjoints in Dist(Q) we may write (with slight abuse of notation)
+that Acc (ψ, φ) = ψ ∗ ⊗A φ. This will be a helpful trick in many of the calculations
+that follow.
+Plugging the identity distributor A: A ❝ / A into the equivalence (14) gives us a
+functor
+
+
+iA : A / Acc : a 7→ A(−, a): ∗ta ❝ / A
+35
+
+which is precisely the factorization of the Yoneda embedding YA : A / PA over the
+/ PA that defined Acc . An alternative for the classifying
+full inclusion jA : Acc
+property in (14) is then: for any C, a distributor Φ: C ❝ / A is Cauchy if and only if
+/ PA. It
+the corresponding functor FΦ : C / PA (as in 6.1) factors through jA : Acc
+follows too that iA enjoys properties similar to those of YA (especially 6.3 and 6.5).
+Proposition 7.8 For any Cauchy presheaf φ: ∗C ❝ / A and any object a ∈ A0 ,
+Acc (iA (a), φ) = φ(a) and Acc (φ, iA (a)) = φ∗ (a). In particular is iA : A / Acc fully
+faithful.
+Proposition 7.9 Every Cauchy presheaf on a Q-category A is canonically the colimit of representables in Acc : for φ: ∗C ❝ / A Cauchy, the φ-weighted colimit of
+iA : A / Acc (exists and) is φ itself. In other words, colim(φ, iA ) = φ (where we may
+write an equality instead of merely an isomorphism, for Acc is skeletal).
+Up to now we have encountered many similarities between YA : A
+iA : A / Acc ; but here are two remarkable differences.
+
+/ PA and
+
+Proposition 7.10 A Q-category A is Cauchy complete if and only if iA : A / Acc
+is an essentially surjective functor, if and only if it is an equivalence in Cat(Q)12 .
+Proof : Since iA : A / Acc is fully faithful, it is clear that it is an equivalence if and
+only if it is essentially surjective. But the essential surjectivity, saying that any
+φ ∈ Acc is isomorphic to iA (a) for some a ∈ A, is precisely the statement in 7.1. ✷
+
+Proposition 7.11 Any Q-category A is isomorphic to its Cauchy completion in the
+quantaloid Dist(Q)13 .
+Proof : iA : A / Acc is a fully faithful functor, so the unit of the induced adjoint pair
+of distributors Acc (−, iA −) ⊣ Acc (iA −, −) is an equality. It suffices to prove that
+also its co-unit is an equality. Thereto, consider φ, ψ ∈ (Acc )0 and calculate that
+
+
+
+
+_
+Acc ψ, A(−, a) ◦ Acc A(−, a), φ
+Acc (ψ, iA −) ⊗A Acc (iA −, φ) =
+a∈A0
+
+= ψ ∗ ⊗A
+
+_ 
+
+a∈A0
+
+
+A(−, a) ◦ A(a, −) ⊗A φ
+
+= ψ ∗ ⊗A A ⊗A φ
+= ψ ∗ ⊗A φ
+= Acc (ψ, φ).
+
+That is to say, Acc (−, iA −) ⊗A Acc (iA −, −) = Acc , as wanted.
+12
+13
+
+Cocompleteness of A is in general not equivalent to YA : A
+But A needn’t be isomorphic to PA in Dist(Q)!
+
+36
+
+✷
+
+/ PA being an equivalence in Cat(Q)!
+
+A direct consequence of the above is that Dist(Q) is equivalent to its full subquantaloid Distcc (Q) determined by the Cauchy complete categories.
+The following result, although it uses 7.11 in its proof, may be considered analogous to 6.4.
+Proposition 7.12 For any A, the Cauchy completion Acc is Cauchy complete.
+Proof : It suffices to prove that any Cauchy presheaf on Acc is representable: for any
+Cauchy Φ: ∗C ❝ / Acc we must find a Cauchy φ: ∗C ❝ / A such that Acc (−, φ) = Φ.
+Using A ∼
+= Acc in Dist(Q) (see 7.11) we put φ := Acc (iA −, −) ⊗Acc Φ,
+∗C
+
+A (iA −, −)
+❝
+/ A,
+:
+
+Φ❝
+
+/ Acc cc
+❝
+
+φ
+
+which is Cauchy because it is the composition of Cauchy distributors (Acc (iA −, −)
+is not only right but also left adjoint because it is invertible). Now for any ψ ∈ Bcc ,
+Acc (ψ, φ) = ψ ∗ ⊗A φ
+= ψ ∗ ⊗A Acc (iA −, −) ⊗Acc Φ
+= Acc (ψ, iA −) ⊗A Acc (iA −, −) ⊗Acc Φ
+= Acc (ψ, −) ⊗Acc Φ
+= Φ(ψ),
+so φ indeed represents Φ.
+
+✷
+
+In view of the examples, in particular 7.5, it is tempting to think of the Cauchy
+completion A 7→ Acc of a Q-category as a sheafification. The following will only
+strengthen that intuition.
+
+The universality of the Cauchy completion
+The proof of the following is analogous to that of 6.9, and therefore it is omitted.
+Proposition 7.13 A functor F : A / B has a pointwise left Kan extension along
+iA : A / Acc if and only if, for every φ ∈ Acc , the φ-weighted colimit of F exists; in
+this case hF, iA i ◦ iA ∼
+= F 14 . Actually, hF, iA i is the essentially unique factorization
+of F through iA .
+In other words, denoting Catcc (Q) for the full sub-2-category of Cat(Q) determined
+by the Cauchy complete categories, we have for Q-categories A and B, with B Cauchy
+complete, an equivalence induced by composition with iA : A / Acc
+Catcc (Q)(Acc , B)
+14
+
+∼/
+
+Cat(Q)(A, B): G 7→ G ◦ iA
+
+But it is not true in general that hF, iA i: Acc
+
+37
+
+/ B is a left adjoint!
+
+(with inverse F 7→ hF, iA i).
+Proposition 7.14 Cauchy completing provides a left (bi)adjoint to the embedding
+o
+of Catcc (Q) in Cat(Q): (−)cc ⊣ V: Catcc (Q) / Cat(Q).
+The 2-functor
+Catcc (Q)
+
+
+
+/ Map(Distcc (Q)): F : A
+
+
+
+
+
+/ B 7→ B(−, F −): A ❝ / B
+
+
+
+is the identity on objects, and induces equivalences of the hom-orders: it is a biequivalence. Since Dist(Q) itself is equivalent to Distcc (Q), we may record that
+Catcc (Q) ≃ Map(Distcc (Q)) ≃ Map(Dist(Q)).
+Finally we wish to discuss the “interplay” between A, PA, P † A and Acc .
+Proposition 7.15 For Q-categories A and B, the following are equivalent:
+1. A ∼
+= B in Dist(Q);
+2. Acc ≃ Bcc in Cat(Q);
+3. PA ≃ PB in Cat(Q);
+4. P † A ≃ P † B in Cat(Q).
+Proof : (1 ⇔ 2) A ∼
+= B in Dist(Q) implies and is implied by Acc ∼
+= Bcc in Distcc (Q)
+(using 7.7), which by the biequivalence Catcc (Q) ≃ Map(Distcc (Q)) means that Acc ≃
+Bcc in Catcc (Q), or in Cat(Q).
+(1 ⇔ 3) A ∼
+= B in Dist(Q) if and only if PA ≃ PB in Cocont(Q) by the fully
+faithful, locally fully faithful 2-functor Dist(Q) / Cocont(Q) of 6.12; but to give an
+equivalence between cocomplete categories in Cocont(Q) is the same as in Cat(Q)
+(because the functors constituting the equivalence are always left adjoint, thus cocontinuous).
+(1 ⇔ 4) is dual to the previous argument.
+✷
+Whenever for two Q-categories A and B the equivalent conditions of 7.15 are fulfilled,
+then A is Morita equivalent to B. The morality is then that “a Q-category is but
+a presentation of its Cauchy completion”; in particular, if one only cares about
+Q-category theory “up to Cauchy completion” (i.e. “up to Morita equivalence”),
+then one can forget about functors and Cauchy completion and Morita equivalence
+altogether, and treat Map(Dist(Q)) as “the 2-category of Q-categories and functors”.
+
+38
+
+8
+
+Appendix: Distributor calculus
+
+Lax (co)limits in a quantaloid
+/ Q is
+Let Q denote a quantaloid, and D a small category. A lax functor F : D
+/ Q0 : D 7→ F D together with an action on hom-sets
+a mapping of objects D0
+′
+′
+/
+Q(F D, F D ): f 7→ F f such that
+D(D, D )
+
+- for all D ∈ D0 , 1F D ≤ F 1D ;
+- for all composable f, g ∈ D, (F g ◦ F f ) ≤ F (g ◦ f ).
+/
+
+/ Q, a family (θD : F D
+Given two such lax functors F, G: D
++3 G if
+arrows constitutes a lax-natural transformation θ: F
+
+- for all f : D
+
+/ GD)D∈D
+
+0
+
+of Q-
+
+/ D ′ in D, (θD′ ◦ F f ) ≥ (Gf ◦ θD );
+
+and the family is said to constitute an oplax-natural transformation if
+- for all f : D
+
+/ D ′ in D, (θD′ ◦ F f ) ≤ (Gf ◦ θD ).
+
+The collection of lax transfos, resp. oplax transfos, between two parallel lax functors
+/
+/ Q constitutes a sup-lattice (with “componentwise supremum”); we’ll deF, G: D
+note it as Lax(F, G), resp. OpLax(F, G). Lax transfos (oplax transfos) may also
+be composed: this too is done “componentwise”. The notions of ‘lax transfo’
+/
+/Q
+and ‘oplax transfo’ are dual in the following sense: two lax functors F, G: D
+/
+/ Qop , and then we have that Lax(F, G) =
+may be thought of as F op , Gop : D op
+OpLax(Gop , F op ).
+/ Q is trivially lax, and any (ordinary) natural
+Any (ordinary) functor F : D
++3 G between functors is trivially (op)lax. The set of natural
+transformation α: F
+/
+/ Q is a sub-sup-lattice of both the
+transformations between two functors F, G: D
+sup-lattices Lax(F, G) and OpLax(F, G) (it is their intersection).
+/ Q denotes the constant functor at the object A ∈ Q
+In what follows, ∆A : D
+(on whatever category D). For an arrow k: A / B in Q the constant transformation
+from ∆A to ∆B will be denoted as ∆k .
+Definition 8.1 Let D be a small category, and Q any quantaloid. For a lax functor
+/ Q a lax cone over F consists of an object L ∈ Q and a lax transfo π ∈
+F:D
+Lax(∆L , F ). Such a lax cone (L, π) is the (necessarily essentially unique) lax conical
+limit of F if it is universal: for all A ∈ Q there is an isomorphism15 of sup-lattices
++3 F ,
+induced by composition with π: ∆L
+Q(A, L)
+
+∼/
+
+Lax(∆A , F ): k 7→ π ◦ ∆k .
+
+15
+
+(15)
+
+Actually the definition of “lax (co)limit” in a general bicategory asks only for an equivalence, and
+not for an isomorphism. But an equivalence between antisymmetric orders is always an isomorphism,
+so we put that right away in this definition.
+
+39
+
+Lax cocone and lax conical colimit are the dual notions: a lax cocone on F is an
+oplax transfo σ ∈ OpLax(F, ∆C ), and it is the lax colimit if it is universal.
+/ Q admits a lax limit (lax colimit) in Q if and only if
+So a lax functor F : D
+/ Qop admits a lax colimit (lax limit) in Qop —this is the duality between
+F op : D op
+limits and colimits.
+/ Q, the limit on F is not necessarily
+In general, for an ordinary functor F : D
+its lax limit: whereas any cone α ∈ Nat(∆L , F ) is trivially also a lax cone, it is not
+true that the universal property for such an α to be a limit implies the universal
+property for α to be a lax limit. But in some cases lax limits do coincide with
+ordinary ones. (And by duality we can apply the result to lax colimits, of course.)
+/ Q and some (orProposition 8.2 Suppose that, for some lax functor F1 : D1
+/ Q into a quantaloid Q, for all X ∈ Q there is a supdinary) functor F2 : D2
+isomorphism
+∼/
+Nat(∆X , F2 )
+(16)
+Lax(∆X , F1 )
+
+which is natural in X. Then some π ∈ Lax(∆L , F1 ) is the lax limit of F1 if and only
+if π ′ ∈ Nat(∆L , F2 ), the image of π under the isomorphism above (taking X = L),
+is the limit of F2 .
+/ Q has limit π ′ ∈ Nat(∆L , F2 ) is to say
+
+Proof : To say that the functor F2 : D2
+that there are bijections
+′
+βX
+: Q(X, L)
+
+∼/
+
+Nat(∆X , F2 ): f 7→ π ′ ◦ ∆f
+
+defining an isomorphism of the Set-valued functors Q(−, L) and Nat(∆− , F2 ) on (the
+underlying category of) Qop in CAT; and π ′ = βL′ (1L ). However, not only is each
+Nat(∆X , F2 ) is a sup-lattice, Nat(∆− , F2 ) also preserves suprema of Q-arrows; it is
+thus a Sup-valued homomorphism on Qop . Moreover, the natural bijections above –
+since they are induced by composition in Q – always preserve suprema. Therefore,
+F2 has limit π ′ if and only if β ′ : Q(−, L) +3 Nat(∆− , F2 ) is an isomorphism of Supvalued homomorphisms on Qop in QUANT.
+/ Q has lax limit π ∈
+On the other hand, to say that the lax functor F1 : D1
+Lax(∆X , F1 ), is to say that there are sup-isomorphisms
+βX : Q(X, L)
+
+∼/
+
+Lax(∆X , F1 ): f 7→ π ◦ ∆f
+
+defining an isomorphism β: Q(−, L) +3 Lax(∆− , F1 ) of Sup-valued homomorphisms
+on Qop in QUANT; and π = βL (1L ).
+The result above then follows by composition of isomorphisms of Sup-valued
+homomorphisms on Qop in QUANT.
+✷
+
+40
+
+Two important examples
+A set-indexed family (Ai )i∈I of objects in a quantaloid Q can be identified with (the
+/ Q : i 7→ Ai whose domain is the index-set regarded as
+image of) the functor F : I
+discrete category.
+Proposition 8.3 For a set-indexed family (Ai )i∈I of objects in a quantaloid Q, the
+following are equivalent:
+1. (Ai )i∈I has a limit (i.e. product) in Q;
+2. (Ai )i∈I has a colimit (i.e. coproduct) in Q;
+3. (Ai )i∈I has a lax limit in Q;
+4. (Ai )i∈I has a lax colimit in Q;
+5. there exist an object A and arrows
+(A
+
+pi /
+
+Ai
+
+si /
+A )i∈I
+
+in Q such that, for all i, j ∈ I, pj ◦ si = δAi ,Aj and
+
+W
+
+i∈I (si ◦ pi ) = 1A .
+
+The cone (pi : A / Ai )i∈I is then the (lax) limit of the given family, and the cocone
+/ A)i∈I is its (lax) colimit. For each i ∈ I the coprojection si : Ai
+/ A is left
+(si : Ai
+/
+Ai .
+adjoint to the projection pi : A
+Proof : The equivalence (1 ⇔ 2 ⇔ 5) is well-known. (1 ⇔ 3) and (2 ⇔ 4) follow
+/ Q: i 7→ Ai is discrete, any lax cone on F is
+from 8.2: because the diagram F : I
+in fact an ordinary cone; and any lax cocone is an ordinary cocone. That is to say,
+in this particular case we have for any object A ∈ Q that Nat(∆A , F ) = Lax(∆A , F )
+and Nat(F, ∆A ) = OpLax(F, ∆A ). The adjunctions si ⊣ pi hold since 1Ai = pi ◦ si
+and si ◦ pi ≤ 1A .
+✷
+As usual, we will refer to limits-colimits (in a quantaloid Q) as direct sums and we
+write them as ⊕i Ai .
+✞☎
+t
+A monad in a quantaloid Q is an endo-arrow Aw ✆such that t◦t ≤ t and 1A ≤ t. It
+can be identified with (the image of) a lax functor F : Ob / Q: ∗ 7→ A, 1∗ 7→ t. Here
+Ob stands for the “generic
+✞ ☎ object”: the category with one object ∗ and one arrow 1∗ .
+t
+On the other hand, Aw ✆is a diagram in Q, thus (the image of) an ordinary functor
+F ′ : Ar / Q : ∗1 7→ A, ∗2 7→ A, α 7→ t. Now Ar stands for the “generic arrow”: the
+category with two objects, ∗1 and ∗2 , and exactly one arrow that is not an identity,
+/ ∗2 .
+α: ∗1
+✞☎
+t
+
+Proposition 8.4 For a monad Aw ✆in a quantaloid Q, the following are equivalent:
+✞☎
+t
+
+1. Aw ✆has a limit (i.e. t, 1A : A
+
+/
+/ A have an equalizer) in Q;
+
+41
+
+✞☎
+t
+
+/
+/ A have a coequalizer) in Q;
+
+2. Aw ✆has a colimit (i.e. t, 1A : A
+✞☎
+t
+
+3. Aw ✆has a lax limit in Q;
+✞☎
+t
+
+4. Aw ✆has a lax colimit in Q;
+5. there exist an object B and arrows
+B
+
+p /
+A
+
+s /
+B
+
+in Q such that p ◦ s = t and s ◦ p = 1B .
+/ A is actually its (lax)
+If the above is the case for the given monad t, then p: B
+limit, and s: A / B its (lax) colimit. And the coprojection s: A / B is left adjoint
+/ A.
+to the projection p: B
+
+Proof : (1 ⇔ 2 ⇔ 5) is well-known for idempotents in a category, so in particular
+applies to monads in a quantaloid (it is immediate that a monad in Q is an idempotent). (1 ⇔ 3) and (2 ⇔ 4) follow from 8.2: because 1A ≤ t, it is the same to give a
+lax cone on F : Ob / Q as to give an ordinary cone on F ′ : Ar / Q; and lax cocones
+on F coincide with cocones on F ′ . More precisely, we have for any object X ∈ Q
+identical sup-lattices Nat(∆X , F ′ ) = Lax(∆X , F ) and Nat(F ′ , ∆X ) = OpLax(F, ∆X ).
+The adjunction s ⊣ p follows because 1A ≤ t = p ◦ s and s ◦ p = 1B .
+✷
+✞☎
+t
+
+The lax limit of a monad Aw ✆in a 2-category is called the object of t-algebras, or
+the Eilenberg-Moore object for t, and often written as At . And the lax colimit is the
+object of free t-algebras, or the Kleisli object, written At . In a quantaloid Q, At is
+isomorphic to At as soon as one (and thus also the other) exists: “every t-algebra is
+free”! When Q admits (free) algebra objects for all of its monads, we will say that
+all monads in Q split.
+
+Universal property of the distributor calculus
+For the following we refer also to [Betti et al., 1983; Carboni et al., 1987].
+Given a quantaloid Q, there is a quantaloid Matr(Q) of “matrices with elements
+in Q”, with:
+- objects: Q0 -typed sets16 ;
+- arrows: for two objects (X, t), (Y, t), an arrow M: (X, t) / (Y, t) is a matrix
+of Q-arrows M(y, x): tx / ty, one for each (x, y) ∈ X × Y ;
+- two-cells: for M, N: (X, t)
+y;
+
+/
+/ (Y, t), M ≤ N when M(y, x) ≤ N(y, x) for all x,
+
+16
+
+Recall that such a Q0 -typed set (X, t) is really just a way of writing a small discrete diagram
+(tx)x∈X in Q.
+
+42
+
+- composition: for M: (X, t) / (Y, t) and N: (Y, t) / (Z, t), the elements of N ◦
+W
+M: (X, t) / (Y, t) are (N ◦ M)(z, x) = y∈Y N(z, y) ◦ M(y, x);
+
+- identities: the identity matrix I(X,t) : (X, t)
+δtx,tx′ (“Kronecker deltas”).
+
+′
+(X,t) (x , x) =
+
+/ (Y, t) has elements I
+
+Clearly, Q can be embedded in Matr(Q): every arrow f : A / B in Q may be viewed
+as a one-element matrix. We write this embedding as iQ : Q / Matr(Q). Obviously,
+iQ : Q / Matr(Q) is a fully faithful homomorphism of quantaloids; it is an equivalence of quantaloids if and only if Q has all direct sums. Actually, Matr(Q) itself
+has all direct sums (so “taking matrices” is an essentially idempotent process), and
+iQ : Q / Matr(Q) describes the universal direct-sum completion of Q in QUANT.
+Given a quantaloid Q, the following defines a quantaloid Bim(Q) of “bimodules
+in Q”:
+- objects: monads in Q;
+✞☎
+t
+
+✞☎
+s
+
+- arrows: an arrow b: t ❝ / s between monads Aw ✆and Bw ✆is a bimodule from t to
+s, i.e. a Q-arrow b: A / B such that s ◦ b ≤ b and b ◦ t ≤ b;
+- two-cells: put b ≤ c in Bim(Q)(t, s) whenever b ≤ c in Q(A, B);
+- composition: the composition c ⊗s b: t ❝ / r of two bimodules b: t ❝ / s and
+c: s ❝ / r is c ⊗s b = c ◦ b in Q;
+✞☎
+
+t
+- identity: on a monad Aw ✆the identity bimodule is t: t ❝ / t itself.
+
+The “tensor” ✞
+notation
+for composition of bimodules helps to remind that the identity
+☎
+t
+on a monad Aw ✆is not 1A but rather t itself.
+An arrow f : A / B may be regarded as bimodule from 1A to 1B ; denote the corresponding embedding of quantaloids as jQ : Q / Bim(Q). Then jQ : Q / Bim(Q) is
+a fully faithful homomorphism of quantaloids which is an equivalence of quantaloids
+if and only if in Q all monads split. In the quantaloid Bim(Q) all monads split
+(so “taking monads and bimodules” is an essentially idempotent process), actually,
+jQ : Q / Bim(Q) describes the universal split-monad completion of Q in QUANT.
+It is now a matter of fact that, for any quantaloid Q, Dist(Q) = Bim(Matr(Q)).
+Indeed, take for example the definition of “Q-category”: such an A consists of an
+endo-matrix of hom-arrows A(a′ , a): ta / ta′ on the Q0 -typed set (A0 , t) of objects;
+these data ought to satisfy, for all a, a′ , a′′ ∈ A0 ,
+A(a′′ , a′ ) ◦ A(a′ , a) ≤ A(a′′ , a) and 1ta ≤ A(a, a),
+or equivalently,
+_
+
+A(a′′ , a′ ) ◦ A(a′ , a) ≤ A(a′′ , a) and δta,ta′ ≤ A(a′ , a),
+
+a′ ∈A0
+
+43
+
+or still equivalently, but now in terms of matrices, A ◦ A ≤ A and IA0 ≤ A. This says
+precisely that A is a monad in Matr(Q), thus an object of Bim(Matr(Q)). (Similar
+for distributors.)
+Consequently we now know the universal property of Dist(Q): the embedding
+kQ : Q / Dist(Q) which equals jMatr(Q) ◦iQ is a fully faithful homomorphism of quantaloids which is an equivalence if and only if Q has all direct sums and all monads
+split. Dist(Q) itself has all direct sums and all monads split (“taking categories
+and distributors” is an essentially idempotent process); actually, kQ : Q / Dist(Q)
+describes the universal direct-sum-and-split-monad completion of Q in QUANT.
+Having all direct sums and a splitting for all monads, is enough for a quantaloid
+Q to admit all lax (co)limits.
+Proposition 8.5 For any quantaloid Q, the following are equivalent:
+1. Q has direct sums and all monads split;
+2. Q has all lax limits;
+3. Q has all lax colimits;
+4. for any lax functor F : D
+
+/ Q there exist an object L and arrows
+
+(L
+
+pD /
+
+FD
+
+sD /
+L )D∈D0
+
+in Q such that
+_
+_
+{sD ◦ pD | D ∈ D0 } = 1L and pD′ ◦ sD = {F d | d ∈ D(D, D ′ )}.
+
+With notations as in the last sentence, the (pD : L / F D)D∈D0 form the lax limit
+/ L)D∈D its lax colimit; moreover, for every D ∈ D0 , the
+of F , and the (sD : F D
+0
+coprojection sD is left adjoint to the projection pD .
+Proof : (2 ⇒ 1) and (3 ⇒ 1) follow from 8.3 and 8.4.
+For (4 ⇒ 2) and (4 ⇒ 3), first observe that sD ⊣ pD : on the one hand 1L =
+W
+W
+{sD ◦pD | D ∈ D0 } ≥ sD ◦pD , and on the other pD ◦sD = {F d | d ∈ D(D, D ′ )} ≥
+W
+F (1D ) ≥ 1F D . Knowing this, it follows from pD′ ◦ sD = {F d | d ∈ D(D, D ′ )} that
+/ D ′ , pD′ ◦ sD ≥ F d, hence also sD ≥ sD′ ◦ F d and pD′ ≥ F d ◦ pD .
+for every d: D
+Hence π = (pD )D is a lax cone, and σ = (sD )D a lax cocone, on F . As for their
+universality, we must verify that for any X ∈ Q the sup-morphisms
+Q(X, L)
+
+/ Lax(∆X , F ): x 7→ π ◦ ∆x ,
+
+Q(L, X)
+
+/ Lax(F, ∆X ): x 7→ ∆x ◦ σ
+
+are bijective (in which case they are sup-isomorphisms). But a calculation shows
+that their respective inverses are
+_
+π ′ = (p′D )D 7→ {sD ◦ p′D | D ∈ D0 },
+44
+
+σ ′ = (s′D )D 7→
+
+_
+{s′D ◦ pD | D ∈ D0 }.
+
+/ Q determines a Q-category D
+For (1 ⇒ 4), note that a lax functor F : D
+W
+with objects D0 = D0 , types tD = F D, and hom-arrows D(D ′ , D) = {F d | d ∈
+D(D, D ′ )}: the inequalities D(D ′′ , D ′ ) ◦ D(D ′ , D) ≤ D(D ′′ , D) and 1F D ≤ D(D, D)
+hold precisely because F is lax! Since Q has all direct sums and all monads split,
+this Q-category D must be isomorphic in Dist(Q) to a one-object Q-category, call
+it ∗L . This means that there exist distributors σ: D ❝ / ∗L and π: ∗L ❝ / D such that
+σ ⊗∗L π = D and π ⊗D σ = 1L . Such σ and π are really collections of Q-arrows
+
+
+
+satisfying
+
+L
+
+pD := π(D)
+
+s := σ(D)
+
+/ FD D
+
+/L
+
+
+
+D∈D0
+
+_
+pD′ ◦ sD = D(D ′ , D) = {F d | d ∈ D(D, D ′ )},
+_
+_
+{sD ◦ pD | D ∈ D0 } = {sD ◦ pD | D ∈ D0 } = 1L .
+
+✷
+
+References
+[1] [Jean Bénabou, 1963] Catégories avec multiplication, C. R. Acad. Sci. Paris
+256, pp. 1887–1890.
+[2] [Jean Bénabou, 1965] Catégories relatives, C. R. Acad. Sci. Paris 260,
+pp. 3824–3827.
+[3] [Jean Bénabou, 1967] Introduction to bicategories, Lecture Notes in Math. 47,
+pp. 1–77.
+[4] [Renato Betti, Aurelio Carboni, Ross H. Street and Robert F. C. Walters, 1983]
+Variation through enrichment, J. Pure Appl. Algebra 29, pp. 109–127.
+[5] [Francis Borceux and Rosanna Cruciani, 1998] Skew Ω-sets coincide with Ωposets, Cahiers Topologie Géom. Différentielle Catég. 39, pp. 205–220.
+[6] [Aurelio Carboni, Stefano Kasangian and Robert F. C. Walters, 1987] An axiomatics for bicategories of modules, J. Pure Appl. Algebra 45, pp. 127–141.
+[7] [Samuel Eilenberg and G. Max Kelly, 1966] Closed categories, pp. 421–562 in
+Proc. Conf. Categorical Algebra (La Jolla 1965), Springer, New York.
+[8] [Robert Gordon and A. John Power, 1997] Enrichment through variation, J.
+Pure Appl. Algebra 120, pp. 167–185.
+
+45
+
+[9] [G. Max Kelly, 1982] Basic concepts of enriched category theory. London Mathematical Society Lecture Note Series. Cambridge University Press, Cambridge.
+[10] [Anna Labella and Vincent Schmitt, 2002] Change of base, Cauchy completeness
+and reversibility, Theory Appl. Categ. 10, pp. 187–219.
+[11] [F. William Lawvere, 1973] Metric spaces, generalized logic and closed categories, Rend. Sem. Mat. Fis. Milano 43, pp. 135–166.
+[12] [Marie-Anne Moens, Ugo Berni-Canani and Francis Borceux, 2002] On regular
+presheaves and regular semicategories, Cah. Topol. Géom. Différ. Catég. 43,
+pp. 163–190.
+[13] [Christopher J. Mulvey, 1986] &, Suppl. Rend. Circ. Mat. Palermo II 12,
+pp. 99–104.
+[14] [Kimmo I. Rosenthal, 1996] The theory of quantaloids. Pitman Research Notes
+in Mathematics Series. Longman, Harlow.
+[15] [Ross H. Street, 1972] The formal theory of monads, J. Pure Appl. Algebra 2,
+pp. 149–168.
+[16] [Ross H. Street, 1981] Cauchy characterization of enriched categories, Rend.
+Sem. Mat. Fis. Milano 51, pp. 217–233.
+[17] [Ross H. Street, 1983a] Enriched categories and cohomology, Questiones Math.
+6, pp. 265–283.
+[18] [Ross H. Street, 1983b] Absolute colimits in enriched categories, Cahiers Topologie Géom. Différentielle 24, pp. 377–379.
+[19] [Isar Stubbe, 2004a] Categorical structures enriched in a quantaloid: tensored
+and cotensored categories, in preparation.
+[20] [Isar Stubbe, 2004b] Categorical structures enriched in a quantaloid: regular
+presheaves, regular semicategories, in preparation.
+[21] [Isar Stubbe, 2004c] Categorical structures enriched in a quantaloid: orders and
+ideals over a base quantaloid, in preparation.
+[22] [Gilberte Van den Bossche, 1995] Quantaloids and non-commutative ring representations, Appl. Categ. Structures 3, pp. 305–320.
+[23] [Robert F. C. Walters, 1981] Sheaves and Cauchy-complete categories, Cahiers
+Topologie Géom. Différentielle 22, pp. 283–286.
+
+46
+
+

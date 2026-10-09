@@ -1,0 +1,4228 @@
+Categories of Optics
+Mitchell Riley
+
+arXiv:1809.00738v2 [math.CT] 7 Sep 2018
+
+Wesleyan University
+mvriley@wesleyan.edu
+Abstract
+Bidirectional data accessors such as lenses, prisms and traversals are all instances of the same
+general ‘optic’ construction. We give a careful account of this construction and show that it extends
+to a functor from the category of symmetric monoidal categories to itself. We also show that this
+construction enjoys a universal property: it freely adds counit morphisms to a symmetric monoidal
+category. Missing in the folklore is a general definition of ‘lawfulness’ that applies directly to any optic
+category. We provide such a definition and show that it is equivalent to the folklore profunctor optic
+laws.
+
+Contents
+1 Introduction
+
+1
+
+2 Optics
+
+3
+
+3 Lawful Optics
+
+22
+
+4 Examples
+
+27
+
+5 The Profunctor Encoding
+
+40
+
+6 Future Work
+
+47
+
+1
+
+Introduction
+
+p A is a pair of maps Get : S → A and Put : S × A → S. From an
+In its most concrete form, a lens S →
+engineering standpoint, such a lens allows us to “zoom in” on S to focus on a small part A, manipulate
+A in some way, then “zoom out” and have our changes reflected in S [FGM+ 07].
+So that our lenses better adhere to this intuitive idea of “zooming in”, we often want them satisfy
+some conditions known as the lens laws:
+Put
+
+S×A
+
+S
+
+[idS ,Get]
+
+S
+
+S×A
+
+S ×A×A
+
+Put×A
+
+π1,3
+π2
+
+Get
+
+idS
+
+Put
+
+A
+
+S
+
+PutGet
+
+GetPut
+
+S×A
+
+S×A
+Put
+
+Put
+
+A
+
+PutPut
+
+We call such lenses lawful. The PutGet law states that any update to A is represented faithfully in S.
+The GetPut law states that if A is not changed then neither is S; and finally, the PutPut law states
+that any update to A completely overwrites previous updates.
+
+1
+
+Lenses form a category, with the composition of two lenses (Get1 , Put1 ) : T p
+→ S and (Get2 , Put2 ) :
+S p
+→ A as indicated:
+Get
+
+Get
+
+1
+2
+Get : T −−−→
+S −−−→
+A
+
+[idT ,Get1 ]×A
+
+T ×Put
+
+Put
+
+2
+1
+Put : T × A −−−−−−−−−→ T × S × A −−−−−→
+T × S −−−→
+T
+
+If the two input lenses are lawful then the composite is as well, so we find there is a subcategory of lawful
+lenses.
+Lenses were discovered to be just one of a hierarchy of data accessors, including prisms, setters,
+traversals and more. These are collectively called optics and have been best explored in the widely uesd
+Haskell lens library: see [Kme]. Each optic variant has a concrete description as a certain collection of
+maps, with attendant laws under which we consider them well-behaved, similar to the pair (Get, Put)
+above and the lens laws. We begin in Section 2 by defining the category of optics for a symmetric monoidal
+category in a sufficiently general way to encompass almost all the optic variants in use in the wild, using
+lenses as a running example. The category of lenses is precisely the result of this construction when
+applied to a symmetric monoidal category where the tensor is given by binary product. Section 3 defines
+the equivalent of the lens laws for a general category of optics. Then in Section 4 we see that these generic
+definitions specialise correctly to the other basic varieties of optic, including the laws.
+When implementing optics, library authors often use a form known as the profunctor encoding, which
+at first glance is completely different to that given in Section 2. (The Haskell lens library itself actually
+uses a variant called the van Laarhoven encoding, for reasons of efficiency and backwards compatibility.)
+As this was being written, Milewski [Mil17] and Boisseau and Gibbons [BG18] independently described
+the isomorphism between optics and their profunctor encoding. In Section 5 we review this isomorphism
+and verify that the folklore profunctor optic laws are equivalent to lawfulness as defined here.
+More recently, concrete lenses have found use in compositional game theory [GH18]. The Get function
+is thought of as mapping observations on the state of play to choices of what move to make. The Put
+function computes the utility of the moves that the players choose. There is interest in generalising this
+to a probabilistic setting, but it is not yet clear what the right replacement for concrete lenses is.
+Much of what is known about optics is folklore, and careful verification of some of their categorical
+properties has been lacking, especially when working in categories other than Set (or Set-like categories
+such as Hask). The aim of the present paper is to fill this gap, with the hope that a better understanding
+of the general structure of these categories will make it easier to generalise optics to new and exotic
+settings. This is particularly important with the advent of linear types in Haskell, enabling a new branch
+of the lens family tree, and also with the new applications to game theory.
+
+1.1
+
+Contributions
+
+• A careful account of the folklore optic construction in an arbitrary symmetric monoidal category C,
+which we show extends to a functor Optic : SymmMonCat → SymmMonCat (Section 2),
+• A universal property of the Optic construction as freely adding counits to a category of ‘dualisable
+morphisms’ (Section 2.1),
+• A definition of lawfulness for a general optic category that specialises in the correct way to known
+cases and allows us to derive concrete laws for new kinds of optic (Section 3),
+• Commentary on the optic variants used most frequently in the wild (Section 4),
+• A proof that lawfulness as defined here is equivalent to the folklore profunctor optic laws (Section 5).
+
+2
+
+1.2
+
+(Co)ends and Yoneda Reduction
+
+In this paper we will make frequent use of the (co)end calculus. For a comprehensive introduction to ends
+R X∈M
+F (X, X) for the structure maps of a coend.
+and coends, see [Lor15]. We write coprX : F (X, X) →
+The most important results for us regarding ends and coends are:
+
+Lemma 1.2.1 (Coend as coequaliser). If E is cocomplete and M is small, the coend of P : Mop × M → E
+can be calculated as the coequaliser in the diagram
+Z M ∈M
+a
+a
+P (M, M )
+P (N, M )
+P (M, M )
+M →N
+
+M ∈M
+
+Lemma 1.2.2 (Ninja Yoneda Lemma/Yoneda Reduction). For every functor K : Cop → Set and H :
+C → Set, we have the following natural isomorphisms:
+Z
+Z C∈C
+∼
+∼
+Set(C(C, X), KC)
+KC × C(X, C)
+KX =
+KX =
+C∈C
+
+HX ∼
+=
+
+Z C∈C
+
+HX ∼
+=
+
+HC × C(C, X)
+
+Z
+
+Set(C(X, C), HC)
+C∈C
+
+where the isomorphisms are given by inclusion with the identity morphism C(X, X) for the left two, and
+evaluation at the identity morphism on the right.
+Theorem 1.2.3 (Fubini Theorem). For a functor F : Cop × C × Dop × D → E, there are canonical
+isomorphisms
+Z D∈D Z C∈C
+Z (C,D)∈C×D
+Z C∈C Z D∈D
+∼
+∼
+F (C, C, D, D)
+F (C, C, D, D) =
+F (C, C, D, D) =
+Lemma 1.2.4 (Mute coends). Consider a functor F : C → E as a functor Cop × C → E that ignores its
+contravariant argument. Then
+Z C∈C
+F (C) ∼
+= colim F.
+
+2
+
+Optics
+
+We begin by defining the category of optics for a symmetric monoidal category. This category was first
+defined in [PS08, Section 6] as the ‘double’ of a monoidal category. There it was used for a completely
+different purpose—to investigate the relationship between Tambara modules and the ‘center’ of a monoidal
+category. Our definition is almost identical, the only differences being that we have flipped the direction
+of the morphisms to match the existing work on lenses and restricted our attention to the unenriched
+setting.
+Our definition of optic has as domain and codomain pairs of objects of C, one of which behaves
+covariantly and the other contravariantly. For example, our lenses will be pairs of maps Get : S → A and
+Put : S × A′ → S ′ . This generality is important for the applications to game theory, and in fact helps in
+calculations by making the covariant and contravariant positions more difficult to confuse. Readers more
+familiar with lenses should ignore the primes.
+In this section we work with a fixed symmetric monoidal category (C, ⊗, I), with associator α and unitors λ and ρ. To avoid getting lost in the notation we will use the standard cheat of omitting associativity
+morphisms and trust that the dedicated reader could insert them everywhere they are needed.
+3
+
+p (A, A′ )
+Definition 2.0.1. Given two pairs of objects of C, say (S, S ′ ) and (A, A′ ), an optic p : (S, S ′ ) →
+is an element of the set
+Z M ∈C
+OpticC ((S, S ′ ), (A, A′ )) :=
+C(S, M ⊗ A) × C(M ⊗ A′ , S ′ )
+Because this coend takes place in Set, we can use Lemma 1.2.1 to describe OpticC ((S, S ′ ), (A, A′ ))
+explicitly. It is the set of pairs (l, r), where l : S → M ⊗ A and r : M ⊗ A′ → S ′ , quotiented by the
+equivalence relation generated by relations of the form
+((f ⊗ A)l, r) ∼ (l, r(f ⊗ A′ ))
+for any l : S → M ⊗ A, r : N ⊗ A′ → S ′ and f : M → N .
+p (A, A′ ) for their
+For a pair of maps l : S → M ⊗ A and r : M ⊗ A′ → S ′ , we write hl | ri : (S, S ′ ) →
+image in OpticC ((S, S ′ ), (A, A′ )), and say that the object M is the residual for this representative. Optics
+will always be written with a crossed arrow p
+→ to distinguish them from morphisms of C.
+The residual M should be thought of as a kind of ‘scratch space’; information from S that we need to
+remember to construct S ′ . The quotienting imposed by the coend means we cannot inspect this temporary
+p A there is not even a canonical choice for the object M in general.
+information, indeed, given an optic S →
+′
+′
+Elements of OpticC ((S, S ), (A, A )) have an appealing interpretation as string diagrams with a “hole”
+missing. We draw the pair hl | ri as
+
+S
+
+r
+
+l
+A
+
+S′
+
+A′
+
+reading left to right, so the portion of the diagram to the left of the line represents l and the right portion
+r. The relation expressed by the coend can be drawn graphically as:
+f
+S
+
+f
+r
+
+l
+A
+
+S′
+
+∼
+
+S
+
+r
+
+l
+
+A′
+
+A
+
+S′
+
+A′
+
+We will therefore omit the vertical cut between l and r in most subsequent diagrams; any choice yields a
+representative of same optic.
+A common use of the coend relation is to introduce or cancel isomorphisms. Given l : S → M ⊗ A
+and r : M ⊗ A → S, for any isomorphism f : M → N we have
+hl | ri = (f −1 ⊗ A)(f ⊗ A)l | r = (f ⊗ A)l | r(f −1 ⊗ A)
+Diagrammatically, this is the equality
+f
+S
+
+r
+
+l
+A
+
+S′
+
+=
+
+A′
+
+S
+
+r
+
+l
+A
+
+4
+
+f −1
+
+A′
+
+S′
+
+Example 2.0.2.
+(1) For any three objects M, A, A′ ∈ C, there is the tautological optic
+→ (A, A′ )
+tM,A,A′ : (M ⊗ A, M ⊗ A′ ) p
+given by hidM ⊗A | idM ⊗A′ i. This would be drawn as follows:
+M
+
+M
+
+A
+
+A
+
+A′
+
+A′
+
+p (S, S ′ ), given by λ−1
+(2) We also have the identity optic id(S,S ′ ) : (S, S ′ ) →
+S | λS ′ , where λS : I ⊗ S → S
+′
+is the left unitor for S and similarly for S .
+The identity optic is drawn as
+
+S
+
+λ−1
+S
+
+λS ′
+
+S′
+
+S′
+
+S
+
+This dashed line above the diagram represents the unit object. It is common in string diagrams to
+omit unitors and the unit object unless they are necessary to make sense of the diagram. We therefore
+prefer to draw the identity morphism as:
+S
+
+S′
+
+S
+
+S′
+
+Optics compose as follows. The easiest interpretation is graphical: composition corresponds to substituting the first optic for the hole of the second:
+
+S
+
+r
+
+l
+A
+
+◦
+
+S′
+
+l′
+
+R
+
+r′
+S
+
+A′
+
+:=
+
+R
+
+l′
+
+r′
+
+S′
+
+R′
+
+r
+
+l
+A
+
+A′
+
+×
+
+Z N ∈C
+
+More formally, we wish to construct a map
+Z M ∈C
+→
+
+′
+
+′
+
+!
+
+C(S, M ⊗ A) × C(M ⊗ A , S )
+
+Z M ∈C
+
+C(R, M ⊗ A) × C(M ⊗ A′ , R′ ).
+
+5
+
+′
+
+′
+
+!
+
+C(R, N ⊗ S) × C(N ⊗ S , R )
+
+R′
+
+The product in Set preserves colimits, so in particular coends. Using this fact and the Fubini theorem
+for coends, the domain is isomorphic to
+Z (M,N )∈C×C
+
+C(S, M ⊗ A) × C(M ⊗ A′ , S ′ ) × C(R, N ⊗ S) × C(N ⊗ S ′ , R′ ).
+
+So by the universal property of coends, it suffices to construct maps
+C(S, M ⊗ A) × C(M ⊗ A′ , S ′ ) × C(R, N ⊗ S) × C(N ⊗ S ′ , R′ )
+Z M ∈C
+→
+C(R, M ⊗ A) × C(M ⊗ A′ , R′ ).
+natural in M and N . For these we use the composites
+C(S, M ⊗ A) × C(M ⊗ A′ , S ′ ) × C(R, N ⊗ S) × C(N ⊗ S ′ , R′ )
+→ C(N ⊗ S, N ⊗ M ⊗ A) × C(N ⊗ M ⊗ A′ , N ⊗ S ′ ) × C(R, N ⊗ S) × C(N ⊗ S ′ , R′ ) (functoriality of N ⊗ −)
+→ C(R, N ⊗ M ⊗ A) × C(N ⊗ M ⊗ A′ , R′ )
+Z P ∈M
+→
+C(R, P ⊗ A) × C(P ⊗ A′ , R′ )
+
+(composition in C)
+(coprN ⊗M )
+
+p (S, S ′ ) and hl | ri : (S, S ′ ) →
+p (A, A′ ) are optics with M
+Written equationally, suppose hl′ | r ′ i : (R, R′ ) →
+′
+′
+′
+′
+p (A, A ) is then:
+the residual for hl | r i. The composite (R, R ) →
+hl | ri ◦ l′ | r ′ := (M ⊗ l)l′ | r ′ (M ⊗ r) .
+Proposition 2.0.3. The above data form a category OpticC .
+Proof. In [PS08, Section 6] this is proven abstractly by exhibiting this category as the Kleisli category for
+a monad in the bicategory Prof . We prefer a direct proof.
+Suppose we have representatives of three optics
+p (S, S ′ )
+hl1 | r1 i : (R, R) →
+p (A, A′ )
+hl2 | r2 i : (S, S ′ ) →
+p (B, B ′ ),
+hl3 | r3 i : (A, A′ ) →
+that have residuals M , N and P respectively. We must choose these representatives simultaneously but,
+as in the definition of composition, this is allowed by the Fubini theorem. Then:
+(hl3 | r3 i ◦ hl2 | r2 i) ◦ hl1 | r1 i = h(N ⊗ l3 )l2 | r2 (N ⊗ r3 )i ◦ hl1 | r1 i
+= h(M ⊗ ((N ⊗ l3 )l2 ))l1 | r1 (M ⊗ (r2 (N ⊗ r3 )))i
+= h(M ⊗ N ⊗ l3 )(M ⊗ l2 )l1 | r1 (M ⊗ r2 )(M ⊗ N ⊗ r3 )i
+= hl3 | r3 i ◦ (h(M ⊗ l2 )l1 | r1 (M ⊗ r2 )i)
+= hl3 | r3 i ◦ (hl2 | r2 i ◦ hl1 | r1 i)
+
+6
+
+p (A, A′ ) with representative M . We calculate:
+For the unit laws, suppose we have hl | ri : (S, S ′ ) →
+idA,A′ ◦ hl | ri = λ−1
+A | λA′ ◦ hl | ri
+= (M ⊗ λ−1
+A )l | r(M ⊗ λA′ )
+′
+= (ρ−1
+M ⊗ A)l | r(ρM ⊗ A )
+′
+= l | r(ρM ⊗ A′ )(ρ−1
+M ⊗A)
+
+= hl | ri
+hl | ri ◦ idS,S ′ = hl | ri ◦ λ−1
+S | λS ′
+= (I ⊗ l)λ−1
+S | λS ′ (I ⊗ r)
+′
+= (λ−1
+M ⊗ S)l | r(λM ⊗ S )
+′
+= l | r(λM ⊗ S ′ )(λ−1
+M ⊗S )
+
+= hl | ri
+In both cases we have used the coend relation to cancel an isomorphism appearing on both sides of an
+optic.
+Note that the homsets of OpticC are given by a coend indexed by a possibly large category. If
+C is small then these coends always exist, but if C is not small their existence is not guaranteed by the
+cocompleteness of Set. Because of this we should be careful to only discuss optic categories where we know
+that the coends exist by some other means, e.g., by exhibiting an isomorphism of OpticC ((S, S ′ ), (A, A′ ))
+with a set. For all of the examples we give later we provide such a isomorphism.
+Proposition 2.0.4. If C is a category with finite products, then Lens := OpticC is the category of lenses
+p (A, A)).
+described in the introduction (so long as we restrict to optics of shape (S, S) →
+Proof. We see that optics correspond to pairs of Get and Put functions via the following isomorphisms:
+′
+
+′
+
+Lens((S, S ), (A, A )) =
+∼
+=
+
+Z M ∈C
+Z M ∈C
+
+C(S, M × A) × C(M × A′ , S ′ )
+C(S, M ) × C(S, A) × C(M × A′ , S ′ )
+
+∼
+= C(S, A) × C(S × A′ , S ′ )
+
+(universal property of product)
+(Yoneda reduction)
+
+R C∈C
+C(X, C) × KC
+This last step deserves some explanation. We are applying the isomorphism KX ∼
+=
+′
+′
+of Lemma 1.2.2 to the case X = S and K = C(S, A) × C(− × A , S ).
+p (A, A′ ), the corresponding
+Explicitly the isomorphism states that, given an optic hl | ri : (S, S ′ ) →
+′
+′
+concrete lens is the pair Get : S → A and Put : S × A → S , where Get = π2 l and Put = r(π1 l × A).
+In the other direction, given (Get, Put), the corresponding optic is represented by h[idS , Get] | Puti.
+We leave it to the reader to verify that composition in Lens corresponds to ordinary composition of
+concrete lenses by using this isomorphism in both directions. (Of course, there is only one sensible way
+to compose such a collection of morphisms!)
+Proposition 2.0.5. There is a functor ι : C×Cop → OpticC , which on objects is given by ι(S, S ′ ) = (S, S ′ )
+and on morphisms (f, g) : (S, S ′ ) → (A, A′ ) by ι(f, g) = λ−1
+A f | gλA′ .
+Proof. Graphically, this is:
+S
+
+f
+
+S′
+
+S
+
+7
+
+g
+
+S′
+
+This preserves identities, as the identity on an object (S, S ′ ) in OpticC is defined to be exactly
+′
+′
+′ ′
+′
+λ−1
+S | λS ′ . To check functoriality, suppose we have (f, g) : (S, S ) → (A, A ) and (f , g ) : (A, A ) →
+′
+op
+(B, B ) in C × C . Then:
+−1
+′
+′
+ι(f ′ , g ′ ) ◦ ι(f, g) = λ−1
+B f | g λB ′ ◦ λA f | gλA′
+−1
+′
+′
+= (I ⊗ (λ−1
+B f ))λA f | gλA′ (I ⊗ (g λB ′ ))
+
+=
+=
+=
+=
+=
+
+(By definition of ◦)
+
+′
+′ −1
+(I ⊗ λ−1
+B )(I ⊗ f )λA f | gλA′ (I ⊗ g )(I ⊗ λB ′ )
+′
+−1 ′
+(I ⊗ λ−1
+B )λB f f | gg λB ′ (I ⊗ λB ′ )
+′
+′
+−1 ′
+(λ−1
+I ⊗ B)λB f f | gg λB ′ (λI ⊗ B )
+−1
+′
+′
+′
+′
+λ−1
+B f f | gg λB ′ (λI ⊗ B )(λI ⊗ B )
+′
+′
+λ−1
+B f f | gg λB ′
+′
+′
+
+(Functoriality of I ⊗ −)
+(Naturality of λ)
+(Unitality of action)
+(Coend relation)
+
+= ι(f f, gg )
+
+Graphically, there is not much to do:
+S
+
+f
+
+f′
+
+B
+
+g
+
+g′
+
+B′
+
+=
+
+S′
+
+S
+
+f ′f
+
+B
+
+B′
+
+gg ′
+
+S′
+
+There are some other easy-to-construct optics; specifically, optics out of and into the monoidal unit
+(I, I). Such maps in a monoidal category are sometimes called states and costates [AC09].
+p (I, I) is isomorphic to C(S, S ′ ).
+Proposition 2.0.6. The set of costates (S, S ′ ) →
+Proof.
+′
+
+OpticC ((S, S ), (I, I)) =
+∼
+=
+
+Z M ∈C
+
+Z M ∈C
+
+C(S, M ⊗ I) × C(M ⊗ I, S ′ )
+C(S, M ) × C(M, S ′ )
+
+∼
+= C(S, S ′ )
+p (I, I) corresponds to the morphism rl : S → S ′ , and a
+by Yoneda reduction, so a state hl | ri : (S, S ′ ) →
+′ p
+′
+morphism f : S → S corresponds to the state ρ−1
+S | f ρS : (S, S ) → (I, I)
+p
+In particular, for any S ∈ C, the identity idS yields an optic cS = ρ−1
+S | ρS : (S, S) → (I, I) that we
+call the connector :
+S
+
+S
+I
+
+I
+
+p (A, A′ )
+Proposition 2.0.7. Suppose the monoidal unit I of C is terminal. Then the set of states (I, I) →
+is isomorphic to C(I, A).
+Proof. First, note that
+OpticC ((I, I), (A, A′ )) =
+∼
+=
+
+Z M ∈C
+
+Z M ∈C
+8
+
+C(I, M ⊗ A) × C(M ⊗ A′ , I)
+C(I, M ⊗ A).
+
+as I is terminal. The interior of this coend is mute in the contravariant position, so the coend is equal to
+the colimit of the functor C(I, − ⊗ A) : C → Set by Lemma 1.2.4. But C has terminal object I, so
+Z M ∈C
+
+C(I, M ⊗ A) ∼
+= colim C(I, − ⊗ A)
+∼
+= C(I, I ⊗ A)
+∼
+= C(I, A)
+
+′
+p
+Explicitly, a state f : I → A in C corresponds to the optic λ−1
+A f |!I×A′ : (I, I) → (A, A ), where
+′
+!I×A′ : I × A → I is the unique map.
+
+The remainder of this section comprises a proof of the following fact:
+Theorem 2.0.8. The OpticC construction extends to a functor
+Optic : SymmMonCat → SymmMonCat,
+where SymmMonCat denotes the (1-)category of (small) symmetric monoidal categories and strong
+symmetric monoidal functors.
+Proposition 2.0.9. A monoidal functor F : C → D induces a functor Optic(F ) : OpticC → OpticD ,
+given on objects by Optic(F )(S, S ′ ) = (F S, F S ′ ) and on morphisms hl | ri : (S, S ′ ) → (A, A′ ) by
+D
+E
+′
+(F
+l)
+|
+(F
+r)φ
+Optic(F )(hl | ri) := φ−1
+M,A ,
+M,A
+
+where φM,A : F M ⊗ F A → F (M ⊗ A) and φI : I → F I denote the structure maps of the monoidal functor.
+Graphically:
+
+FS
+
+Fl
+
+φ−1
+M,A′
+
+φM,A
+
+Fr
+
+F S′
+
+F A′
+
+FA
+Proof. This preserves identities:
+Optic(F )(id(S,S ′ ) )
+
+= Optic(F )( λ−1
+S | λS ′ )
+E
+D
+−1
+′
+′
+)φ
+)
+|
+(F
+λ
+(F
+λ
+= φ−1
+I,S
+S
+S
+I,S
+E
+D
+−1
+−1
+′
+′
+(φ
+⊗
+S)
+)φ
+)
+|
+(F
+λ
+(F
+λ
+⊗
+S)φ
+= (φ−1
+I
+I,S
+S
+S
+I,S
+I
+= λ−1
+F S | λF S ′
+
+(Definition of id)
+(Definition of Optic(F ))
+(Introducing isomorphism to both sides)
+(F is a monoidal functor)
+
+= id(F S,F S ′)
+p (A, A′ ) and hl′ | r ′ i : (R, R′ ) →
+p (S, S ′ ) with residuals M and M ′ , it
+And given two optics hl | ri : (S, S ′ ) →
+preserves composition:
+Optic(F )(hl | ri ◦ l′ | r ′ )
+(Definition of ◦)
+= Optic(F )( (M ′ ⊗ l)l′ | r ′ (M ′ ⊗ r) )
+(Definition of Optic(F ))
+9
+
+D
+E
+′
+′
+′
+′
+′ ⊗M,A′
+= φ−1
+F
+((M
+⊗
+l)l
+)
+|
+F
+(r
+(M
+⊗
+r))φ
+′
+M
+M ⊗M,A
+
+(Functoriality of F )
+D
+E
+′
+′
+′
+′
+′
+′
+= φ−1
+F
+(M
+⊗
+l)(F
+l
+)
+|
+(F
+r
+)F
+(M
+⊗
+r)φ
+′
+M ⊗M,A
+M ⊗M,A
+
+(Introducing isomorphism to both sides)
+E
+D
+−1
+′
+′
+′
+′
+′
+′
+′
+(φ
+⊗
+A)
+= (φ−1
+⊗
+A)φ
+F
+(M
+⊗
+l)(F
+l
+)
+|
+(F
+r
+)F
+(M
+⊗
+r)φ
+M ,M
+M ⊗M,A
+M ′ ,M
+M ′ ⊗M,A
+
+(Hexagon axiom for F )
+E
+D
+′
+−1
+′
+′
+′
+′
+′ ,M ⊗A′ (F M ⊗ φM,A′ )
+)φ
+(F
+(M
+⊗
+l))(F
+l
+)
+|
+(F
+r
+)(F
+(M
+⊗
+r))φ
+= (F M ′ ⊗ φ−1
+′
+M
+M,A M ,M ⊗A
+
+(Naturality of φ)
+E
+D
+′
+′
+′
+−1
+′
+′
+′ ,S ′ (F M ⊗ F r)(F M ⊗ φM,A′ )
+)(F
+M
+⊗
+F
+l)φ
+(F
+l
+)
+|
+(F
+r
+)φ
+= (F M ′ ⊗ φ−1
+′
+M
+M,A
+M ,S
+
+(Functoriality of ⊗)
+E
+D
+′
+−1
+′
+′
+′
+′
+′
+)
+)(F
+M
+⊗
+(F
+r)φ
+(F
+l))(φ
+(F
+l
+))
+|
+((F
+r
+)φ
+= (F M ′ ⊗ φ−1
+M,A
+M ,S
+M,A
+M ′ ,S
+
+(Definition of ◦)
+D
+E D
+E
+−1
+′
+′
+= φ−1
+M,A (F l) | (F r)φM,A′ ◦ φM ′ ,S (F l ) | (F r )φM ′ ,S ′
+(Definition of Optic(F ))
+
+= Optic(F )(hl | ri) ◦ Optic(F )( l′ | r ′ )
+The critical move is adding the isomorphism (φM ′ ,M ⊗ A) to both sides of the coend, so that the hexagon
+axiom for F may be applied.
+Lemma 2.0.10. ι commutes with Optic(F ), in the sense that
+Optic(F )(ι(f, g)) = ι(F f, F g)
+Proof. This is a straightforward calculation:
+Optic(F )(ι(f, g))
+(Definition of ι)
+= Optic(F )( λ−1
+A f | gλA′ )
+(Definition of Optic(F ))
+D
+
+−1
+= φ−1
+I,A (F (λA f )) | (F (gλA′ ))φI,A′
+
+D
+
+(Functoriality of F )
+
+E
+
+−1
+= φ−1
+I,A (F λA )(F f ) | (F g)(F λA′ )φI,A′
+
+(Introducing φI to both sides)
+
+E
+
+E
+−1
+−1
+′
+′
+(φ
+⊗
+F
+A)
+)φ
+)(F
+f
+)
+|
+(F
+g)(F
+λ
+(F
+λ
+⊗
+F
+A)φ
+= (φ−1
+I
+I,A
+A
+A
+I,A
+I
+D
+
+(F is a monoidal functor)
+
+= λ−1
+F A (F f ) | (F g)λF A′
+(Definition of ι)
+= ι(F f, F g)
+
+10
+
+Proposition 2.0.11. ι : C × Cop → OpticC “lifts natural isomorphisms”, in the following sense. Given
+monoidal functors F, G : C → D and a monoidal natural isomorphism α : F ⇒ G, there is an induced
+natural isomorphism Optic(α) : Optic(F ) ⇒ Optic(G) with components:
+Optic(α)(S,S ′ ) : (F S, F S ′ ) → (GS, GS ′ )
+Optic(α)(S,S ′ ) := ι(αS , α−1
+S′ )
+Proof. Suppose φ and ψ are the structure maps for F and G respectively. We just have to show naturality,
+p (A, A′ ) in D, the equation
+i.e. that for p : (S, S ′ ) →
+Optic(α)(A,A′ ) ◦ Optic(F )(p) = Optic(G)(p) ◦ Optic(α)(S,S ′ )
+holds. Suppose p = hl | ri with residual M . On the left we have:
+
+FS
+
+Fl
+
+φ−1
+M,A′
+
+Fr
+
+F S′
+
+φ−1
+M,A′
+
+Fr
+
+F S′
+
+−1
+ψM,A
+′
+
+α−1
+M ⊗A
+
+Fr
+
+F S′
+
+−1
+ψM,A
+′
+
+Gr
+
+φM,A
+αA
+
+GA′
+
+GA
+
+α−1
+A′
+
+We use the coend relation to place an α on either side:
+αM
+FS
+
+Fl
+
+α−1
+M
+
+φM,A
+αA
+
+GA′
+
+GA
+
+α−1
+A′
+
+And then monoidality of α to commute it past φ.
+
+FS
+
+Fl
+
+αM ⊗A
+
+ψM,A
+GA GA′
+
+Finally, α commutes with F l and F r by naturality.
+
+GS
+
+αS
+
+Gl
+
+ψM,A
+
+α−1
+GS ′
+S′
+
+GA GA′
+This is the diagram for Optic(G)(p) ◦ Optic(α)(S,S ′ ) .
+Theorem 2.0.12. OpticC is symmetric monoidal, where (S, S ′ )⊗(T, T ′ ) = (S ⊗T, S ′ ⊗T ′ ), the unit object
+p (A, A′ ) and hl′ | r ′ i : (T, T ′ ) p
+is (I, I), and the action on a pair of morphisms hl | ri : (S, S ′ ) →
+→ (B, B ′ ) is
+given by:
+
+11
+
+S
+
+l
+
+T
+
+l′
+
+A
+
+A′
+
+B
+
+B′
+
+r
+
+S′
+
+r′
+
+T′
+
+Proof. Suppose the two optics have residuals M and N respectively. Written equationally, their tensor
+is:
+hl | ri ⊗ l′ | r ′ := (M ⊗ sA,N ⊗ B)(l ⊗ l′ ) | (r ⊗ r ′ )(M ⊗ sA′ ,N ⊗ B ′ )
+This does not depend on the choice of representatives, as demonstrated by the equivalence of the following
+diagrams:
+f
+S
+
+r
+
+l
+
+g
+T
+
+f
+
+A
+
+S
+
+l
+
+A′
+
+A
+
+l′
+
+r′
+B
+
+S′
+
+T′
+
+T
+
+A′
+
+l′
+
+B′
+
+B
+
+B′
+
+r1
+
+S1′
+
+q1
+
+T1′
+
+To check functoriality of ⊗, suppose we have optics
+p (S2 , S2′ )
+hl1 | r1 i : (S1 , S1′ ) →
+hl2 | r2 i : (S2 , S2′ ) p
+→ (S3 , S3′ )
+hp1 | q1 i : (T1 , T1′ ) p
+→ (T2 , T2′ )
+hp2 | q2 i : (T2 , T2′ ) p
+→ (T3 , T3′ ).
+The string diagram for (hl2 | r2 i ◦ hl1 | r1 i) ⊗ (hp2 | q2 i ◦ hp1 | q1 i) is:
+
+S1
+
+l1
+r2
+
+l2
+
+T1
+
+p1
+p2
+
+S3
+
+S3′
+
+T3
+
+T3′
+
+12
+
+q2
+
+r
+
+S′
+
+r′
+
+T′
+
+g
+
+And for (hl2 | r2 i ⊗ hp2 | q2 i) ◦ (hl1 | r1 i ⊗ hp1 | q1 i) is:
+
+S1
+
+l1
+
+r1
+
+S1′
+
+T1
+
+p1
+
+q1
+
+T1′
+
+r2
+
+l2
+
+p2
+
+S3
+
+S3′
+
+T3
+
+T3′
+
+q2
+
+These two diagrams are equivalent: we can use the naturality of the symmetry morphism to push l2 and r2
+past the crossing to be next to p2 and q2 respectively. This creates two extra twists that can be cancelled
+in the center of the diagram.
+The structure morphisms are all lifted from the structure morphisms in C × Cop :
+α(R,R′ ),(S,S ′ ),(T,T ′ ) := ι(αR,S,T , α−1
+R′ ,S ′ ,T ′ )
+λ(S,S ′ ) := ι(λS , λ−1
+S′ )
+ρ(S,S ′ ) := ι(ρS , ρ−1
+S′ )
+s(S,S ′ ),(T,T ′ ) := ι(sS,T , sT ′ ,S ′ )
+Note that because ι(S, S ′ ) = (S, S ′ ), the equations required to hold for ι to be a monoidal functor
+hold by definition (although we don’t yet know that OpticC is monoidal). The pentagon and triangle
+equations then hold in OpticC , as they are the image of the same diagrams in C × Cop under ι. The only
+remaining thing to verify is that these structure maps are natural in OpticC , but this follows from the
+previous proposition.
+Proposition 2.0.13. For monoidal F : C → D, the induced Optic(F ) : OpticC → OpticD is also
+monoidal.
+Proof. The structure morphisms for monoidality are given by lifting the structure morphisms for F :
+φ(S,S ′ ),(T,T ′ ) := ι(φS,T , φS ′ ,T ′ )
+φ := ι(φ, φ)
+
+p F ((S, S ′ ) ⊗ (T, T ′ ))
+: F (S, S ′ ) ⊗ F (T, T ′ ) →
+p F (I, I)
+: (I, I) →
+
+The monoidality axioms follow by lifting the axioms for F and naturality follows by Proposition 2.0.11.
+Proof of Theorem 2.0.8. The functor is well defined on its domain: if C is small then OpticC exists. The
+only property left to check is functoriality, i.e. that for monoidal functors F : C → D and G : D → E we
+have
+Optic(G) ◦ Optic(F ) = Optic(G ◦ F ).
+
+13
+
+p (A, A′ ) in C,
+On objects this is clear, as Optic(F )(S, S ′ ) = (F S, F S ′ ). On a morphism hl | ri : (S, S ′ ) →
+we check:
+D
+E
+′
+(F
+l)
+|
+(F
+r)φ
+(Optic(G) ◦ Optic(F ))(hl | ri) = Optic(G) φ−1
+M,A
+M,A
+E
+D
+′ ))ψF M,F A′
+(F
+l)))
+|
+(G((F
+r)φ
+= ψF−1M,F A (G(φ−1
+M,A
+M,A
+E
+D
+′ )ψF M,F A′
+)(GF
+l)
+|
+(GF
+r)(Gφ
+= ψF−1M,F A (Gφ−1
+M,A
+M,A
+= Optic(G ◦ F )(hl | ri)
+
+where φ and ψ denote the structure maps for F and G respectively, and in the last step we use that
+(GφM,A′ )ψF M,F A′ is by definition the structure map for G ◦ F . Checking that the identity is preserved is
+similar.
+This doesn’t extend to a strict 2-functor SymmMonCat → SymmMonCat, as there is only an
+action of Optic on natural isomorphisms. It is however functorial on natural isomorphisms, giving a
+2-functor on the ‘homwise-core’ of SymmMonCat. We do not explore this any further in the present
+note.
+Proposition 2.0.14. If C is a strict symmetric monoidal category then OpticC is strict, and ι : C×Cop →
+OpticC is a strict monoidal functor. For F : C → D a strict monoidal functor, the induced functor
+Optic(F ) : OpticC → OpticD is also strict.
+Proof. The structure maps of OpticC are given by ι applied to the structure maps of C. If the latter are
+identities, then so are the former—the identity morphisms in OpticC are by definition ι(idS , idS ′ ).
+That ι is strict is clear, as the structure morphisms in OpticC are exactly the structure morphisms in
+C × Cop under ι.
+Finally, the structure morphisms of Optic(F ) are lifted from F , so if the latter is strict then so is the
+former.
+
+2.1
+
+Teleological Categories
+
+In this section we establish a universal property of the Optic construction. The idea is that every
+p (A, A′ ) consists of a morphism S → M ⊗ A and the ‘formal dual’ of a morphism
+optic hl | ri : (S, S ′ ) →
+M ⊗ A′ → S ′ , composed with a ‘formal counit’ that traces out the object M :
+S
+
+A
+
+l
+M
+
+S′
+
+r∗
+
+A′
+
+It will be convenient to equip OpticC with a slightly different symmetric monoidal structure:
+Definition 2.1.1. The switched monoidal product on OpticC is given on objects by
+˜ (T, T ′ ) := (S ⊗ T, T ′ ⊗ S ′ )
+(S, S ′ ) ⊗
+p (A, A′ ) and hl′ | r ′ i : (T, T ′ ) p
+And on morphisms hl | ri : (S, S ′ ) →
+→ (B, B ′ ) by:
+
+14
+
+S
+
+l
+
+T
+
+l′
+
+A
+
+B′
+
+B
+
+A′
+
+r′
+
+T′
+
+r
+
+S′
+
+The universal property for OpticC given in this section is an argument for this being the “morally
+correct” tensor, although it does seem a little strange. When we later discuss lawful optics, we are forced
+to use the unswitched tensor to maintain the invariant that our objects are of the form (X, X).
+˜ (I, I)) is a symmetric monoidal category.
+Proposition 2.1.2. (OpticC , ⊗,
+Proof. The proof that (OpticC , ˜
+⊗, (I, I)) is symmetric monoidal is nearly identical to that for the unswitched
+tensor. Note that due to the switching, the structure morphisms are slightly different:
+α(R,R′ ),(S,S ′ ),(T,T ′ ) := ι(αR,S,T , α−1
+T ′ ,S ′ ,R′ )
+λ(S,S ′ ) := ι(λS , ρ−1
+S′ )
+ρ(S,S ′ ) := ι(ρS , λ−1
+S′ )
+s(S,S ′ ),(T,T ′ ) := ι(sS,T , sS ′ ,T ′ )
+
+Remark 2.1.3. Just as in the unswitched case, if C is a strict monoidal category than so is (OpticC , ˜
+⊗, (I, I)).
+We now define the structure on a symmetric monoidal category universally provided by the Optic
+construction.
+Definition 2.1.4 (Compare [Hed17, Definition 5.1]). A teleological category is a symmetric monoidal
+category (T, ⊠, I), equipped with:
+• A symmetric monoidal subcategory Td of dualisable morphisms containing all the objects of T, with
+an involutive symmetric monoidal functor (−)∗ : Td → Tdop , where—not finding a standard symbol
+for such a thing—we mean Tdop to be the category with both the direction of the arrows and the
+order of the tensor flipped: (A ⊠ B)∗ ∼
+= B ∗ ⊠ A∗ . Note that there is therefore also a canonical
+isomorphism φ : I ∼
+= I∗
+• A symmetric monoidal extranatural family of morphisms εX : X ⊠ X ∗ → I, called counits, natural
+with respect to the dualisable morphisms.
+Unpacking the definition, ε being a symmetric monoidal extranatural transformation amounts to the
+following diagrams in T commuting:
+X ⊠Y∗
+
+f ⊠Y ∗
+
+X ⊠ X∗
+
+εX
+
+X ⊠ Y ⊠ Y ∗ ⊠ X∗
+
+X ⊠ X∗
+
+I
+
+εX ∗
+
+I ⊠ I∗
+
+I⊠φ
+
+I ⊠I
+
+εX
+
+∼
+=
+
+X ⊠ Y ⊠ (X ⊠ Y )∗
+
+εX
+
+X ∗ ⊠ (X ∗ )∗
+
+I
+X⊠εY ⊠X ∗
+
+X ⊠ X∗
+
+∼
+=
+
+εY
+
+X⊠f ∗
+
+s
+
+X∗ ⊠ X
+
+Y ⊠Y∗
+
+∼
+=
+
+εI
+εX⊠Y
+
+I
+15
+
+I
+
+where f : X → Y is dualisable.
+Note that because Td is symmetric monoidal and has the same collection of objects as T, the symmetric
+monoidal structure morphisms of T must be contained in Td and so are dualisable.
+Example 2.1.5.
+(1) Any compact closed category is a teleological category, where every morphism is dualisable and the
+unit morphisms have been forgotten.
+(2) Any symmetric monoidal category with terminal monoidal unit is trivially teleological, setting the
+dualisable morphisms to be all isomorphisms.
+This definition of teleological category differs from the original given in [Hed17], in that the duality
+switches the order of the tensor product. We do this so that compact closed categories are teleological,
+but the bookkeeping does admittedly become more confusing.
+Definition 2.1.6. A teleological functor F : T → S is a symmetric monoidal functor that restricts to a
+functor Fd : Td → Sd on the dualisable subcategories, commutes with the duality via a monoidal natural
+isomorphism dX : F (X ∗ ) → (F X)∗ , and such that the counits are preserved:
+F (X ⊠ X ∗ )
+
+φX,X ∗
+
+F X ⊠ F (X ∗ )
+
+F X⊠dX
+
+F X ⊠ (F X)∗
+εF X
+
+F εX
+
+FI
+
+I
+
+φI
+
+Together we have Tele, the category of teleological categories and teleological functors. There are
+evident functors
+U : Tele → SymmMonCat
+(−)d : Tele → SymmMonCat
+that take a teleological category to its underlying symmetric monoidal category and subcategory of dualisable morphisms respectively.
+The definition of teleological category suggests a string diagram calculus similar to that for compact
+closed categories, but where only counits are allowed and only morphisms known to be dualisable may
+be passed around a counit. We have of course not proven that such a calculus is sound for teleological
+categories, but we trust that a sceptical reader could verify our arguments equationally.
+Proposition 2.1.7. OpticC forms a teleological category, where:
+• The dualisable morphisms are all morphisms of the form ι(f, g);
+• The involution is given on objects by (S, S ′ )∗ := (S ′ , S), and on morphisms by ι(f, g)∗ := ι(g, f );
+• The counit ε(S,S ′ ) : (S, S ′ ) ˜
+⊗ (S, S ′ )∗ = (S ⊗ S ′ , S ⊗ S ′ ) → (I, I) is given by the connector:
+ε(S,S ′ ) := cS⊗S ′ .
+Proof. That morphisms of the form ι(f, g) constitute a symmetric monoidal subcategory is clear, they
+are the image of the symmetric monoidal functor ι.
+The functor (−)∗ is a symmetric monoidal involution, in fact it is strictly so:
+
+
+˜ (T, T ′ ) ∗ = S ⊗ T, T ′ ⊗ S ′ ∗
+(S, S ′ ) ⊗
+
+= T ′ ⊗ S′, S ⊗ T
+= (T ′ , T ) ˜
+⊗ (S ′ , S)
+∗
+
+∗
+
+˜ (S, S ′ )
+= (T, T ′ ) ⊗
+16
+
+p (T, T ′ ), so f : S → T
+To check extranaturality of ε, suppose we have a dualisable optic ι(f, g) : (S, S ′ ) →
+and g : T ′ → S ′ . Happily, all the switching in the definitions cancels out! Extranaturality is witnessed by
+the equality of the string diagrams:
+S
+
+f
+
+T
+
+T′
+
+g
+
+S′
+I
+
+=
+
+S
+
+f
+
+T
+
+T′
+
+g
+
+S′
+
+I
+
+I
+
+I
+
+Symmetry of ε by:
+S
+
+S
+
+S′
+
+S′
+I
+
+=
+
+S
+
+S
+
+S′
+
+S′
+
+I
+
+I
+
+I
+
+And for monoidality of ε there is essentially nothing to do in the graphical calculus:
+S
+
+S
+
+T
+
+T
+
+T′
+
+T′
+
+S′
+
+S′
+I
+
+=
+
+S⊗T
+
+S⊗T
+
+T ′ ⊗ S′
+
+T ′ ⊗ S′
+
+I
+
+I
+
+I
+
+Note that the diagrams that are required to commute in the definition of teleological category all
+terminate with the unit I, so in view of Proposition 2.0.6 we should not be surprised that they correspond
+to equality of maps in C.
+Proposition 2.1.8. The functor Optic : SymmMonCat → SymmMonCat of Theorem 2.0.8 extends
+to a functor to Tele.
+Proof. We have seen that OpticC is always teleological. We must show that for a symmetric monoidal
+functor F : C → D, the induced functor Optic(F ) : OpticC → OpticD is teleological. That Optic(F )
+preserves the dualisable morphisms is exactly Lemma 2.0.10. It also preserves the counits:
+Optic(F )(ε(S,S ′ ) )
+= Optic(F )(cS⊗S ′ )
+= Optic(F )( ρ−1
+S | ρS ′
+D
+
+(Definition of the counit)
+)
+
+(Definition of the c)
+E
+
+−1
+= φ−1
+S,I (F ρS ) | (F ρS ′ )φS ′ ,I
+E
+D
+−1
+−1
+= (F S ⊗ φ−1
+I )φS,I (F ρS ) | (F ρS ′ )φS ′ ,I (F S ⊗ φI )
+
+(Definition of the Optic(F ))
+
+= ρF−1S | ρF S ′
+
+(F is monoidal)
+
+= ε(F S,F S ′ )
+
+(Definition of the counit)
+
+17
+
+(Introduce φI to both sides)
+
+We will establish the universal property in the somewhat contrived case of strict symmetric monoidal
+categories and strict monoidal functors, but anticipate that this result could be weakened to non-strict
+symmetric monoidal categories at the cost of checking far more coherences.
+Definition 2.1.9. A teleological category is strict if it is strict as a symmetric monoidal category and (−)∗
+is a strict monoidal involution, so (A ⊠ B)∗ = B ∗ ⊠ A∗ and I ∗ = I, and also (A∗ )∗ = A. A teleological
+functor is strict if it is strict as a symmetric monoidal functor and strictly preserves the duality and
+counits.
+We have previously noted that OpticC is strict monoidal if C is, and that in that case the duality is
+strict. There are functors
+Optic : StrictSymmMonCat → StrictTele
+U : StrictTele → StrictSymmMonCat
+(−)d : StrictTele → StrictSymmMonCat
+The crux is the following proposition that decomposes every optic in a canonical way.
+p (A, A′ ) has residual M . Then
+Proposition 2.1.10. Suppose hl | ri : (S, S ′ ) →
+˜ ε(M,I) ⊗
+˜ (I, A′ ))(j(sM,A l) ⊗
+˜ j(rsA′ ,M )∗ )
+hl | ri = ((A, I) ⊗
+where j : C → OpticC is the functor j(A) := ι(A, I).
+The symmetries in the above expression could have been avoided if Optic had been defined as
+R M ∈C
+C(S, A ⊗ M ) × C(A′ ⊗ M, S ′ ), but it is too late to change the convention now!
+
+p (I, I)
+Proof. First note that because C is strict monoidal, the counit ε(M,I) : (M ⊗ I, M ⊗ I) = (M, M ) →
+p (I, I).
+is equal to the connector cM : (M, M ) →
+Then, up to strictness of the monoidal unit, we are composing the two optics
+A′
+
+A
+S
+
+r
+
+l
+
+S′
+
+M
+
+M
+and
+
+A′
+
+A
+M
+
+A′
+
+A
+
+M
+
+so the two pairs of twists cancel, and we are left exactly with the diagram for hl | ri.
+This also holds for monoidal categories that are not necessarily strict, if the unit object and unitors
+are inserted in the appropriate places.
+Proposition 2.1.11. Suppose (C, ⊗, I) is a strict symmetric monoidal category and (T, ⊠, I, (−)∗ , ε) is a
+strict teleological category. Given a strict symmetric monoidal functor F : C → Td , there exists a unique
+strict teleological functor K : OpticC → T with the property Kj = F .
+
+18
+
+Proof. We construct K as follows. Note that any object (S, S ′ ) in OpticC can be written uniquely as
+˜ j(S ′ )∗ , so we are forced to define K(S, S ′ ) = F S ⊠ (F S ′ )∗ . Suppose hl | ri : (S, S ′ ) →
+p (A, A′ ) is an
+j(S) ⊗
+optic. By the previous Proposition,
+˜ ε(M,I) ⊗
+˜ (I, A′ ))(j(sM,A l) ⊗
+˜ j(rsA′ ,M )∗ )
+hl | ri = ((A, I) ⊗
+So if a K with Kj = F exists, it must hold that
+˜ ε(M,I) ⊗
+˜ (I, A′ ))K(j(sM,A l) ⊗
+˜ j(rsA′ ,M )∗ )
+Khl | ri = K((A, I) ⊗
+(K is monoidal)
+= (K(A, I) ⊠ Kε(M,I) ⊠ K(I, A′ ))(K(j(sM,A l)) ⊠ K(j(rsA′ ,M )∗ ))
+(K preserves the counit and duality)
+= (K(A, I) ⊠ εK(M,I) ⊠ K(I, A′ ))(K(j(sM,A l)) ⊠ K(j(rsA′ ,M ))∗ )
+(K satisfies Kj = F )
+∗
+
+= (F A ⊠ εF M ⊠ (F A′ ) )(F (sM,A l) ⊠ F (rsA′ ,M )∗ )
+We therefore take
+∗
+
+Khl | ri = (F A ⊠ εF M ⊠ (F A′ ) )(F (sM,A l) ⊠ F (rsA′ ,M )∗ ))
+as our definition of K. The diagram for Khl | ri in T is as follows:
+FS
+
+Fl
+
+FA
+
+F S ′∗
+
+F r∗
+
+F A′∗
+
+It remains to show that K so defined is indeed a strict teleological functor. There are several things to
+check:
+• Well-definedness: Suppose we have two optics related by the coend relation:
+h(f ⊗ A)l | ri = l | r(f ⊗ A′ )
+Then well-definedness is shown by the equivalence of diagrams
+Ff
+FS
+
+Fl
+
+FS
+
+Fl
+
+F S ′∗
+
+F r∗
+
+FA
+
+FA
+
+=
+F S ′∗
+
+F r∗
+
+F A′∗
+
+F A′∗
+Ff∗
+
+using naturality of the symmetry and extranaturality of the counit.
+• Functoriality: We have an equivalence of diagrams
+
+19
+
+FS
+
+F l1
+
+F l2
+
+FS
+
+F l1
+
+F l2
+
+FA
+
+F S ′∗
+
+F r1∗ F r2∗
+
+F A′∗
+
+FA
+=
+
+F S ′∗
+
+F r1∗
+
+F r2∗
+
+F A′∗
+
+using naturality of the symmetry and monoidality of the counit.
+• Monoidality:
+˜ (T, T ′ )) = K(S ⊗ T, T ′ ⊗ S)
+K((S, S ′ ) ⊗
+∗
+
+= F (S ⊗ T ) ⊠ F (T ′ ⊗ S ′ )
+
+= F S ⊠ F T ⊠ (F S ′ ) ⊠ (F T ′ )
+
+∗
+
+∗
+
+∗
+
+∗
+
+= F S ⊠ (F S ′ ) ⊠ F T ⊠ (F T ′ )
+= K(S, S ′ ) ⊠ K(T, T ′ )
+and
+K(I, I) = F I ⊠ (F I)∗
+= I ⊠ I∗
+=I
+• Preservation of duals:
+∗ ∗
+
+∗
+
+K((S, S ′ ) ) = K(S ′ , S) = F S ′ ⊠ (F S)∗ = (F S ⊠ (F S ′ ) ) = (K(S, S ′ ))
+
+∗
+
+• Preservation of dualisable morphisms: For a morphism ι(f, g):
+K(ι(f, g)) = K( λ−1
+A f | gλA′ )
+∗
+
+∗
+= (F A ⊠ εF I ⊠ (F A′ ) )(F (sI,A λ−1
+A f ) ⊠ (F (gλA′ sA′ ,I )) )
+∗
+
+= (F A ⊠ (F A′ ) )(F f ⊠ (F g)∗ )
+= F f ⊠ (F g)∗
+and this is dualisable, as dualisability is preserved by taking the monoidal product and duals.
+• Preservation of counits:
+K(ε(S,S ′ ) ) = K(cS⊗S ′ )
+= K( ρ−1
+S⊗S ′ | ρS⊗S ′ )
+∗
+= (F I ⊠ εF (S⊗S ′ ) ⊠ (F I)∗ )(F (sS⊗S ′ ,I ρ−1
+S⊗S ′ ) ⊠ (F (ρS⊗S ′ sI,S⊗S ′ )) )
+∗
+
+= (εF (S⊗S ′ ) )(F (S ⊗ S ′ ) ⊠ F (S ⊗ S ′ ) )
+= εF (S⊗S ′ )
+= εF S⊗F S ′
+= εF S (F S ⊗ εF S ′ ⊗ (F S)∗ )
+= εF S (F S ⊗ εF S ′ ∗ ⊗ (F S)∗ )
+= εF S⊗F S ′ ∗
+= εK(S,S ′ )
+20
+
+The critical move is applying the equality εF S ′ = εF S ′ ∗ , which follows because ε is a symmetric
+monoidal transformation and the duality is strict.
+
+Theorem 2.1.12. Optic : StrictSymmMonCat → StrictTele is left adjoint to the ‘underlying dualisable morphisms’ functor (−)d : StrictTele → StrictSymmMonCat.
+Proof. Precomposition with j gives a function
+StrictTele(OpticC , T) → StrictSymmMonCat(C, Td )
+and the previous proposition states that this is a isomorphism. This is automatically natural in T.
+Naturality in C follows by Lemma 2.0.10.
+Remark 2.1.13. The above theorem and its proof have much in common with [JSV96, Proposition 5.2],
+which gave a similar universal property for their Int construction on traced monoidal categories.
+Working with strict monoidal categories made it significantly easier to prove the universal property.
+There is likely to be a 2-categorical universal property of Optic for non-strict monoidal categories, so
+long as we restrict our attention to the sub-2-category SymmMonCathomcore of SymmMonCat that
+only contains natural isomorphisms. We leave this to future work:
+Definition 2.1.14. A teleological natural isomorphism α : F ⇒ G is a monoidal natural isomorphism
+whose components are all dualisable and that is additionally compatible with the dualisation:
+(F X)∗
+
+∼
+=
+
+F (X ∗ )
+αX ∗
+
+(αX )∗
+
+(GX)∗
+
+∼
+=
+
+G(X ∗ )
+
+There is a (strict) 2-category Tele consisting of teleological categories, functors and natural isomorphisms.
+Conjecture 2.1.15.
+Optic : SymmMonCathomcore → Tele
+is left biadjoint to
+(−)d : Tele → SymmMonCathomcore
+
+2.2
+
+Optics for a Monoidal Action
+
+To capture more of the optic variants available in the Haskell lens library, we generalise to the case of a
+monoidal action of one category on another.
+Definition 2.2.1. Let C be a category and (M, ⊗, I) a monoidal category. An action of M on C is a
+monoidal functor a : M → [C, C]. For two objects M ∈ M and A ∈ C, the action a(M )(A) is abbreviated
+M · A.
+Given such an action, we define
+OpticM ((S, S ′ ), (A, A′ )) :=
+
+Z M ∈M
+
+C(S, M · A) × C(M · A′ , S ′ )
+
+This subsumes the earlier definition, taking M = C and having C act on itself via left-tensor:
+a : C → [C, C]
+X 7→ X ⊗ −
+We henceforth write this case as Optic⊗ , to emphasise the action on C that is used.
+21
+
+Proposition 2.2.2. We have a category OpticM and a functor ι : C×Cop → OpticM defined analogously
+to Propositions 2.0.3 and 2.0.5.
+Definition 2.2.3. Given two categories equipped with monoidal actions (M, C) and (N, D), a morphism
+of actions is a monoidal functor F • : M → N and a functor F : C → D that commutes with the actions,
+in the sense that there exists a natural isomorphism
+φM,A : F (M · A) → (F • M ) · (F A)
+satisfying conditions analogous to those for a monoidal functor.
+Proposition 2.2.4. If F : (M, C) → (N, D) is a morphism of actions, there is an induced functor
+Optic(F ) : OpticM → OpticN .
+For the remainder of the paper we work in this more general setting.
+
+3
+
+Lawful Optics
+
+Typically we want our optics to obey certain laws. The ‘constant-complement’ perspective suggests
+declaring an optic hl | ri to be lawful if l and r are mutual inverses. There are a couple of issues with
+this definition. Firstly, it is not invariant under the coend relation, so the condition holding for one
+representative is no guarantee that it holds for any other. Still, we might say that an optic is lawful if
+it has some representative that consists of mutual inverses. In our primary example of an optic variant,
+lenses in Set, this does indeed correspond to the concrete lens laws. However, this fact relies on some
+extra structure possessed by Set: the existence of pullbacks, and that all objects (other than the empty
+set) have a global element.
+In this section we make a different definition of lawfulness that at first seems strange, but which in
+the case of lenses corresponds exactly to the three concrete lens laws with no additional assumptions on C
+required. As further justification for this definition, in Section 5 we will see an interpretation of (unlawful)
+optics as maps between certain comonoid objects. Lawfulness in our sense corresponds exactly to this
+map being a comonoid homomorphism.
+p (A, A). In this section we will
+The optic laws only make sense for optics of the form p : (S, S) →
+p (A, A) as p : S p
+abbreviate OpticM ((S, S), (A, A)) as OpticM (S, A) and p : (S, S) →
+→ A.
+Remark 3.0.1. We use ; to denote composition of C in diagrammatic order. The reason for this is that
+the coend relation can be applied simply by shifting the position of | in a representative:
+hl; (φ · A) | ri = hl | (φ · A); ri
+Let Optic2M (S, A) denote the set
+Z M1 ,M2 ∈M
+C(S, M1 · A) × C(M1 · A, M2 · A) × C(M2 · A, S).
+Using the universal property of the coend, we define three maps:
+outside : OpticM (S, A) → C(S, S)
+once, twice : OpticM (S, A) → Optic2M (S, A)
+by
+outside(hl | ri) = l; r
+once(hl | ri) = hl | idM ·A | ri
+twice(hl | ri) = hl | r; l | ri
+22
+
+Definition 3.0.2. An optic p : S p
+→ A is lawful if
+outside(p) = idS
+once(p) = twice(p)
+Returning to ordinary lenses, we can show that this is equivalent to the laws we expect.
+Proposition 3.0.3. A concrete lens described by Get and Put is lawful (in our sense) iff it obeys the
+three concrete lens laws.
+Proof. We begin by giving Optic2× (S, A) the same treatment as we did Optic× (S, A). Using the universal
+property of the product and Yoneda reduction twice each, we have:
+Z M1 ,M2 ∈C
+Optic2× (S, A) =
+C(S, M1 × A) × C(M1 × A, M2 × A) × C(M2 × A, S)
+Z M1 ,M2 ∈C
+∼
+C(S, M1 ) × C(S, A) × C(M1 × A, M2 × A) × C(M2 × A, S)
+=
+Z M2 ∈C
+∼
+C(S, A) × C(S × A, M2 × A) × C(M2 × A, S)
+=
+Z M2 ∈C
+∼
+C(S, A) × C(S × A, M2 ) × C(S × A, A) × C(M2 × A, S)
+=
+∼
+= C(S, A) × C(S × A, A) × C(S × A × A, S)
+
+Written equationally, the isomorphism Φ : Optic2× (S, A) → C(S, A) × C(S × A, A) × C(S × A × A, S) is
+given by:
+Φ(hl | c | ri) = ( l; π2 ,
+(l; π1 × A); c; π2 ,
+((l; π1 × A); c; π1 × A); r
+
+)
+
+Now suppose we are given a lens p that corresponds concretely to (Get, Put), so p = h[idS , Get] | Puti.
+Evaluating outside on this gives:
+outside(h[idS , Get] | Puti) = [idS , Get]; Put
+so requiring outside(p) = idS is precisely the GetPut law.
+We now have to slog through evaluating Φ(once(p)) and Φ(twice(p)).
+Φ(once(h[idS , Get] | Puti)) = Φ(h[idS , Get] | idS×A | Puti)
+= ( [idS , Get]; π2 ,
+([idS , Get]; π1 × A); idS×A ; π2 ,
+(([idS , Get]; π1 × A); idS×A ; π1 × A); Put
+
+)
+
+= ( Get,
+π2 ,
+π1,3 ; Put
+
+)
+
+Φ(twice(h[idS , Get] | Puti)) = Φ(h[idS , Get] | Put; [idS , Get] | Puti)
+= ( [idS , Get]; π2 ,
+([idS , Get]; π1 × A); Put; [idS , Get]; π2 ,
+(([idS , Get]; π1 × A); Put; [idS , Get]; π1 × A); Put
+23
+
+)
+
+= ( Get,
+(idS × A); Put; Get,
+((idS × A); Put × A); Put
+
+)
+
+= ( Get,
+Put; Get,
+(Put × A); Put
+
+)
+
+So comparing component-wise, Φ(once(p)) being equal to Φ(twice(p)) is exactly equivalent to the PutGet
+and PutPut laws holding.
+We can also check when some other of our basic optics are lawful.
+p A is an optic such that l and r are mutual inverses, then p is
+Proposition 3.0.4. If p = hl | ri : S →
+lawful.
+Proof. The conditions are easy to check:
+outside(hl | ri) = l; r = idS
+twice(hl | ri) = hl | r; l | ri
+= hl | idM ·A | ri
+= once(hl | ri)
+
+Corollary 3.0.5. If f : S → A and g : A → S are mutual inverses, then ι(f, g) : S p
+→ A is a lawful optic,
+so ι restricts to a functor ι : Core(C) → LawfulM .
+p A is lawful.
+Corollary 3.0.6. For any two objects A ∈ C and M ∈ M, the tautological optic M · A →
+p (I, I) corresponding to a morphism f : S → S via ProposiProposition 3.0.7. A costate p : (S, S) →
+tion 2.0.6 is lawful iff f = idS .
+Proof. The first law states that outside(p) = idS , so if p is lawful we have
+−1
+idS = outside( ρ−1
+S | ρS ; f ) = ρS ; ρS ; f = f
+
+On the other hand, if f = idS then ρ−1
+S | ρS is lawful because its components are mutual inverses.
+Proposition 3.0.8. There is an subcategory LawfulM of OpticM given by objects of the form (S, S) and
+lawful optics between them.
+Proof. This will follow from our description of lawful profunctor optics later, but we give a direct proof.
+The identity optic is lawful as by definition it has a representative λ−1
+S | λS consisting of mutual inverses.
+We just have to show that lawfulness is preserved under composition.
+p A with residuals M and N
+Suppose we have two lawful optics hl | ri : R p
+→ S and hl′ | r ′ i : S →
+′
+′
+respectively. We must show that hl; (M · l ) | (M · r ); ri is also a lawful optic. Showing the first law is
+straightforward:
+outside( l; (M · l′ ) | (M · r ′ ); r ) = l; (M · l′ ); (M · r ′ ); r
+= l; (M · l′ r ′ ); r
+= l; (M · idN ·A ); r
+= l; r
+= idS
+24
+
+For the second law, we must show that
+hl; (M · l′ ) | (M · r ′ ); r; l; (M · l′ ) | (M · r ′ ); ri = hl; (M · l′ ) | idM ·N ·A | (M · r ′ ); ri.
+The idea is that, by the lawfulness of hl | ri and hl′ | r ′ i, there are chains of coend relations that prove
+hl | r; l | ri = hl | idM ·S | ri
+′
+
+hl | r ′ ; l′ | r ′ i = hl′ | idN ·A | r ′ i
+The result is achieved by splicing these chains of relations together in the following way.
+Consider one of the generating relations hl; (φ · S) | c | ri = hl | (φ · S); c | ri in Optic2M (R, S), where
+φ : M → M ′ . By the functoriality of the action, we calculate:
+hl; (φ · S); (M ′ · l′ ) | (M ′ · r ′ ); c; (M · l′ ) | (M · r ′ ); ri
+= hl; (M · l′ ); (φ · N · A) | (M ′ · r ′ ); c; (M · l′ ) | (M · r ′ ); ri
+′
+
+′
+
+′
+
+′
+
+′
+
+= hl; (M · l ) | (φ · N · A); (M · r ); c; (M · l ) | (M · r ); ri
+′
+
+′
+
+′
+
+′
+
+= hl; (M · l ) | (M · r ); (φ · S); c; (M · l ) | (M · r ); ri
+
+(functoriality)
+(coend relation)
+(functoriality)
+
+And similarly for the other generating relation, hl | c; (φ · S) | ri = hl | c | (φ · S); ri.
+So indeed by replicating the same chain of relations that proves hl | r; l | ri = hl | idM ·S | ri, we see
+hl; (M · l′ ) | (M · r ′ ); r; l; (M · l′ ) | (M · r ′ ); ri = hl; (M · l′ ) | (M · r ′ ); idM ·S ; (M · l′ ) | (M · r ′ ); ri
+= hl; (M · l′ ) | (M · r ′ ; l′ ) | (M · r ′ ); ri.
+Now that the r; l in the center has been cleared away, we turn to the chain of relations proving hl′ | r ′ ; l′ | r ′ i = hl′ | idN ·A | r ′ i. A generating relation hl′ ; (ψ · A) | c′ | r ′ i = hl′ | (ψ · A); c′ | r ′ i in
+Optic2M (S, A) implies that
+hl; (M · l′ ; ψ · A) | M · c′ | (M · r ′ ); ri = hl; (M · l′ ); (M · ψ · A) | M · c′ | (M · r ′ ); ri
+= hl; (M · l′ ) | (M · ψ · A); (M · c′ ) | (M · r ′ ); ri
+= hl; (M · l′ ) | M · ((ψ · A); c′ ) | (M · r ′ ); ri
+And similarly for the generating relation on the other side. So again we can replicate the chain of relations
+proving hl′ | r ′ ; l′ | r ′ i = hl′ | idM ·A | r ′ i to show that
+hl; (M · l′ ) | (M · r ′ ; l′ ) | (M · r ′ ); ri = hl; (M · l′ ) | M (idN ·A ) | (M · r ′ ); ri
+= hl; (M · l′ ) | idM ·N ·A | (M · r ′ ); ri
+as required. We conclude that composition preserves lawfulness, so LawfulM is indeed a subcategory of
+OpticM .
+Proposition 3.0.9. In the case that C is symmetric monoidal and M = C acts by left-tensor, then
+Lawful⊗ is symmetric monoidal with the unswitched tensor.
+This would of course make no sense with the switched tensor, as the tensor of two objects would
+typically no longer be of the form (X, X).
+Proof. Due to Corollary 3.0.5, the structure maps of OpticM are all lawful. We just have to check that
+⊗ : OpticM × OpticM → OpticM restricts to a functor on LawfulM .
+Given two lawful optics p : S p
+→ A and q : T p
+→ B, the first law for p ⊗ q follows immediately from
+the first law for p and q. To prove the second law, we follow the same strategy as used in the previous
+proposition: the two chains of relations proving p and q lawful can be combined to prove the law for p ⊗ q.
+
+25
+
+Proposition 3.0.10. Suppose F : (M, C) → (N, D) is a morphism of actions.
+OpticM → OpticN restricts to a functor LawfulM → LawfulN .
+
+Then Optic(F ) :
+
+Proof. If p = hl | ri is lawful, then verifying the first equation is easy:
+E
+D
+′
+;
+(F
+r)
+|
+φ
+outside(Optic(F )(hl | ri)) = outside (F l); φ−1
+M,A
+M,A
+= (F l); φ−1
+M,A ; φM,A′ ; (F r)
+= (F l); (F r)
+= idF S
+where φM,A′ : (F • M ) · (F A) → F (M · A) is the structure map that commutes F with the actions.
+For the second equation, consider a generating relation hl; (ψ · A) | c | ri = hl | (ψ · A); c | ri. We can
+use the naturality of φ to show
+−1
+−1
+−1
+hF (l; ψ · A); φ−1
+M,A | φM,A ; F c; φN,A | φN,A ; F ri = hF l; F (ψ · A); φM,A | φM,A ; F c; φN,A | φN,A ; F ri
+−1
+•
+= hF l; φ−1
+M ′ ,A ; (F ψ) · A | φM,A ; F c; φN,A | φN,A ; F ri
+−1
+•
+= hF l; φ−1
+M ′ ,A | (F ψ) · A; φM,A ; F c; φN,A | φN,A ; F ri
+−1
+′
+= hF l; φ−1
+M ′ ,A | φM ,A ; F (ψ · A); F c; φN,A | φN,A ; F ri
+−1
+′
+= hF l; φ−1
+M ′ ,A | φM ,A ; F (ψ · A; c); φN,A | φN,A ; F ri
+
+Similarly,
+−1
+−1
+−1
+hF l; φ−1
+M,A | φM,A ; F c; φN,A | φN,A ; F ((ψ · A); r)i = hF l; φM,A | φM,A ; F (c; (ψ · A)); φN,A | φN,A ; F ri
+
+If hl | ri is lawful, we can therefore replicate the chain of relations proving twice(hl | ri) = once(hl | ri)
+to show:
+−1
+twice(Optic(F )(hl | ri)) = hF l; φ−1
+M,A | φM,A ; F (r; l); φM,A | φM,A ; F ri
+−1
+= hF l; φ−1
+M,A | φM,A ; F (idM ·A ); φM,A | φM,A ; F ri
+
+= hF l; φ−1
+M,A | id(F • M )·(F A) | φM,A ; F ri
+= once(Optic(F )(hl | ri))
+
+We end with some commentary on the optic laws. The requirement that once(p) = twice(p) is mysterious, but there are sufficient conditions that are easier to verify.
+p A be an optic. If l; r = idS and r; l = φ · A for some φ : M → M
+Proposition 3.0.11. Let hl | ri : S →
+in M, then hl | ri is lawful.
+Proof. The statement outside(hl | ri) = l; r = idS is exactly the first law. And for the second, we verify:
+twice(hl | ri) = hl | r; l | ri
+= hl | φ · A | ri
+
+(r; l = φ · A)
+
+= hl; (φ · A) | idM ·A | ri
+
+(coend relation)
+
+= hl; r; l | idM ·A | ri
+
+(r; l = φ · A again)
+
+= hl | idM ·A | ri
+
+(l; r = idS )
+
+= once(hl | ri)
+
+26
+
+Even if r; l = φ · A for some φ, the
+is not necessarily true for other representatives of the same
+R Msame
+∈M
+C(M · A, M · A) be the map induced by inside(hl | ri) = hr; li.
+optic. Let inside : OpticM (S, A) →
+R M ∈M
+C(M · A, M · A).
+We might ask that instead of requiring r; l = φ · A exactly, we have hr; li = hφ · Ai in
+In fact, this is equivalent:
+p A satisfies outside(p) = idS and inside(p) = hφ · Ai. Then there
+Proposition 3.0.12. Suppose p : S →
+exists a representative hl | ri such that r; l = ψ · A on the nose for some (possibly different) ψ : M → M .
+R M ∈M
+C(M · A, M · A) is
+Proof. The generating relation for
+hf ; (φ · A)i = h(φ · A); f i
+
+whenever f : N ·A → M ·A and φ : M → N . This relation f ; (φ·A)
+(φ·A); f is not likely to be symmetric
+or transitive in general. Note that if f ; (φ · A)
+(φ · A); f then f ; (φ · A); f ; (φ · A)
+(φ · A); f ; (φ · A); f .
+n
+n
+More generally, if f
+g then f
+g for any n.
+Now let hl | ri be a representative for p, so l; r = idS and hr; li = hψ · Ai. There therefore exists a
+finite chain of relations r; l = u1 ! · · · ! un = ψ · A. Suppose the first relation faces rightward, so
+there exists a k and φ with r; l = (φ · A); k and u2 = k; (φ · A). Define l′ = l; (φ · A) and r ′ = k; r. Then:
+l′ | r ′ = hl; (φ · A) | k; ri
+= hl | (φ · A); k; ri
+= hl | r; l; ri
+= hl | ri
+This new representative satisfies
+l′ ; r ′ = l; (φ · A); k; r = l; r; l; r = idS
+r ′ ; l′ = k; r; l; (φ · A) = k; (φ · A); k; (φ · A) = u22
+A symmetric argument shows that if instead the relation faces leftward, so lr
+l′ and r ′ so that hl | ri = hl′ | r ′ i, and both l′ ; r ′ = idS and r ′ ; l′ = u22 .
+
+u2 , there again exists
+
+We can now inductively apply the above argument to the shorter chain
+l′ r ′ = u21 ! · · · ! u2n ! (ψ · A)2 = ψ 2 · A,
+obtained by squaring each morphism in the original chain, until we are left with a representative hl∗ | r ∗ i
+such that r ∗ ; l∗ = ψ N · A, for some N > 0. This pair hl∗ | r ∗ i is the required representative.
+The above argument has a similar form to those that appear in [Far08], which considered (among
+R c∈C
+C(c, F c) for an endofunctor F : C → C.
+other things) coends of the form
+
+4
+
+Examples
+
+The general pattern is as follows. Once we choose a particular monoidal action M → [C, C], we find
+p (A, A′ ) and a set C((S, S ′ ), (A, A′ )) that is easier to
+an isomorphism between the set of optics (S, S ′ ) →
+describe. We follow [PGW17] (and others) in calling elements of C concrete optics. There is no canonical
+choice for this set; our primary goal is to find a way to eliminate the coend so that we no longer have to
+deal with equivalence classes of morphisms.
+Ideally, we then also find a simplified description C2 (S, A) for the set Optic2C (S, A). We can then
+“read off” what conditions on are needed on a concrete optic to ensure that the corresponding element of
+OpticM (S, A) is lawful. We will call these conditions the concrete laws.
+It is worth emphasising that once a monoidal action has been chosen and a concrete description of
+the corresponding optics found, no further work is needed to show that the result forms a category with
+a subcategory of lawful optics. This is especially useful when devising new optic variants, as we do later.
+27
+
+4.1
+
+Lenses
+
+The founding example, that of lenses, has already been discussed in the previous sections. We add a
+couple of remarks.
+Remark 4.1.1. For the category of sets, the functor ι : Set × Setop → Optic× is not faithful. The
+problem is the empty set: the functor 0 × (−) is not faithful. Any pair of maps f : 0 → A, g : A′ → S ′
+yield equivalent optics ι(f, g), as the corresponding Get and Put functions must be the unique maps
+from 0.
+Remark 4.1.2. In the case that C is cartesian closed, Optic× is monoidal closed via the astonishing
+formula
+[(S, S ′ ), (A, A′ )] := (C(S, A) × C(S × A′ , S ′ ), S × A′ )
+where C(−, −) denotes the internal hom. For a proof see [dP89, Section 1.2]. This cannot be extended to
+non-cartesian closed categories, the isomorphism
+Lens((S, S ′ ) ⊗ (T, T ′ ), (A, A′ )) ∼
+= Lens((S, S ′ ), [(T, T ′ ), (A, A′ )])
+uses the diagonal maps of C in an essential way.
+If we ask more of our category C, we can show that a lens S p
+→ A implies the existence of a complement
+∼
+C with S = C × A. This doesn’t appear to follow purely from the concrete lens laws—an argument that a
+definition of lawfulness based on constant complements is not the correct generalisation. For completeness
+we include a proof in our notation.
+Proposition 4.1.3 (Generalisation of [JRW10, Corollary 13]). Suppose C has pullbacks and that there is
+a morphism x : 1 → A. If p : S p
+→ A is lawful then there exists C ∈ C and mutual inverses l : S → C × A
+and r : C × A → S so that p = hl | ri.
+Proof. Set C to be the pullback of Get along x, so there is a map i : C → S with Get i = x!C . There is
+also a map j : S → C induced by the following diagram:
+S
+
+[idS ,x!S ]
+
+S×A
+
+j
+
+Put
+
+C
+
+i
+
+y
+
+S
+Get
+
+1
+
+x
+
+A
+
+which commutes by the PutGet law. Note that ji = idC by the universal property of pullbacks.
+Now take l : [j, Get] : S → C × A and r : Put(i × A) : C × A → S. That they are mutual inverses is
+easily checked:
+Put(i × A)[j, Get] = Put[ij, Get]
+= Put[Put[idS , x!S ], Get]
+
+(by definition of j)
+
+= Put[idS , Get]
+
+(by PutPut)
+
+= idS
+
+(by GetPut)
+
+28
+
+and
+[j, Get]Put(i × A) = [jPut(i × A), Get Put(i × A)]
+= [jPut(i × A), π2 (i × A)]
+
+(by universal property of product)
+(by PutGet)
+
+= [jPut(i × A), π2 ]
+= [jijPut(i × A), π2 ]
+= [jPut[idS , x!S ]Put(i × A), π2 ]
+= [jPut[idS , x!S ]π1 (i × A), π2 ]
+
+(by PutPut)
+
+= [jijπ1 (i × A), π2 ]
+= [jijiπ1 , π2 ]
+= [π1 , π2 ]
+= idC×A
+Finally, the coend relation gives that
+h[j, Get] | Put(i × A)i = h(i × A)[j, Get] | Puti = h[idS , Get] | Puti
+as elements of OpticM (S, A).
+Remark 4.1.4. Much of the work on bidirectional transformations [FGM+ 07] considers lenses that are
+only ‘well-behaved’, not ‘very well-behaved’: they obey the PutGet and GetPut laws but not the
+PutPut law.
+p A from [FHP15] has Put and Get given by:
+For example, the “change counter” lens N × A →
+Get(n, a) = a
+(
+(n, a)
+if a = a′
+Put((n, a), a′ ) =
+(n + 1, a′ ) otherwise
+This example is typical of (merely) well-behaved lenses: there is metadata stored alongside the target of
+a lens that mutates as the lens is used.
+Lenses that satisfy only the two laws correspond to pairs hl | ri such that rl = idS and π2 lr = π2 .
+This condition seems unavoidably tied to the product structure on C; there is no obvious way generalise
+this to other optics variants.
+
+4.2
+
+Prisms
+
+Prisms are dual to lenses:
+Definition 4.2.1. Suppose C has finite coproducts. The category of prisms is the category of optics with
+respect to the coproduct ⊔: Prism := Optic⊔ .
+Just as optics for × correspond to a pair of maps Get : S → A and Put : S × A → S, optics for ⊔
+correspond to pairs of maps Review : A → S and Matching : S → S ⊔ A. These names are taken from
+the Haskell lens library.
+Z M ∈C
+′
+′
+Prism((S, S ), (A, A )) =
+C(S, M ⊔ A) × C(M ⊔ A′ , S ′ )
+Z M ∈C
+∼
+C(S, M ⊔ A) × C(M, S ′ ) × C(A, S ′ ) (universal property of coproduct)
+=
+∼
+= C(S, S ′ ⊔ A) × C(A′ , S ′ )
+
+(Yoneda reduction)
+
+29
+
+p (A, A′ ) then associated Review and Matching morphisms are
+If we are given a prism hl | ri : (S, S ′ ) →
+given by Review = rinr and Matching = (rinl ⊔ A)l
+The concrete laws for prisms are the obvious duals to the lens laws:
+Matching Review = inr
+[idS , Review]Matching = idS
+(Matching ⊔ A)Matching = in1,3 Matching
+In the lens library documentation the third law is missing, on account of following:
+Proposition 4.2.2. When C = Set, the third law is implied by the other two.
+Proof. The key is that for any map f : X → Y in Set, the codomain Y is equal to the union of im f and
+its complement. The first law implies that Review is injective, so S ∼
+= C ⊔ A for some complement C.
+Identifying A with its image in S, the second law implies that if a ∈ A ⊂ S then Matching(a) = inr(a)
+and if c ∈ C ⊂ S then Matching(c) = inl(c). The third law can then be verified pointwise by checking
+both cases a ∈ A ⊂ S and c ∈ C ⊂ S separately.
+The following is then exactly the dual of Proposition 3.0.3.
+Proposition 4.2.3. If p : S p
+→ A is a lawful prism then the associated Matching and Review functions
+satisfy the concrete prism laws.
+
+4.3
+
+Isos
+
+For any category C, there is a unique action of the terminal category 1 on C that fixes every object.
+Proposition 4.3.1. The category of optics for this action is isomorphic to C × Cop .
+Proof.
+′
+
+′
+
+Optic1 ((S, S ), (A, A )) =
+
+Z M ∈1
+
+C(S, M · A) × C(M · A′ , S ′ )
+
+∼
+= C(S, ⋆ · A) × C(⋆ · A′ , S ′ )
+∼
+= C(S, A) × C(A′ , S ′ )
+where ⋆ denotes the object of 1. Composition in Optic1 ((S, S ′ ), (A, A′ )) does indeed correspond to
+composition in C × Cop .
+Proposition 4.3.2. An iso hl | ri is lawful iff (as expected) l and r are mutual inverses.
+Proof. Optic2M (S, A) specialises in this case to just
+C(S, A) × C(A, A) × C(A, S)
+The condition outside(hl | ri) = idS is the claim that rl = idS , and once(hl | ri) = (l, idA , r) is equal to
+twice(hl | ri) = (l, lr, r) iff lr = idA .
+
+30
+
+4.4
+
+Coalgebraic Optics
+
+There is a common pattern in many of the examples to follow: for every object A ∈ C, the evaluation-at-A
+functor − · A : M → C has a right adjoint, say RA : C → M. To fix notation, let
+−→
+←−
+(−) : C(F · A, S) → M(F, RA S) : (−)
+denote the homset bijection, so the unit and counit are:
+εS : (RA S) · A → S
+←−−−
+εS := idRA S
+
+ηF : F → RA (F · A)
+−−−→
+ηF := idF ·A
+
+It is shown in [JK02, Section 6] that, at least in the case M is right closed, to give such an action is
+equivalent to giving a “copowered M-category C”. In most cases of interest to us, however, M is not right
+closed.
+When we have such a right adjoint, we can always find a concrete description of an optic:
+Z F ∈M
+′
+′
+C(S, F · A) × C(F · A′ , S ′ )
+OpticM ((S, S ), (A, A )) =
+Z F ∈M
+∼
+C(S, F · A) × M(F, RA′ S ′ )
+=
+∼
+= C(S, (RA′ S ′ ) · A)
+
+A concrete optic is therefore a map Unzip : S → (RA′ S ′ ) · A. The above isomorphism sends Unzip to the
+→
+r · A)l.
+element hUnzip | εS ′ i. In the other direction, given hl | ri we have Unzip = (−
+Theorem 4.4.1. A concrete optic Unzip : S → (RA S) · A is lawful iff it is a coalgebra for the comonad
+X 7→ (RA X) · A.
+Proof. By adjointness and Yoneda reduction we have an isomorphism
+Φ : Optic2M (S, A) → C(S, RA (RA S · A) · A)
+given by
+Optic2M (S, A)
+Z M1 ,M2 ∈M
+C(S, M1 · A) × C(M1 · A, M2 · A) × C(M2 · A, S)
+=
+Z M1 ,M2 ∈M
+∼
+C(S, M1 · A) × M(M1 , RA (M2 · A)) × M(M2 , RA S)
+=
+Z M1 ,M2 ∈M
+∼
+C(S, M1 · A) × M(M1 , RA (M2 · A)) × M(M2 , RA S)
+=
+Z M1 ∈M
+∼
+C(S, M1 · A) × M(M1 , RA (RA S · A))
+=
+∼
+= C(S, RA (RA S · A) · A)
+
+which evaluated on an element hl | c | ri is
+−→
+−−−−→
+Φ(hl | c | ri) = ((−
+r · A)c · A)l
+So now interpreting the optic laws, we find
+outside(hUnzip | εS i) = εS Unzip = idS
+31
+
+is exactly the coalgebra counit law, and equality of
+Φ(once(hUnzip | εS i)) = Φ(hUnzip | id(RA S)·A | εS i)
+−−
+−−−−−−−−−−→
+= ((−
+ε→ · A)id
+· A)Unzip
+S
+
+(RA S)·A
+
+−−−−−−−→
+= ((idRA S · A) · A)Unzip
+−−−−−→
+= (idRA S·A · A)Unzip
+= (ηRA S · A)Unzip
+Φ(twice(hUnzip | εS i)) = Φ(hUnzip | Unzip εS | εS i)
+−→
+−−−−−−−−−−−−→
+= ((−
+ε · A)(Unzip ε ) · A)Unzip
+S
+
+S
+
+−−−−−−−→
+= ((Unzip εS ) · A)Unzip
+= (RA (Unzip) · A)Unzip
+is exactly the coalgebra comultiplication law.
+
+4.5
+
+Setters
+
+Definition 4.5.1. The category of setters SetterC is the category of optics for the action of [C, C] on C
+by evaluation.
+To devise the concrete form of a setter, we use the following proposition. This is a generalisation
+of [JO15, Proposition 2.2], and helps to explain why the store comonad is so important in the theory of
+lenses.
+Proposition 4.5.2. If C is powered over Set then the evaluation-at-A functor −A : [C, C] → C has a
+right adjoint given by S 7→ S C(−,A) .
+If C is copowered over Set then −A : [C, C] → C has a left adjoint given by S 7→ C(A, −) • S, where •
+denotes the copower.
+Proof. For the first, we have
+C(F A, S) ∼
+=
+∼
+=
+
+Z
+
+Set(C(X, A), C(F X, S))
+
+ZX
+
+C(F X, S C(X,A) )
+
+Z
+
+Set(C(A, X), C(S, F X))
+
+X
+
+∼
+= [C, C](F, S C(−,A) )
+and for the second,
+C(S, F A) ∼
+=
+
+X
+
+∼
+=
+
+Z
+
+C(C(A, X) • S, F X)
+
+X
+
+∼
+= [C, C](C(A, −) • S, F )
+
+Recall that any category with coproducts is copowered over Set and any category with products is
+powered over Set.
+
+32
+
+We could immediately use the previous section to give a coalgebraic description of setters and their
+laws, but with a little manipulation we get a form that looks more familiar:
+Z F ∈[C,C]
+′
+′
+C(S, F A) × C(F A′ , S ′ )
+SetterC ((S, S ), (A, A )) =
+Z F ∈[C,C]
+∼
+[C, C](C(A, −) • S, F ) × C(F A′ , S ′ )
+=
+∼
+= C(C(A, A′ ) • S, S ′ )
+∼
+= Set(C(A, A′ ), C(S, S ′ ))
+
+In the Haskell lens library, the map C(A, A) → C(S, S) corresponding to a setter is called Over: we
+think of a setter as allowing us to apply a morphism A → A over some parts of S. Tracing through
+the isomorphisms, the optic corresponding to Over is hl | ri where l : S → C(A, A) • S is the inclusion
+with the identity morphism idA and r : C(A, A′ ) • S → S ′ is the transpose of Over along the adjunction
+defining the copower.
+The laws for setters in this form are a kind of functoriality:
+Proposition 4.5.3. A setter p : S p
+→ A is lawful iff
+Over(idA ) = idS
+Over(f )Over(g) = Over(f g)
+Proof. The key is concretely describing Optic2[C,C] (S, A) as
+Set(C(A, A) × C(A, A), C(S, S)).
+We leave the verification that the conditions are equivalent to the reader.
+This characterisation of setters is maybe a little odd, in that we have ended up with a function of
+Sets, rather than a description internal to C. If we modify our definition of Setter, we do get an internal
+characterisation. Suppose C is cartesian closed and let StrongC be the category of strong functors on C.
+Definition 4.5.4 ( [Koc72]). A (left) strong functor is a functor F : C → C equipped with a natural
+transformation called the strength:
+θA,B : A ⊗ F B → F (A ⊗ B)
+such that the strength commutes with the unitor:
+I ⊗ FA
+
+θ1,A
+
+F (I ⊗ A)
+
+∼
+=
+
+∼
+=
+
+FA
+
+FA
+
+and with associativity:
+θA⊗B,C
+
+(A ⊗ B) ⊗ F C
+
+F ((A ⊗ B) ⊗ C)
+
+αA,B,F C
+
+A ⊗ (B ⊗ F C) A⊗θ
+
+F αA,B,F C
+
+B,C
+
+A ⊗ F (B ⊗ C) θ
+
+A,B⊗C
+
+F (A ⊗ (B ⊗ C))
+
+A strong natural transformation τ : (F, θ) ⇒ (G, θ ′ ) is a natural transformation that respects the strengths.
+There is an evident category Strong(C) of strong endofunctors and strong natural transformations, and
+a forgetful functor U : Strong(C) → [C, C].
+33
+
+Then, again, StrongC acts on C by evaluation. We leave it to the reader to verify there is a natural
+isomorphism
+C(S, F A) ∼
+= StrongC (C(A, −) × S, F ),
+which we can use to describe optics for this action as elements of C(C(A, A′ ), C(S, S ′ )).
+
+4.6
+
+Traversals
+
+In this section we work in the case C = Set. Traversals allow us to traverse through a data structure,
+accumulating applicative actions as we go. We begin by reviewing the definitions of applicative and
+traversable functors [JR12].
+Definition 4.6.1. An applicative functor F : C → C is a lax monoidal functor with a strength compatible
+with the monoidal structure, in the sense that
+A ⊗ FB ⊗ FC
+
+θA,B ⊗F C
+
+F (A ⊗ B) ⊗ F C
+
+A⊗φB,C
+
+φA⊗B,C
+
+A ⊗ F (B ⊗ C)
+
+θA,B⊗C
+
+F (A ⊗ B ⊗ C)
+
+commutes. An applicative natural transformation is one that is both monoidal and strong. Applicative
+functors and natural transformations form a monoidal category App with the tensor given by functor
+composition.
+Definition 4.6.2. A traversable functor is a functor T : C → C equipped with a distributive law δF :
+T F → F T for T over the action of App on C by evaluation.
+Explicitly, this means that the diagrams
+TF
+
+δF
+
+Tα
+
+TG
+
+FT
+Tα
+
+δG
+
+TFG
+
+δF G
+
+δF G
+
+GT
+
+idT
+
+F GT
+F δG
+
+FTG
+
+T idC
+
+idC T
+δidC
+
+in [C, C] commute.
+Definition 4.6.3. The category Traversal of traversals is the category of optics for the action of
+Traversable on Set given by evaluation. (Yes, the names Traversal/Traversable are confusing!)
+It is known that traversable functors correspond to coalgebras for a particular parameterised comonad.
+See [JO15, Definitions 4.1 and 4.2], also [Atk09] for the relevant definitions of parameterised comonads
+and coalgebras.
+Proposition 4.6.4 ( [JO15, Theorem 4.10, Proposition 5.4]). Traversable structures on a functor T :
+Set → Set correspond to parameterised coalgebra structures
+∗
+tA,B : T A → U RA,B
+(T B)
+∗
+where U RX,Y
+is the parameterised comonad
+∗
+U RX,Y
+Z = Σn∈N X n × Set(Y n , Z)
+
+Moreover, this correspondence forms an isomorphism of categories between Traversable and the Eilenberg∗ , which we denote E.
+Moore category of coalgebras for U R−,−
+34
+
+Lemma 4.6.5. For any objects A, B ∈ Set and traversable functor F ,
+n
+Set(F A, B) ∼
+= Traversable(F, Σn (−) × Set(An , B))
+
+naturally in B and F . In other words, the functor
+(B 7→ Σn (−)n × Set(An , B)) : Set → Traversable
+is right adjoint to the evaluation-at-A functor −A : Traversable → Set.
+Proof. By [Atk09, Proposition 6], there is a parameterised adjunction LT ⊣ RT , where
+LT : Set × E → Set
+(X, (F, f )) 7→ F X
+RT : Set × Set → E
+∗
+(Y, Z) 7→ (U R−,Y
+Z, ε)
+∗ . Evaluating these with the fixed parameter A, we get an ordinary
+where ε is the counit of U R−,−
+adjunction
+
+LT (A) : E → Set
+(F, f ) 7→ F A
+RT (A) : Set → E
+∗
+Z 7→ (U R−,A
+Z, ε)
+
+But this is exactly the adjunction we were trying to show.
+We can then use the coalgebraic pattern from earlier to reach the same concrete description of traversals
+as found in [PGW17].
+Traversal((S, S ′ ), (A, A′ )) ∼
+= Set(S, Σn An × Set(A′n , S ′ ))
+The concrete laws for this representation are the coalgebra laws. These laws, however, are not the
+ones usually presented for traversals. Instead, versions of the profunctor laws are used, see Section 5.
+
+4.7
+
+Polymorphic Optics
+
+Haskell’s optics allow polymorphic updates, where the type of the codomain of the lens may be changed
+by an update, causing a corresponding change in the type of the domain. As an example, we permitted
+to use a lens into the first entry of a tuple in the following way:
+set first (1, 5) "hello" == ("hello", 5)
+This has changed the type from (Int, Int) to (String, Int).
+Polymorphic optics can be captured by the coend formalism as follows. Any action of a monoidal
+category M × C → C can be extended to act object-wise on a functor category:
+M × [D, C] → [D, C]
+(M, F ) 7→ M · (F −)
+So in the above example, we have the product × acting pointwise on the functor category Set → Set.
+p G, where F = (−) × Int and G is the identity functor.
+Our example first is then an optic F →
+Given such a polymorphic optic in [D, C], we can always ‘monomorphise’ to obtain an ordinary optic
+in C.
+35
+
+Proposition 4.7.1. There is a functor
+mono : D × Dop × Optic[D,C] → OpticC
+p (G, G′ ) in Optic[D,C] to the optic
+that sends an object (D, D ′ ) ∈ D × Dop and optic hl | ri : (F, F ′ ) →
+′
+′
+′
+′
+p (GD, G D ) in OpticC . For fixed (D, D) ∈ D × Dop , this functor preserves
+hlD | rD′ i : (F D, F D ) →
+lawfulness.
+Proof. On an object (D, D ′ ) ∈ D × Dop , that we get a functor Optic[D,C] → OpticC is essentially the
+same proof as Proposition 2.2.4 but with different functors on each side of the lens: the evaluation-at-D
+functor [D, C] → C on the left and evaluation-at-D ′ on the right.
+For functoriality in D × Dop , given (f, g) : (D1 , D1′ ) → (D2 , D2′ ) ∈ D × Dop and an object (F, F ′ ) ∈
+p (F D2 , F ′ D2′ ). Bifunctoriality of mono is
+Optic[D,C] , there is an induced lens ι(F f, F ′ g) : (F D1 , F ′ D1′ ) →
+ensured by the naturality of each l and r in the morphisms of Optic[D,C] .
+
+4.8
+
+Linear Lenses
+
+If C is closed monoidal but not necessarily cartesian, we can still define the category of linear lenses to be
+Optic⊗ . The internal hom provides a right adjoint to the evaluation-at-A functor, so we have immediately
+Optic⊗ ((S, S ′ ), (A, A′ )) ∼
+= C(S, C(A′ , S ′ ) ⊗ A)
+where C(A′ , S ′ ) denotes the internal hom. If C is cartesian, this is of course isomorphic to the set of
+(Get, Put) functions discussed earlier.
+We cannot possibly use the three Put/Get style lens laws in this setting as we lack projections, but
+specialising the coalgebra laws gives us:
+p A is lawful iff the following two concrete laws for Unzip hold:
+Proposition 4.8.1. A linear lens p : S →
+evA,S Unzip = idS
+
+(Rezip)
+
+(coevC(A,S),A ⊗ A)Unzip = ((Unzip ◦ −) ⊗ A)Unzip
+
+(ZipZip)
+
+where
+Unzip ◦ − : C(A, S) → C(A, C(A, S) ⊗ A)
+denotes internal composition and
+coevC(A,S),A : C(A, S) → C(A, C(A, S) ⊗ A)
+is coevaluation.
+We have essentially rederived the result given in [GJ12, Section 3.2] for ordinary lenses, but we note
+that cartesianness was not required.
+
+4.9
+
+Effectful Optics
+
+Many proposed definitions of effectful lenses [ASCG+ 16] have modified one or both of Get and Put to
+produce results wrapped in a monadic action. There are disadvantages to this approach: it is not obvious
+what the laws ought to be and there is no clear generalisation to other optic variants. The general
+definition of optic given in Section 2 suggests we instead work with the Kleisli category CT of some monad
+(T, η, µ) : C → C.
+
+36
+
+Definition 4.9.1. The Kleisli category CT of a monad T has the same objects as C, with morphisms
+X → Y in CT given by morphisms X → T Y in C. Identity morphisms are given by the unit of T , and
+the composite of two morphisms f : X → Y and g : Y → Z in CT is given by
+f
+
+Tg
+
+µ
+
+Z
+X−
+→ T Y −−
+→ T T Z −−→
+TZ
+
+For f : X → Y in CT , we write f : X → T Y for its underlying morphism in C.
+Working in a Kleisli category presents its own set of difficulties. The product in C is a monoidal
+product in a CT only when the monad in question is commutative, which rules out many monads of
+interest. A premonoidal structure [PR97] is not sufficient: composition of optics would in that case not
+be well defined.
+But this does not preclude the existence of monoidal actions on CT . In fact, there is a monoidal action
+that has long been used under a different guise:
+Definition 4.9.2 ( [Mog91]). A strong monad T : C → C on a monoidal category (C, ⊗, I) is a monad
+that is strong as a functor (Definition 4.5.4), and such that the strength commutes with the unit and
+multiplication:
+A ⊗ T 2B
+
+A⊗B
+A×ηB
+
+A ⊗ TB
+
+ηA×B
+
+θA,B
+
+θA,T B
+
+T (A ⊗ T B)
+
+T 2 (A ⊗ B)
+µA⊗B
+
+A⊗µB
+
+T (A ⊗ B)
+
+T θA,B
+
+A ⊗ TB
+
+θA,B
+
+T (A × B)
+
+Proposition 4.9.3. If T : C → C is a strong monad then C acts on CT by X · Y := X ⊗ Y .
+The crucial difference between this and a monoidal structure on CT is that we only demand X be
+functorial with respect to pure functions in C, whereas Y must be functorial with respect to computations
+in CT . We will write this action as X ⋊ Y to highlight the different roles played by X and Y .
+Proof. Suppose T is a strong monad with strength θA,B : A ⊗ T B → T (A ⊗ B). For A ∈ C, we have a
+functor A ⊗ − : CT → CT which on a morphism f : X → Y in CT is defined to be the composite
+A⊗f
+
+θA,Y
+
+A ⊗ X −−−→ A ⊗ T Y −−−→ T (A ⊗ Y )
+For details, see [PR97, Theorem 4.2]. Our goal is to show this extends to a monoidal functor a : C →
+[CT , CT ].
+A morphism f : A → B in C induces a natural transformation A ⊗ − ⇒ B ⊗ − of functors CT → CT ,
+with components A ⊗ X → T (B ⊗ X) given by composing A ⊗ X → B ⊗ X with the unit of the monad.
+Naturality follows by the naturality of the strength and the unit of T .
+Monoidality of a is shown exactly by the commutative diagrams in the definition of strong functor, i.e.
+that the strength commutes with associator and left unitor of C.
+Suppose C is a monoidal closed category and T : C → C is a strong monad. Then the evaluation-at-A
+functor has a right adjoint:
+CT (M ⋊ A′ , S ′ ) = C(M × A′ , T S ′ )
+∼
+= C(M, C(A′ , T S ′ ))
+Using the coalgebraic description, we see that concrete effectful lenses consist of a single morphism in C
+Munzip : S → T (C(A′ , T S ′ ) ⊗ A).
+The optic laws in this case specialise to:
+37
+
+Proposition 4.9.4. A concrete effectful lens is lawful iff
+µS T (evA,T S ) Munzip = ηS
+T (ηC(A,T S)⊗A coevC(A,T S),A ⊗ A)Munzip = T ((Munzip ◦T −) ⊗ A)Munzip
+where
+Munzip ◦T − : C(A, T S) → C(A, T (C(A, T S) ⊗ A))
+denotes internal Kleisli composition and
+coevC(A,T S),A : C(A, T S) → C(A, C(A, T S) ⊗ A)
+is coevaluation.
+Or, if you prefer do-notation, the two laws are:
+do (c, a) <- munzip s
+c a
+==
+return s
+
+do (c, a) <- munzip s
+let f a' = do
+s' <- c a'
+munzip s'
+return (f, a)
+==
+do (c, a) <- munzip s
+let f a' = (c, a')
+return (f, a)
+
+The inclusion of C into CT preserves the action of C, so there is an induced inclusion Optic⊗ → Optic⋊ .
+If we choose a specific monad, we can hope to simplify the description of a concrete effectful optic and
+its laws.
+4.9.1
+
+Writer Lenses
+
+We begin with a simple example. Suppose C has finite products.
+Definition 4.9.5. The writer monad for a monoid W is defined by
+TW X = X × W
+The unit, multiplication of TW are given by pairing with the unit and multiplication of W , and the
+strength is simply the associativity morphism.
+We can find a more explicit description of concrete effectful lenses for this monad.
+′
+
+′
+
+Optic((S, S ), (A, A )) =
+=
+∼
+=
+
+Z M ∈C
+
+Z M ∈C
+
+Z M ∈C
+
+CTW (S, M ⋊ A) × CTW (M ⋊ A′ , S ′ )
+C(S, M × A × W ) × CTW (M ⋊ A′ , S ′ )
+C(S, M ) × C(S, A × W ) × CTW (M ⋊ A′ , S ′ )
+
+∼
+= CTW (S, A) × CTW (S × A′ , S ′ )
+Fortunately, concrete writer lenses correspond to Get and Put functions in the Kleisli category of TW .
+
+38
+
+4.9.2
+
+Stateful Lenses
+
+Suppose C is cartesian closed.
+Definition 4.9.6. The state monad with state Q is defined by
+TQ X = C(Q, X × Q)
+We call optics for the action ⋊ : C × CTQ → CTQ stateful lenses. We can find a concrete description
+that is closer to that for ordinary lenses:
+Z M ∈C
+′
+′
+CTQ (S, M ⋊ A) × CTQ (M ⋊ A′ , S ′ )
+Optic⋊ ((S, S ), (A, A )) =
+Z M ∈C
+=
+C(S, C(Q, M × A × Q)) × CTQ (M ⋊ A′ , S ′ )
+Z M ∈C
+∼
+C(S × Q, M × A × Q) × CTQ (M ⋊ A′ , S ′ )
+=
+Z M ∈C
+∼
+C(S × Q, M ) × C(S × Q, A × Q) × CTQ (M ⋊ A′ , S ′ )
+=
+∼
+= C(S × Q, A × Q) × CTQ ((S × Q) ⋊ A′ , S ′ )
+∼
+= CT (S, A) × CT (S × Q × A′ , S ′ )
+Q
+
+Q
+
+By analogy with ordinary lenses, let us call these maps MGet and MPut. The induced composition
+of effectful lenses is a little intricate, and is possibly best explained in code. The composite MGet is
+straightforward, just the composite of MGet1 and MGet2 in the Kleisli category. For MPut however,
+there is some curious plumbing of the state into different places. Tracing through the isomorphism, two
+p (S, S ′ ) and (MGet2 , MPut2 ) : (S, S ′ ) →
+p (A, A′ ) compose as
+stateful lenses (MGet1 , MPut1 ) : (T, T ′ ) →
+follows.
+mget t = do
+s <- mget1 t
+mget2 s
+mput t q a = do
+start <- getState
+s <- mget1 t
+q' <- getState
+putState start
+s' <- mput1 s q' a
+mput2 t q s'
+Proposition 4.9.7. A stateful lens given by
+mget :: s -> State q a
+mput :: s -> q -> a -> State q s
+is lawful iff the following three laws hold:
+do
+do s' <- mput s q a
+q <- getState
+mget s'
+a <- mget s
+==
+return a
+mput s q a
+==
+return s
+
+39
+
+let (s', q')
+= runState (mput s q1 a1) q2
+in mput s' q' a2
+==
+mput s q1 a2
+
+By analogy we call these the GetPut, PutGet and PutPut laws.
+Of course, this notion of effectful lens may not be useful! It is hard to get intuition for the meaning of
+the laws, but they seem to suffer from the same deficiency that other attempts at effectful lenses do: they
+are too strong. The GetPut law here appears easier to satisfy than the MGetPut0 law of [ASCG+ 16], as
+MPut is given access to the original state. However, our PutGet law seems very restrictive: no matter
+what auxiliary state is provided, Putting then Getting must leave the state unchanged.
+
+4.10
+
+Further Examples
+
+The dedicated reader may enjoy deriving the concrete representation and laws for the following optic
+varieties:
+• “Achromatic” Lenses [Boi17, Section 5.2] are lenses that also admit an operation Create : A → S.
+These are optics for the action of C on itself by M · A = (M ⊔ 1) × A, or equivalently, of the category
+p (A, A′ ) are
+of pointed objects of C on C by cartesian product. Concrete achromatic lenses (S, S ′ ) →
+elements of the set
+C(S, C(A′ , S ′ ) ⊔ 1) × C(S, A) × C(A′ , S ′ ).
+• Affine Traversals [JO15] allow access to a target that may or may not be present. Suppose C is
+cartesian closed and has binary coproducts. Let Aff be the category C × C, equipped with the
+monoidal structure
+(P ′ , Q′ ) ⊗ (P, Q) = (P ′ ⊔ (Q′ × P ), Q′ × Q)
+The category Aff acts on C by (P, Q) · A = P ⊔ (Q × A), in fact, Aff is cooked up to act on C exactly
+by the closure of the actions − × A and − ⊔ A under composition. A concrete affine traversal is an
+element of
+C(S, S ′ ⊔ (C(A′ , S ′ ) × A)).
+Affine traversals are described in the folklore as pairs of maps C(S, A ⊔ S ′ ) × C(S × A′ , S ′ ). Such a
+pair does determine an affine traversal, but gives more information than is necessary: the right-hand
+map need not be defined at all S.
+• Grates [O’C15] are optics for the contravariant action of a monoidal closed category C on itself by
+X · A 7→ C(X, A). Concretely these correspond to morphisms
+C(C(C(S, A), A′ ), S ′ ).
+
+5
+
+The Profunctor Encoding
+
+To use optics in practice, one could take the definition of the optic category and translate it almost
+verbatim into code—using an existential type in place of the coend. In Haskell syntax, lenses would be
+defined as:
+data Lens s s' a a' = forall m. Lens {
+l :: s -> (m, a),
+r :: (m, a') -> s'
+}
+
+40
+
+This not the approach usually taken by implementations! Instead the somewhat indirect profunctor
+encoding is used. (This is not quite true for the Haskell lens library, for a few reasons lens uses the
+closely related van Laarhoven encoding, see Section 5.5. The Purescript purescript-profunctor-lenses
+library [Fre] does use the profunctor encoding directly.)
+The equivalence between the profunctor encoding and optics as described earlier has been explored
+in [PGW17] and [Mil17]. We begin by reviewing this equivalence from a categorical perspective before
+investigating how the optic laws manifest in this setting.
+
+5.1
+
+Tambara Modules
+
+p C be the identity profunctor and ⊙ be profunctor composition, written in diaLet I = C(−, =) : C →
+grammatic order. The following section generalises definitions that first appeared in [PS08, Section 3] for
+monoidal categories to the more general case of a monoidal action.
+Definition 5.1.1. Suppose a category C is acted on by (M, ⊗, I) and let P ∈ Prof (C, C) be a profunctor.
+A Tambara module structure for M on P is a family of maps:
+ζA,B,M : P (A, B) → P (M · A, M · B)
+natural in A and B, dinatural in M , and such that ζ commutes with the action of M:
+P (A, B)
+
+ζA,B,M
+
+P (M · A, M · B)
+
+ζA,B,N⊗M
+
+P (A, B)
+
+ζM ·A,M ·B,N
+
+P ((N ⊗ M ) · A), (N ⊗ M ) · B) αN,M,A P (N · (M · A), N · (M · B))
+
+ζA,B,I
+
+P (I · A, I · B)
+P (λ−1
+A ,λB )
+
+P (A, B)
+
+for all A, B ∈ C and N, M ∈ M.
+Note that the identity profunctor I has a canonical Tambara module structure ζA,B,M : C(A, B) →
+C(M · A, M · B) for any M, given by functoriality.
+If P, Q ∈ Prof (C, C) are equipped with module structures ζ and ξ respectively, there is a canonical
+module structure on P ⊙ Q. Given M ∈ M and A, B ∈ C, the structure map (ζ ⊙ ξ)A,B,M is induced by
+P (A, C) × Q(C, B)
+ζA,C,M ×ξC,B,M
+
+−−−−−−−−−−→
+copr
+
+M ·C
+−−−−
+−→
+
+=
+
+P (M · A, M · C) × Q(M · C, M · B)
+Z C∈C
+P (M · A, C) × Q(C, M · B)
+(P ⊙ Q)(M · A, M · B)
+
+Definition 5.1.2. There is a category TambM of Tambara modules and natural transformations that
+respect the module structure, in the sense that for any l : P → Q, the diagram
+P (A, B)
+
+ζA,B,M
+
+P (M · A, M · B)
+
+lA,B
+
+lM ·A,M ·B
+
+Q(A, B) ξ
+
+A,B,M
+
+Q(M · A, M · B)
+
+commutes.
+This category is monoidal with respect to ⊙ as given above with monoidal unit I. There is an evident
+forgetful functor U : TambM → Prof (C, C) that is strong monoidal. This forgetful functor has both a
+left and right adjoint; important for us is the left adjoint: (The right adjoint to U is described in [RJ17],
+used there to investigate Haskell’s Arrow typeclass.)
+41
+
+Definition 5.1.3 ( [PS08, Section 5]). Let ΦM : Prof (C, C) → TambM be the functor:
+Z M ∈M
+C(−, M · =) ⊙ P ⊙ C(M · −, =)
+ΦM (P ) :=
+Or, in other words,
+ΦM (P )(A, B) :=
+
+Z M ∈M Z C,D∈C
+
+C(A, M · C) × P (C, D) × C(M · D, B)
+
+The module structure ζA,B,M : ΦM P (A, B) → ΦM P (M · A, M · B) is induced by the maps
+C(A, N · C) × P (C, D) × C(N · D, B)
+functoriality
+
+−−−−−−−→
+coprM ⊗N
+
+−−−−−−→
+=
+
+C(M · A, M · N · C) × P (C, D) × C(M · N · D, M · B)
+Z N ∈M Z C,D∈C
+C(M · A, N · C) × P (C, D) × C(N · D, M · B)
+ΦM P (M · A, M · B)
+
+for all C, D ∈ C and N ∈ M. Equationally, this is ζA,B,M (hl | p | ri) = hM · l | p | M · ri.
+Proposition 5.1.4. ΦM : Prof (C, C) → TambM is left adjoint to U : TambM → Prof (C, C).
+Proof. For any P ∈ Prof (C, C), there is a map η : P p
+→ U ΦM P , given by η(p) = hidA | p | idB i. Suppose
+we have an element hl | p | ri ∈ ΦM P (A, B). One can check that this element is equal to
+hl | p | ri = (ΦM P (l, r))ζA,B,M η(p)
+where ζA,B,M is the module structure map for ΦM P .
+If T ∈ TambM is a Tambara module with structure map ξ, we would like to show that for any map
+f :P p
+→ U T there exists a unique fˆ : ΦM P p
+→ T so that f factors as
+U fˆ
+
+η
+
+P −
+→ U ΦM P −−→ U T.
+The data of such a map fˆ : ΦM P p
+→ T is a natural transformation between the underlying profunctors.
+For the factorisation property to hold we must have that fˆη(p) = f (p) for any p ∈ P (A, B), but then the
+action on the remainder of ΦM P (A, B) is fixed:
+fˆ(hl | p | ri) = fˆ(ΦM P (l, r)ζA,B,M η(p))
+= T (l, r) ξA,B,N f (p)
+This establishes uniqueness. It remains to show that fˆ so defined is actually a Tambara module morphism,
+but this is easy:
+fˆζA,B,N (hl | p | ri) = fˆ(hN · l | p | N · ri)
+= T (N · l, N · r) ξA,B,N ⊗M f (p)
+
+(definition of ζ)
+(definition of fˆ)
+
+= T (N · l, N · r)ξM ·A,M ·B,N ξA,B,M f (p)
+
+(ξ commutes with tensor in M)
+
+= ξA,B,N T (l, r) ξA,B,M f (p)
+= ξA,B,N fˆ(hl | p | ri)
+
+(naturality of ξ)
+(definition of fˆ)
+
+Corollary 5.1.5. ΦM (and therefore also U ΦM ) is oplax monoidal.
+Proof. This follows from abstract nonsense as ΦM is the left adjoint of a strong monoidal functor,
+see [Kel74].
+42
+
+5.2
+
+Optics
+
+Definition 5.2.1. For a pair of objects A, A′ ∈ C, the exchange profunctor EA,A′ is defined to be
+C(−, A) × C(A′ , =).
+Given a profunctor, or indeed a Tambara module, we can evaluate it at any two objects of C. This
+process is functorial in the choice of Tambara module, giving a functor (U −)(A, A′ ) : TambM → Set.
+Lemma 5.2.2. The functor (U −)(A, A′ ) : TambM → Set is representable: there is a isomorphism
+(U −)(A, A′ ) ∼
+= TambM (ΦM EA,A′ , −)
+Proof. We have the chain of isomorphisms:
+(U −)(A, A′ )
+Z
+∼
+Set(C(X, A) × C(A′ , Y ), (U −)(X, Y ))
+=
+X,Y ∈C
+Z
+Set(EA,A′ (X, Y ), (U −)(X, Y ))
+=
+
+(by Yoneda reduction twice)
+(by definition)
+
+X,Y ∈C
+
+∼
+= Prof (EA,A′ , U −)
+∼
+= TambM (ΦM EA,A′ , −)
+
+(natural transformations as ends)
+(by adjointness)
+
+p (A, A′ ):
+Note that the value of ΦM EA,A′ at (X, Y ) is precisely the set of optics (X, Y ) →
+Z M ∈M Z C,D∈C
+ΦM EA,A′ (X, Y ) =
+C(X, M · C) × EA,A′ (C, D) × C(M · D, Y )
+Z M ∈M Z C,D∈C
+C(X, M · C) × C(C, A) × C(A′ , D) × C(M · D, Y )
+=
+Z M ∈M
+∼
+C(X, M · A) × C(M · A′ , Y )
+=
+For convenience we identify ΦM EA,A′ (X, Y ) with OpticM ((X, Y ), (A, A′ )).
+We can now show that profunctor optics are precisely optics in the ordinary sense.
+Proposition 5.2.3 (Profunctor Optics are Optics).
+[TambM , Set]((U −)(A, A′ ), (U −)(S, S ′ )) ∼
+= OpticM ((S, S ′ ), (A, A′ ))
+Proof. We have the chain of isomorphisms:
+[TambM , Set]((U −)(A, A′ ), (U −)(S, S ′ ))
+∼
+= [TambM , Set](TambM (ΦM EA,A′ , −), (U −)(S, S ′ ))
+∼
+= (U ΦM EA,A′ )(S, S ′ )
+′
+
+(by Lemma 5.2.2)
+(by Yoneda)
+
+′
+
+= OpticM ((S, S ), (A, A ))
+
+p (A, A′ ), let p̃ : (U −)(A, A′ ) ⇒ (U −)(S, S ′ ) denote the corresponding natural transFor p : (S, S ′ ) →
+p (A, A′ ) be the
+formation under this isomorphism, and for t : (U −)(A, A′ ) ⇒ (U −)(S, S ′ ), let t̂ : (S, S ′ ) →
+corresponding optic.
+Corollary 5.2.4. A profunctor optic t is determined by its component at ΦM EA,A′ , and furthermore, this
+′
+component is determined by its value on λ−1
+A | λA′ ∈ (U ΦM EA,A′ )(A, A ).
+43
+
+Proof. This is the content of the first two isomorphisms above. Explicitly, suppose p = hl | ri with
+l : S → M · A and r : M · A′ → S ′ . Then for any Tambara module P , the component of p̃ at P is
+p̃P = (U P )(l, r)ζA,A′ ,M
+where ζ is the module structure for P . In particular,
+p̃ΦM EA,A′ ( λ−1
+A | λA′ ) = hl | ri
+We finish with one final isomorphic description of an optic:
+Proposition 5.2.5. OpticM ((S, S ′ ), (A, A′ )) is isomorphic to TambM (ΦM ES,S ′ , ΦM EA,A′ ).
+Proof. This follows from the previous two propositions and the Yoneda lemma:
+OpticM ((S, S ′ ), (A, A′ ))
+∼
+= [TambM , Set]((U −)(A, A′ ), (U −)(S, S ′ ))
+∼
+= [TambM , Set](TambM (ΦM EA,A′ , −), TambM (ΦM ES,S ′ , −))
+∼
+= TambM (ΦM ES,S ′ , ΦM EA,A′ )
+Explicitly, an optic p = hl | ri corresponds to the natural transformation with components:
+tX,Y : ΦM ES,S ′ (X, Y ) → ΦM EA,A′ (X, Y )
+tX,Y (hf | gi) = h(M · l)f | g(M · r)i
+where M is the residual for the representative hf | gi. This is exactly the formula for optic composition!
+
+5.3
+
+Lawful Profunctor Optics
+
+The next goal is to characterise the profunctor optics that correspond to lawful optics.
+The exchange profunctor EA,A , hereafter abbreviated to EA , has a comonoid structure, where the
+comultiplication ∆ : EA → EA ⊙ EA and counit ε : EA → C are given by
+∆X,Y : (EA )(X, Y ) → (EA ⊙ EA )(X, Y )
+∆X,Y (hf | gi) = hf | idA | gi
+εX,Y : (EA )(X, Y ) → C(X, Y )
+εX,Y (hf | gi) = gf
+respectively. Here we have identified EA ⊙ EA with the profunctor C(−, A) × C(A, A) × C(A, =), via the
+isomorphism
+Z Z∈C
+EA (−, Z) × EA (Z, =)
+EA ⊙ EA =
+Z Z∈C
+=
+C(−, A) × C(A, Z) × C(Z, A) × C(A, =)
+∼
+= C(−, A) × C(A, A) × C(A, =)
+
+Because ΦM is oplax monoidal, the Tambara module ΦM EA has an induced comonoid structure, in
+this case given by
+∆X,Y : (ΦM EA )(X, Y ) → (ΦM EA ⊙ ΦM EA )(X, Y )
+∆(hl | ri) = hl | idM ·A | ri
+εX,Y : (ΦM EA )(X, Y ) → C(X, Y )
+ε(hl | ri) = rl
+The connection with lawfulness is hopefully now evident!
+44
+
+Proposition 5.3.1. An optic p : S p
+→ A is lawful iff the corresponding natural transformation ΦM ES →
+ΦM EA is a comonoid homomorphism.
+Proof. For t : ΦM ES → ΦM EA to be a comonoid homomorphism means that the following diagrams
+commute for every X, Y ∈ C:
+(ΦM ES )(X, Y )
+
+tX,Y
+
+(ΦM EA )(X, Y )
+
+εX,Y
+
+εX,Y
+
+C(X, Y )
+
+C(X, Y )
+
+(ΦM ES )(X, Y )
+
+tX,Y
+
+(ΦM EA )(X, Y )
+
+∆X,Y
+
+(ΦM ES ⊙ ΦM ES )(X, Y )
+
+∆X,Y
+(t⊙t)X,Y
+
+(ΦM EA ⊙ ΦM EA )(X, Y )
+
+Suppose t corresponds to an optic with representative hl | ri with residual M and we have an element
+hf | gi : (ΦM ES )(X, Y ) with residual N . The left diagram requires that
+g(N r)(N l)f = gf,
+as an element of C(X, Y ). This is certainly true as rl = idS . The right diagram claims that
+h(N · l)f | idN ·M ·A | g(N · r)i = h(N · l)f | (N · r)(N · l) | g(N · r)i
+But this holds by exactly the same argument as used in Proposition 3.0.8 to show that the composite of
+lawful optics is lawful: by transplanting the relations showing the second optic law for hl | ri
+For the backward direction, consider the above diagrams specialised to X = Y = S. Tracing the
+element λ−1
+∈ (ΦM ES )(S, S) around the commutative diagrams yields precisely the first and
+S | λS
+second optic laws respectively.
+All that is needed to complete the connection with profunctor optics is the following standard result
+in category theory.
+Lemma 5.3.2. For an object X in a monoidal category (C, ⊗, I), a comonoid structure (X, ∆, ε) is
+equivalent to a lax monoidal structure on the functor C(X, −) : C → Set, considering Set as a monoidal
+category with respect to ×.
+Further, a morphism (X1 , ∆1 , ε1 ) → (X2 , ∆2 , ε2 ) is a comonoid homomorphism iff the induced natural
+transformation C(X2 , −) ⇒ C(X1 , −) is monoidal.
+Proof. This is a follow-your-nose result!
+p A is a lawful optic iff the associated natural transformation p̃ : (U −)(A, A) ⇒
+Theorem 5.3.3. p : S →
+(U −)(S, S) is monoidal with respect to the canonical lax monoidal structures on (U −)(A, A) and (U −)(S, S).
+Proof.
+p:S p
+→ A is lawful
+⇔ ΦM ES → ΦM EA is a comonoid homomorphism
+⇔ TambM (ΦM EA , −) ⇒ TambM (ΦM ES , −) is a monoidal natural transformation
+⇔ (U −)(A, A) ⇒ (U −)(S, S) is a monoidal natural transformation
+
+45
+
+5.4
+
+Implementation
+
+We review quickly how the profunctor encoding is translated into code in the Haskell [Kme] and Purescript [Fre] libraries. We define a typeclass for profunctors:
+class Profunctor p where
+dimap :: (a -> b) -> (c -> d) -> p b c -> p a d
+To be considered a valid instance of Profunctor, the function dimap must behave functorially. Now, for
+each optic variant we wish to define, we create a typeclass for the corresponding Tambara module. In the
+case of Lenses, this typeclass is named Strong:
+class Profunctor p => Strong p where
+second :: p a b -> p (c, a) (c, b)
+This second function is the equivalent of the structure map ζ for the Tambara module. We require this
+map to satisfy the Tambara module coherences, but as with any definition in Haskell, these equations
+must be checked manually.
+p (A, A′ ) is the direct translation of the set of natural transformations
+Now the type of lenses (S, S ′ ) →
+(U −)(A, A′ ) ⇒ (U −)(S, S ′ ):
+type Lens s s' a a' = forall p. Strong p => p a a' -> p s s'
+where we use parametricity in p as a proxy for naturality. A profunctor lens
+l :: forall p. Strong p => p a a -> p s s
+is lawful if it is monoidal as a natural transformation. In code this is:
+l id == id
+l (Procompose p q) == Procompose (l p) (l q)
+where
+data Procompose p q d c where
+Procompose :: p x c -> q d x -> Procompose p q d c
+denotes profunctor/Tambara module composition, once equipped with appropriate Profunctor and Strong
+instances.
+
+5.5
+
+The van Laarhoven Encoding
+
+Some optic variants can be encoded in a profunctor-like style without requiring the full complexity of
+profunctors. Chronologically this development came before profunctor optics, and was first introduced
+by Twan van Laarhoven [vL09a].
+The van Laarhoven encoding for Lenses, Traversals and Setters is:
+type Lens s a
+= forall f. Functor f
+=> (a -> f a) -> (s -> f s)
+type Traversal s a = forall f. Applicative f => (a -> f a) -> (s -> f s)
+type Setter s a
+= forall f. Settable f
+=> (a -> f a) -> (s -> f s)
+What allows such a description to work for these particular optic variants is that the Tambara module
+that characterises them, ΦM EA , can be written in the form C(−, f =) for some f that is an instance of
+the corresponding typeclass. This is possible in particular for the optic variants that admit a coalgebraic
+description; the ones for which the evaluation-at-A functor has a right adjoint.
+
+46
+
+No expressive power is lost by defining an optic to operate only on functions of the shape a -> f a',
+as the entire concrete description of the optic can be extracted from its value on that particular Tambara
+module. The same is not true for other optic variants, and indeed in the Haskell lens library, Prisms and
+Reviews take a form much closer to the profunctor encoding. (The lens library does not use precisely
+the profunctor encoding even here, for backwards compatibility reasons.)
+A consequence is that the laws typically given for Traversals actually only need to be checked for
+the applicative functor we earlier called U R∗ . In Haskell this functor is implemented as FunList [vL09b]
+or Bazaar [Kme].
+
+6
+
+Future Work
+
+There are many avenues for future exploration!
+
+6.1
+
+Mixed Optics
+
+One can generalise the definition of Optic so that the two halves lie in different categories. Suppose
+CL and CR are categories that are acted on by a common monoidal category M. Write these actions as
+L : M → [CL , CL ] and R : M → [CR , CR ] respectively.
+′
+′
+′ p
+′
+Definition 6.1.1. Given two objects of CL ×Cop
+R , say (S, S ) and (A, A ), a mixed optic p : (S, S ) → (A, A )
+for L and R is an element of the set
+Z M ∈M
+′
+′
+Optic L , R ((S, S ), (A, A )) :=
+CL (S, M L A) × CR (M R A′ , S ′ )
+
+Optic L , R forms a category. It is not so clear what notion of lawfulness is appropriate in this setting.
+Examples of mixed optics include the degenerate optics of the lens library: Getters, Reviews and
+Folds. The mixed optic formalism also appears able to capture indexed optics such as IndexedLenses
+and IndexedTraversals [Mil17].
+
+6.2
+
+Monotonic Lenses
+
+In the bidirectional transformation community, the PutPut law is often considered too strong. In
+particular we have seen that in Set, together with the other laws, it implies that Get must be a projection
+from a product.
+To overcome this we work in Cat, so that the objects under consideration have internal morphisms
+that we think of as updates. We modify Put so that instead of accepting an object a of A to overwrite
+the original in S with, it requires a morphism in A of the form Get(s) → a. In this way we are restricted
+in what updates we may perform. This is captured in the following definition:
+Definition 6.2.1 ( [JRW12, Definition 4.1]). A c-lens S p
+→ A in Cat is a pair of functors
+Get : S → A
+Put : (Get ↓ idA ) → S
+such that a version of the three lens laws hold, where (Get ↓ idA ) denotes the comma category construction.
+We can rewrite this in a form that gives hope for a correspondence with some optic category:
+p A corresponds to a functor
+Theorem 6.2.2. The data of a c-lens S →
+Z
+S → [(−/A), S]
+47
+
+R
+where (−/A) denotes the slice category and denotes (confusingly!) the Grothendieck construction.
+Furthermore, a c-lens is lawful iff it is a coalgebra for the comonad of the adjunction
+R
+
+[Aop , Cat]
+
+⊥
+
+Cat
+
+X7→[(−/A),X]
+
+It is not clear whether there is an action on Cat that generates this description as its concrete optics.
+There doesn’t seem to be a natural place for an A′ to appear! We remain optimistic:
+Conjecture 6.2.3. c-lenses are the lawful (possibly mixed) optics for some action on Cat.
+
+6.3
+
+Functor and Monad Transformer Lenses
+
+These were considered by Edward Kmett [Kme16] as a method for embedding pieces of a monad transformer stack into the whole. There is some debate about the correct categorical description of monad
+transformers [JM10,Man12], so we do not attempt to say anything precise, but the perspective given here
+could help in a couple of ways.
+Kmett considers optics for the operation of composing two monad transformers. The primary test-case
+was to embed ReaderT actions into StateT actions, but from the constant-complement perspective, this
+is impossible: StateT does not factor as the composite of ReaderT with some other monad transformer.
+In this setting the constant-complement laws may be asking too much, the optic laws given here might
+be the correct notion of lawfulness for monad transformers.
+Also, instead of considering optics within a category of monad transformers, we could instead look at
+→ Reader
+optics for the action of monad transformers on monads. One can indeed define an optic State p
+that uses residual StateT. Whether this is lawful or useful is not clear!
+
+6.4
+
+Learners
+
+A recent paper in applied category theory [FST17] describes a compositional approach to machine learning,
+with a category whose morphisms describe learning algorithms.
+Definition 6.4.1 ( [FST17, Definition 2.1]). For A and B sets, a learner A p
+→ B is a tuple (P, I, U, r)
+where P is a set, and I, U , and r are functions of shape:
+I :P ×A→B
+U :P ×A×B →P
+r :P ×A×B →A
+To form a category, one must consider learners up to an equivalence relation on the sets P . There is
+p B, that goes as follows. Note that the data of a
+an alternate slick description of the set of learners A →
+learner is describing an element of the coend
+Z P,Q∈Set
+Set(P × A, Q × B) × Set(Q × B, P × A)
+
+48
+
+via the isomorphisms
+Z P,Q∈Set
+∼
+=
+∼
+=
+∼
+=
+
+Set(P × A, Q × B) × Set(Q × B, P × A)
+
+Z P,Q∈Set
+
+Z P ∈Set
+
+Z P ∈Set
+
+Set(P × A, Q) × Set(P × A, B) × Set(Q × B, P × A)
+
+Set(P × A, B) × Set(P × A × B, P × A)
+Set(P × A, B) × Set(P × A × B, P ) × Set(P × A × B, A)
+
+Composition of learners can be defined analogously to composition for optics. This perspective explains
+the slight fussing around required in dealing with equivalence classes of learners, and suggests a generalisation to other monoidal categories.
+
+References
+[AC09]
+
+Samson Abramsky and Bob Coecke. Categorical quantum mechanics. In Handbook of quantum logic and quantum structures—quantum logic, pages 261–323. Elsevier/North-Holland,
+Amsterdam, 2009.
+
+[ASCG+ 16] Faris Abou-Saleh, James Cheney, Jeremy Gibbons, James McKinna, and Perdita Stevens.
+Reflections on monadic lenses. In A list of successes that can change the world, volume 9600
+of Lecture Notes in Comput. Sci., pages 1–31. Springer, [Cham], 2016.
+[Atk09]
+
+Robert Atkey. Algebras for parameterised monads. In Algebra and coalgebra in computer
+science, volume 5728 of Lecture Notes in Comput. Sci., pages 3–17. Springer, Berlin, 2009.
+
+[BG18]
+
+Guillaume Boisseau and Jeremy Gibbons. What you needa know about yoneda: Profunctor
+optics and the yoneda lemma (functional pearl). Proc. ACM Program. Lang., 2(ICFP):84:1–
+84:27, July 2018.
+
+[Boi17]
+
+Guillaume Boisseau. Understanding Profunctor Optics: a representation theorem. Master’s
+thesis, University of Oxford, 2017.
+
+[dP89]
+
+V. C. V. de Paiva. The Dialectica categories. In Categories in Computer Science and
+Logic (Boulder, CO, 1987), volume 92 of Contemp. Math., pages 47–62. Amer. Math. Soc.,
+Providence, RI, 1989.
+
+[Far08]
+
+Emilio Faro. On the trace of an endofunctor of a small category.
+Matemàtica, 2008.
+
+Centre de Recerca
+
+[FGM+ 07] J Nathan Foster, Michael B Greenwald, Jonathan T Moore, Benjamin C Pierce, and Alan
+Schmitt. Combinators for bidirectional tree transformations: A linguistic approach to
+the view-update problem. ACM Transactions on Programming Languages and Systems
+(TOPLAS), 29(3):17, 2007.
+[FHP15]
+
+Sebastian Fischer, Zhenjiang Hu, and Hugo Pacheco. A clear picture of lens laws: functional
+pearl. In Mathematics of program construction, volume 9129 of Lecture Notes in Comput.
+Sci., pages 215–223. Springer, Cham, 2015.
+
+[Fre]
+
+Phil
+Freeman.
+purescript-profunctor-lenses.
+Available
+https://github.com/purescript-contrib/purescript-profunctor-lenses.
+contributions from: Brian Marick, Lukas Heidemann, Gary Burgess and others.
+49
+
+from
+With
+
+[FST17]
+
+Brendan Fong, David I Spivak, and Rémy Tuyéras. Backprop as functor: A compositional
+perspective on supervised learning. ArXiv e-prints, November 2017.
+
+[GH18]
+
+Neil Ghani and Jules Hedges. Compositional game theory. In IEEE Symposium on Logic in
+Computer Science, 2018. (to appear).
+
+[GJ12]
+
+Jeremy Gibbons and Michael Johnson. Relating algebraic and coalgebraic descriptions of
+lenses. Electronic Communications of the EASST, 49, 2012.
+
+[Gre17]
+
+Oleg Grenrus. Affine traversal. Available from http://oleg.fi/gists/posts/2017-03-20-affine-trav
+March 2017.
+
+[Hed17]
+
+J. Hedges. Coherence for lenses and open games. ArXiv e-prints, April 2017.
+
+[JK02]
+
+G. Janelidze and G. M. Kelly. A note on actions of a monoidal category. Theory Appl. Categ.,
+9:61–91, 2001/02. CT2000 Conference (Como).
+
+[JM10]
+
+Mauro Jaskelioff and Eugenio Moggi. Monad transformers as monoid transformers. Theoret.
+Comput. Sci., 411(51-52):4441–4466, 2010.
+
+[JO15]
+
+Mauro Jaskelioff and Russell O’Connor. A representation theorem for second-order functionals. J. Funct. Programming, 25:e13, 36, 2015.
+
+[JR12]
+
+Mauro Jaskelioff and Ondrej Rypacek. An investigation of the laws of traversals. In Proceedings Fourth Workshop on Mathematically Structured Functional Programming, pages 40–49,
+2012.
+
+[JRW10]
+
+Michael Johnson, Robert Rosebrugh, and Richard Wood. Algebras and update strategies.
+J.UCS, 16(5):729–748, 2010.
+
+[JRW12]
+
+Michael Johnson, Robert Rosebrugh, and R. J. Wood. Lenses, fibrations and universal
+translations. Math. Structures Comput. Sci., 22(1):25–42, 2012.
+
+[JSV96]
+
+André Joyal, Ross Street, and Dominic Verity. Traced monoidal categories. Math. Proc.
+Cambridge Philos. Soc., 119(3):447–468, 1996.
+
+[Kel74]
+
+G. M. Kelly. Doctrinal adjunction, pages 257–280. Lecture Notes in Math., Vol. 420. Springer,
+Berlin, 1974.
+
+[Kme]
+
+Edward Kmett.
+lens:
+Lenses, folds and traversals.
+Available from
+https://hackage.haskell.org/package/lens.
+With contributions from: Shachaf
+Ben-Kiki, Elliott Hird, Johan Kiviniemi, Bas Dirks, Eric Mertens, Michael Sloan, Alexander
+Altman, Austin Seipp, Dag Odenhall, Aristid Breitkreuz, Simon Hengel, Lizzie Dixon,
+Mike Ledger, Niklas Haas, Adrian Keet, Matvey B. Aksenov, Eyal Lotem, Oliver Charles,
+Liyang HU, Carter Schonwald, Mark Wright, Nathan van Doorn, Ville Tirronen, Mikhail
+Vorozhtsov, Brent Yorgey, Dan Rosén, Yair Chuchem, Michael Thompson, John Wiegley,
+Jonathan Fischoff, Bradford Larsen, Alex Mason and Ryan Scott.
+
+[Kme16]
+
+Edward Kmett. Monad Transformer Lenses. https://www.youtube.com/watch?v=Bxcz23GOJqc,
+July 2016.
+
+[Koc72]
+
+Anders Kock. Strong functors and monoidal monads. Arch. Math. (Basel), 23:113–120, 1972.
+
+[Lor15]
+
+Fosco Loregian. This is the (co)end, my only (co)friend. ArXiv e-prints, January 2015.
+
+50
+
+[Man12]
+
+Oleksandr Manzyuk. Calculating monad transformers with category theory. Available from
+https://oleksandrmanzyuk.files.wordpress.com/2012/02/calc-mts-with-cat-th1.pdf,
+February 2012.
+
+[Mil17]
+
+Bartosz Milewski.
+Profunctor optics:
+The categorical view.
+Available from
+https://bartoszmilewski.com/2017/07/07/profunctor-optics-the-categorical-view/,
+July 2017.
+
+[Mog91]
+
+Eugenio Moggi. Notions of computation and monads. Inform. and Comput., 93(1):55–92,
+1991. Selections from the 1989 IEEE Symposium on Logic in Computer Science.
+
+[O’C15]
+
+Russell O’Connor.
+Grate:
+A new kind of optic.
+https://r6research.livejournal.com/28050.html, November 2015.
+
+[PGW17]
+
+Matthew Pickering, Jeremy Gibbons, and Nicolas Wu. Profunctor optics: Modular data
+accessors. Programming Journal, 1(2):7, 2017.
+
+[PR97]
+
+John Power and Edmund Robinson. Premonoidal categories and notions of computation.
+Math. Structures Comput. Sci., 7(5):453–468, 1997. Logic, domains, and programming languages (Darmstadt, 1995).
+
+[PS08]
+
+Craig Pastro and Ross Street. Doubles for monoidal categories. Theory Appl. Categ., 21:No.
+4, 61–75, 2008.
+
+[RJ17]
+
+Exequiel Rivas and Mauro Jaskelioff. Notions of computation as monoids. J. Funct. Programming, 27:e21, 42, 2017.
+
+[vL09a]
+
+Twan van Laarhoven.
+Cps based functional references.
+Available
+https://www.twanvl.nl/blog/haskell/cps-functional-references, July 2009.
+
+[vL09b]
+
+Twan van Laarhoven.
+A non-regular data type challenge.
+https://twanvl.nl/blog/haskell/non-regular1, April 2009.
+
+51
+
+Available
+
+from
+
+from
+
+Available from
+
+

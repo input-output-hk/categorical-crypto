@@ -1,0 +1,5903 @@
+ACTEGORIES FOR THE WORKING AMTHEMATICIAN
+
+arXiv:2203.16351v3 [math.CT] 10 Sep 2024
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+Abstract.
+
+Actions of monoidal categories on categories, also known as actegories, have
+
+been familiar to category theorists for a long time, and yet a comprehensive overview
+of this topic seems to be missing from the literature. Recently, actegories have been
+increasingly employed in applied category theory, thereby encouraging an effort to fill
+this gap according to the new needs of these applications. This work started as an
+investigation of the notion of monoidal actegory, a compatible pair of monoidal and
+actegorical structures, and ended up including a sizable reference on the elementary
+theory of actegories. We cover basic definitions and results on actegories and biactegories,
+spelling out explicitly many folkloric definitions, including their tensor product and their
+hom-tensor adjunction. We give new definitions of actegories with monoidal, braided
+monoidal and symmetric monoidal structure. In the last section, we provide three
+Cayley-like classification results for these structures.
+
+Contents
+1 Introduction
+
+2
+
+2 Preliminaries
+
+7
+
+3 Actegories and their morphisms
+
+12
+
+4 Composing actegories
+
+33
+
+5 Interaction of monoidal and actegorical structures
+
+51
+
+6 Conclusion
+
+71
+
+A Definitions
+
+77
+
+B Proofs
+
+84
+
+2020 Mathematics Subject Classification: 18-02.
+Key words and phrases: actegories, monoidal actegories, algebroidal actegories, optics.
+© Matteo Capucci and Bruno Gavranović, 2022. Permission to copy for private use granted.
+
+1
+
+2
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+1. Introduction
+Monoid actions are ubiquitous structures in mathematics. They provide a concrete
+implementation of the abstract compositional laws of a monoid as operations on some
+other object. Each element m of a monoid (M, 1, ·) acts on a given set (or manifold, space,
+etc.) C by specifying an operation m • − : C → C, and the complex of these operations
+satisfy laws which are the ‘image’ of those of a monoid:
+n • (m • c) = (n · m) • c,
+
+1 • c = c.
+
+There are many examples of monoid actions (Figure 1): scalar multiplication of vectors
+is an action of the field of scalars on vectors of a vector space, automata are essentially
+actions of free monoids on a space of ‘states’, in dynamical systems monoids of time (N, R+ ,
+etc.) act on spaces of states by tracing out trajectories.
+
+Figure 1: Examples of monoid actions from left to right: scalar multiplication of vectors,
+automata transitions, trajectories in spaces of configurations.
+Like monoidal categories promote the concept of monoid to a higher categorical
+dimension, the protagonists of this work, actegories, promote the concept of a monoid
+action to its higher-dimensional equivalent (Figure 2). In doing so, we lose the sharpness
+of equality we have in sets and we gain the expressivity of isomorphisms in categories.
+Hence monoidal categories and actegories alike satisfies their laws (inherited from monoid
+and their actions, respectively) only up to isomorphism, which are themselves subjected
+to a new set of coherence equations.
+Actegories are not a new invention1 , and not even a recent one. As we learned from
+[CP09, Footnote 1], the concept was first entertained by Bénabou in [Bén67], while the
+1
+
+or discovery!
+
+3
+
+1 INTRODUCTION
+monoidal
+category
+
+actegory
+
+monoid
+
+monoid
+action
+
+vertical
+categorificaton
+
+action by another object
+Figure 2: An actegory as a combination of two different generalizations of a monoid. A
+monoid is to a monoid action what a monoidal category is to an actegory. Likewise, a
+monoid is to a monoidal category what a monoid action is to an actegory.
+name itself (a portmanteu of ‘action’ and ‘category’) originated in the Australian Category
+Seminar at the end of the last century, and first appeared in print in [McC00b].
+Actegories have since appeared in categorical algebra [McC00b, Ško09, Par77] and in
+other various works spanning different subdisciplines in category theory [Gar18, Str20,
+Szl09, JK01]; though the lack of consistent terminology makes it quite hard to get a grasp
+on the extent of the literature on actegories.
+Nonetheless, in the past two decades there’s been a surge of interest in actegories in a
+more ‘applied’ context. Indeed, the reason we are interested in actegories in the first place
+is their effectiveness in capturing the idea of ‘agency’ in categories of systems. Part of
+these ideas have been published in [CGHR21] which proposes a mathematical-conceptual
+framework for thinking about cybernetic systems; but our work doesn’t stand alone.
+The work in categorical cybernetics has been borrowing from the flurry of activity
+regarding mixed optics [Boi20, Ril18, CEG+ 20], of which actegories, and specifically
+Tambara modules2 [PS08, Rom20], form the mathematical backbone.
+The use of actegories in categorical cybernetics is also quite close to the work of Pastro
+and Cockett [CP09, Coc13, Yea12] on the categorical vertex of a Curry–Howard–Lambek
+correspondence for concurrency. They resort to linear actegories in order model messagepassing concurrency, by having a ‘sequential world’ of messages acting on a ‘concurrent
+2
+
+Tambara modules are lax equivariant profunctor between actegories on the same monoidal category.
+
+More details can be found in [Rom20, §5].
+
+4
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+world’ of message-passing processes. The action of messages on processes reifies the first
+as values for the latter.
+The work of Nishiwaki and Asai [NA20] fits in the same pattern. They develop a
+generalization of Moggi’s calculus of computational effects based on actegories, called
+semi-effects calculus, whose categorical semantics is a linear functor between an actegory
+of ‘values’ and one of ‘computations’, with the intended meaning of representing a sort of
+‘let’ binding.
+In a completely different setting, [Ste18] shows how actegories and their morphisms
+can be fruitfully used to talk about the kind of gadgets topological data analysis produces,
+namely ‘persistency modules’. The way actegories are used in this work recalls the actions
+of monoids of time which give rise to dynamical systems, explaining his adoption of the
+terminology dynamical categories.
+Related to actegories, module categories seemed to have enjoyed more attention. These
+are actions of (multi-)fusion categories, which are categories enriched in vector spaces with
+some extra properties3 . Their existence also motivates the choice of a distinct terminology
+for the ‘vanilla’ notion. Ostrik gives a systematic account of the theory of module categories
+in [Ost03], where they indicate [Gra76] as the first appearance of said concepts. We also
+mention [Gre10b, Gre10a].
+Since, ultimately, multi-fusion categories are still monoidal categories, much of the
+theory of module categories can be reproduced in less structured contexts. What really
+makes compendia such as Ostrik’s less relevant for the uses of applied or even pure
+category theory is their focus, which is often strongly biased (and rightly so) on the
+interaction between the fusion stucture and the actegorical structure. Moreover, much
+of the structure of multi-fusion categories is not available in contexts such as Kleisli
+categories of commutative monads on Set (i.e. cats of effectful computations), categories
+of measurable spaces, or categories of manifolds. Hence the need of compiling a more
+streamlined version of the theory behind module categories, closer to the sensibility of
+modern applied category theory.
+In this work, and in all the works cited above, actions and actegories are treated
+in the same way, as dictated by common algebraic wisdom. There is a different way
+3
+
+Specifically, multifusion categories are ‘rigid semisimple k-linear tensor categories with finitely many
+
+simple objects and finite dimensional spaces of morphisms’, where k is an algebraically closed field [ENO05,
+p. 583].
+
+1.1 Overview of the paper
+
+5
+
+to talk about actions though, which is connected with the ideas of cofunctors [AU16,
+Cla20] and differential forms (whose pullback is known in computer science as ‘reverse
+differentiation’). In this guise, monoidal actions have been studied by Alvarez-Picallo under
+the name of change actions [Alv20, APO19], in the context of incremental computation
+and differentiation. To explore this connection more closely is left for future work, together
+with many other directions that would deserve to be explored.
+1.1. Overview of the paper. This work has been born out of the practical need of
+identifying and understanding the structures involved in the proposed foundations of
+‘categorical cybernetics’, as outlined in [CGHR21]. In that work, we singled out the Para
+and Optic constructions as useful abstractions for modelling systems with agency, and
+moreover realized actegories provide an interesting conceptual view of the way agents and
+systems interact. This is remindful of the ideas put forward in [Coc13].
+The original motivating question for this work concerned the monoidal structures of
+Para and related constructions. In [CGHR21], we singled out some structure morphisms
+necessary for promoting a (symmetric) monoidal product on an actegory (C, •) to a
+(symmetric) monoidal product on Para• (C). It remained unclear how that structure arose
+and most importantly what were the constraints on that. Here we clarify these questions
+by methodically analyzing the compatibility structures between actegorical and monoidal
+categories, thereby answering the previous question. In doing so, we ended up compiling a
+much needed reference on actegories.
+In Section 2, we briefly go over some preliminary definitions concerning pseudomonads
+and their categories of algebras. This is done in order to ground the definitions of Section 3,
+which introduce actegories and their morphisms, all the way up to the detailed definition of
+the indexed 2-category of actegories. We also provide several examples and ancillary results.
+These two sections do not contain much new content, though the detailed exposition and
+meticulous definitions can be considered a new contribution.
+Instead, Sections 4 and 5 contain the lion share of original content, and form the central
+part of the work.
+The first is dedicated to the study of ‘composition of actegories’, i.e. ways in which
+new actegories can be systematically generated from old ones. Some of these ways are
+proper monoidal structures on categories of actegories (cartesian and cocartesian product,
+tensor product), but others are mathematically given by distributive laws, interpreted as
+
+6
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+decoration on the sequential composition of actegories seen as parametric morphisms. The
+latter, Section 5, is devoted to the study of compatibility structures between monoidal
+and actegorical structure. We explore various ways to combine them, introducing two new
+definitions: that of monoidal actegory and that of distributive algebroidal actegory. We
+show how the first is instrumental in making categories of optics monoidal, while the latter
+has connections to the theory of hybrid composition of optics. We conclude the section
+by analyzing the way braiding interacts with each of these new notions, and by proving
+three classification results for monoidal actegories, showing they are indeed equivalent to
+monoidal functors into suitably defined classifying objects.
+Many definitions and proofs of coherence have been moved to Appendix A and Appendix B in order to not obstruct the flow of the paper.
+1.2. Acknowledgements. This paper wouldn’t have been possible without the many
+hours of discussion with collaborators at the MSP group. We thank in particular Eigil F.
+Rischel who suggested many results to us (specifically, Lemma 3.4.1 and the classification
+theorems of Section 5.5). Their ranks are joined by Bojana Femić, whose interest in the
+first author’s talk at CT2021 [Cap21] has been a source of inspiration, and who first pointed
+the first author to the vast literature on module categories; and Emily de Oliveira Santos,
+with whom the first author has been enthusiastically exchanging notes and opinions on
+categorified algebra. We also thank the mantainers of quiver for freely providing a tool
+which has proven invaluable in the preparation of this work.
+1.3. Notation and conventions. Throughout the paper, we use (M, j, ⊗) to refer
+to a monoidal category [JY21, Definition 1.2.1], using λ, ρ, α to refer to left and right
+unitors and the associator respectively. When braiding or symmetry are needed, we point
+it out explicitly. We reserve the names M, N for acting monoidal categories, and C, D for
+categories that are being acted on. We make extensive use of diagrammatic notation for
+composition, using the symbol #. Actions are plentiful in this paper, and we use a variety
+of symbols: •, ◦, ⊛, and so on, depending on the context.
+
+Many of the structures we are going to contemplate are pseudo-somethings (pseudoalgebras, pseudomonoids, etc.), which tends to make prose cumbersome and clumsy. Therefore
+we sometimes dropped the prefix with the understanding this does not hinder readability
+as it improves it.
+
+7
+
+2 PRELIMINARIES
+
+2. Preliminaries
+As eloquently explained by [BKP89], if universal algebra can be thought as the theory
+of 1-monads on Set (‘0-categories’), universal 1-algebra4 can be studied as the theory of
+2-monads on Cat.
+For the algebraic structures we are interested in, this is very much true. Let’s see
+what the algebraic story is for actions of monoids (‘0-dimensional actegories’) from this
+point of view. Every monoid (M, j ′ , ⊗) : Set induces a monad (M × −, j, m) : Set → Set
+where the unit and join are defined from the unit and product of M itself. We define them
+componentwise below, for a given C : Set.
+jC : C −→ M × C
+c 7−→ (j ′ , c)
+
+mC : M × M × C −→ M × C
+
+(2.1)
+
+(2.2)
+
+(m, n, c) 7−→ (m ⊗ n, c)
+
+An algebra (C : Set, • : M × C → C) for this monad is precisely a monoid action,
+where algebra laws correspond to monoid action laws. We state the laws below both as
+commutative diagrams, and in equational form.
+M ×C
+
+jX
+
+C
+
+•
+
+M ×M ×C
+
+mX
+
+•
+
+M ×•
+
+C
+
+j • c = c, for all c ∈ C.
+
+M ×C
+
+(2.3)
+M ×C
+
+•
+
+(2.4)
+
+C
+
+m • (n • c) = (m ⊗ n) • c, for all m, n ∈ M , c ∈ C.
+
+Analogously, M-actegories turn out to be pseudoalgebras for the pseudomonad M × −.
+A pseudomonad is the higher equivalent of a monad in the same way monoidal categories
+are the higher version of a monoid. Indeed, both (pseudomonads and monoidal categories)
+are instances of the categorified notion of ‘monoids in monoidal categories’, which is
+‘pseudomonoid in monoidal bicategories’. A pseudomonoid is a monoid whose associativity
+and unitality only hold up to coherent isomorphism [McC00a, §2], a structure which is
+very natural to find in 2-dimensional contexts, since structures there tend to be defined
+4
+
+The reference calls it 2-algebra, but we adopt the same perspective on dimension as HoTT, where
+
+0-types are sets and (directed) 1-types are categories. Therefore n-dimensional structure is structure on
+(possibly directed) n-types, and universal n-algebra is concerned with the study of algebraic structure on
+n-types.
+
+8
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+only up to higher equivalence.
+n=0
+
+n=1
+
+monoid M
+
+monoidal category M
+
+monoid homomorphism f : M → N
+
+strong monoidal functor F : M → N
+
+free M -action monad M × −
+
+free M-actegory pseudomonad M × −
+
+action M × X → X
+
+pseudoaction M × C → C
+
+(algebra of M × −)
+
+(pseudoalgebra of M × −)
+
+linear morphisms g : (C, •) → (D, ◦)
+
+linear functors G : (C, •) → (D, ◦)
+
+(algebra morphisms)
+
+(strong pseudoalgebra morphisms)
+
+For example monoidal categories are pseudomonoids in (Cat, 1, ×), whereas pseudomonads on a 2-category X are pseudomonoids in ([X, X], id, ◦) [Mar99, §3]:
+2.0.1. Definition. Let X be a 2-category. A pseudomonad on X is a strict 2-functor
+T : X → X, together with 2-morphisms j : 1 ⇒ T (unit) and m : T T ⇒ T (multiplication)
+and modifications (left unitor λ, right unitor ρ, associator α):
+T
+
+jT
+
+TT
+
+Tj
+
+TT
+
+T
+
+λ
+m
+
+m
+
+T
+
+ρ
+
+(2.5)
+
+(2.6)
+
+T
+
+TTT
+
+Tm
+
+TT
+
+mT
+
+α
+
+m
+
+TT
+
+m
+
+T
+
+that satisfy the coherence laws reported in Appendix A.
+2.0.2. Remark. This notion of ‘higher dimensional monad’ is intermediate between that
+of a ‘fully weak 2-monad’, where T , j and m are possibly not strict, and a ‘fully strict
+2-monad’ (or just 2-monad), where λ, ρ and α are assumed to be identities [BKP89].
+
+2.1 The ‘free M-actegory’ pseudomonad
+
+9
+
+2.1. The ‘free M-actegory’ pseudomonad. If (M, j, ⊗, λ, ρ, α) is a monoidal category, all its data and coherence properties map directly to those of a pseudomonadic
+structure on T = M × − : Cat → Cat, as we prove in Proposition A.0.1:
+M×−
+
+j×M×−
+
+M×M×−
+
+M×j×−
+
+M×M×−
+
+ρ×−
+
+λ×−
+⊗×−
+
+⊗×−
+
+M×−
+
+M×−
+(2.7)
+
+M×−
+M×⊗×−
+
+M×M×M×−
+
+M×M×−
+
+⊗×−
+
+α×−
+
+⊗×M×−
+
+M×M×−
+
+(2.8)
+
+M×−
+
+⊗×−
+
+2.1.1. Remark. It is a very important fact for this paper that the pseudomonad M × −
+can always be strictified to the 2-monad Ms × −, where Ms is the strictification of the
+monoidal category M given by MacLane’s theorem [JY21, Theorem 1.2.23]. So even
+though we are, in principle, working with pseudomonads on Cat, in practice we’ll reap
+results about 2-monads (especially from [BKP89]) by appealing to this strictification.
+2.2. Algebras for pseudomonads. Algebras of higher monads also come in various
+degrees of weakness. We settle with the following general definition:
+2.2.1. Definition. A pseudoalgebra for a pseudomonad (T, j, m) on X consists of an
+object x : X and a morphism
+t : T x −→ x
+
+(2.9)
+
+in X equipped with invertible 2-cells
+x
+
+jx
+
+Tx
+
+TTx
+
+Tt
+
+Tx
+
+η
+t
+
+x
+
+mx
+
+Tx
+
+µ
+t
+
+t
+
+(2.10)
+
+x
+
+satisfying some coherence equations (see Appendix A).
+When η and µ are not invertible, we call the algebra lax (or, dually, oplax); if they
+are identities, we say the pseudoalgebra is strict. For T = M × −, strict algebras (strict
+
+10
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+M-actegories) can be hard to come by. Still, every actegory is equivalent (in a suitable
+sense) to a strict one (Lemma 3.4.1), hence we can make use of this fact to greatly simplify
+some proofs.
+Instead, there is no way to avoid working with ‘pseudomorphisms’ of algebras—similarly
+to the case of monoidal categories, once you have fixed two objects, the strict morphisms
+aren’t comprehensive enough to exhaust the needs of the theory.
+2.2.2. Definition. Let (T, j, m) be a pseudomonad on X and let (x, t, η, µ) and (y, t′ , η ′ , µ′ )
+be pseudoalgebras. A lax morphism (f, ℓ) : (x, t, η, µ) → (y, t′ , η ′ , µ′ ) consists of a
+morphism f : x → y and a 2-cell
+Tx
+
+Tf
+
+Ty
+
+ℓ
+
+t
+
+x
+
+(2.11)
+
+t′
+
+f
+
+y
+
+satisfying suitable coherence axioms (see Appendix A).
+A lax morphism (f, ℓ) is called strong if ℓ is invertible, and strict if ℓ is an identity.
+When we omit any qualification, we default to strong.
+2.2.3. Definition. Let (x, t, η, µ) and (y, t′ , η ′ , µ′ ) be pseudoalgebras, and let (f, ℓ) and
+(g, ℓ′ ) be lax morphisms (x, t, η, µ) → (y, t′ , η ′ , µ′ ). A transformation of morphisms is
+a 2-cell ξ : f ⇒ g so that the following axiom holds:
+Tf
+
+Tx
+
+Tξ
+
+Ty
+
+Tx
+
+Tf
+
+Tg
+t
+
+x
+
+ℓ
+t′
+
+ℓ′
+f
+
+Ty
+
+t
+
+t′
+
+(2.12)
+
+f
+
+y
+
+x
+
+ξ
+
+y
+
+g
+
+For any given pseudomonad T , pseudoalgebras, algebra morphisms and transformations
+thereof assemble into various bicategories, depending on the degree of laxity used:
+2.2.4. Definition. Given a pseudomonad T on X, there is a 2-category T -Alg of pseudoalgebras, strong morphisms and transformations [Lac00, Proposition 4.2]. If T is a
+2-monad, we further have the 2-categories T -Algs of strict algebras, strong morphisms
+
+11
+
+2.2 Algebras for pseudomonads
+
+and transformations, and T -Algss of strict algebras, strict morphisms and tranformations
+[BKP89, §1]. Clearly there are forgetful functors
+T -Algss −→ T -Algs −→ T -Alg −→ X.
+
+(2.13)
+
+To denote the various combinations of lax/oplax/strong/strict objects and morphisms,
+we adopt a notation based on subscripts and superscripts:
+of the morphisms
+T -Alglaxity
+laxity of the objects
+
+(2.14)
+
+The symbols denoting laxity are described in the following table:
+laxity
+
+symbol
+
+lax
+
+lx
+
+oplax
+
+ox
+
+strong/pseudo
+
+ps, (empty string)
+
+strict
+
+s
+
+This notation is compatible with that used in [BKP89], except they denote ‘lax’ simply
+with l.
+
+12
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+3. Actegories and their morphisms
+Having defined the necessary pseudoalgebraic machinery in the previous section, we proceed
+to build on top of it and define M-actegories and their morphisms. We give a number
+of examples, a strictification lemma, describe the free and cofree adjunction, and lastly,
+describe the indexed 2-category of all actegories.
+3.1. Actegories. As anticipated, we can develop the algebraic theory of M-actegories
+systematically by instantiating the definitions of pseudoalgebras and their morphisms for
+T = M × −.
+3.1.1. Definition. Let M be a monoidal category. A left M-actegory C (or left
+M-action) is a category C equipped with a functor
+− • = : M × C −→ C,
+
+(3.1)
+
+and two natural isomorphisms
+∼
+
+∼
+
+ηc : c −→ j • c,
+
+µm,n,c : m • (n • c) −→ (m ⊗ n) • c,
+
+for m, n : M, c : C,
+
+(3.2)
+
+respectively called unitor and multiplicator, satisfying the following coherence laws:
+m • (n • (p • c))
+
+µm,n,p•c
+
+(m ⊗ n) • (p • c)
+µm⊗n,p,c
+
+m•µn,p,c
+
+m • ((n ⊗ p) • c)
+
+((m ⊗ n) ⊗ p) • c
+
+(3.3)
+
+αm,n,p •c
+
+µm,n⊗p,c
+
+(m ⊗ (n ⊗ p)) • c
+µj,m,c
+
+j • (m • c)
+
+(j ⊗ m) • c
+(3.4)
+
+ηm•c
+
+λ−1
+m •c
+
+m•c
+µm,j,n
+
+m • (j • c)
+
+(m ⊗ j) • c
+(3.5)
+
+m•ηc
+
+ρ−1
+m •c
+
+m•c
+for all m, n, p : M and c : C.
+
+13
+
+3.1 Actegories
+
+3.1.2. Remark. Recall that the triangle axioms for monoidal categories are redundant:
+any of them is redundant in the presence of the other one and the pentagon. The same
+applies to actegories. Indeed, by inspecting Kelly’s simplification of MacLane’s coherence
+conditions for monoidal categories [Kel64], one can realize that part of his proof can be
+reproduced mutatis mutandis for actegories, so that either of Diagram (3.4) or (3.5) can
+be omitted. We learned of this fact from [McC00b].
+3.1.3. Remark. Analogous to left actegories, it is possible to define right actegories. Let
+c : C and m, n : M. When the action is on the left side, successive actions combine as
+follows:
+m • (n • c) ∼
+= (m ⊗ n) • c.
+
+(3.6)
+
+On the other hand, when the action is on the right side, actions combine as:
+(c • n) • m ∼
+= c • (n ⊗ m).
+
+(3.7)
+
+Comparing the two equations above should make the difference clear: multiplying by m
+and then n is like multiplying by m ⊗ n for left actions, and by n ⊗ m for right actions.
+Indeed, a right M-actegory is exactly the same as a left Mrev -actegory, where Mrev is the
+monoidal category obtained by equipping the underlying category of M with the product
+rev
+
+m ⊗ n := n ⊗ m and suitably tweaking the rest of the structure [JY21, Example 1.2.9].
+Notice that right M-actegories can also be conceived as pseudoalgebras for the same
+endofunctor M × − but equipped with a different monad structure, namely the one where
+multiplication is precomposed with a symmetry:
+M×M×−
+
+swap×−
+
+M×M×−
+
+⊗×−
+
+M×−
+
+(3.8)
+
+˜ := swap # ⊗, so that the pseudomonad of left Mrev -actegories is identical to
+Indeed, ⊗
+
+this one, which we might rightly call the pseudomonad of right M-actegories.
+
+As customary in algebra, whenever we do not qualify an action with an handedness we
+default to left.
+3.1.4. Remark. If a category receives both a left and a right action (i.e. a M-action
+and a N rev -action), and these interact ‘nicely’, we have a biactegory, a structure we
+treat extensively in Section 4.3. Likewise, a category may also receive a ‘forward’ and
+a ‘backward’ action (i.e. an M-action and an N op -action) which interact nicely. These
+deserve the name of diactegories, but we leave their study for future work.
+
+14
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+3.1.5. Remark. Contrary to the praxis in the related field of Tambara theory [PS08,
+Tam06], in the optics literature [Boi20, CEG+ 20, Rom20] definitions implicitly assume
+every action to be on the left. This doesn’t make much of a difference when M is symmetric
+(a common occurence in practice), and when the actions are not lax, but this obfuscates a
+nice correspondence to algebra in practice. In particular, there is a distinction between
+left and right actions in the algebra of Para and Copara [CGHR21, Definition 2].
+We must mention an equivalent presentation of the structure of actegory, which is
+handy to have in mind:
+3.1.6. Proposition. The data of a left M-actegory is equivalent to that of a strong
+monoidal functor, in the sense that there is a bijection of sets:
+{ M × C −→ C left action }
+
+∼
+=
+
+{ M −→ [C, C] strong monoidal }
+
+(3.9)
+
+The equivalence is supported by the tensor-hom adjunction in Cat.
+Proof. It is a routine matter to verify that η and µ for a left action • correspond to
+a strong monoidal structure on its currying curr(•), and that Diagrams (3.3)-(3.5) are
+equivalent to the laws obeyed by such structure (see [Mac71, §XI.2]).
+3.1.7. Remark. This proposition can be read as saying ‘[C, C] classifies actions on C’.
+Indeed, in Section 5.5 we are going to extend this result to a full equivalence of categories,
+as well as generalizing it to more structured notions of actegory.
+3.1.8. Remark. The presentation of actegories as monoidal functor into [C, C] is preferred
+in the literature on graded (co)monads [Fuj19]. In that case, the monoidal functor
+M → [C, C] is more often considered to be just lax (for graded monads) or oplax (for
+graded comonads). These correspond to lax and oplax algebras of M × − (considered as
+a pseudomonad) from our point of view. Much of the definitions we give here still work
+for these weaker structures, but many of the results do not hold for them. Moreover, in
+the applications we are interested in this is not a limitation, hence in this work we focus
+on pseudoalgebras.
+3.1.9. Remark. Despite making it easier to state the definition of actegories, the curried
+presentation of monoidal actions is considerably less elegant when it comes to their
+morphisms, 2-morphisms and other constructions. This can be directly motivated by
+observing most of the facts we care about for M-actegories are instances of general algebraic
+
+15
+
+3.2 Examples
+
+theories, while Proposition 3.1.6 is a very peculiar property of actegories. Therefore we’ll
+continue to prefer Definition 3.1.1.
+As prescribed by the microcosm principle, actegories can be seen as the structure
+necessary to define the structure of an ‘action of a monoid’ in a category, in the same way
+monoidal categories are the minimal setting in which monoids themselves can be defined.
+3.1.10. Definition. Let (C, •) be an M-actegory, and let c : C and m : M. An action of
+m on c in (C, •) is an arrow ∗ : m • c → c such that the following commute (compare them
+with Diagrams (2.3)–(2.4)):
+m•c
+
+i•c
+
+j•c
+
+∗
+
+ηc
+
+c
+
+c
+
+µm,m,c
+
+(m ⊗ m) • c
+
+m • (m • c)
+
+·•c
+
+m•∗
+
+m•c
+
+∗
+
+c
+
+∗
+
+(3.10)
+
+m•c
+
+In the same fashion we can define coactions of comonoids and biactions of bimonoids,
+for which actegories remain the natural setting.5
+3.2. Examples. We describe here some examples, some of which are taken from the
+literature, although with no pretence to be exhaustive. In particular, we omit most of the
+examples from categorical algebra (e.g. those described in [Ost03]).
+3.2.1. Example. [Trivial actegories] Every category C is trivially a 1-actegory, where 1 is
+the one-object category whose monoidal product is defined in the only way possible. The
+action • : 1 × C → C is an isomorphism, and the unitor and multiplicator are trivial.
+This can be generalised: every category C is trivially an M-actegory for any monoidal
+category M, with the action given by the projection πC : M × C → C.
+3.2.2. Example. [Free actegories] Applying the pseudomonad of left M-actegories to
+a category C yields the free actegory on C, whose multiplication is thus the same as the
+pseudomonad:
+⊗×−
+
+M × M × C −−−→ M × C
+
+(3.11)
+
+Likewise for the unitors and multiplicators, which come from M × − and thus, ultimately,
+from M itself.
+5
+
+Though biactions could be further abstracted as to take place in biactegories instead.
+
+16
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+3.2.3. Example. [Monoid action] Any action of a monoid M on a set X is a ‘discrete
+actegory’. That is, it is a disc(M )-actegory disc(X), where disc : Set → Cat casts a set as
+a discrete category. In [Alv20, APO19] monoid actions are called change actions, although
+their maps are different.
+3.2.4. Example. [Monoidal category] Every monoidal category M is canonically a left
+and right M-actegory. The tensor −⊗ = : M × M → M, equipped with the left unitor as
+counitor and the associator as comultiplicator, defines a left action. On the right, one has
+the ‘same’ functor but typed as = ⊗− : Mrev × M → M, equipped with the right unitor
+as counitor and the inverse of the associator as comultiplicator. We call these actions
+canonical left and canonical right self-action, respectively.
+3.2.5. Example. [Action of natural numbers] Any monoidal category (M, j, ⊗) is naturally an N-actegory, where N is considered as a discrete category with multiplication as
+monoidal structure. Given n : M and c : C, the action (=)⊗− : N × M → M takes the
+pair (n, c) to the n-fold monoidal product of c with itself, i.e.
+c⊗n := c| ⊗ .{z
+. . ⊗ c} .
+
+(3.12)
+
+n times
+
+It is clear then that (c⊗n )⊗m ∼
+= c⊗mn is given by the associator of M while c⊗0 = j by
+definition. Coherence for monoidal categories implies coherence of this data.
+3.2.6. Example. [Evaluation] Every category C is a ([C, C], 1C , ◦)-actegory, under the
+action given by evaluation. In fact, this is the action corresponding to the identity functor
+of [C, C] under the equivalence described in Proposition 3.1.6. This also means than
+any monoidal subcategory of endofunctors over C acts on C. For instance, the action of
+applicative functors (a class of endofunctors definable when C is symmetric monoidal) can
+be used to define a class of optics called kaleidoscopes [CEG+ 20, §3.2.2].
+3.2.7. Example. [Copower] When a category C has all small coproducts, there is an
+action ⊗ : Set × C → C of (Set, 1, ×)
+A ⊗ c :=
+
+a
+
+c
+
+(3.13)
+
+a∈A
+
+where A : Set and c : C. This action is called Set-copower and enjoys the universal
+property of being ‘left adjoint to the hom functor’:
+C(A ⊗ c, y) ∼
+= Set(A, C(c, y)).
+
+(3.14)
+
+17
+
+3.2 Examples
+
+In general, we can replace Set with any closed monoidal category V, and talk about
+V-copowered (or V-tensored) enriched categories [Kel82]. In [JK01], the authors prove
+that V-copowered enriched categories are equivalent to V-actegories (C, •) such that − • c
+has a right adjoint for each c : C (so called closed actegories).
+3.2.8. Example. [Power] Dually, if C has all products one gets an action ⋔: Setop ×C → C
+given by
+A ⋔ c :=
+
+Y
+
+c
+
+(3.15)
+
+a∈A
+
+which enjoys the following universal property:
+C(d, A ⋔ c) ∼
+= Set(A, C(d, c))
+
+(3.16)
+
+In [Woo76, Chapter 1, §7] Wood proves that M-actegories are equivalent to ‘M-powered’
+[Mop , Set]-categories.6
+3.2.9. Example. [Day convolaction] A given M-action • on C can be canonically extended
+to an action of [M, Set] on [C, Set]. First of all, the monoidal structure of M extends
+canonically to a monoidal structure on its category of copresheaves [M, Set], known as
+Day convolution [Day70].7 The extension of • is given, mutatis mutandis, in the same way:
+M •Day P :=
+
+Z m:M,c:C
+
+C(m • c, −) × M (m) × P (c).
+
+(3.18)
+
+We call this action Day convolaction. The unitor of the action is given by repeated Yoneda
+reduction [Lor21, Proposition 2.2.1] and by using the unitor of •:
+M(j, −) •Day P =
+
+Z m:M,c:C
+
+∼
+=
+
+Z c:C
+
+∼
+=
+
+Z c:C
+
+C(m • c, −) × M(j, m) × P (c)
+
+C(j • c, −) × P (c)
+
+(3.19)
+
+C(c, −) × P (c)
+
+∼
+= P.
+6
+
+We learned of this fact from [Gar18].
+We recall the unit of this monoidal structure is M(j, −) while product is given as
+
+7
+
+Z m,n:M
+M ⊗Day N =
+
+M(m ⊗ n, −) × M (m) × N (n).
+
+(3.17)
+
+18
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+The multiplicator uses Yoneda reduction, the multiplication for •, the definition of
+⊗Day (3.17) and Fubini’s rule [Lor21, §1.3]:
+′
+
+M •Day (M •Day P ) =
+∼
+=
+∼
+=
+∼
+=
+∼
+=
+∼
+=
+
+Z m:M,c′ :C
+
+Z m′ :M,c:C,m:M,c′ :C
+Z m′ :M,c:C,m:M
+Z m′ :M,c:C,m:M
+
+C(m • c′ , −) × C(m′ • c, c′ ) × M (m) × M ′ (m′ ) × P (c)
+
+C(m • (m′ • c), −) × M (m) × M ′ (m′ ) × P (c)
+C((m ⊗ m′ ) • c, −) × M (m) × M ′ (m′ ) × P (c)
+
+Z m′ :M,c:C,m:M,k:M
+Z c:C,k:M
+
+C(m • c′ , −) × M (m) × (M ′ •Day P )(c′ )
+
+C(k • c, −) × M(m ⊗ m′ , k) × M (m) × M ′ (m′ ) × P (c)
+
+C(k • c, −) × (M ⊗ M ′ )(k) × P (c)
+
+∼
+= (M ⊗Day M ′ ) •Day P.
+(3.20)
+As for Day convolution, this action is well-defined also when Set is replaced with a
+Bénabou cosmos [Str74], such as any quantale.
+3.2.10. Example. [Gar18, Theorem 9] In ibid., Garner proves that tangent categories
+are a special kind of actegory. Let W be the ‘Weil category’ the subcategory of that of
+commutative rigs spanned by objects isomorphic to tensor products of rigs of the form
+Wk := N[x1 , . . . , xk ]/(xi xj , i ≤ j ≤ k). A tangent structure on a category C is then a
+W-action • such that − • c preserves a certain class of limits (called ‘tangent limits’) for
+all c : C.
+3.2.11. Example. [Metric dilation] The category Met of metric spaces and short maps
+[DD09, p. 38] receives an action of (R+ , 1, ·), the strict monoidal category of positive real
+numbers (morphisms are inequalities ≥). A scalar m : R+ acts on a metric space (X, d) by
+scaling: the resulting metric space (X, m • d) is equipped with a metric scaled exactly by
+m. Maps are left unchanged, since their shortness is not affected by scaling both domain
+and codomain equally.
+3.2.12. Example. [Stochastic action] Let Msbl be the category of measurable spaces
+and measurable maps between them, and let Prob be the category of probability spaces
+and measure preserving maps between them. There is an action of Prob on Msbl given
+
+19
+
+3.3 Morphisms
+by
+(Ω, F, P) • (X, ΣX ) := (Ω × X, F ⊗ ΣX )
+
+where on the right we have the product of measurable spaces. This action can be used to
+model stochastic processes, after being fed to the functor Para, as described in [Cap21].
+3.2.13. Example. [Ste18, Example 2.1.8] Let Top be the category of topological spaces
+and continuous maps, fix a space X and consider the frame O(X) of the open sets of its
+canonical topology, which is a monoidal category with product ∩ and unit X. There’s an
+action of (O(X), X, ∩) on Top/X given on objects by
+U • (f : Y → X) = f −1 U with the subspace topology
+
+(3.21)
+
+and on maps φ : f → g, where f : Y → X and g : Z → X by
+φ|U : f −1 U → g −1 U.
+
+(3.22)
+
+To see this is well-defined, notice that since φ # g = f , the preimage of g −1 U along φ
+
+is exactly f −1 U . Clearly U • (V • f ) = (U ∩ V ) • f and X • f = f , so this is a strict
+O(X)-action.
+3.3. Morphisms. We have unpacked how pseudoalgebras of M × − give M-actegories.
+
+We continue to unpack the definitions given in Section 2 to get to a full-fledged definition of
+the 2-category of M-actegories. This is the 2-category T -Alglx (Definition 2.2.4) instatiated
+for T = M × −.
+3.3.1. Definition. For a fixed monoidal category M we denote the 2-category of Mactegories, lax M-linear functors and M-linear transformations as M-Actlx .
+To get morphisms of M-actegories, it is sufficient to instantiate Definition 2.2.2 for
+the pseudomonad M × −:
+3.3.2. Definition. Let (C, •, η • , µ• ) and (D, ◦, η ◦ , µ◦ ) be left M-actegories. A lax Mlinear functor between them is a functor F : C → D equipped with a natural morphism
+ℓm,c : m ◦ F (c) −→ F (m • c)
+
+for m : M, c : C,
+
+(3.23)
+
+20
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+called lineator satisfying the following coherence laws for all m, n : M and c : C:
+m ◦ (n ◦ F (c))
+
+m◦ℓn,c
+
+m ◦ F (n • c)
+
+µ◦m,n,F (c)
+
+ℓm,n•c
+
+(m ⊗ n) ◦ F (c)
+
+F (m • (n • c))
+
+(3.24)
+
+F (µ•m,n,c )
+
+ℓm⊗n,c
+
+F ((m ⊗ n) • c)
+ℓj,c
+
+j ◦ F (c)
+
+F (j • c)
+
+◦
+ηF
+(c)
+
+(3.25)
+
+F (ηc• )
+
+F (c)
+When ℓ is invertible, we call (F, ℓ) simply M-linear functor, or strong M-linear
+functor if we want to emphasize that.
+Morphisms between actegories on different monoidal categories will be defined in
+Proposition 3.6.5.
+3.3.3. Remark. The coherence diagrams in this definition (and in some of the later ones)
+can be interpreted as inductive definitions for the structure morphisms (here ℓ). It is easy
+to spot this phenomenon in the above triangular diagram, where ℓj,c is being pinned to
+be ηF◦ (c) −1 # F (ηc• ). The same can be said for the pentagon, though: it is a definition of
+ℓm⊗n,− in terms of ℓm,− and ℓn,− :
+
+ℓm⊗n,c = µ◦m,n,F (c) −1 # (m ◦ ℓn,c ) # ℓm,n•c # F (µ•n,m,c ).
+
+(3.26)
+
+This gets particularly interesting when C and D are strict actegories, in which case ℓj,c is
+forced to be the identity and ℓm⊗n,c is simply (m ◦ ℓn,c ) # ℓm,n•c .
+3.3.4. Example. [Monoidal functors are N-linear] Following up from Example 3.2.5,
+let (F, ϵ, µ) : (M, j, ⊗) → (N , i, ⊘) be a lax monoidal functor. Then we can form a
+N-linear functor (F, µn ) : (M, (=)⊗− ) → (N , (=)⊘− ), whose lineator is defined by repeated
+applications of the laxator µ:
+µn : F (m) ⊘ . . . ⊘ F (m) → F (m ⊗ . . . ⊗ m) .
+|
+
+{z
+
+n times
+
+where m : M. For n = 0, we set µ0 = ϵ.
+
+}
+
+|
+
+{z
+
+n times
+
+}
+
+(3.27)
+
+21
+
+3.3 Morphisms
+
+3.3.5. Example. [Tensorial strengths] Sometimes, a lax monoidal structure on an endofunctor (often, a monad) on a monoidal category can be too strong of a condition, in
+which case the structure of a tensorial strength is often more suitable [Koc72]. Indeed,
+let M be a monoidal category and F : M → M an endofunctor. Then the structure of
+a left tensorial strength βm,m′ : m ⊗ F (m′ ) → F (m ⊗ m′ ) on F gives rise to a M-linear
+endomorphism of M with the canonical left self-action (Example 3.2.4). Likewise, right
+tensorial strengths on F give rise to analogous endomorphisms of right self-actions.
+3.3.6. Example. Let Meas be the category of measure spaces and non-expanding8 maps.
+Analogously to Example 3.2.11, R+ acts by dilation on this category, this time dilating
+the measure instead of the metric.
+For d > 0, there is a functor H q : Met → Meas, mapping each metric space (X, d)
+q
+to the measure space (X, B(X), HX
+) where B(X) is the Borel σ-field on X and H q is the
+
+q-dimensional Hausdorff measure [noa] defined on a given A ∈ B(X) as:
+q
+H q (A) = lim inf{Σ∞
+i=1 (diam Ui ) | {Ui }i∈N covers A and diam Ui < δ ∀i ∈ N}.
+δ→0
+
+Since maps in Met are short, it is easy to see the induced measurable maps are nonexpanding. When q = 1, this functor is R+ -linear, that is, there are maps r · H q (X, d) →
+H q (X, r · d). In fact, on the domain we have the space X with measure r · H q , while on
+the codomain we have the same space with measure rq · H q . Since r ≤ rq iff r ≥ 1, one is
+forced to choose q = 1.
+Suppose instead we define an action of (R+ , 1, ·, ≥) on Msbl to be r∗(X, d) := er ·(X, d),
+and analogously for Meas. Now the functors H q are all lax R+ -linear since er ≥ 1 as long
+as r ≥ 0. H 1 remains the only strong R+ -linear functor among them.
+One of the main properties of lax linear functors is that they send actions to actions:
+3.3.7. Lemma. Let (F, ℓ) : (C, •) → (D, ◦) be a lax M-linear functor. Given a monoid
+(m, i : j → m, · : m ⊗ m → m) in M and an action ∗ : m • c → c of m on c : C (as defined
+in Definition 3.1.10), then
+ℓm,c
+
+F (∗)
+
+m • F (c) −−→ F (m • c) −−→ F (c)
+is an action of m on F (c) in D.
+8
+
+A map f : (X, ΣX , µ) → (Y, ΣY , ν) is non-expanding if f∗ µ(A) ≤ ν(A) for every A ∈ ΣY .
+
+(3.28)
+
+22
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+Proof. That ℓm,c # F (∗) is an action of m on F (c) is witnessed by the following diagrams:
+i•F (c)
+
+m • F (c)
+
+(nat. of ℓ)
+
+ℓm,c
+
+F (i•c)
+
+F (m • c)
+∗
+
+j • F (c)
+ℓj,c
+(3.25)
+
+F (j • c)
+
+(3.10 left)
+
+ηc
+
+F (c)
+
+F (c)
+µ◦m,m,F (c)
+
+(m ⊗ m) ◦ F (c)
+ℓm⊗m,c
+
+F ((m ⊗ m) • c)
+
+(3.29)
+
+ηF (c)
+
+m ◦ (m ◦ F (c))
+m◦ℓm,c
+
+(3.24)
+F (µ•m,m,c )
+
+F (m • (m • c))
+
+ℓm,m•c
+
+m ◦ F (m • c)
+
+(nat. of ℓ)
+
+F (m•∗)
+
+m◦F (∗)
+
+(3.30)
+
+m ◦ F (c)
+
+F (·•c)
+(3.10 right)
+
+ℓm,c
+
+F (m • c)
+
+F (m • c)
+F (∗)
+
+F (∗)
+
+F (c)
+
+3.3.8. Remark. Dually, oplax linear functors preserve coactions of comonoid, hence
+strong linear functors preserve Hopf modules, i.e. biactions of bimonoids [BW03, 14.1].
+Finally, we instance Definition 2.2.3:
+3.3.9. Definition. An M-linear transformation ξ : (F, ℓ) ⇒ (G, ν) between two
+lax linear functors F, G : (C, •) → (D, ◦) is a natural transformation between the carrier
+functors of F and G such that
+m ◦ F (c)
+
+m◦ξc
+
+νm,c
+
+ℓm,c
+
+F (m • c)
+commutes for every m : M, c : C.
+
+m ◦ G(c)
+
+ξm•c
+
+G(m • c)
+
+(3.31)
+
+23
+
+3.4 Strictification
+
+3.3.10. Example. Following up from Example 3.3.4, a monoidal natural transformation
+α : R ⇒ S gives rise to a N-linear transformation whose linearity condition follows from
+monoidality of α.
+3.4. Strictification. General actegories are pseudoalgebras for M × −. We call strict
+algebras of M × − strict actions or strict actegories. The reader might be glad to
+learn every actegory can be strictified. This result is the actegorical analogue of MacLane’s
+coherence theorem for monoidal categories [JY21, Theorem 1.2.23]. Indeed, the proof
+is very similar: higher stucture morphisms are simply moved from the actegory to the
+equivalence.
+3.4.1. Lemma. Let M be strict monoidal, and suppose (C, •) is a left M-actegory. Then
+there exists a strict M-actegory (Cs , •s ) and an equivalence S : Cs → C in M-Act.
+Proof. A proof of this fact can be obtained by appealing to the general strictification
+result for algebras of pseudomonads with rank,9 namely [BKP89, Theorem 3.13]. M × −
+has rank since it preserves all colimits by virtue of being left adjoint.
+Concretely, the objects of Cs are pairs (m : M, c : C) and its morphisms f : (m, c) →
+(n, d) are given by arrows m • c → n • d in C. Then S is identity on morphisms and on
+objects sends (m, c) to m • c.
+3.4.2. Remark. In [BKP89, §4], (Cs , •s ) is denoted by (C, •)′ . It is also noted that
+strictification defines a functor left adjoint to the inclusion Ms -Acts → Ms -Act.
+As a consequence of this theorem, we may in general assume that an actegory is strict,
+similar to the way we routinely assume that monoidal categories are strict, although one
+has to be careful about which statements can actually be transported along actegory equivalences, especially if we are considering actions of multiple different monoidal categories.
+A more precise statement is that any diagram which commutes under the assumption of
+strictness, automatically commutes.
+3.4.3. Corollary. There is an equivalence of 2-categories:
+M-Actlx ≃ (Ms × −)-Alglx
+s .
+9
+
+i.e. preserving κ-small colimits for some cardinal κ.
+
+(3.32)
+
+24
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+where on the left we have the 2-category of M-actegories, lax linear functors and linear
+transformations and on the right we have the 2-category of strict M-actegories, lax linear
+functors and linear transformations.
+Proof.
+M-Actlx = (M × −)-Alglx
+ps
+
+MacLane
+
+≃
+
+(Ms × −)-Alglx
+ps
+
+Lemma 3.4.1
+
+≃
+
+(Ms × −)-Alglx
+s . (3.33)
+
+3.4.4. Remark. Note that Lemma 3.4.1 allows us to strictify objects but not morphisms:
+indeed, in the statements of the equivalence of Corollary 3.4.3, we still have non-strict
+morphisms on both sides! Anyway, we observe Corollary 3.4.3 still holds if we replace
+‘lax linear’ morphisms with ‘strong linear’ morphisms (i.e. lx with ps on both sides of the
+equivalence).
+Moreover, we have the following:
+3.4.5. Lemma. Let (M × C, •) be a free M-actegory, for M strict monoidal, and let
+(D, ◦) be any other strict M-actegory. Then given a strong M-linear functor (F, ℓ) :
+(M × C, •) → (D, ◦), there is a unique strict linear functor (F̃ , =) : (M × C, •) → (D, ◦)
+linearly and naturally isomorphic to F .
+Proof. For existence, define
+F̃ (m, c) = m ◦ F (j, c).
+
+(3.34)
+
+This functor is strictly linear:
+m ◦ F̃ (n, c) = m ◦ (n ◦ F (j, c)) = (m ⊗ n) ◦ F (j, c) = F̃ (m ⊗ n, j) = F̃ (m • (n, c)). (3.35)
+The natural isomorphism γm,c : F̃ (m, c) ⇒ F (m, c) is given by ℓ itself:
+ℓm,(j,c)
+
+γm,c := F̃ (m, c) == m ◦ F (j, c) −−−−→ F (m ⊗ j, c) == F (m, c).
+
+(3.36)
+
+25
+
+3.5 The free and cofree adjunctions
+To see it is linear we draw the following:
+m ◦ (n ◦ F (j, c))
+m◦ℓn,c
+
+m ◦ F̃ (n, c)
+
+m◦γn,c
+
+m ◦ F (n, c)
+ℓm,(n,c)
+
+F̃ (m ⊗ n, c)
+
+γm⊗n,c
+
+(3.37)
+
+F (m ⊗ n, c)
+
+ℓm⊗n,(j,c)
+
+(m ⊗ n) ◦ F (j, c)
+The external perimeter corresponds to Equation (3.26) for the strict case.
+For uniqueness, notice the above diagram (drawn for m = j) forces γ to track ℓ.
+If the reader is interested in a deeper understanding of strictification, in [BKP89,
+§3] the equivalence of strict and pseudoalgebras is analyzed in detail, and more refined
+statements of the strictification lemma are provided (e.g. regarding exactly how it looks
+on morphisms and transformations of pseudoalgebras).
+3.5. The free and cofree adjunctions. If the reader is acquainted with the relationships between adjunctions and monads, the following is unsurprising:
+3.5.1. Proposition. There is a 2-adjunction
+M[−]
+⊣
+
+M-Act
+
+lx
+
+Cat
+
+(3.38)
+
+UM
+
+where U forgets the actegorical structure and M[−] is the free M-actegory (Example 3.2.2)
+functor.
+Proof. By Corollary 3.4.3, M-Actlx is equivalent to (Ms × −)-Actlx
+s . Moreover, [BKP89,
+s
+Theorem 3.13] gives us a 2-adjunction (Ms × −)-Actlx
+s ⇆ (M × −)-Acts . It is thus
+
+sufficient to prove we have a 2-adjunction:
+Ms [−]
+
+(M × −)-Acts
+
+⊣
+
+s
+
+Cat
+
+(3.39)
+
+UMs
+
+To do so, we appeal to [BKP89, Proposition 3.1] which says that if (Ms × −)-Acts admits
+arrow objects (i.e. powers by the walking arrow category ↓) and UMs preserves them, then
+UMs admits a left 2-adjoint iff the underlying 1-functor admits a left 1-adjoint. First, let
+
+26
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+us show arrow objects in (Ms × −)-Acts exists. For an M-actegory (C, •), (C, •)↓ is the
+M-action on C ↓ given
+M × C↓
+
+id×C ↓
+
+M↓ × C ↓
+dom
+
+•↓
+
+C ↓.
+
+(3.40)
+
+cod
+
+It’s easy to verify that the projections C ←−− C ↓ −−→ C are M-linear, as well as the natural
+transformation arr : dom ⇒ cod. Moreover, we now prove:
+(Ms × −)-Acts ((D, ◦), (C, •))↓ ∼
+= (Ms × −)-Acts ((D, ◦), (C, •)↓ ).
+
+(3.41)
+
+Indeed, the first category has linear transformations between lax linear functors D → C as
+objects. At the level of the underlying categories, functors D → C ↓ correspond to natural
+transformations. A lax linear structure of such a functor, call it F , induces analogous
+structures on F 0 := F # dom and F 1 := F # cod, by composition. Moreover, the natural
+transformation F arr : F 0 ⇒ F 1 , whose components are picked by the action of F on
+objects, is linear. In fact Diagram (3.31) is instantiated to
+m • F 0 (d)
+
+m•Fdarr
+
+m • F 1 (d)
+
+ℓ0m,d
+
+ℓ1m,d
+
+F 0 (m ◦ d)
+
+arr
+Fm◦d
+
+(3.42)
+
+F1 (m ◦ d)
+
+whose commutativity is part of the well-definition of F as a lax linear functor into C ↓ .
+Finally, clearly UMs preserves arrow objects, hence the aforementioned result applies.
+Then we have (this is now at the level of 1-categories):
+(Ms × −)-Acts (M × C, (D, ◦)) ∼
+= Cat(C, D)
+
+(3.43)
+
+which is immediate to verify.
+To get the desired adjunction, we pre-compose the 2-adjunction we obtained with
+the adjoint equivalence equivalent to the strictification equivalence (see again [BKP89,
+Remark 4.1]).
+In lower dimension, the ‘free M -module’ over a given set I is well-known to be given
+by direct sum of I-many copies of M . An analogous fact is true for actegories:
+3.5.2. Proposition. The free M-actegory construction is a Cat-copower in M-Act:
+M[C] ≃ C ⊗ M.
+
+(3.44)
+
+27
+
+3.5 The free and cofree adjunctions
+
+Proof. The C-copower of M in M-Act is defined by the C-weighted colimit of the
+one-object diagram at M [Kel82, §3.7], thus we have
+M-Act(colimC M, X ) ∼
+= Cat(C, M-Act(M, X ))
+
+Lemma 3.4.5
+
+∼
+=
+
+Cat(C, UM (X )).
+
+(3.45)
+
+This shows that − ⊗ M ⊣ UM , implying C ⊗ M ≃ M[C].
+We also note there exists a cofree construction for actegories, given by [M, −]:
+∗ : M × [M, C] −→ [M, C]
+
+(3.46)
+
+(m, F ) 7−→ F (m ⊗ −).
+Indeed, we have the following:
+3.5.3. Proposition. There is a comonadic 2-adjunction:
+UM
+⊣
+
+M-Actlx
+
+Cat
+
+(3.47)
+
+[M,−]
+
+exhibiting M-Actlx as the category of pseudocoalgebras of the pseudocomonad [M, −],
+whose structure is given by:
+kC : [M, C] −→ C
+F 7−→ F (j)
+(3.48)
+wC : [M, C] −→ [M, [M, C]]
+F 7−→ (m 7→ F (m ⊗ −)),
+plus the obvious left/right counitors and coassociator.
+Proof. This is a consequence of the tensor-hom adjunction in Cat:
+{ • : M × C −→ C }
+
+∼
+=
+
+{ • : C −→ [M, C] }
+
+(3.49)
+
+One easily verifies the rest of a pseudoalgebra structure for M × − is carried along to a
+pseudocoalgebra structure of [M, −], and the same happens to morphisms and 2-cells.
+
+28
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+Hence actegories also admit a presentation as coalgebras. The usefulness of such
+presentation can be seen, for instance, in Garner’s result we reported in Example 3.2.10.
+In fact that is saying that tangent categories are coalgebras of the pseudocomonad
+Tang(W, −), i.e. the subcomonad of [W, −] obtained by restricting to functors preserving
+tangent limits.
+3.5.4. Remark. The coalgebraic presentation of actegories has a relative one dimension
+down. In fact coalgebras of M × −, for M = Σ∗ a free monoid on a given (usually
+finite) alphabet Σ = {a, b, . . .} are ‘half of an automaton’, lacking a choice of output map.
+Nevertheless, this ‘dynamical’ interpretation of actegories seems worthy to explore. In
+particular we might ask: what is a 1-automaton, i.e. an automaton whose underlying
+states form a category instead of a mere set, and likewise does its alphabet?
+Finally, knowing M-Actlx is monadic and comonadic has various technical advantages,
+among which:
+3.5.5. Corollary. M-Actlx admits all pseudo and lax limits and colimits.
+Proof. [BKP89, §2] proves that categories of pseudoalgebras admit all pseudo and lax
+limits. By duality we obtain the rest.
+3.6. The indexed 2-category Act. So far we have been focusing on M-actegories,
+for a single monoidal base M. In the below proposition we show that actegories admit a
+canonical notion of ‘change of base’, or, as it is known in algebra, ‘restriction of scalars’.
+3.6.1. Proposition. Let (M, j, ⊗) and (N , i, ⊘) be monoidal categories. Then every
+strong monoidal functor R : M → N induces a 2-functor R∗ : N -Actlx → M-Actlx given
+by restriction of scalars:
+R×C
+
+•
+
+R∗ (C, •) := (C, M × C −−→ N × C −
+→ C).
+
+(3.50)
+
+Proof. First of all, let’s complete the definition on objects. Denote by (ϵ, ϖ) the monoidal
+structure of R. Then the unitor of R∗ (C, •) is given by
+∗
+
+η•
+
+ϵ•c
+
+c
+ηcR • : c −→
+i • c −→ R(j) • c
+
+(3.51)
+
+while the multiplicator is defined as
+µ•R(m),R(m′ ),c
+ϖm,m′ •c
+R∗ •
+′
+µm,m′ ,c : R(m) • (R(m ) • c) −−−−−−−→ (R(m) ⊘ R(m′ )) • c −−−−−→ R(m ⊗ m′ ) • c. (3.52)
+
+29
+
+3.6 The indexed 2-category Act
+
+Now let (C, •) and (D, ◦) be N -actegories and (F, ℓ) a lax N -linear functor between them.
+We define the action of R∗ on this to be R∗ (F, ℓ) := (F, R∗ ℓ) where R∗ ℓ denotes the 2-cell:
+M×C
+
+M×F
+
+M×D
+
+R×C
+
+R×D
+
+N ×C
+
+N ×F
+
+N ×D
+
+ℓ
+
+•
+
+C
+
+(3.53)
+
+◦
+F
+
+D
+
+defined by whiskering along R × C, hence whose components are
+∼
+
+R∗ ℓn,c : R(n) ◦ F (c) −→ F (R(n) • c).
+
+(3.54)
+
+Finally, let φ : (F, ℓ) ⇒ (G, ν) be an M-linear natural transformation. Since F and G
+are mapped to themselves, φ is still a well-defined natural transformation. Its N -linearity
+can be concluded by observing that the squares which have to commute (3.31) are a subset
+of those that commute by assumption of M-linearity (since every action of a scalar n : N
+is mediated by the M-action).
+Functoriality and 2-functoriality can be verified by routine.
+3.6.2. Remark. In Proposition 4.4.11, we prove each of these functors R∗ (when restricted
+to strong linear functors) is actually a right adjoint, with its left adjoint R! being known
+as extension of scalars.
+3.6.3. Example. In Example 3.2.13 we described an action of O(X) on Top/X, for a
+given topological space X. Observe this action can be obtained from the canonical left
+self-action (Example 3.2.4) of (Top/X, 1, ×X ) by restriction along the evident monoidal
+functor O(X) → Top/X.
+Furthermore, a monoidal natural transformation between monoidal functors induces a
+natural transformation between the corresponding restriction functors:
+3.6.4. Proposition. Given strong monoidal functors R, S : M → N and a monoidal
+natural transformation α : R ⇒ S, there is a strictly 2-natural transformation (notice the
+change in direction)
+α∗ : S ∗ =⇒ R∗
+between the corresponding restrictions S ∗ , R∗ : N -Actlx → M-Actlx .
+
+(3.55)
+
+30
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+Proof. For each actegory (D, ◦) in N -Actlx the natural transformation α∗ picks out a
+lax M-linear morphism (1D , ℓα(D,◦) ) : S ∗ (D, ◦) −→ R∗ (D, ◦) defined as
+ℓα(D,◦) := αm ◦ d : R(m) ◦ d → S(m) ◦ d.
+
+(3.56)
+
+It is evident ℓα(D,◦) is strictly natural because is the whiskering of strictly natural transformations, and monoidality of α makes ℓα(D,◦) a well-defined lineator (i.e. its coherence as
+monoidal transformation maps to coherence for ℓα(D,◦) ). The fact ℓα is natural amounts to
+check that for a given lax N -linear functor (F, ν) : (D, ◦) → (C, •), the following commutes:
+R(m) • F (d)
+
+αm •F (d)
+
+S(m) • F (d)
+
+νR(m),d
+
+νS(m),d
+
+F (R(m) ◦ d)
+
+F (αm ◦d)
+
+(3.57)
+
+F (S(m) ◦ d)
+
+But this is a naturality square for ℓ, hence commutes by assumption.
+3.6.5. Proposition. The assignment M 7→ M-Actlx extends to an indexed 2-category
+(−)-Actlx : MonCatcoop → 2Cat;
+
+(3.58)
+
+whose action on a strong monoidal functor R : M → N is defined in Proposition 3.6.1
+and whose action on a monoidal natural transformation α : R ⇒ S is defined in Proposition 3.6.4.
+By effecting a bicategorical Grothendieck construction [JY21, Definition 10.7.2], we
+obtain a 2-category of actegories over an arbitrary base that we denote by Act.
+The 2-category Act has pairs (M : MonCat, (C, •) : M-Actlx ) as objects. A morphism
+from an M-actegory (C, •) to an N -actegory (D, ◦) consists of a strong monoidal functor
+R : M → N , and a lax M-linear functor between between actegories (C, •) and (D, (R ×
+D) # ◦). This lax linear functor itself consists of a functor R♯ : C → D and a lineator
+∼
+
+ℓm,c : R(m) ◦ R♯ (c) −→ R♯ (m • c). All in all, the data of a morphism in Act consist of a
+triple (R, R♯ , ℓ) that can be neatly arranged in a lax commutative square:
+M×C
+•
+
+C
+
+R×R♯
+
+ℓ
+
+R♯
+
+N ×D
+◦
+
+D
+
+(3.59)
+
+31
+
+3.6 The indexed 2-category Act
+
+A 2-cell in Act between (R, R♯ , ℓ) and (S, S ♯ , ν) consists of a pair (α, α♯ ), where
+α : R ⇒ S is a monoidal natural transformation and α♯ is an M-linear transformation
+filling the following lax triangle in M-Actlx :
+R∗ (D, ◦)
+(R♯ ,ℓ)
+
+(C, •)
+
+(3.60)
+
+α∗(D,◦)
+
+α♯
+(S ♯ ,ν)
+
+S ∗ (D, ◦)
+3.6.6. Remark. There is a cartesian factorization system on Act deriving from the
+indexing it was born from. Its left maps are vertical maps, i.e. lax linear functors as
+described in Definition 3.3.2, living inside a given fibre. Right maps are cartesian maps,
+which turn out to be maps between different actegorical structures on a fixed category C.
+(R, 1R∗ (C,•) , =) : (M, (C, •)) −→ (N , (C, ◦)).
+
+(3.61)
+
+Additionally, 2-cells between such morphisms are 2-cells (α, =) in Act, i.e. 2-cells whose
+vertical part is trivial. We already have a name for the ‘vertical subcategories’ of Act,
+namely its fibres M-Actlx as M varies. Correspondingly, its cartesian subcategories (the
+‘transverse fibres’) will be denoted by Actcart (C), as C varies, not to be confused with
+C-Act, which would denote actions of C.
+3.6.7. Example. In Proposition 3.1.6, we have seen how every action can be curried in
+order to get a strong monoidal functor into [C, C]. We can now rephrase this observation
+as the fact that the evaluation action
+eval : [C, C] × C −→ C
+
+(3.62)
+
+(F, c) 7−→ F (c)
+is (pseudo)terminal in Actcart (C), meaning every other action • of a monoidal category
+M factors uniquely through it:
+[C, C] × C
+∃! curr(•)×C
+
+M×C
+
+eval
+
+•
+
+C
+(3.63)
+
+32
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+It is a useful, if trivial, fact that every monoidal category gives an example of actegory.
+Whence, we record the following:
+3.6.8. Proposition. The canonical fibration π : Actlx → MonCat has a section Υ :
+MonCat → Actlx that maps each monoidal category to left self-action.
+Proof. On objects, this has been defined in Example 3.2.4. On morphisms, a strong
+monoidal functor (R, ϵ, µ) : (M, j, ⊗) → (N , i, ⊘) is sent to the triple (R, R, µ). The fact
+that the functors between the scalars and the underlying categories of the actegories are
+actually the same strong monoidal functor R allows us to use the laxator µ as lineator.
+Indeed, (R, µ) forms a lax M-linear morphism of actegories (M, ⊗) → R∗ (N , ⊘). Lastly,
+a monoidal natural transformation α : R ⇒ S is sent to the pair (α, α), where the Mlinearity of the second component follows from the monoidality of α.
+
+33
+
+4 COMPOSING ACTEGORIES
+
+4. Composing actegories
+In this section we explore some ways actegories can be combined together to give rise to
+new ones. Although all of the following can be obtained by general abstract considerations,
+we deem interesting to explain the way we got some of these definitions, and the way
+we think about them, coming from operations on parametric morphisms. This will yield
+the cartesian and cocartesian products (Proposition 4.2.1 and 4.2.3) and an ‘hybrid’
+we call external choice (Definition 4.2.2) by analogy with the same operation on open
+games and servers [CGLF21, VC22]. Besides those, we are going to consider other ways to
+combine actegories, notably their tensor product (Definition 4.4.3) and the corresponding
+internal hom construction (Proposition 4.4.7), which are suggested by the algebra of the
+situation. Throughout this section, let (M, j, ⊗) and (N , i, ⊘) be two monoidal categories.
+4.1. Actegories as parametric morphisms. An action • : M × C → C can be seen
+as an M-parametric morphism C → C, and as such it can be conceptualized as a process
+which consumes C, produces C, and whose execution is commanded by a choice of M,
+which we picture as chosen by an agent ‘guiding’ the execution of the process.10 Therefore,
+actions of monoidal categories can be effectively represented as morphisms in Para(Cat),
+the bicategory of parametric functors in Cat (for a definition of Para, see [CGHR21,
+Definition 2]).
+Since Cat is rich in structure, Para(Cat) becomes a monoidal category in two ways:
+1. By parallel product, that is, by putting parametric morphisms in parallel, thereby
+taking the product of all three boundaries:
+
+Concretely, we can do this thanks to the symmetry of ×:
+M×swap×D
+
+•×◦
+
+(M, •) ⊗ (N , ◦) := M × N × C × D −−−−−−−→ M × C × N × D −−→ C × D. (4.1)
+10
+
+This ‘game semantics’ of parametric morphisms is discussed in detail in [CGHR21, Cap21].
+
+34
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+2. By external choice (terminology borrowed from [CGLF21]), hence by summing
+the boundaries except for the top ones which are multiplied: Concretely, we can do
+
+this thanks to the distributivity of × over + in Cat:
+(M, •) &(N , ◦) := M × N × (C + D) −→ M × N × C + M × N × D
+πM,C +πN ,D
+
+−−−−−−−→ M × C + N × D
+
+(4.2)
+
+•×◦
+
+−−→ C + D.
+Moreover, Para(Cat) is a bicategory, so we can also:
+3. Sequentially compose two parametric morphisms:
+
+yielding the morphism
+N ×•
+
+◦
+
+(M, •) # (N , ◦) := N × M × C −−−→ N × C −
+→ C.
+4. Reparameterise a given morphism:
+
+(4.3)
+
+35
+
+4.2 Product, coproduct and external choice of actegories
+
+obtaining the morphism
+R×C
+
+•
+
+R∗ (M, •) := N × C −−→ M × C −
+→ C.
+
+(4.4)
+
+When R is a strong monoidal functor, this last operation can be recognized as being
+restriction of scalars along R, as defined in Proposition 3.6.5 (even better, it represents a
+cartesian morphism in Act, as observed in Remark 3.6.6). In particular, we know that
+doing so yields again an action. So actions are stable under reparameterisation along
+strong monoidal functors.
+Can we say the same thing for operations (1)–(3)? We anticipate the answer is yes for
+parallel product and external choice. For sequential composition, however, we’ll see that to
+get another action we have to supply additional structure in the form of a compatibility
+morphism, i.e. a kind of distributive law between the two actions. This will be a wonderful
+excuse to introduce the two-sided analogue of actegories, biactegories. However, as we’ll
+see in Section 5, this will not be the only form of sequential composition.
+4.2. Product, coproduct and external choice of actegories. In what follows,
+we are going to need a description of the product and coproduct of monoidal categories
+(we have learned about the latter from [Rom20, §6.3]). The cartesian product is easy:
+the product of M and N is supported by their product as categories and equipped with
+the expected componentwise monoidal structure: (M × N , (j, i), ⊗ × ⊘). Projections are
+given exactly as in Cat.
+However, their coproduct looks a bit more bizarre. Its construction can be carried out
+by analogy with that of (non-commutative!) monoids. The objects of M + N consists of
+
+36
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+finite words of objects from both M and N , quotiented by the equivalences
+m1 m2 ∼ m1 ⊗ m2 , j ∼ e,
+
+(4.5)
+
+n1 n2 ∼ n1 ⊘ n2 , i ∼ e,
+where e denotes the empty word. An analogous construction is carried out on the
+morphisms. The monoidal product on M + N is given by juxtaposition of words, and
+the unit is given by e. It is easy to realize that under the given equivalences, every object
+(and similarly for morphisms) in M + N can be written uniquely as m1 n2 · · · mk nk for
+m1 , . . . , mk : M and n1 , . . . , nk : N . The injection εM : M → M + N is simply defined
+as m 7−→ m, and likewise for εN . Observe these are strictly monoidal because of the
+quotients defining M + N .
+The coproduct of two monoidal categories falls short of being a biproduct because the
+words mn and nm are kept distinct. Still, there is a universal morphism Γ : M + N →
+M × N given by
+Γ(m1 n1 · · · mk nk ) := (m1 ⊗ · · · ⊗ mk , n1 ⊘ · · · ⊘ nk )
+
+(4.6)
+
+This functor is strict monoidal because of the quotient imposed on the objects of M + N .
+Having defined the product and coproduct of monoidal categories, we can now describe
+the product, coproduct, and external choice in Act.
+4.2.1. Proposition. [Cartesian product in Act] The cartesian product of an Mactegory (C, •, η • , µ• ) and an N -actegory (D, ◦, η ◦ , µ◦ ) is an M × N -actegory (C × D, #G× ),
+where #G× is the parallel product of • and ◦ described in Equation (4.1):
+×
+
+#
+G
+
+M×swap×D
+
+•×◦
+
+:= M × N × C × D −−−−−−−→ M × C × N × D −−→ C × D.
+
+(4.7)
+
+Proof. First of all, let’s be explicit on the structure morphisms #G× comes with: its unitor
+is given by the pair of unitors
+×
+
+(ηc• ,η ◦ )
+
+#
+G
+d
+: (c, d) −−−−→
+ηc,d
+(j • c, i ◦ d) = (j, i)#G× (c, d)
+
+(4.8)
+
+37
+
+4.2 Product, coproduct and external choice of actegories
+and the multiplicator as a pair of underlying multiplicators
+×
+
+G
+µ#(c,d)
+: (m, n)#G× ((m′ , n′ )#G× (c, d))
+
+== (m, n)#G× (m′ • c, n′ ◦ d)
+
+== (m • (m′ • c), n ◦ (n′ ◦ d))
+
+(4.9)
+
+(µ•c ,µ◦d )
+
+−−−−→ ((m ⊗ m′ ) • c, (n ⊘ n′ ) ◦ d)
+== ((m ⊗ m′ , n ⊘ n′ ))#G× (c, d)
+It is easy to convince oneself these make C × D a well-defined actegory.
+To say this is the cartesian product we need to supply projections, and these are
+built componentwise by the projections in MonCat and Cat, and happen to be strictly
+linear. Finally, consider a P-actegory (E, ∗) and two morphisms (F, F ♯ , ℓ) : (P, (E, ∗)) →
+(M, (C, •)) and (G, G♯ , ν) : (P, (E, ∗)) → (N , (D, ◦)). Then there is a unique morphism
+(⟨F, G⟩, ⟨F ♯ , G♯ ⟩, ⟨ℓ, ν⟩) : (P, (E, ∗)) → (M × N , (C × D, #G× )) from the P-actegory E to
+the product, given by universal pairing in each component. It is trivial to check ⟨ℓ, ν⟩ is
+indeed a well-defined lineator for ⟨F ♯ , G♯ ⟩, since coherence can be proven componentwise.
+We now proceed to describe the external choice in Act, which will be a crucial ingredient
+in defining the coproduct in Act.
+4.2.2. Definition. [External choice product in Act] The external choice product of an
+M-actegory (C, •, η • , µ• ) and an N -actegory (D, ◦, η ◦ , µ◦ ) is a M×N -actegory (C +D, #G& ),
+
+where #G& is defined as the external choice of • and ◦ described in Equation (4.2):
+&
+
+#
+G
+
+:= M × N × (C + D) −→ M × N × C + M × N × D
+πM,C +πN ,D
+
+−−−−−−−→ M × C + N × D
+
+(4.10)
+
+•×◦
+
+−−→ C + D.
+&
+
+The unitor ηc#G
+
+∼
+
+&
+
+: c → (j, i)#G& c and the multiplicator µ#Gc
+
+∼
+
+: (m, n)#G& ((m′ , n′ )#G& c) →
+
+((m ⊗ m′ , n ⊘ n′ ))#G& c are defined by cases to coincide with η • and µ• on C and η ◦ and µ◦
+on D.
+
+Restricting scalars (or ‘reparametrising’ if we want to use the language of parametric
+morphisms) of the above defined external choice product along the natural morphism Γ
+defined in Remark 4.6, we obtain the coproduct of actegories:
+
+38
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+4.2.3. Proposition. [Coproduct in Act] The coproduct of an M-actegory (C, •, η • , µ• )
+and an N -actegory (D, ◦, η ◦ , µ◦ ) is an M + N -actegory C + D whose underlying functor
+#
+G+
+
+is defined as:
++
+
+#
+G
+
+Γ×(C+D)
+
+#
+G&
+
+:= Γ∗ (#G& ) = (M + N ) × (C + D) −−−−−→ M × N × (C + D) −→ C + D.
+
+(4.11)
+
+Proof. Injections out of (M + N , (C + D, #G+ )) are built out of those of MonCat and
+
+Cat, and happen to be strictly linear. Consider a P-actegory (E, ∗) and two morphisms
+(F, F ♯ , ℓ) : (M, (C, •)) → (P, (E, ∗)) and (G, G♯ , ν) : (N , (D, ◦)) → (P, (E, ∗)). Then there
+is a unique morphism ((F, G), (F ♯ , G♯ ), (ℓ, ν)) : (M + N , (C + D, #G+ )) → (P, (E, ∗)) from
+
+the coproduct to E, given by universal copairing in each component. It is trivial to check
+(ℓ, ν) is indeed a well-defined lineator for (F ♯ , G♯ ), since coherence can be proven by cases.
+We can represent the coproduct of actegories with sheet diagrams of parametric
+morphisms:
+
+4.2.4. Remark. These two monoidal structures on Act specialize to each of its fibres
+thanks to the (co)cartesian structure of MonCat [Shu08, Theorem 12.7]. Given two
+M-actegories (C, •) and (D, ◦), we obtain another M-actegory by first taking their
+product in Act and then restricting along the copy functor ∆M : M → M × M to turn
+the product M × M-actegory into an M-actegory. Concretely, we get an action supported
+by the functor:
+m#G×
+M (c, d) := (m • c, m ◦ d).
+
+(4.12)
+
+The case for the coproduct is analogous. Notably, this restriction of the product of Act to
+
+39
+
+4.3 Biactegories
+
+a fibre M-Actlx yields the product in the latter category. That is, ∆∗ (C × D, • × ◦) is the
+product of (C, •) and (D, ◦) in M-Actlx ; and likewise applies to +.
+4.2.5. Remark. The ‘transverse fibres’ Actcart (C) (Remark 3.6.6) also have products and
+coproducts. These are easily described by deploying the fact illustrated in Example 3.6.7
+and Proposition 3.1.6 that actions in C are exactly given by monoidal functors in [C, C].
+The coproduct action is thus induced by universal copairing (as shown in [Rom20, §6.3]):
+εM
+
+M
+
+curr(•)
+
+M+N
+G+
+∃!curr(#
+cart )
+
+εN
+
+N
+(4.13)
+
+curr(◦)
+
+[C, C]
+Coproducts in Actcart (C) have particular relevance in the theory of optics since they
+provide the mathematical basis for hybrid composition of optics, that is, for composing
+different classes of optics (the original motivation behind the profunctor encoding [PWG17]).
+Indeed, both optics for • and for ◦ can be embedded in the category of optics for #G+
+cart , and
+
+by universal property of +, the latter is the smallest category of optics with this property.
+For instance, lenses (stemming from the self-action of a cartesian monoidal category) and
+prisms (stemming from the self-action of a cocartesian monoidal category) ‘compose’ to
+affine traversals. A much more detailed discussion of this can be found in ibid.
+We can also define a product action, by weak pullback:
+M ×[C,C] N
+⌟
+
+pM
+
+pN
+
+G×
+∃!curr(#
+cart )
+
+M
+curr(•)
+
+[C, C]
+
+N
+
+(4.14)
+
+curr(◦)
+
+The monoidal category M×[C,C] N contains only those pairs (m, n) such that m•− ∼
+= n◦−.
+Hence optics for #G×
+cart are the maximal category of optics which can be embedded both in
+
+optics for • and optics for ◦. Using again lenses and prisms as an example, this category
+would be that of adapters, since the product of × and + (as actions) is trivial (indeed,
+a×−∼
+= b + − iff a = 1 and b = 0).
+4.3. Biactegories. When we have a category C equipped with two actions, we might
+wonder whether these actions can be ‘sequentially composed’. That is, starting with a
+
+40
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+M-action (•, η • , µ• ) and a N -action (◦, η ◦ , µ◦ ) on C we can form the functor
+N ×•
+
+◦
+
+N × M × C −−−→ N × C −
+→C
+
+(4.15)
+
+and conjecture it is the underlying functor of an N × M-actegory.
+What kind of actegory is it? To answer the question, it is better to approach the
+situation more formally, borrowing from the algebraic intuition on actegories. We are
+contemplating a category receiving two actions, i.e. carrying two pseudoalgebra structures,
+one for M×− and one for N ×−. In other words, we can multiply objects (and morphisms)
+of C with scalars (and morphisms) from both M and N . It seems natural to ask for these
+two actions to be compatible with each other in some way. This is even more tempting
+when the action of N is actually a right action, in which case it feels very natural to ask
+that
+m • (c ◦ n) ∼
+= (m • c) ◦ n.
+
+(4.16)
+
+This isomorphism is all that is needed to make C into an N × M-actegory. A pair of a
+left and a right action with a compatibility isomorphism as above is called a biactegory
+[Ško06, Ško09].
+The ‘bi’ in biactegory does not refer to some additional dimension added to an actegory
+(as in bicategory): if actegories are analogue to modules over monoids, biactegories are
+analogue to bimodules.
+Even though the intuition of ‘sequential composition’ of actegories as parametric
+morphisms invites to consider situations in which a category is equipped with two left
+actions, following [Ško06] we define biactegories as equipped with a left and a right action.
+Since left N -actegories are equivalently right N rev -actegories, this choice does not make
+any mathematical difference, and it is simply a matter of convenience: having a left and a
+right action makes it easier to work with the tensor product we are introducing later.
+Coming back to our initial question, we are going to prove (Theorem 4.3.6) that
+algebras of N rev × M × − (hence of its strictification) are equivalently given by one algebra
+structure for M × −, one for N rev × −, and the aforementioned ‘compatibility structure’
+
+41
+
+4.3 Biactegories
+that we call bimodulator:
+M × N rev × C
+
+swap×C
+
+N rev × M × C
+N rev ×•
+
+M×◦
+ζ
+
+M×C
+
+N rev × C
+
+•
+
+(4.17)
+
+◦
+
+C
+This morphism is a kind of ‘distributive law’ between each action of a scalar in M and
+each action of a scalar in N . Indeed, we are going to come back to this idea in Section 5.
+4.3.1. Definition. An (M, N )-biactegory is a category C equipped with a left M-action
+(•, η • , µ• ), a right N -action (◦, η ◦ , µ◦ ) and a natural isomorphism called bimodulator:
+∼
+
+ζm,c,n : m • (c ◦ n) −→ (m • c) ◦ n.
+
+(4.18)
+
+The bimodulator needs to satisfy the following coherence axioms:
+(m ⊗ n) • (c ◦ p)
+
+ζm⊗n,c,p
+
+((m ⊗ n) • c) ◦ p
+
+µ•m,n
+
+µ•m,n,c ◦p
+
+m • (n • (c ◦ p)
+
+(m • (n • c)) ◦ p
+
+m•ζn,c,p
+
+(4.19)
+
+ζm,n•c,p
+
+m • ((n • c) ◦ p)
+p • (c ◦ (m ⊗ n))
+
+ζp,c,m⊗n
+
+(p • c) ◦ (m ⊗ n)
+µ◦p•c,m,n
+
+p•µ◦c,m,n
+
+p • ((c ◦ m) ◦ n)
+
+((p • c) ◦ m) ◦ n
+
+(4.20)
+
+ζp,c,m ◦n
+
+ζp,c◦m,n
+
+(p • (c ◦ m)) ◦ n
+j • (c ◦ m)
+
+ζj,c,m
+
+•
+ηc◦m
+
+(j • c) ◦ m
+ηc• ◦m
+
+c◦m
+
+(4.21)
+
+42
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+m • (c ◦ j)
+
+ζm,c,j
+
+(m • c) ◦ j
+(4.22)
+
+m•ηc◦
+
+◦
+ηm•c
+
+m•c
+Like one-sided M-actegories, M-biactegories form a 2-category:
+4.3.2. Definition. A lax (M, N )-bilinear functor between (M, N )-biactegories (C, •, ◦, ζ C )
+and (D, ⬩, ⋄, ζ D ) is a functor F : C → D equipped with a left lax M-linear structure ℓ and
+a right lax N -linear structure r, obeying the following compatibility axiom:
+m ⬩ (F (c) ⋄ n)
+
+D
+ζm,F
+(c),n
+
+(m ⬩ F (c)) ⋄ n
+ℓm,c •n
+
+m•rc,n
+
+m ⬩ F (c ◦ n)
+
+F (m • c) ⋄ n
+
+(4.23)
+
+rm•c,n
+
+ℓm,c◦n
+
+F (m • (c ◦ n))
+
+C
+F (ζm,c,n
+)
+
+F ((m • c) ◦ n)
+
+4.3.3. Remark. Observe bilinear functors are not maps which are ‘linear in each argument
+separately’–those are balanced maps, the subject of the next section (Definition 4.4.1).
+The two are sometimes confused since it is often assumed the left and right structures of a
+biactegory (or a bimodule) ‘coincide’ (see Proposition 4.3.7), in which case balance and
+bilinearity are related.
+4.3.4. Definition. A bilinear transformation ξ : (F, ℓ, r) ⇒ (G, ν, ϖ) : (C, •, ◦, ζ C ) →
+(D, ⬩, ⋄, ζ D ) is a natural transformation F ⇒ G which is both a linear transformation
+(Definition 3.3.9) (F, ℓ) ⇒ (G, ν) (‘on the left’) and (F, r) ⇒ (G, ϖ) (‘on the right’).
+4.3.5. Definition. The 2-category of (M, N )-biactegories, lax bilinear functors and
+bilinear natural transformation is denoted by M-Act-N lx .
+Consider the composite pseudomonad of left M- and right N -actegories. This pseudomonad exists because there is a distributive law of pseudomonads (as defined in [Mar99,
+§4])
+swap × − : N rev × M × − =⇒ M × N rev × −
+
+(4.24)
+
+given by symmetry of × in Cat. The four structure morphisms such a distributive law
+should be endowed with [Mar99, §4] are all trivial in this simple case. Moreover, we can
+
+43
+
+4.3 Biactegories
+
+strictify M and N to make the coherence laws hold strictly [Mar99, (coh 1)–(coh 9)], thus
+making the pseudomonad structure of N rev × M × − [Mar99, §5] more manageable.
+Ultimately, as anticipated, we have the following result which equates the definition of
+biactegories as pseudoalgebras of this composite monad to the definition we gave in terms
+of pairs of compatible actions:
+4.3.6. Theorem. There is an equivalence of 2-categories
+M-Act-N lx ≃ (N rev × M)-Actlx .
+
+(4.25)
+
+Proof. See Appendix B.
+A very important fact for the following section (and also for the ‘zoology’ of biactegories)
+is that left or right M-actegories can be canonically promoted to M-biactegories every
+time M is braided, since in that case there is an isomorphism Mrev ∼
+= M. This can also
+be interpreted as saying that actegories for braided categories are biactegories in the sense
+of ‘sequential composition’, that is, for two left actions (which in this case happen to
+coincide).
+4.3.7. Proposition. [Mirroring] Let (C, •) be a left M-actegory, where (M, j, ⊗, β) is a
+braided monoidal category. Then there is a canonical right M-actegorical structure on C
+and a canonical M-biactegorical structure induced by the braiding. We call the resulting
+biactegory the mirroring of (C, •).
+Proof. Consider a braiding β on M as a strong monoidal structure on the identity functor
+Mrev → M. We can pullback • along this morphism (Proposition 3.6.5) to obtain a left
+rev
+
+Mrev -action • on C. Concretely, this is given by the same functor − • = : Mrev × C → C,
+now equipped with
+rev
+
+ηc
+
+ηcrev := c • j == j • c −
+→ c,
+rev
+
+(4.26)
+
+rev
+
+µrev
+c,m,n := (c • n) • m == m • (n • c)
+µn,n,c
+
+−−−→ (m ⊗ n) • c
+(4.27)
+
+β•c
+
+−−→ (n ⊗ m) • c
+rev
+
+== (m ⊗ n) • c.
+rev
+
+To make (C, •, • ) into an M-biactegory, hence a natural isomorphism
+rev
+
+∼
+
+rev
+
+ζm,c,n : m • (c • n) == m • (n • c) −→ n • (m • c) == (m • c) • n
+
+(4.28)
+
+44
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+that we obtain by conjugating β (or better, the action thereof) with µ:
+µ−1
+m,n,c
+
+βm,n •c
+
+µn,m,c
+
+m • (n • c) −−−→ (m ⊗ n) • c −−−−→ (n ⊗ m) • c −−−→ n • (m • c).
+
+(4.29)
+
+To prove this is a well-defined bimodulator, we appeal to strictification (Lemma 3.4.1)
+and move to a setting where both the monoidal structure of M and the structure of • are
+strict. Note this doesn’t apply to the braiding of M, which can’t be strictified. Anyway,
+in this setting we notice immediately that (4.19) and (4.20) collapse to the two hexagonal
+axioms for a braiding [JY21, Definition 1.2.34]. The two triangular axioms (4.21)–(4.22)
+hold for analogous reasons.
+4.3.8. Corollary. Since (Mrev )rev = M, any right M-actegory, for M braided, can be
+canonically turned into an M-biactegory.
+4.3.9. Remark. The above proves that M-Actlx embeds into M-Act-Mlx , but this
+embedding is not wide, even when M is braided. There still are biactegories whose left
+and right action are genuinely distinct and not simply the symmetrization of each other.
+Despite this, often we abuse notation denoting the left and right structure of M-biactegory
+with the same symbol.
+4.3.10. Example. [Monoidal categories] As observed in Example 3.2.4, every monoidal
+category (C, i, ⊠) is canonically a left and right self-actegory (both supported by ⊠). It is
+trivial to observe that these two actions are compatible in the sense of biactegories:
+∼
+
+−1
+ζa,b,c := αa,b,c
+: a ⊠ (b ⊠ c) −→ (a ⊠ b) ⊠ c.
+
+(4.30)
+
+We call (C, ⊠, ⊠) the canonical self-biactegory associated to C.
+4.3.11. Example. [Braided monoidal categories] When (C, i, ⊠) comes with a braiding
+β, there is an additional way to make it into a self-biactegory, given by the mirroring
+construction described above (Proposition 4.3.7) applied to the left action. This yields the
+rev
+
+bicategory (C, ⊠, ⊠), where the bimodulator is given by braiding:
+rev
+
+m ⊠ (c ⊠ n) == m ⊠ (n ⊠ c)
+α−1
+m,n,c
+
+−−−→ (m ⊠ n) ⊠ c
+βm,n ⊠c
+
+−−−−→ (n ⊠ m) ⊠ c
+αn,m,c
+
+−−−→ c ⊠ (m ⊠ c)
+rev
+
+== (m ⊠ c) ⊠ n.
+
+(4.31)
+
+45
+
+4.4 Tensor product of actegories
+
+The identity map 1C : C → C is a bilinear functor from (C, ⊠, ⊠) (the canonical selfrev
+
+biactegory) to (C, ⊠, ⊠), equipped with the linear structures
+ℓc,d : c ⊠ d == c ⊠ d,
+rev
+
+βc,d
+
+(4.32)
+
+rc,d : c ⊠ d −−→ d ⊠ c == c ⊠ d.
+The hexagonal coherence for these then reproduces the first hexagonal identity for β. We
+recover the second one from repeating the same construction for C rev .
+4.4. Tensor product of actegories. Like any category of ‘modules’, actegories
+possess a natural notion of monoidal product, namely that of tensor product. This notion
+is indeed totally analogous to the eponymous product on vector spaces, modules, and the
+closely related cousins of actegories, module categories [Ost03]. Also, let us remind the
+reader we are not the first to observe the existence of such a product, nor to define it
+explicitly. See, for instance, [Ško06, Ško09].
+The tensor operation is defined between actegories of different handedness: the tensor
+D ⊗M C requires D to be a right M-actegory and C to be a left one. As usual, these
+actions are then ‘used up’ and are not available on D ⊗M C anymore. However, if further
+actegorical structures are present, then these are not affected. Therefore if D is a left
+N -actegory or C is a right P-actegory, so will be D ⊗M C.
+Here we define the tensor product of actegories using its universal properties of
+representing balanced functors, i.e. functors F : D × C → E such that F (d ◦ m, c) ∼
+=
+F (d, m • c), which is of course the categorification of the notion of balanced map of
+modules, where the isomorphism is simply an equality. That isomorphism is now structure
+obeying its own set of coherence laws:
+4.4.1. Definition. Let (C, (•, η • , µ• )) be a left M-actegory, (D, (◦, η ◦ , µ◦ )) a right Mactegory and E a category. An M-balanced functor is a functor F : D × C → E together
+with a natural isomorphism
+∼
+
+εd,m,c : F (d ◦ m, c) −→ F (d, m • c)
+
+(4.33)
+
+46
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+called equilibrator, obeying the following coherence laws:
+F (d ◦ (m ⊗ n), c)
+
+εd,m⊗n,c
+
+F (d, (m ⊗ n) • c)
+
+F (µ◦d,m,n ,c)
+
+F (d,µ•m,n,c )
+
+F ((d ◦ m) ◦ n, c)
+
+F (d, m • (n • c))
+εd◦m,n,c
+
+(4.34)
+
+εd,m,n•c
+
+F (d ◦ m, n • c)
+F (d ◦ j, c)
+
+εd,j,c
+
+F (d, j • c)
+
+F (η ◦ ,c)
+
+F (d,η • )
+
+(4.35)
+
+F (d, c)
+4.4.2. Definition. Let (F, ε), (G, ϑ) : D × C → E be M-balanced functors. An Mbalanced transformation is a natural transformation ξ : F ⇒ G for which all the
+following squares commute:
+F (d ◦ m, c)
+
+εd,m,c
+
+F (d, m • c)
+
+ξd◦m,c
+
+G(d ◦ m, c)
+
+ξd,m•c
+
+ϑd,m,c
+
+(4.36)
+
+G(d, m • c)
+
+Evidently, balanced functors D × C → E and balanced transformations thereof gather
+in a category Bal(D × C, E), and this construction is 2-functorial in E.
+4.4.3. Definition. Let (C, •) be a left M-actegory and (D, ◦) a right M-actegory. Their
+tensor product is the corepresenting object D ⊗M C of the 2-functor Bal(D × C, −). That
+is, it is a category D ⊗M C together with the structure of an isomorphism
+Bal(D × C, E) ∼
+= Cat(D ⊗M C, E),
+
+for all E : Cat.
+
+(4.37)
+
+One can ‘read off’ a concrete construction of the tensor product from this universal
+property. Saying every functor out of D ⊗M C is automatically balanced implies such a
+category must have the same objects as D × C, but more isomorphisms, namely all those
+of the form (d ◦ m, c) ∼
+= (d, m • c).
+
+47
+
+4.4 Tensor product of actegories
+
+4.4.4. Proposition. Let (C, •) be a left M-actegory and (D, ◦) a right M-actegory.
+Their tensor product D ⊗M C is given by the following isocoinserter (in Cat):
+◦×C
+
+D×M×C
+
+D×•
+
+D×C
+
+Q
+
+D ⊗M C
+
+(4.38)
+
+meaning it comes equipped with a universal natural isomorphism τ which coequalizes, up
+to iso, the two actions of M:
+◦×C
+
+D×M×C
+D×•
+
+D×C
+
+Q
+
+D ⊗M C
+
+≀ τ
+
+D×C
+
+(4.39)
+
+Q
+
+Proof. It suffices to prove that if F : D × C → E is balanced, then it yields a unique
+functor out of D ⊗M C (which here denotes the pseudocoequalizer) and vice versa. But
+this is immediate: being balanced means exactly coequalizing up to iso the two maps that
+Q is a pseudocoequalizer of, thus by universal property there is an isomorphism as in
+Definition 4.4.1, or, vice versa, such an isomorphism provides the required universal map.
+We can describe such a isocoinserter as the category obtained by adjoining isomorphisms
+and equations to D × C:
+4.4.5. Proposition. Let (C, (•, η • , µ• )) be a left M-actegory and (D, (◦, η ◦ , µ◦ )) a right
+M-actegory. Their tensor product is the category D ⊗M C has the same objects and
+morphisms of D × C, together with a family of isomorphisms
+∼
+
+τd,m,c : (d ◦ m, c) −→ (d, m • c),
+
+for all m : M, d : D, c : C.
+
+(4.40)
+
+satisfying the following relations:
+I) For every morphism f : d → d′ in D, g : c → c′ in C and α : m → n in M, the
+following square must commute:
+(d ◦ m, c)
+
+(f ◦α,g)
+
+τd′ ,n,c′
+
+τd,m,c
+
+(d, m • c)
+
+(d′ ◦ n, c′ )
+
+(f,α•g)
+
+(d′ , n • c′ )
+
+(4.41)
+
+48
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+II) For every d : D, m, n : M, c : C, the following diagrams must commute:
+(d ◦ (m ⊗ n), c)
+
+τd,m⊗n,c
+
+(d, (m ⊗ n) • c)
+
+(µ◦d,m,n ,c)
+
+(d,µ•m,n,c )
+
+((d ◦ m) ◦ n, c)
+
+(d, m • (n • c))
+
+τd◦m,n,c
+
+(4.42)
+
+τd,m,n•c
+
+(d ◦ m, n • c)
+(d ◦ j, c)
+
+τd,j,c
+
+(η ◦ ,c)
+
+(d, j • c)
+(d,η • )
+
+(4.43)
+
+(d, c)
+4.4.6. Proposition. Let (C, •, •) be an (N , M)-biactegory and (D, ◦, ◦) be an (M, P)biactegory. Then D ⊗M C is an (N , P)-biactegory, inheriting the left action from D and
+the right action from C.
+Proof. On D ⊗M C, we define
+m ◦ (d, c) := (m ◦ d, c)
+
+(4.44)
+
+and keep η and µ of the left action ◦ of D. The same applies on the right, and the
+bimodulator for D ⊗M C is trivial:
+ζm,(d,c),n : m ◦ ((d, c) • n) == (m • d, c • n) == (m ◦ (d, c)) • n.
+
+(4.45)
+
+The fact the tensor of actegories is a more natural choice of monoidal product between
+actegories can also be motivated by the following—which sometimes is used as definition:
+4.4.7. Proposition. Let C be an (N , M)-biactegory, D be a (M, P)-biactegory and E
+be a (N , P)-biactegory, let • denote all actions by abuse of notation. Then the category
+of (right) P-linear maps D → E, which we denote by [D, E]P has a canonical (N , M)biactegory structure, and is such that:
+N -Act-P(C ⊗M D, E) ∼
+= N -Act-M(C, [D, E]P ).
+We refer to this bracket as the internal hom (N , M)-biactegory of D and E.
+Proof. See Appendix B.
+
+(4.46)
+
+49
+
+4.4 Tensor product of actegories
+
+4.4.8. Remark. The above doesn’t hold if we take biactegories with lax linear functors
+between them—that would instead require ⊗M to be replaced by an asymmetric version
+in which τ from Proposition 4.4.4 is not asked to be invertible (thus defining a coinserter
+instead).11
+By duality, we also have (note the switch between C and D during transposition):
+4.4.9. Corollary. Let C be an (M, N )-biactegory, D be a (P, M)-biactegory and E be
+a (P, N )-biactegory. Then the category of (left) P-linear maps D → E, which we denote
+by [D, E]P has a canonical (M, N )-biactegory structure, and is such that:
+P-Act-N (D ⊗M C, E) ∼
+= M-Act-N (C, [D, E]P ).
+
+(4.47)
+
+4.4.10. Corollary. The tensor product of M-actegories ⊗M can be equipped with
+the structure of a monoidal product on M-Act-Mlx . Its restriction to M-Act-M is
+pseudoclosed, with internal hom [−, =]M .
+Proof. The extra structure required to obtain a monoidal structure on the 2-category
+M-Act-Mlx is described in Appendix B. The fact [−, =]M is a pseudoclosed structure
+has been proven in Proposition 4.4.7.
+We can now prove the following:
+4.4.11. Proposition. Let R : M → N be a strong monoidal functor, and let R∗ :
+N -Act → M-Act be the associated restriction of scalars, as defined in Proposition 3.6.1.
+Then R∗ has a left adjoint R! , called extension of scalars, given by
+R! (C, •) ∼
+= NR ⊗M C.
+
+(4.48)
+
+where NR is the canonical biactegory associated to N except the right action has been
+restricted by R.
+Proof. Notice if D is a left N -actegory, we have R∗ (D) ∼
+= [NR , D]N , since [N , D]N ∼
+= D as
+categories, and the right M-action on NR permeates through the hom (Proposition 4.4.7)
+to give the same left M-action as R∗ (D). Therefore, using the tensor-hom adjunction
+described in Corollary 4.4.9, we obtain the desired transposition isomorphism:
+M-Act(C, R∗ (D)) ∼
+= M-Act(C, [NR , D]N ) ∼
+= N -Act(NR ⊗M C, D).
+11
+
+(4.49)
+
+We made this mistake in a previous version of this work. We thank Subhajit Das for bringing this
+
+problem to our attention.
+
+50
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+4.4.12. Proposition. Let C and D be categories, then
+M[C] ⊗M M[D] ≃ M[C × D].
+
+(4.50)
+
+Proof. Recall from Proposition 3.5.2 that M[−] ≃ − ⊗ M, where ⊗ denotes the Catcopower operation (as described, for instance, in Example 3.2.7 or [Kel82, §3.7]) on M-Act.
+We proved ⊗M is left adjoint (on both sides), so it preserves colimits. Hence we have
+M[C] ⊗M M[D] ∼
+= (C ⊗ M) ⊗M (D ⊗ M) ∼
+= C ⊗ (D ⊗ M).
+
+(4.51)
+
+If we can prove C ⊗ (D ⊗ M) ∼
+= (C × D) ⊗ M, we are done. Indeed, we can prove the first
+satisfies the universal property of the latter:
+M-Act(C ⊗ (D ⊗ M), −) ∼
+= Cat(C, M-Act(D ⊗ M, −))
+∼
+= Cat(C, Cat(D, M-Act(M, −)))
+∼
+= Cat(C × D, M-Act(M, −))
+∼
+= M-Act((C × D) ⊗ M, −).
+
+(4.52)
+
+5 INTERACTION OF MONOIDAL AND ACTEGORICAL STRUCTURES
+
+51
+
+5. Interaction of monoidal and actegorical structures
+For the purposes of categorical cybernetics, it is almost impossible to avoid pondering
+situations in which an M-actegory C is also equipped with a monoidal structure (i, ⊠).
+When this happens, it is natural to ask whether the two structures are compatible in
+any way. In practice, this compatibility turns out to be a requirement for making some
+constructions run smoothly, chiefly the Para construction [CGHR21]. In fact for the latter
+construction to be monoidal,12 we need exactly the data of an M-actegory C equipped
+with a monoidal structure and a natural morphism
+ιm,n,c,d : (m ⊗ n) • (c ⊠ d) −→ (m • c) ⊠ (n • d)
+
+(5.1)
+
+In [CGHR21, §2.1] this was called mixed interchanger, and it was observed it can be
+decomposed in strength-like morphisms
+κm,c,d : m • (c ⊠ d) −→ c ⊠ (m • d),
+
+(5.2)
+
+χm,c,d : m • (c ⊠ d) −→ (m • c) ⊠ d.
+The three were related by making heavy use of symmetric structure on M, and it wasn’t
+clear which properties of M, C and • were actually relevant.
+In this section, we expound the situation by framing those sparse observations in
+the context of the theory of actegories we have built so far. We are going to investigate
+multiple ways to combine actegorical and monoidal structure, as summarized later in
+Table 1. In Section 5.1 we define ‘monoidal actegories’ as pseudoactions in MonCat and
+show these are those for which the Para and Optic constructions are monoidal. Later, in
+Section 5.2, we study pseudomonoids in M-Act, taken with respect to either its tensor or
+its cartesian monoidal structures. We show these turn out to be equivalent to monoidal
+actegories in the first case, and explore some connections with hybrid optics in the second.
+In Section 5.4 we extend the previous definitions to the braided and symmetric cases.
+Finally, in Section 5.5 we prove three Cayley-type classification theorems for monoidal,
+braided and symmetric actegories.
+5.1. Monoidal actegories. The easiest approach to describe actions on monoidal
+categories is to just have the action of M to take place in MonCat. To even talk about
+‘actions’ of M, M has to be a (pseudo)monoid in MonCat, i.e. a braided monoidal
+12
+
+In the bicategorical sense, see [JY21, Explanation 12.1.3].
+
+52
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+category. Hence, from now on, unless explicitly specified, we will assume M is equipped
+∼
+
+with a braiding βm,n : m ⊗ n → n ⊗ m.
+5.1.1. Definition. An oplax monoidal left M-actegory is a monoidal category
+(C, i, ⊠) equipped with an oplax monoidal functor • : M × C → C and two monoidal
+natural transformations µ and η defined analogously to Definition 3.1.1. When • is strong,
+we call it simply monoidal actegory.
+5.1.2. Remark. Explicitly, the monoidal structure on • is given by natural morphisms
+υ : i −→ j • i,
+
+(5.3)
+
+ιm,c,n,d : (m ⊗ n) • (c ⊠ d) −→ (m • c) ⊠ (n • d).
+where we still call ι the mixed interchanger. As η is now a monoidal natural transformation,
+it comes equipped with two additional compatibility conditions, one of which unpacks to
+the following diagram
+i
+i
+
+ηi
+
+υ
+
+(5.4)
+j•i
+
+This diagram tells us that when defining an oplax monoidal structure on an actegory, all
+we need to define is the mixed interchanger naturally, since υ can always be defined as
+ηi−1 . We have drawn the remaining coherence laws satisfied by µ, η and ι in Appendix A.
+5.1.3. Remark. Diagram (A.11) (monoidality of µ) shows why M needs to be braided
+to even spell this definition out: we need to be able to talk about the monoidal structure
+of ⊗ itself, which is indeed given by the braiding.
+5.1.4. Remark. From an interchanger, both κ and χ (as in (5.2)) can be derived:
+λ−1
+m •(c⊠d)
+
+κm,c,d := m • (c ⊠ d) −−−−−−→ (j ⊗ m) • (c ⊠ d)
+ιj,c,m,d
+
+−−−−→ (j • c) ⊠ (m • d)
+ηc ⊠(m•d)
+
+−−−−−→ c ⊠ (m • d),
+(5.5)
+ρ−1
+m •(c⊠d)
+
+χm,c,d := m • (c ⊠ d) −−−−−−→ (m ⊗ j) • (c ⊠ d)
+ιm,j,c,d
+
+−−−−→ (m • c) ⊠ (j • d)
+(m•c)⊠ηd
+
+−−−−−→ (m • c) ⊠ d.
+
+53
+
+5.1 Monoidal actegories
+Vice versa, κ and χ determine ι:
+µ−1
+m,n,c⊠d
+
+ιm,n,c,d := (m ⊗ n) • (c ⊠ d) −−−−−→ m • (n • (c ⊠ d))
+m•κn,c,d
+
+−−−−−→ m • (c ⊠ (n • d))
+
+(5.6)
+
+χn,c,d
+
+−−−→ (m • c) ⊠ (n • d)).
+5.1.5. Remark. Observe that monoidal actegories could be presented as particular
+biactegories. In fact a monoidal M-actegory is equivalently a (M, C)-biactegory and a
+(M, C rev )-biactegory: the structure morphisms κ and χ are bimodulators for • and ⊠,
+where the latter is used both as a left action (hence κ) and a right action (hence χ), as in
+Example 4.3.10.
+It is evident the definition of lax linear functors and linear natural transformation can
+be adapted too to this case, by asking the underlying functors and natural transformations,
+respectively, to be monoidal. Therefore there is an indexed 2-category (−)-Actlx
+MonCat ,
+analogous to the one described in Proposition 3.6.5, giving rise to a 2-category Actlx
+MonCat .
+The same applies to all the other kinds of actegories we are going to define in this section,
+so we won’t bother the reader with a similar remark again and we will tacitly consider
+analogous 2-categories to have been defined.
+5.1.6. Example. The most trivial example of monoidal actegory is given by the self-action
+(Example 3.2.4) of any braided monoidal category.
+5.1.7. Example. In [CP09], the central structure is that of linear actegory. Using our
+terminology, it is an M-diactegory (Remark 3.1.4) supported by a category C equipped
+with two monoidal products ⊠, ⊞ and isomorphisms a ⊠ (b ⊞ c) ∼
+= (a ⊠ b) ⊞ c ∼
+= b ⊞ (a ⊠ c).
+Then C is a monoidal M-actegory since the M-action • and the Mop -action ◦ are required
+to be monoidal with respect to both ⊠ and ⊞. Moreover, m • − ⊣ m ◦ − for every m : M.
+5.1.8. Example. Similarly as above, suppose C is cartesian and cocartesian monoidal.
+Then there always is an oplax monoidal structure on the self-action induced by × on
+(C, 0, +):
+∃!
+
+πa,c +πb,d
+
+(a × b) × (c + d) −
+→ a × b × c + a × b × d −−−−−→ a × c + b × d.
+As anticipated, we investigated the notion of monoidal actegory in order to capture
+the structure needed to make the results of Copara and Para constructions monoidal
+
+54
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+bicategories. For the sake of clarity, we remind the reader of [CGHR21, Definition 2].
+Given an M-actegory (C, •), the bicategory Para• (C) has the same objects of C but a
+morphism (m, f ) : c → d is now given by a choice of scalar m : M and a morphism
+f : m • c → d. Composition and identities are built from the multiplicator and unitor of •.
+Suppose now we additionally equip C with the monoidal structure (i, ⊠). The object
+part of ⊠ trivially extends to Para• (C), but in order to extend it to morphisms, we need to
+assume • is an oplax monoidal M-action. In fact if (m, f ) : c → d and (n, g) : c′ → d′ are
+morphisms, we can define (denoting by ⊠• the candidate monoidal product on Para• (C)):
+ιm,n,c,c′
+
+f ⊠g
+
+f ⊠• g := (m ⊗ n, (m ⊗ n) • (c ⊠ c′ ) −−−−→ (m • c) ⊠ (n • c′ ) −−→ d ⊠ d′ ).
+
+(5.7)
+
+Ultimately, bifunctoriality follows from the braidedness of M, the bifunctoriality of ⊠,
+and the monoidality of µ• (see Diagram A.11). Conversely, given a monoidal product on
+Para• (C), we can recover ιm,n,c,c′ by setting f = (m, 1m•c ) and g = (n, 1n•c′ ). The same
+can be shown for Copara• (C).
+5.1.9. Remark. Let (C, •) and (D, ◦) be M-actegories. In [BCG+ 21] it is shown how
+Optic•,◦ arises as the (local discretization of) the pullback of
+Para• (C)coop
+
+P
+
+(BM)op
+
+C
+
+Copara◦ (D),
+
+(5.8)
+
+where P and C respectively project out the parameter and coparameter of a given
+(co)parametric morphism. Therefore, in case C and D are actually oplax monoidal actegories, the induced monoidal structure on Para• (C) and Copara◦ (D) would automatically
+yield a monoidal structure on Optic•,◦ , defined ‘componentwise’ on the pullback.
+5.1.10. Remark. Observe the product defined in Equation 5.7 yields both the parallel
+product and external choice mentioned in Section 4.1. Indeed, when C is in the situation
+outlined in Example 5.1.8, we get parallel product as ×× and external choice as +× .
+5.2. Algebroidal actegories. Monoidal actegories are thus actions in MonCat, but
+nothing forbids going the other way: instead of expressing the M-action on C internally
+to MonCat, we might express the monoidal structure internally to M-Act.
+Monoidal objects in categories of modules have been traditionally called ‘algebras’, thus
+we are going to call their categorified version ‘algebroidal actegories’.13 In order to talk
+13
+
+Quantum algebra literature seems to use ‘algebra’ anyway for this kind of objects, like in [BZFN10].
+
+55
+
+5.2 Algebroidal actegories
+
+about these ‘algebroidal structures’, we have to choose a monoidal structure for in M-Act.
+As proven in Remark 4.2.4, this category is cartesian monoidal, but that is not the only
+useful monoidal product around. We have proven in Proposition 4.3.7 that when M is
+braided, every left M-actegory is canonically a M-biactegory therefore we can restrict to
+M-Act the monoidal structure of M-Act-M given by tensor product.
+We start by analyzing the notion of algebroidal actegory we get from the tensor product
+of actegories:
+5.2.1. Definition. [Balanced algebroidal M-actegory] A balanced algebroidal Mactegory is a pseudomonoid in (M-Act, M, ⊗M ), amounting to a left M-actegory (C, •)
+together with M-linear functors
+I : M −→ C,
+
+(5.9)
+
+⊠ : C ⊗M C −→ C
+and M-linear natural transformations λ, ρ, α satisfying the usual axioms for unitors and
+associators in pseudomonoids.
+By appealing to Lemma 3.4.5, most of the data pertaining I (i.e. its left and right
+lineators) can be safely discarded by agreeing that I(m) = m • I(j), leaving just the choice
+of I(j) : C as data, that from now on we simply denote by i.
+By Proposition 4.4.4 and Corollary 4.4.10, the product map is equivalently given by a
+balanced (and still linear) functor out of the cartesian product:
+C×C
+Q
+
+C ⊗M C
+
+(5.10)
+
+∃! ⊠
+
+⊠
+
+C
+
+Therefore a balanced M-algebroidal structure amounts to a monoidal structure (i, ⊠, λ, ρ, α)
+on C, plus an equilibrator (Definition 4.4.1) for ⊠:
+∼
+
+εm,c,d : (m • c) ⊠ d −→ c ⊠ (m • d);
+
+(5.11)
+
+and a left lineator (Definition 3.3.2) for ⊠:
+∼
+
+ℓm,c,d : m • (c ⊠ d) −→ (m • c) ⊠ d.
+We spelled out the coherence laws obeyed by these in Appendix A.
+
+(5.12)
+
+56
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+5.2.2. Proposition. For a braided monoidal category M, every balanced algebroidal
+M-actegory can be presented as a (strong) monoidal M-actegory and vice versa.
+Proof. Given a balanced algebroidal M-actegory, we get the data needed to define a
+monoidal M-actegory by setting χ := ℓ and κ := ℓ # ε. Vice versa, we set ℓ := χ and
+
+ε = χ−1 # κ. Regarding coherence, it is a bit hard to eyeball exactly the correspondence
+between the two set of diagrams, since those for monoidal actegories are naturally spelled in
+
+terms of ι instead of κ and χ. In broad terms, Diagram (A.8) corresponds to Diagram (A.17)
+and Diagram (A.18), Diagram (A.9) to Diagram (A.16), Diagram (A.10) to Diagram (A.13)
+and Diagram (A.15), and finally Diagram (A.11) to Diagram (A.12) and Diagram (A.14).
+5.2.3. Remark. Even though balanced M-algebroidal actegories ‘trivialize’ to monoidal
+actegories, if we let Definition 5.2.1 take place in bona fide M-biactegories with their tensor
+product, we obtain something genuinely different. Indeed, the equivalence we just sketched
+hinges crucially on C being used as a ‘mirrored’ biactegory, i.e. one for which left and right
+action only differ by a braiding twist in the multiplicator (Proposition 4.3.7). When C
+doesn’t have this property, a morphism like κ, that changes the order of symbols in an
+expression like m • (c ⊠ d), does not emerge anymore. Therefore a generic pseudomonoid
+object in (M-Act-M, M, ⊗M ), even when M is braided, is not ‘just’ a ‘monoidal Mbiactegory’ (i.e. Definition 4.3.1 internalized to M-Act-M, as we did for Definition 3.1.1
+to get Definition 5.1.1), whereas the converse is true: every monoidal M-biactegory defines
+an M-algebroidal biactegory (by forgetting κ).
+We now turn to the second possible definition of algebroidal actegory, using the cartesian
+monoidal structure on M-Act.
+5.2.4. Definition. [Distributive algebroidal M-actegory] A distributive algebroidal
+M-actegory is a pseudomonoid in (M-Act, 1, ×), i.e. a left M-actegory (C, •) together
+with M-linear functors:
+o : 1 −→ C,
+
+(5.13)
+
+⊞ : C × C −→ C
+and M-linear natural transformations λ, ρ, α satisfying the usual axioms for unitors and
+associators in pseudomonoids described in Appendix A.
+
+57
+
+5.2 Algebroidal actegories
+
+5.2.5. Remark. Explicitly, the lineators of o and ⊞ are called the absorber and distributor,
+respectively, componentwise unpacking to
+∼
+
+γm : m • o −→ o,
+∼
+
+(5.14)
+
+δm,c,d : m • (c ⊞ d) −→ (m • c) ⊞ (m • d)
+We note that Diagram (A.19) shows γj = ηo−1 .
+We are not aware of this definition being in the literature already, except for the
+case in which • descends from a monoidal structure (i, ⊠) already present on C, i.e. C is
+an actegory of the kind of Example 3.2.4. In that case, the above definition captures a
+fragment of that of Laplaza [Lap72], including coherences.
+5.2.6. Example. The canonical N-action on a monoidal category M, defined in Example 3.2.5, is distributive algebroidal whenever M is symmetric. In fact, in that circumstance,
+⊗n
+j ⊗n ∼
+= j and (m ⊗ m′ )⊗n ∼
+= m⊗n ⊗ m′ for any m : M and n : N.
+5.2.7. Example. In [CP09, Alc14], they consider the structure of a category being acted
+upon in two adjoint ways, that is, a category C receiving an M-action ◦ and an Mop action • such that for each m : M, m ◦ − ⊣ m • −. This happens, for example, when
+C = M is cartesian closed in which case ◦ = ⊗ and • = [−, =]. Then if C has coproducts,
+m ◦ − preserves them by virtue of being left adjoint, therefore (C, •, 0, +) is a distributive
+algebroidal M-actegory.
+5.2.8. Example. Consider the category VecK of finite-dimensional vector spaces over
+a field K. This is a distributive algebroidal VecK -actegory where the acting monoidal
+structure is given by the tensor product (⊗, K), and the underlying product structure is
+given by the direct product (⊕, K 0 ). Unpacked concretely, the absorber and the distributor
+reduce to the well-known isomorphisms in vector spaces
+∼
+
+U ⊗ K −→ U,
+∼
+
+U ⊗ (V ⊕ W ) −→ (U ⊗ V ) ⊕ (U ⊗ W )
+5.2.9. Proposition. [From distributive algebroidal to monoidal] Let M be a symmetric
+monoidal category suitably equipped with a commutative comonoid structure on every object
+(also known as a CD-category, see [CJ19, Def. 2.2.]). Then any distributive algebroidal
+actegory (C, •) (with M-linear functors o and ⊠) can be turned into an oplax monoidal
+actegory whose interchanger is defined as the following composite:
+
+58
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+(m ⊗ m′ ) • (a ⊠ a′ )
+δm⊗m′ ,a,a′
+
+−−−−−−→((m ⊗ m′ ) • a) ⊠ ((m ⊗ m′ ) • a′ )
+((m⊗ϵ
+
+′
+′
+′ )•a)⊠((ϵm ⊗m )•a )
+
+m
+−−−−−
+−−−−−−−−−−−→((m ⊗ j) • a) ⊠ ((j ⊗ m′ ) • a′ )
+
+(ρm •a)⊠(λ
+
+′
+′ •a )
+
+m
+−−−−−−−−
+−−→(m • a) ⊠ (m′ • a′ )
+
+and where ϵm and ϵm′ denote the counit morphism on m and m′ of M, respectively. It’s
+routine to show that this is natural.
+Most importantly for our interests, this kind of distributivity is used in the optics
+literature to define a class of mixed optics called ‘affine traversals’ [Rom20, CEG+ 20].
+In fact, suppose C is a distributive algebroidal M-actegory. We can form (at least)
+two kinds of optics from this data. The first kind is ‘homogeneous’ optics using up
+the data of the M-action on C, namely Optic•,• . The second kind is obtained using
+the monoidal structure on C instead, yielding Optic⊞,⊞ . More often than not, ⊞ is a
+cocartesian monoidal structure, so these latter optics can be considered ‘prism-like’.
+Affine traversals come up when one tries to compose optics from Optic•,• with the
+prism-like optics Optic⊞,⊞ . Such ‘chimeric’ optics are usually obtained by combining the
+actegorical data used for each of the parts making up the chimera to yield a ‘minimal’
+composite actegory (we have seen this in Remark 4.2.5). In the case at hand, this means
+combining • and ⊞ in some way, and if they form a distributive algebroidal M-actegory
+then we have the data required to do so:
+5.2.10. Proposition. [Aff product] Let (C, •, o, ⊞) be a distributive algebroidal Mactegory. Then the product category C × M can be equipped with a monoidal product ⊚,
+whose unit is (o, j) and whose product law is so defined:
+(c, m) ⊚ (d, n) := (c ⊞ (m • d), m ⊗ n)
+
+(5.15)
+
+Following the terminology in [CEG+ 20, Prop. 3.25.]) we call this the Aff product, and we
+denote such monoidal category by W(C, M).
+Proof. See Appendix B.
+
+59
+
+5.2 Algebroidal actegories
+
+5.2.11. Remark. This product might seem puzzling, but it is actually very natural.
+One has to think about pairs (c, m) as standing for the affine endofunctors c ⊞ (m • −)
+on C. Then ⊚ is abstracting the composition product of such functors, meaning that
+(c, m) ⊚ (d, n) are the coefficients of c ⊞ (m • −) # d ⊞ (n • −). Notice, however, that
+
+the inclusion (c, m) 7→ c ⊞ (m • −) is not full, that is, we can’t say in general that every
+natural transformation c ⊞ (m • −) ⇒ d ⊞ (n • −) arises from a pair of morphisms c → d
+in C and m → n in M.
+5.2.12. Example. A dual situation to that of Example 5.2.7 arises when C is cartesian
+closed, in which case (C, [−, =], 1, ×) is a distributive algebroidal C op -actegory, where
+[−, =] : C op × C → C denotes the internal hom. The Aff product in this case is given by
+(c, m) ⊚ (d, n) := (c × [m, d], m × n)
+and the associated class of optics is known as glasses [CEG+ 20, §3.3.2].
+Naturally, affine endofunctors on C act on C:
+(c, m) ⊛ d = c ⊞ (m • d).
+
+(5.16)
+
+The unitor and multiplicator of this action are routine to define (see Corollary B.0.1).
+5.2.13. Remark. One might notice we already have the means to obtain affine traversals
+(or, in general, of hybrid optics) using the coproduct of actions described in Remark 4.2.5.
+Indeed, there is a ‘projection functor’ π : C + M → W(C, M) defined as
+c1 m1 · · · ck mk 7→ (c1 ⊞ (m1 • c2 ) ⊞ · · · ⊞ (m1 ⊗ · · · ⊗ mk−1 • ck ), m1 ⊗ · · · ⊗ mk ). (5.17)
+This is a morphism in Actcart (C), meaning
+π(c1 m1 · · · ck mk ) ⊛ − ∼
+= (c1 m1 · · · ck mk ) #G+
+cart − .
+
+(5.18)
+
+Combining this observation with Remark 5.2.11 above, we realize W(C, M) is a direct
+presentation of the replete image14 of curr(#G+
+cart ) in [C, C]; that is, it captures the essential
+
+way C + M acts on C.
+
+The difference between the action of W(C, M) and that of C + M is a guiding example
+in [Rom20, §6.4], where clear optics are studied, i.e. optics associated to actions whose
+14
+
+The replete image of a functor F : A → B is the universal pseudomonic functor F factors through. In
+
+other words, it is the smallest subcategory of B closed under isomorphisms that contains the image of F .
+
+60
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+currying is pseudomonic. Róman notes that the Optic construction is invariant under
+repletion, that is, forming categories of optics only depends on the data contained in the
+replete image of a given action:
+Actcart (C)
+
+repl
+
+Actcart (C)
+
+Optic
+
+Optic
+
+(5.19)
+
+Cat
+Therefore any given class of optics can be presented by multiple, inequivalent actions
+(indeed, ⊛ ∼
+̸= #G+
+cart ), as long as they all have the same replete image. In practice, one would
+
+like to use the ‘least redundant’ among these actions, that is, the one for which the map
+M → [C, C] is pseudomonic, which is indeed what the repletion gives. Thus comparing
+the Aff action and the coproduct action, we see that the albeit the latter is more general,
+the former directly yields such maximally efficient action, by exploiting the structure of
+the situation.
+This also happens when the structure of biactegory is around. Suppose in fact C is
+an (M, N )-actegory. Then the repletion of curr(#G+
+cart ) coincides with curr⟨•, ◦⟩, since the
+
+bimodulator provides a way to commute the actions of scalars in M past the actions of
+scalars in N . In other words, the functor Γ : M×N → M+N described in Equation (4.6)
+becomes a morphism in Actcart (C), specifically the repletion projection..
+The common theme here is that both distributive algebroidal actegories and biactegories describe structure to ‘sequentially compose’ (recall the beginning of Section 4) two
+actegories. One might then speculate that such distributive laws provide general ways to
+reduce the coproduct action: distributive algebroidal structure allows to reduce C + M to
+W(C, M) whereas biactegorical structure reduces N + M to to N × M.
+5.3. Distributive laws. As remarked in Section 4.3, bimodulators are akin to distributive laws for the endofunctors induced by scalars in M and N respectively. Proposition 5.2.10 shows, in some cases, different kind of distributive laws might be around, thus
+yielding a different ‘sequential composition’ of the actions.
+All in all, we have the following classification:
+
+61
+
+5.3 Distributive laws
+monoidal structure (o, ⊞)
+
+N -actegorical structure ◦
+
+monoidal N -actegory
+(C, i, ⊠) in
+
+braided monoidal category
+
+(MonCat, 1, ×)
+
+(a ⊞ c) ⊠ (b ⊞ d) ∼
+= (a ⊠ b) ⊞ (c ⊠ d)
+
+N braided
+(n ◦ c) ⊠ (n′ ◦ d) ∼
+= (n ⊘ n′ ) ◦ (c ⊠ d)
+
+distributive algebroidal M-actegory
+(C, •) in
+
+m•o∼
+=o
+
+(M-Act, 1, ×)
+m • (c ⊞ d) ∼
+= (m • c) ⊞ (m • d)
+
+(M, N rev )-biactegory
+m • (n ◦ c) ∼
+= n ◦ (m • c)
+
+balanced algebroidal M-actegory
+
+(M, N rev )-biactegory
+
+M braided
+
+M braided
+
+(m • c) ⊞ (m′ • d) ∼
+= (m ⊗ m′ ) • (c ⊞ d)
+
+m • (n ◦ c) ∼
+= n ◦ (m • c)
+
+(C, •) in
+(M-Act, M, ⊗M )
+
+Table 1: Each cell contains the result of equipping the object in the corresponding row
+with the structure of the corresponding column. In the above, (M, j, ⊗) and (N , e, ⊘) are
+monoidal categories.
+From this point of view we recover all the ‘hybrid’ structures we contemplated so
+far, including an additional cameo of braided categories whose equivalence to ‘monoidal
+monoidal categories’ is well-known [JS93].
+Perhaps the only entries of the table which are not completely obvious are the ones
+pertaining biactegories. In fact we didn’t present (M, N )-biactegories as ‘N -actions
+in M-Act’, but as bialgebras for the M × − and N × − (for sake of simplicity, let’s
+temporarily ignore the fact we should technically consider N acting on the right).
+This gives us the opportunity to brush up something we briefly mentioned at the
+beginning of the paper, in Definition 3.1.10, where we defined the structure of ‘action of a
+monoid’ in any category C which is itself subject to an action of a monoidal category M.
+It is easy to convince oneself that this statement stays true if we categorify one more
+time. Hence to talk about ‘N -actions in M-Act’ it is enough for Cat to act on M-Act,
+so that N (which is indeed a monoid in Cat) can act on objects of M-Act. One can prove
+(the characterization theorems in the next section are useful in this regard) that there are
+
+62
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+two such actions:
+D ⋉ (C, •) := (D × C, D × •),
+
+(5.20)
+
+D  (C, •) := M[D] ⊗M C.
+
+Therefore an N -action in M-Act can be interpreted in two different ways:
+1. Using ⋉, we get an M-actegory (C, •) together with an M-linear morphism ◦ :
+N × C → C, and it is indeed this linear structure that gives rise to the bimodulator
+morphism n ◦ (m • c) ∼
+= m • (n ◦ c).
+2. Using , we get an M-actegory (C, •) together with an M-linear morphism ◦ :
+M[N ] ⊗M C → C. But we can easily prove that M[N ] ⊗M C ≃ N × C, so this
+structure coincides with the one above.
+5.4. Braided and symmetric monoidal actegories. So far, we have been focusing
+on the case where a braided monoidal category (M, j, ⊗, β) acts on a monoidal category
+(C, i, ⊠). What happens if instead M is symmetric? And what if C is braided or symmetric?
+We frame this question in the same way we did before, i.e. by formulating the definition
+of action not in MonCat anymore, but internally to BrMonCat and SymMonCat.
+Conversely we formulate the notion of braided and symmetric pseudomonoid inside
+M-Act, with either choice of monoidal product.
+In the first case, recall that BrMonCat ∼
+= PsdMon(MonCat), SymMonCat ∼
+=
+PsdMon(BrMonCat) (and PsdMon(SymMonCat) ∼
+= SymMonCat), defining a column in the periodic table of higher categories [BD95]. This means that actions on
+braided and symmetric monoidal categories, by definition, come from symmetric monoidal
+categories. Thus we have:
+5.4.1. Definition. [Braided monoidal actegory] Let (M, j, ⊗, σ) be a symmetric monoidal
+category. A braided monoidal left M-actegory is a braided monoidal category (C, i, ⊠, β)
+equipped with a braided monoidal functor • : M × C → C and two monoidal natural
+transformations µ and η defined analogously to Definition 3.1.1. The strong monoidal
+structure on • is given as in Definition 5.1.1, and additionally the following axiom is
+satisfied:
+(m ⊗ n) • (c ⊠ d)
+
+ιm,n,c,d
+
+σm,n •βc,d
+
+(n ⊗ m) • (d ⊠ c)
+
+(m • c) ⊠ (n • d)
+βm•c,n•d
+
+ιn,m,d,c
+
+(n • d) ⊠ (m • c)
+
+(5.21)
+
+63
+
+5.4 Braided and symmetric monoidal actegories
+5.4.2. Remark. In terms of κ and χ (Remark 5.1.4), the last axiom splits in two:
+m • (c ⊠ d)
+
+χm,c,d
+
+(m • c) ⊠ d
+
+m•βc,d
+
+m • (d ⊠ c)
+
+m • (c ⊠ d)
+
+βm•c,d
+
+c ⊠ (m • d)
+
+m•βc,d
+
+d ⊠ (m • c)
+
+κm,d,c
+
+κm,c,d
+
+βc,m•d
+
+m • (d ⊠ c)
+
+χm,d,c
+
+(5.22)
+
+(m • d) ⊠ c
+
+5.4.3. Remark. [Symmetric monoidal actegory] Since ‘symmetry’ is a property of braided
+structures, and braided monoidal functors automatically preserve it, ‘symmetric monoidal
+actegories’ amount to braided monoidal actegories such that β (the braiding on C) happens
+to be symmetric.
+We can still wonder what happens if we take an algebroidal actegory and ask the
+pseudomonoidal structure to be braided or symmetric (as defined in [McC00a, §3]).
+For a balanced algebroidal actegory (C, •, i, ⊠) (Definition 5.2.1), a braiding in this
+sense amounts to a braiding β on the underlying monoidal category (C, i, ⊠) which happens
+to also be a linear and balanced transformation in M-Act:
+C×C
+
+swap
+
+⊠
+
+β
+
+C
+
+C×C
+
+C×C
+
+swap
+
+⊠
+
+β
+
+⊠
+
+C
+
+C
+
+C×C
+(5.23)
+
+⊠
+
+C
+
+An interesting fact to observe is that ε, the equilibrator of ⊠, becomes part of the left
+linear structure of swap # ⊠, so that linearity for β looks like this:
+ℓm,c,d
+
+m • (c ⊠ d)
+
+(m • c) ⊠ d
+
+m•βc,d
+
+m • (d ⊠ c)
+
+βm•c,d
+
+ℓm,d,c
+
+(m • d) ⊠ c
+
+εm,d,c
+
+d ⊠ (m • c)
+(5.24)
+
+m • (c ⊠ d)
+
+ℓm,c,d
+
+(m • c) ⊠ d
+
+m•βc,d
+
+m • (d ⊠ c)
+14
+
+εm,c,d
+
+c ⊠ (m • d)
+βc,m•d
+
+ℓm,d,c
+
+(m • d) ⊠ c
+
+To even talk about this, one should prove the monoidal 2-category where the pseudomonoid leaves
+
+is itself symmetric. In our case, this is either (M-Act, 1, ×) (which is obviously symmetric) and
+(M-Act, M, ⊗M ) (which is symmetric when M is, although less obviously so).
+
+64
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+Recall now the proof of Proposition 5.2.2, where we have shown monoidal actegories and
+balanced algebroidal categories coincide. We set χ = ℓ and κ = ℓ # ε, a substitution under
+
+which Diagram (5.22) is transmuted to the one just drawn. Vice versa, given χ and κ
+
+we set ℓ = χ and ε = χ−1 # κ, and the transformation of diagrams reverses. Therefore,
+we conclude the equivalence of balanced algebroidal and monoidal actegories
+extends to the braided (and thus, the symmetric) case.
+When it comes to distributive algebroidal actegories (Definition 5.2.4), a braiding for
+(C, •, o, ⊞) is still a braiding β for the underlying monoidal category satisfying an additional
+linearity axiom, namely
+m • (c ⊞ d)
+
+m•βc,d
+
+m • (d ⊞ c)
+
+δm,c,d
+
+δm,d,c
+
+(m • c) ⊞ (m • d)
+
+βm•c,m•d
+
+(5.25)
+
+(m • d) ⊞ (m • c)
+
+5.5. The classifying objects of actions. We now have a pretty clear picture of the
+possible ways monoidal and actegorical structures can interact. In particular, we have seen
+how this interaction amounts to specific ‘distributive laws’ (Table 1). One way to think of
+those laws is as constraints on the effect of the action on products. Take for example a
+monoidal M-actegory (C, i, ⊠, •). We know that in that case
+m • (c ⊠ d) ∼
+= c ⊠ (m • d).
+
+(5.26)
+
+However, every element of C can be written as a monoidal product, in at least two ways:
+c⊠i∼
+=c∼
+= i ⊠ c.
+
+(5.27)
+
+As a consequence, • is completely determined by its effect on the monoidal unit i:
+m•c∼
+= m • (c ⊠ i) ∼
+= c ⊠ (m • i).
+
+(5.28)
+
+In particular, m 7→ m • i defines functor − • i : M → C which is strong monoidal:
+j•i∼
+= i,
+(m ⊗ m′ ) • i ∼
+= (m ⊗ m′ ) • (i ⊠ i) ∼
+= (m • i) ⊠ (m′ • i).
+
+(5.29)
+
+Thus one might speculate an equivalence between action on C and strong monoidal
+functors into C. After all, we already stumbled upon a similar fact in Example 3.6.7, where
+we observed how actions on C are classified by [C, C].
+
+65
+
+5.5 The classifying objects of actions
+
+There is a problem though: while every action on C does indeed produce a monoidal
+functor into C, the converse is not true. In fact given F : M → C, and defining m • c :=
+F (m) ⊠ c, we do get a well defined action but when it comes to defining the mixed
+interchanger (i.e. the monoidal structure of •), we are stuck:
+(m ⊗ m′ ) • (c ⊠ d) = F (m ⊗ m′ ) ⊠ c ⊠ d
+∼
+= F (m) ⊠ F (m′ ) ⊠ c ⊠ d
+?∼
+= F (m) ⊠ c ⊠ F (m′ ) ⊠ d
+
+(5.30)
+
+= (m • c) ⊠ (m′ • d).
+∼
+
+Note the missing isomorphism is something of the form F (m′ ) ⊠ c → c ⊠ F (m′ ).
+Thus, the takeaway is that monoidal actions on C encode more information than a
+∼
+
+monoidal functor into C can provide, namely that of a choice of ‘braiding’ F (m) ⊠ − →
+− ⊠ F (m) for each scalar m.
+To fix this problem, we are going to introduce two objects, the Drinfeld center Z(C)
+(Definition 5.5.2) and the symmetric center Σ(C) (Definition 5.5.8), that play the role of
+[C, C] for, respectively, monoidal (Definition 5.1.1) and braided actions (Definition 5.4.1).
+The main results of this section are classification results: they tell us that monoidal
+actions on a monoidal category C correspond to strong monoidal functors into Z(C)
+and braided actions on a braided category C correspond to braided functors into Σ(C),
+formalizing the idea we illustrated above. When C is symmetric, such a correspondence
+has the simplest form: braided M-actions on C correspond to braided functors M → C.
+5.5.1. Classifying monoidal actions. The Drinfeld center construction is a ‘proofrelevant’ version of the usual center construction Z(M ) of a monoid M . In fact, the latter
+is the monoid of those elements m ∈ M with the property that ∀n ∈ M, m · n = n · m,
+while the first is a monoidal category of those elements c : C equipped with the structure
+∼
+
+of a natural isomorphism c ⊠ − ⇒ − ⊠ c.
+Inasmuch as a monoid is commutative if the inclusion Z(M ) ,→ M admits a section,
+i.e. if it is surjective; a braiding on a monoidal category (C, i, ⊠) correspond to a braided
+section of the evident forgetful functor Z(C) → C [Kas95, Corollary XIII.4.4].
+The exact definition of Z(C) goes as follows:
+5.5.2. Definition. [JS91, Definition 3] Let (C, i, ⊠) be a monoidal category. Its Drinfeld center Z(C) is the braided monoidal category defined as follows. Objects are pairs
+
+66
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+∼
+
+(c : C, υ : c ⊠ − ⇒ − ⊠ c) such that for every d, e : C (up to associators):
+υd⊠e
+
+c⊠d⊠e
+
+d⊠e⊠c
+(5.31)
+
+υd ⊠e
+
+d⊠υe
+
+d⊠c⊠e
+Morphisms (c, υ) → (d, τ ) are arrows f : c → d in C such that for every b : C:
+c⊠b
+
+f ⊠b
+
+d⊠b
+
+υb
+
+(5.32)
+
+τb
+
+b ⊠ c b⊠f b ⊠ y
+The monoidal product is given by
+(c, υ) ⊠ (d, τ ) := (c ⊠ d, (υ ⊠ d) # (c ⊠ τ )),
+
+(5.33)
+
+with unit (i, λ # ρ−1 ). Finally, the braiding is defined as β(c,υ),(d,τ ) := υd .
+To give a functor M → Z(C), therefore, is to specify a functor in C together with
+a way to commute each F (m) past any other object in C, exactly what we need to get
+unstuck in Equation (5.30). In fact, we have the following:
+5.5.3. Theorem. [Monoidal actions classifier] Z(C) classifies monoidal actions on C,
+meaning Z(C) acts monoidally on C and every other monoidal action • of a braided
+monoidal category M factors uniquely through it:
+Z(C) × C
+∃!F• ×C
+
+⊠1
+
+C
+
+•
+
+(5.34)
+
+M×C
+In other words, ⊠1 is terminal in the category Actcart
+MonCat (C) of monoidal actions on C.
+5.5.4. Remark. In the above, ActMonCat is the (2-Grothendieck construction of) indexed
+2-category of monoidal actions, i.e. the functor BrMonCatcoop → 2Cat assigning to each
+braided monoidal category the 2-category of monoidal actegories over it. This is defined
+analogously to that in Proposition 3.6.5, included the notation Actcart
+MonCat (C) to denote
+the cartesian subcategory of ActMonCat at C, as defined in Remark 3.6.6.
+To swiftly prove Theorem 5.5.3, we’ll rely on the following:
+
+67
+
+5.5 The classifying objects of actions
+
+5.5.5. Lemma. [Characterization of the Drinfeld center] Consider the the canonical Cbiactegory (C, ⊠, ⊠) (as defined in Example 4.3.10) associated to C, that we still denote
+by C. Then
+Z(C) ≃ [C, C]C-Act-C
+
+(5.35)
+
+where on the right we have the category of maps φ : C → C equipped with C-linear
+structures
+
+∼
+
+ℓc,d : φ(c) ⊠ d −→ φ(c ⊠ d),
+∼
+
+(5.36)
+
+rc,d : c ⊠ φ(d) −→ φ(c ⊠ d).
+satisfying the laws stated in Definition 4.3.2.
+Proof. See Appendix B.
+The object [C, C]C-Act-C is indeed called center in [BZFN10, Definition 5.1].
+Proof of Theorem 5.5.3. By Lemma 5.5.5, we can replace Z(C) with [C, C]C-Act-C . The
+latter acts on C by evaluation, so we denote the action as eval. Moreover, to give an
+M-action on C in MonCat is to give isomorphisms (see Remark 5.1.4)
+∼
+
+χ•m,c,d : m • (c ⊠ d) −→ (m • c) ⊠ d,
+∼
+
+κ•m,c,d : m • (c ⊠ d) −→ c ⊠ (m • d).
+
+(5.37)
+
+Hence eval factors • through the functor
+F• (m) = (m • −, χ•−1 , κ•−1 ).
+
+(5.38)
+
+Such a factorization is manifestly unique.
+5.5.6. Corollary. There is an equivalence
+BrMonCat
+
+↓
+
+Z(C) ≃ Actcart
+MonCat (C)
+
+(5.39)
+
+MonCat
+
+where the 2-category on the left amounts to the subcategory of MonCat/Z(C) given by
+braided monoidal categories whose braiding has been forgotten.
+Proof. Observe that the action eval of [C, C]C-Act-C translates back to the action ⊠1 of
+Z(C), which is simply monoidal product after forgetting the braiding:
+(c, υ) ⊠1 d := c ⊠ d.
+
+(5.40)
+
+68
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+Running the proof of Lemma 5.5.5 backwards, we thus get that the correspondence is
+given as follows. Given a monoidal functor F : M → Z(C), where M is braided, we get
+the M-action
+m •F c := F1 (m) ⊠ c,
+
+(5.41)
+
+while given a monoidal M-action • on C, we get the monoidal functor M → Z(C) defined
+as
+F• (m) := (m • i, χ•m,i ).
+
+(5.42)
+
+That these are well-defined objects follows from the main theorem.
+5.5.7. Classifying braided actions. Now the same can be done for actions of symmetric monoidal categories on braided and symmetric monoidal categories but, again, the
+classifying object will be different.
+5.5.8. Definition. Let (C, i, ⊠, β) be a braided monoidal category. Its symmetric center
+Σ(C) is the full subcategory of C determined by those objects c : C so that, for all d : C, the
+following commutes:
+βc,d
+
+d⊠c
+
+βd,c
+
+c⊠d
+
+(5.43)
+
+c⊠d
+
+5.5.9. Theorem. [Braided actions classifier] Let (C, i, ⊠, β) be a braided monoidal category.
+Σ(C) classifies braided actions on C, meaning Σ(C) acts braidely on C and every other
+braided action • of a symmetric monoidal category M factors uniquely through it:
+Σ(C) × C
+∃!F• ×C
+
+⊠
+
+C
+
+•
+
+(5.44)
+
+M×C
+In other words, ⊠ is terminal in the category Actcart
+BrMonCat (C) of braided actions on C.
+As before, in order to prove this we rely on the following characterization:
+5.5.10. Lemma. [Characterization of the symmetric center] The symmetric center of
+(C, i, ⊠, β) is equivalent to the full subcategory of Z(C) spanned by those φ for which the
+
+69
+
+5.5 The classifying objects of actions
+following diagrams commute:
+φ(c) ⊠ d
+
+rc,d
+
+βφ(c),d
+
+d ⊠ φ(c)
+
+φ(c ⊠ d)
+
+c ⊠ φ(d)
+
+φ(c ⊠ d)
+
+βc,φ(d)
+
+φ(βc,d )
+
+ℓd,c
+
+ℓc,d
+
+φ(d ⊠ c)
+
+φ(d) ⊠ c
+
+φ(βc,d )
+
+rd,c
+
+(5.45)
+
+φ(d ⊠ c)
+
+We denote this subcategory by [C, C]br
+C-Act-C .
+Proof. The proof amounts to checking that bilinear endomorphisms which satisfy (5.45)
+are given, up to isomorphism, by tensoring with a symmetric object. Assume C is strict
+monoidal, and let (φ, r) be a bilinear endomorphism strict on the left (we use the same trick
+employed in Lemma 5.5.5). Drawing (5.45) for c = j proves that βd,φ(j) and βφ(j),d are both
+identities. In fact, when C is strict, rj,d = 1 as observed in Remark 3.3.3. Vice versa, given
+a symmetric object, we readily prove tensoring with it gives a functor satisfying (5.45).
+Proof of Theorem 5.5.9. By Lemma 5.5.10, we can replace Σ(C) with [C, C]br
+C-Act-C .
+With this setup, everything works very much like the proof of Theorem 5.5.3. One only
+has to be sure that the universal morphism F• actually lands in [C, C]br
+C-Act-C when • is
+braided, and vice versa. But Diagram (5.22) (sealing • braidedness) looks exactly like
+Diagram (5.45), concluding the proof.
+5.5.11. Corollary. There is an equivalence
+SymMonCat
+
+↓
+
+Σ(C) ≃ Actcart
+BrMonCat (C)
+
+(5.46)
+
+BrMonCat
+
+where the 2-category on the left amounts to the subcategory of BrMonCat/Σ(C) given by
+symmetric monoidal categories.
+Proof. To spell explicitly the correspondence on objects, given a braided functor F :
+M → Σ(C), where M is symmetric, we get the M-action
+m •F c := F (m) ⊠ c,
+
+(5.47)
+
+while given a braided M-action • on C, we get the braided functor M → Σ(C) defined as
+F• (m) := m • i.
+The well-definedness of these objects follows from the main theorem.
+
+(5.48)
+
+70
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+Now suppose C is symmetric. In that case, Σ(C) = C, therefore we automatically have
+the following:
+5.5.12. Corollary. [Symmetric actions classifier] Let (C, i, ⊠, σ) be a symmetric monoidal
+category. C classifies symmetric actions on C, meaning C acts symmetrically on C and
+every other symmetric action • of a symmetric monoidal category M factors uniquely
+through it:
+C×C
+∃!F• ×C
+
+⊠
+
+C
+
+•
+
+(5.49)
+
+M×C
+In other words, ⊠ is terminal in the category Actcart
+SymMonCat (C) of braided actions on C,
+thus inducing an equivalence
+SymMonCat/C ≃ Actcart
+SymMonCat (C).
+
+(5.50)
+
+5.5.13. Example. Let (Msbl, •) be the Prob-actegory of Example 3.2.12. This is a
+monoidal actegory, since the action of a probability space (Ω, F, P) corresponds to the
+forgetful functor Prob → Msbl which is evidently braided monoidal, like (Msbl, 1, ×).
+5.5.14. Example. In Equation (5.20), we have exhibited an action  of Cat on
+
+(M-Act, M, ⊗M ), given by M[−] ⊗M =. We can conclude this action is symmetric
+by noting the functor M[−] ⊗M M ∼
+= M[−] is indeed braided monoidal. In fact, we
+proved in Proposition 4.4.12 that M[C] ⊗M M[D] ≃ M[C × D] and this makes M[−]
+evidently monoidal and braided.
+5.5.15. Remark. In Remark 4.2.5, we observed how the classification result of Example 3.6.7 could be used to construct coproducts and products in Actcart (C). We observe
+that totally analogous definitions can be repeated for monoidal, braided and symmetric
+actions. This has repercussions on the theory of hybrid composition of optics by providing
+us with guarantees on the monoidal structure of the resulting category of hybrid optics
+(remember optics generated by monoidal actions are monoidal, as shown in Remark 5.1.9).
+
+71
+
+6 CONCLUSION
+
+6. Conclusion
+In the past pages, we have been on a journey through ‘actegory theory’. We charted a
+territory sparsely surveyed before, and managed to uncover some new corners of this vast
+subject. Specifically, we contemplated the role of monoidal structure in the different ways
+it can present itself, and described the links between these phenomena and those in the
+theory of optics.
+Large swaths of actegory theory didn’t make it in our maps. Perhaps the largest and
+most relevant to our eyes is Tambara theory [Tam06, PS08, Rom20] and the study of the
+proarrow equipment of actegories and Tambara modules.
+There are also dark corners, still to be visited, like the exact nature of the relation
+between braiding and linear structures. It seems it has never been contemplated the idea
+∼
+
+of a structure ρc,m : c ◦ m → m • c on a biactegory (C, •, ◦), linking the left and right
+actions. It is, in some sense, the actegorical equivalent of a braiding, and in fact a braiding
+on the scalars induces one canonically (we have seen this in Proposition 4.3.7). Indeed, a
+‘reflection structure’ such as ρ seems to arise anytime there is a strong monoidal functor
+M → Mrev . A shadow of these structures can be observed in Lemma 5.5.10, where we
+characterized the symmetric center of a monoidal category in terms of endomorphisms of
+(C, ⊠, ⊠) that somehow commute with β. In terms of reflection structures, this constitutes
+a natural notion of morphism.
+In conclusion, let us mention a major perspective we didn’t cover here—that of
+actegories as presheaves. The data of a left M-action, in fact, can be encoded ‘externally’
+as a functor BM → Cat, whereas a right actegory would be given by BMop → Cat
+since B(Mrev ) = BMop . The upshot is, actegories can be seen as very special indexed
+categories, opening up the extension of all the theory we sketched here to actions of
+categories, bicategories and ultimately double categories [Bak08]. This extension seems to
+be warranted if we aim to extend the theory of optics to ‘dependent’ or ‘indexed optics’,
+i.e. if we desire to deploy dependent types in the current constructions. The idea that
+actions of bicategories are instrumental to this objective has been advanced in [BCG+ 21]
+and then later in [Mil22].
+
+72
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+References
+[Alc14]
+
+Aurore Alcolei. Concurrent program as proofs: compacting message passing
+logic. Unpublished manuscript available at https://aalcolei.epheme.re/
+report_m1.pdf, 2014.
+
+[Alv20]
+
+Mario Alvarez-Picallo. Change actions: from incremental computation to
+discrete derivatives. CoRR, abs/2002.05256, 2020.
+
+[APO19]
+
+Mario Alvarez-Picallo and C.-H. Luke Ong. Change actions: Models of generalised differentiation. In Mikołaj Bojańczyk and Alex Simpson, editors,
+Foundations of Software Science and Computation Structures, pages 45–61,
+Cham, 2019. Springer International Publishing.
+
+[AU16]
+
+Danel Ahman and Tarmo Uustalu. Directed containers as categories. arXiv
+preprint available at https://arxiv.org/abs/1604.01187, 2016.
+
+[Bak08]
+
+Igor Baković. Bigroupoid 2-torsors. PhD thesis, lmu, 2008.
+
+[BCG+ 21] Dylan Braithwaite, Matteo Capucci, Bruno Gavranović, Jules Hedges, and
+Eigil Fjeldgren Rischel. Fibre optics. arXiv preprint available at https:
+//arxiv.org/abs/2112.11145, 2021.
+[BD95]
+
+John C. Baez and James Dolan. Higher-dimensional algebra and topological
+quantum field theory. Journal of Mathematical Physics, 36(11):6073–6105,
+1995.
+
+[Bén67]
+
+Jean Bénabou. Introduction to bicategories. In Reports of the Midwest Category
+Seminar, pages 1–77. Springer, 1967.
+
+[BKP89]
+
+Robert Blackwell, Gregory M. Kelly, and John A. Power. Two-dimensional
+monad theory. Journal of pure and applied algebra, 59(1):1–41, 1989.
+
+[Boi20]
+
+Guillaume Boisseau. String diagrams for optics. In 5th International Conference
+on Formal Structures for Computation and Deduction (FSCD 2020). Schloss
+Dagstuhl-Leibniz-Zentrum für Informatik, 2020.
+
+[BW03]
+
+T Brzezinski and R Wisbauer. Corings and Comodules, volume 309. Cambridge
+University Press, 2003.
+
+73
+
+REFERENCES
+
+[BZFN10] David Ben-Zvi, John Francis, and David Nadler. Integral transforms and
+drinfeld centers in derived algebraic geometry. Journal of the American Mathematical Society, 23(4):909–966, 2010.
+[Cap21]
+
+Matteo Capucci. Parametrised categories and categories by proxy. Talk at
+CT2021, 2021.
+
+[CEG+ 20] Bryce Clarke, Derek Elkins, Jeremy Gibbons, Fosco Loregian, Bartosz Milewski,
+Emily Pillmore, and Mario Román. Profunctor optics: A categorical update.
+NWPT 2019, page 47, 2020.
+[CGHR21] Matteo Capucci, Bruno Gavranović, Jules Hedges, and Eigil Fjeldgren Rischel.
+Towards foundations of categorical cybernetics. In Proceedings of Applied
+Category Theory 2021. EPTCS, 2021. arXiv preprint available at https:
+//arxiv.org/2105.06763.
+[CGLF21] Matteo Capucci, Neil Ghani, Jérémy Ledent, and Fredrik Nordvall Forsberg.
+Translating extensive form games to open games with agency. In Proceedings
+of Applied Category Theory 2021. EPTCS, 2021. arXiv preprint available at
+https://arxiv.org/abs/2105.06763.
+[CJ19]
+
+Kenta Cho and Bart Jacobs. Disintegration and bayesian inversion via string
+diagrams. Mathematical Structures in Computer Science, 29(7):938–971, mar
+2019.
+
+[Cla20]
+
+Bryce Clarke. Internal lenses as functors and cofunctors. Electronic Proceedings
+in Theoretical Computer Science, EPTCS, 323:183–195, 2020.
+
+[Coc13]
+
+J. Robin B. Cockett.
+
+Concurrency and the categorical proof the-
+
+ory of message passing.
+
+Talk at ACCAT Rome, slides available
+
+at https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.674.
+7533&rep=rep1&type=pdf, 2013.
+[CP09]
+
+J. Robin B. Cockett and Craig Pastro. The logic of message-passing. Science
+of Computer Programming, 74(8):498–533, 2009.
+
+[Day70]
+
+Brian Day. On closed categories of functors. In Reports of the Midwest Category
+Seminar IV, pages 1–38. Springer, 1970.
+
+74
+[DD09]
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+E. Deza and M. M. Deza. Encyclopedia of Distances. Springer-Verlag Berlin,
+2009.
+
+[ENO05]
+
+Pavel Etingof, Dmitri Nikshych, and Viktor Ostrik. On fusion categories.
+Annals of Mathematics, 162(2):581–642, 2005.
+
+[Fuj19]
+
+Soichiro Fujii. A 2-Categorical Study of Graded and Indexed Monads. arXiv
+e-prints, page arXiv:1904.08083, April 2019.
+
+[Gar18]
+
+Richard Garner. An embedding theorem for tangent categories. Advances in
+Mathematics, 323:668–687, 2018.
+
+[Gra76]
+
+Daniel Grayson. Higher algebraic k-theory: II. In Algebraic K-theory, pages
+217–240. Springer, 1976.
+
+[Gre10a]
+
+Justin Greenough. Bimodule categories and monoidal 2-structure. PhD thesis,
+University of New Hampshire, 2010.
+
+[Gre10b]
+
+Justin Greenough. Monoidal 2-structure of bimodule categories. Journal of
+Algebra, 324(8):1818–1859, 2010.
+
+[JK01]
+
+George Janelidze and Gregory M. Kelly. A note on actions of a monoidal
+category. Theory and Applications of Categories, 9(4):61–91, 2001.
+
+[JS91]
+
+André Joyal and Ross Street. Tortile yang-baxter operators in tensor categories.
+Journal of Pure and Applied Algebra, 71(1):43–51, 1991.
+
+[JS93]
+
+A Joyal and R Street. Braided tensor categories. Advances in Mathematics,
+102(1):20–78, 1993.
+
+[JY21]
+
+Niles Johnson and Donald Yau. 2-dimensional Categories. Oxford University
+Press, USA, 2021.
+
+[Kas95]
+
+Christian Kassel. Quantum Groups. Graduate Texts in Mathematics. Springer
+New York, 1st edition edition, 1995.
+
+[Kel64]
+
+Gregory M. Kelly. On maclane’s conditions for coherence of natural associativities, commutativities, etc. Journal of Algebra, 1(4):397–402, 1964.
+
+REFERENCES
+[Kel82]
+
+75
+
+Gregory M. Kelly. Basic concepts of enriched category theory, volume 64. CUP
+Archive, 1982.
+
+[Koc72]
+
+Anders Kock. Strong functors and monoidal monads. Archiv der Mathematik,
+23(1):113–120, 1972.
+
+[Lac00]
+
+Stephen Lack. A coherent approach to pseudomonads. Advances in Mathematics, 152(2):179–202, 2000. Publisher: Elsevier.
+
+[Lap72]
+
+Miguel L Laplaza. Coherence for distributivity. In Coherence in categories,
+pages 29–65. Springer, 1972.
+
+[Lor21]
+
+Fosco Loregian. (Co)end Calculus. London Mathematical Society Lecture Note
+Series. Cambridge University Press, Cambridge, 2021.
+
+[Mac71]
+
+Saunders MacLane. Categories for the Working Mathematician. SpringerVerlag, New York, 1971. Graduate Texts in Mathematics, Vol. 5.
+
+[Mar99]
+
+Francisco Marmolejo. Distributive laws for pseudomonads. Theory and Applications of Categories, 5(5):91–147, 1999.
+
+[McC00a] Paddy McCrudden. Balanced coalgebroids. Theory and Applications of Categories, 7(6):71–147, 2000.
+[McC00b] Paddy McCrudden. Categories of representations of coalgebroids. Advances in
+Mathematics, 154(2):299–332, 2000.
+[Mil22]
+
+Bartosz Milewski. Compound optics. arXiv preprint available at https:
+//arxiv.org/abs/2203.12022, 2022.
+
+[NA20]
+
+Yuichi Nishiwaki and Toshiya Asai. Logic of computational semi-effects and
+categorical gluing for equivariant functors. arXiv preprint available at https:
+//arxiv.org/abs/2007.04621, 2020.
+
+[noa]
+
+Hausdorff measure - Encyclopedia of Mathematics.
+
+[Ost03]
+
+Victor Ostrik. Module categories, weak hopf algebras and modular invariants.
+Transformation groups, 8(2):177–206, 2003.
+
+76
+[Par77]
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+Bodo Pareigis. Non-additive ring and module theory. Publicationes mathematicae, pages 189–204, 1977.
+
+[PS08]
+
+Craig Pastro and Ross Street. Doubles for monoidal categories. Theory and
+Applications of Categories [electronic only], 21:61–75, 2008.
+
+[PWG17]
+
+Matthew T Pickering, Nicolas Wu, and Jeremy Gibbons. Profunctor optics:
+Modular data accessors. Art, Science, and Engineering of Programming, 1(2):7,
+2017.
+
+[Ril18]
+
+Mitchell Riley. Categories of optics. arXiv preprint available at https://
+arxiv.org/abs/1809.00738, 2018.
+
+[Rom20]
+
+Mario Román. Profunctor optics and traversals, 2020. arXiv preprint available
+at https://arxiv.org/abs/2001.08045.
+
+[Shu08]
+
+Michael Shulman. Framed bicategories and monoidal fibrations. Theory and
+Applications of Categories, 20:650–738, 2008.
+
+[Ško06]
+
+Zoran Škoda. Bi-actegories. Unpublished manuscript available at https:
+//www2.irb.hr/korisnici/zskoda/biact.pdf, 2006.
+
+[Ško09]
+
+Zoran Škoda. Some equivariant constructions in noncommutative algebraic
+geometry. Georgian Mathematical Journal, 16(1):183–202, 2009.
+
+[Ste18]
+
+Anastasios Stefanou. Dynamics on categories and applications. PhD thesis,
+State University of New York at Albany, 2018. Available at https://sites.
+google.com/site/anastasiostefanou/home/thesis.
+
+[Str74]
+
+Ross Street. Elementary cosmoi I. In Category Seminar, pages 134–180.
+Springer, 1974.
+
+[Str20]
+
+Ross Street. Polynomials as span. Cahiers de Topologie et Géométrie Différentielle Catégoriques, LXI(2):113–153, 2020.
+
+[Szl09]
+
+Kornél Szlachányi. Fiber functors, monoidal sites and tannaka duality for
+bialgebroids. arXiv preprint available at https://arxiv.org/abs/0907.1578,
+2009.
+
+77
+
+A DEFINITIONS
+[Tam06]
+
+Deisuke Tambara. Distributors on a tensor category. Hokkaido Mathematical
+Journal, 35:379–425, 2006.
+
+[VC22]
+
+Andre Videla and Matteo Capucci. Lenses for composable servers. arXiv
+preprint, available at https://arxiv.org/abs/2203.15633, 2022.
+
+[Woo76]
+
+Richard J. Wood. Indicial methods for relative categories. PhD thesis, Dalhousie
+University, 1976.
+
+[Yea12]
+
+Masuka Yeasin. Linear functors and their fixed points. Master’s thesis,
+Graduate Studies, 2012.
+
+A. Definitions
+2.0.1. Definition. Let X be a 2-category. A pseudomonad on X is a strict 2-functor
+T : X → X, together with 2-morphisms j : 1 ⇒ T (unit) and m : T T ⇒ T (multiplication)
+and modifications (left unitor λ, right unitor ρ, associator α):
+jT
+
+T
+
+TT
+
+Tj
+
+TT
+
+T
+
+λ
+m
+
+m
+
+T
+
+ρ
+
+(2.5)
+
+(2.6)
+
+T
+
+TTT
+
+Tm
+
+TT
+
+mT
+
+α
+
+m
+
+TT
+
+m
+
+T
+
+satisfying the following coherence laws:
+I) Coherence of the associator:
+TTTT
+
+TTT
+
+TTm
+
+TTTT
+Tm
+
+mT T
+
+Tα
+
+T mT
+
+TT
+
+mT
+
+TTT
+
+TTm
+
+TTT
+
+mT T
+
+Tm
+
+TT
+
+Tm
+
+(A.1)
+αT
+
+α
+
+TTT
+
+TT
+
+Tm
+α
+
+mT
+
+TT
+
+m
+m
+
+m
+
+mT
+
+TTT
+
+α
+
+m
+
+mT
+
+T
+
+TT
+
+m
+
+T
+
+78
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+II) Coherence of the unitors:
+TT
+T jT
+Tλ
+ρT
+
+TTT
+
+Tm
+
+TT
+
+TT
+
+mT
+
+α
+
+m
+
+m
+
+TT
+
+m
+
+T
+
+T
+
+(A.2)
+
+A.0.1. Proposition. The endofunctor M × − : Cat → Cat admits a pseudomonad
+structure given by (j × −, ⊗ × −, λ × −, ρ × −, α × −).
+Proof. Notice Equation (A.1) depicts two halves of a cube. The fillings of the faces allow
+to map between the six different ways to move from the top left vertex to the bottom right
+one. The two sides of the equation correspond to the two ways to map from the lower
+outer edge of the cube to the upper outer edge. Notice these maps are themselves obtained
+by applying the modifications A in succession. There are exactly five such modifications
+appearing in the axiom, thus forming a pentagon. Such a pentagon has a composite of
+length two, given by the left hand side of (A.1), and a composite of length three, given
+by the righ hand side. Therefore asking (A.1) to hold for M × − is equivalent to the
+pentagonal coherence of the associator α of M [JY21, Equation 1.2.5].
+A similar reasoning applies to the Equation (A.2), which is equivalent to the triangular
+coherence involving the unitors λ, ρ and the associator α [JY21, Equation 1.2.4].
+2.2.1. Definition. A pseudoalgebra for a pseudomonad (T, j, m) on X consists of an
+object x : X and a morphism
+t : T x −→ x
+
+(2.9)
+
+in X equipped with invertible 2-cells
+x
+
+jx
+
+Tx
+
+TTx
+
+Tt
+
+Tx
+
+η
+t
+
+x
+satisfying the following coherence axioms:
+
+mx
+
+Tx
+
+µ
+t
+
+t
+
+x
+
+(2.10)
+
+79
+
+A DEFINITIONS
+I) Compatibility with the unit:
+TTt
+
+TTTx
+
+TTx
+
+Tt
+
+T µx
+
+TTx
+
+mT x
+
+Tx
+
+Tt
+µx
+
+mx
+
+TTx
+
+TTx
+
+Tt
+
+T mx
+mT x
+
+TTt
+
+TTTx
+
+t
+
+mX
+µx
+Tt
+
+= TTx
+
+Tx
+µx
+
+Tx
+(A.3)
+t
+
+t
+
+mx
+
+mx
+t
+
+Tx
+
+x
+
+Tx
+
+x
+
+t
+
+II) Compatibility with the multiplication:
+Tx
+Tt
+
+TTx
+T jx
+
+t
+
+Tt
+T ηx
+
+Tx
+
+T jx
+
+µx
+
+TTx
+
+=
+
+x
+
+Tx
+
+Tx
+
+t
+
+x
+
+(A.4)
+
+ρx
+mx
+
+t
+
+mx
+
+T jx
+
+Tx
+
+TTx
+
+2.2.2. Definition. Let (T, j, m) be a pseudomonad on X and let (x, t, η, µ) and (y, t′ , η ′ , µ′ )
+be pseudoalgebras. A lax morphism (f, ℓ) : (x, t, η, µ) → (y, t′ , η ′ , µ′ ) consists of a
+morphism f : x → y and a 2-cell
+Tx
+t
+
+x
+
+Tf
+
+Ty
+
+ℓ
+
+(2.11)
+
+t′
+
+f
+
+y
+
+obeying the following coherence laws:
+I) Compatibility with the unitor:
+f
+
+x
+
+y
+
+jx
+
+Tx
+t
+
+x
+
+x
+jx
+
+jy
+Tf
+
+Ty
+
+ℓ
+
+t′
+f
+
+y
+
+ηx
+ηy
+
+(A.5)
+
+Tx
+t
+
+x
+
+f
+
+y
+
+80
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+II) Compatibility with the multiplicator:
+TTf
+
+TTx
+
+TTy
+
+TTf
+
+TTx
+
+TTy
+
+T t′
+
+Tℓ
+
+T t′
+
+Tt
+mx
+
+Tf
+
+Tx
+
+my
+
+Ty
+
+Ty
+
+my
+
+µx
+
+µy
+
+Tx
+
+ℓ
+
+t
+
+Tf
+
+Tx
+
+t′
+
+t
+
+Ty
+
+t′
+t′
+
+ℓ
+t
+
+f
+
+x
+
+(A.6)
+
+y
+
+x
+
+y
+
+f
+
+5.1.1. Definition. An oplax monoidal left M-actegory is a monoidal category
+(C, i, ⊠) equipped with an oplax monoidal functor • : M × C → C and two monoidal
+natural transformations µ and η defined analogously to Definition 3.1.1. When • is strong,
+we call it simply monoidal actegory.
+As observed in Remark 5.1.2, the only extra structure needed is the mixed interchanger:
+∼
+
+ιm,c,n,d : (m ⊗ n) • (c ⊠ d) −→ (m • c) ⊠ (n • d).
+
+(A.7)
+
+All in all, this structure needs to satisfy, on top of the two laws of actegories (Definition 3.1.1), the following coherence laws regarding •, µ and η monoidality.
+I) Compatibility with the associator, for every a, b, c : C and m, n, p : M:
+αC
+m•a,n•b,p•c
+
+((m • a) ⊠ (n • b)) ⊠ (p • c)
+
+(m • a) ⊠ ((n • b) ⊠ (p • c))
+
+ιm,n,a,b ⊠(p•c)
+
+(m•a)⊠ιn,p,b,c
+
+((m ⊗ n) • (a ⊠ b)) ⊠ (p • c)
+
+(m • a) ⊠ ((n ⊗ p) • (b ⊠ c))
+
+ιm⊗n,p,a⊠b,c
+
+(A.8)
+
+ιm,n⊗p,a,b⊠c
+
+((m ⊗ n) ⊗ p) • ((a ⊠ b) ⊠ c)
+
+C
+αM
+m,n,p •αa,b,c
+
+(m ⊗ (n ⊗ p)) • (a ⊠ (b ⊠ c))
+
+II) Compatibility with unitors, for every c : C and m : M:
+i ⊠ (m • x)
+
+ηi ⊠(m•x)
+
+ιj,m,i,x
+
+λC
+m•x
+
+m•x
+
+(j • i) ⊠ (m • x)
+
+C
+λM
+m •λx
+
+(j ⊗ m) • (i ⊠ x)
+
+(m • x) ⊠ i
+
+(m•x)⊠ηi
+
+ιm,j,x,i
+
+ρC
+m•x
+
+m•x
+
+(m • x) ⊠ (j • i)
+
+C
+ρM
+m •ρx
+
+(m ⊗ j) • (x ⊠ i)
+
+(A.9)
+
+81
+
+A DEFINITIONS
+III) Monoidality of η, for every c, d : C:
+(j • c) ⊠ (j • d)
+
+ηc ⊠ηd
+
+c⊠d
+(A.10)
+
+ηc⊠d
+
+ιj,j,c,d
+
+(j ⊗ j) • (c ⊠ d)
+
+j • (c ⊠ d)
+
+λM
+j
+
+IV) Monoidality for µ, for every c, d : C and m, n, m′ , n′ : M:
+µm,m′ ,c ⊠µn,n′ ,d
+
+(m • (m′ • c)) ⊠ (n • (n′ • d))
+
+((m ⊗ m′ ) • c) ⊠ ((n ⊗ n′ ) • d)
+
+ιm,n,m′ •c,n′ •d
+
+ιm⊗m′ ,n⊗n′ ,c,d
+
+(m ⊗ n) • ((m′ • c) ⊠ (n′ • d))
+
+((m ⊗ m′ ) ⊗ (n ⊗ n′ )) • (c ⊠ d)
+
+(A.11)
+
+(m⊗βn,m′ ⊗n′ )•(c⊠d)
+
+(m⊗n)•ιm′ ,n′ ,c,d
+
+(m ⊗ n) • ((m′ ⊗ n′ ) • (c ⊠ d)) µm⊗m′ ,n⊗n′ ,c⊠d ((m ⊗ n) ⊗ (m′ ⊗ n′ )) • (c ⊠ d)
+5.2.1. Definition. [Balanced algebroidal M-actegory] A balanced algebroidal Mactegory is a pseudomonoid in (M-Act, M, ⊗M ), amounting to a left M-actegory (C, •)
+together with M-linear functors
+I : M −→ C,
+
+(5.9)
+
+⊠ : C ⊗M C −→ C
+and M-linear natural transformations λ, ρ, α satisfying the usual axioms for unitors and
+associators in pseudomonoids. The extra coherence laws satisfied by λ, ρ, α, ℓ and ε are
+the following:
+I) Coherence for the left lineator ℓ:
+m • (n • (c ⊠ d))
+
+m•ℓn,c,d
+
+m • ((n • c) ⊠ d)
+
+µm,n,c⊠d
+
+ℓm,n•c,d
+
+(m ⊗ n) • (c ⊠ d)
+
+(m • (n • c)) ⊠ d
+
+ℓm⊗n,c,d
+
+µm,n,c ⊠d
+
+((m ⊗ n) • c) ⊠ d
+
+(A.12)
+
+82
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+ℓj,c,d
+
+j • (c ⊠ d)
+
+(j • c) ⊠ d
+(A.13)
+
+ηc⊠d
+
+ηc ⊠d
+
+c⊠d
+II) Coherence for the equilibrator ε:
+(n • (m • c)) ⊠ d
+µ•n,m,c ⊠d
+
+εn,m•c,c
+
+(m • c) ⊠ (n • d)
+
+((n ⊗ m) • c) ⊠ d
+
+εm,c,n•d
+
+(βn,m •c)⊠d
+
+c ⊠ (m • (n • d))
+
+(A.14)
+
+((m ⊗ n) • c) ⊠ d
+εm⊗n,c,d
+
+c⊠µ•m,n,d
+
+c ⊠ ((m ⊗ n) • d)
+εj,c,d
+
+(j • c) ⊠ d
+
+c ⊠ (j • d)
+(A.15)
+
+ηc• ⊠d
+
+c⊠ηd•
+
+c⊠d
+III) Linearity of λ and ρ:
+m•λc
+
+m • (i ⊠ c)
+
+m•c
+
+m • (c ⊠ i)
+
+λm•c
+
+ℓm,i,c
+
+(m • i) ⊠ c
+
+εm,i,c
+
+i ⊠ (m • c)
+
+m•ρc
+
+ℓm,c,i
+
+m•c
+
+ρm•c
+
+(A.16)
+
+(m • c) ⊠ i
+
+IV) Linearity of α:
+m • ((a ⊠ b) ⊠ c)
+
+m•αa,b,c
+
+m • (a ⊠ (b ⊠ c))
+
+ℓm,a⊠b,c
+
+ℓm,a,b⊠c
+
+(m • (a ⊠ b)) ⊠ c
+
+(m • a) ⊠ (b ⊠ c)
+αm•a,b,c
+
+ℓm,a,b ⊠c
+
+((m • a) ⊠ b) ⊠ c
+
+(A.17)
+
+83
+
+A DEFINITIONS
+V) Balance of α:
+εm,a⊠b,c
+
+(m • (a ⊠ b)) ⊠ c
+
+(a ⊠ b) ⊠ (m • c)
+
+ℓm,a,b ⊠c
+
+((m • a) ⊠ b)) ⊠ c
+
+(A.18)
+
+αa,b,m•c
+
+αm•a,b,c
+
+(m • a) ⊠ (b ⊠ c)
+
+εm,a,b⊠c
+
+a ⊠ (m • (b ⊠ c))
+
+a⊠ℓm,b,c
+
+a ⊠ (b ⊠ (m • c))
+
+5.2.4. Definition. [Distributive algebroidal M-actegory] A distributive algebroidal
+M-actegory is a pseudomonoid in (M-Act, 1, ×), i.e. a left M-actegory (C, •) together
+with M-linear functors:
+o : 1 −→ C,
+
+(5.13)
+
+⊞ : C × C −→ C
+and M-linear natural transformations λ, ρ, α satisfying the usual axioms for unitors and
+associators in pseudomonoids described in Appendix A. The extra coherence laws satisfied
+by λ, ρ, α, ℓ and ε are the following:
+I) Coherence for the absorber γ:
+m•γn
+
+m • (n • o)
+
+m•o
+
+µm,n,o
+
+γm⊗n
+
+o
+(A.19)
+
+γm
+
+(m ⊗ n) • o
+
+γj
+
+j•o
+ηo
+
+o
+
+o
+
+II) Coherence for the distributor δ:
+m • (n • (c ⊞ d))
+
+m•δn,c,d
+
+m • ((n • c) ⊞ (n • d))
+
+µm,n,c⊞d
+
+δm,n•c,n•d
+
+(m ⊗ n) • (c ⊞ d)
+
+(m • (n • c)) ⊞ (m • (n • d)))
+
+δm⊗n,c,d
+
+µm,n,c ⊞µm,n,d
+
+((m ⊗ n) • c) ⊞ ((m ⊗ n) • d)
+
+(A.20)
+
+84
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+δj,c,d
+
+j • (c ⊞ d)
+
+(j • c) ⊞ (j • d)
+(A.21)
+
+ηc⊞d
+
+ηc ⊞ηd
+
+c⊞d
+III) Linearity of λ and ρ:
+m • (o ⊞ c)
+
+m•λc
+
+m•c
+
+m • (c ⊞ o)
+
+λm•c
+
+δm,o,c
+
+m•ρc
+
+m•c
+ρm•c
+
+δm,c,o
+
+(m • o) ⊞ (m • c) γ ⊞(m•c) o ⊞ (m • c)
+
+(m • c) ⊞ (m • o) (m•c)⊞γ
+
+m
+
+m
+
+(m • c) ⊞ o
+(A.22)
+
+IV) Linearity of α:
+m•αa,b,c
+
+m • (a ⊞ (b ⊞ c))
+
+m • ((a ⊞ b) ⊞ c)
+
+δm,a,b⊞c
+
+δm,a⊞b,c
+
+(m • a) ⊞ (m • (b ⊞ c))
+
+(m • (a ⊞ b)) ⊞ (m • c)
+δm,a,b ⊞(m•c)
+
+(m•a)⊞δm,b,c
+
+(m • a) ⊞ ((m • b) ⊞ (m • c))
+
+αm•a,m•b,m•c
+
+((m • a) ⊞ (m • b)) ⊞ (m • c)
+(A.23)
+
+B. Proofs
+4.3.6. Theorem. There is an equivalence of 2-categories
+M-Act-N lx ≃ (N rev × M)-Actlx .
+
+(4.25)
+
+Proof. The most interesting part of the proof concerns obtaining an N rev × M-action
+from a given (M, N )-biactegory.
+Indeed, suppose given a left M-action (•, η • , µ• ), a right N -action (◦, η ◦ , µ◦ ) and a
+bimodulator ζ. We already know how from Equation (4.3) how to define the carriers of
+the composite N rev × M-action #G:
+(n, m)#Gc := (m • c) ◦ n.
+
+(B.1)
+
+85
+
+B PROOFS
+The unitor is given canonically by:
+◦
+ηj•c
+
+η•
+
+c
+j ◦ c −−→ (j • c) ◦ i == (i, j)#Gc.
+ηc#G : c −→
+
+(B.2)
+
+In defining the multiplicator, it is crucial to have ζ:
+µ#G(n,m),(n′ ,m′ ),c := (n, m)#G((n′ , m′ )#Gc)
+
+== (m • ((m′ • c) ◦ n′ )) ◦ n
+ζm,m′ •c,n′ ◦n
+
+−−−−−−−→ ((m • (m′ • c)) ◦ n′ ) ◦ n
+(µ•m,m′ ,c ◦n′ )◦n
+
+−−−−−−−−→ (((m ⊗ m′ ) • c) ◦ n′ ) ◦ n
+
+(B.3)
+
+µ◦n,n′ ,(m⊗m′ )•c
+
+−−−−−−−−→ (m ⊗ m′ ) • c) ◦ (n′ ⊘ n)
+rev
+
+== (n ⊘ n′ , m ⊗ m′ )#Gc.
+Using strictification and the coherence diagrams of ζ, this data can be proven well-defined.
+For instance, from (4.22), we can see ζm,c,j is an identity when • and ◦ are strict. This
+immediately entails µ#G(j,j),(n′ ,m′ ),c is an identity, thereby satisfying (3.4).
+Given a N rev × M-action (#G, µ#G , η #G ), we get a left M-action (•, η • , µ• ) and a right
+
+N -action (◦, η ◦ , µ◦ ) as follows:
+
+m • c := (i, m)#Gc,
+c ◦ n := (n, j)#Gc,
+
+ηc• := ηc#G ,
+
+µ•m,m′ ,c := µ#G(j,m),(j,m′ ),c
+
+ηc◦ := ηc#G ,
+
+µ◦n,n′ ,c := µ#G(n,j),(n′ ,j),c
+
+(B.4)
+
+The bimodulator ζ is then given by
+ζm,c,n := m • (c ◦ n)
+== (j, m)#G((n, j)#Gc)
+G
+µ#
+
+rev
+
+−→ (j ⊘ n, m ⊗ j)#Gc
+(ρN ,ρM )
+
+−−−−−→ (n, m)#Gc
+(λ
+
+N −1
+
+,λ
+
+M −1
+
+)
+
+(B.5)
+
+rev
+
+−−−−−−−−→ (n ⊘ j, j ⊗ m)#Gc
+G
+µ#
+
+−1
+
+−−−→ (n, j)#G((j, m)#Gc)
+== (m • c) ◦ n.
+By strictification (Lemma 3.4.1), this is a well-defined bimodulator (in fact, substituting
+the above in (4.19)–(4.22) produces diagrams involving only structure morphisms of #G, N
+and M, which become identities after the strictification).
+
+86
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+On morphisms, it is easy to observe every lax (M, N )-bilinear functor (Definition 4.3.2)
+is also lax N rev × M-linear, since this amounts to be lax N -linear on the right and lax
+M-linear on the left, and (4.23) corresponds to the fact that
+b(m⊗j,j⊗n),c = b(j⊗m,n⊗j),c
+
+(B.6)
+
+for an N rev × M-linear structure b on a given functor. For the same reasons, the opposite is
+true too. Finally, (M, N )-bilinear transformations (Definition 4.3.4) and transformations
+which are both M-linear and N -linear are exactly the same thing.
+4.4.7. Proposition. Let C be an (N , M)-biactegory, D be a (M, P)-biactegory and E
+be a (N , P)-biactegory, let • denote all actions by abuse of notation. Then the category
+of (right) P-linear maps D → E, which we denote by [D, E]P has a canonical (N , M)biactegory structure, and is such that:
+N -Act-P(C ⊗M D, E) ∼
+= N -Act-M(C, [D, E]P ).
+
+(4.46)
+
+We refer to this bracket as the internal hom (N , M)-biactegory of D and E.
+Proof. We preemptively put ourselves in the situation in which C, D and E are all strict,
+as well as their categories of scalars. Of course this doesn’t mean [D, E]P only contains
+strictly linear functors. Let’s start to show it is a well-defined object, i.e. that there are
+well-defined actions of N and M and a compatibility between them.
+Given a scalar n : N , one defines its action on a right P-linear functor pointwise
+F : D → E:
+(n • F )(d) := n • F (d)
+
+(B.7)
+
+In this way we inherit all left N -structure from E, including a little help from its bimodulator
+to provide n • F with a P-linear structure. On the right, a scalar m : M acts before the
+functor is applied:
+(F • m)(d) := F (m • d).
+
+(B.8)
+
+Again, all the structure is inherited from D, including what is needed for fully defining
+the P-linear structure. Hence the right M-structure on [D, E]P thus defined is as strict as
+the one we assumed on D:
+(F • j)(d) = F (j • d) = F (d),
+((F • m) • n)(d) = F (m • (n • d)) = F ((m ⊗ n) • d) = (F • (m ⊗ n))(d).
+
+(B.9)
+
+87
+
+B PROOFS
+Finally, the bimodulator interchanging these two actions is just the identity:
+(n • (F • m))(d) = n • F (m • d) = ((n • F ) • m)(d).
+
+(B.10)
+
+To prove (4.46), we ground ourselves in the usual tensor-hom adjunction for categories.
+Let λ denote the currying isomorphism. On objects, we have to prove that the balanced
+structure of a given a (N , P)-bilinear functor G : C × D → E corresponds to a right
+M-linear structure on its curried version λG, and similarly for the left N -linear structures.
+Regarding the first, we have
+ε
+
+(λG(c) • m)(d) = λG(c)(m • d) = G(c, m • d) ∼
+= G(c • m, d) = λG(c • m)(d),
+
+(B.11)
+
+and likewise for the second:
+ℓ
+
+(n • λG(c))(d) = n • (λG(c)(d)) ∼
+= n • G(c, d) = G(n • c, d) = λG(n • c)(d).
+
+(B.12)
+
+Vice versa, given a strong (N , M)-bilinear G : C → [D, E]P , we get λ−1 G : C × D → E is
+balanced:
+ℓ
+
+λ−1 G(c • m, d) = G(c • m)(d) ∼
+= (G(c) • m)(d) = G(c)(m • d) = λ−1 G(c, m • d). (B.13)
+Regarding morphisms, given a (N , P)-bilinear transformation ξc,d : F (c, d) ⇒ G(c, d),
+then we can curry this one too to get a family λξc : λF (c) ⇒ λG(c) of natural morphisms
+(λξc )d : λF (c)(d) ⇒ λG(c)(d), which amount to the same data. By the previous discussion
+on linearity, the linear constraints also move across the currying without impediment. This
+concludes the proof.
+4.4.10. Corollary. The tensor product of M-actegories ⊗M can be equipped with
+the structure of a monoidal product on M-Act-Mlx . Its restriction to M-Act-M is
+pseudoclosed, with internal hom [−, =]M .
+Proof. We complete the proof by defining the extra structure required to make M-Act-Mlx
+into a monoidal 2-category [JY21, Explanation 12.1.3]:
+1. The unit for this product is the biactegory (M, ⊗, ⊗). In fact it can be easily verified
+
+88
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+that the natural isomorphism τ from Proposition 4.4.4 induces an equivalence
+L
+
+M ⊗M C
+
+C
+m•c
+
+(m, c)
+
+φ•f
+
+(φ,f )
+
+n•d
+
+(n, d)
+
+and an analogous equivalence R can be defined from the tensor C ⊗M M. This
+functor is an equivalence since its inverse, c 7→ (j, c) is essentially surjective thanks
+to the additional family of isomorphisms τ in M ⊗M C (see Proposition 4.4.5). The
+bilinear structure can be obtained by using the multiplicator of C as a left and right
+lineator. Therefore, L and R are, respectively, the left and right unitor for ⊗M .
+2. The associator A : (D ⊗M C) ⊗M B → D ⊗M (C ⊗M B) rebrackets triples on objects
+and morphisms. Its linear structures are both identities:
+ℓm,d,c,b := m ◦ (d, (c, b)) == (m ◦ d, (c, b)),
+rm,d,c,b := (d, (c, b)) •′ m == (d, (c, b) •′ m) == (d, (c, b •′ m))
+
+(B.14)
+
+where •′ is the right M-action on B.
+3. The pentagonator is trivial.
+4. The middle 2-unitor is a natural, bilinear, invertible transformation which makes
+the following commute:
+(D ⊗M M) ⊗M C
+
+A
+
+D ⊗M (M ⊗M C)
+(B.15)
+
+M
+R⊗M C
+
+D⊗M L
+
+D ⊗M C
+It is defined as:
+τ −1
+
+(MD,C )((d,m),c) := (d, m • c) −−→ (d ◦ m, c),
+thus its bilinearity and invertibility are satisfied by definition.
+
+(B.16)
+
+89
+
+B PROOFS
+
+5. The left and right 2-unitors are the natural, bilinear, invertible transformations
+which make the following commute:
+L⊗M C
+
+(M ⊗M D) ⊗M C
+
+D ⊗M C
+
+L
+L
+
+A
+
+M ⊗M (D ⊗M C)
+(B.17)
+D⊗M R
+
+D ⊗M (C ⊗M M)
+
+D ⊗M C
+
+R
+R
+
+A
+
+(D ⊗M C) ⊗M M
+and are both just identity cells:
+(LD,C )((m,d),c) := (m ◦ d, c) == (m ◦ d, c),
+
+(B.18)
+
+(RD,C )((d,c),m) := (d, c • m) == (d, c • m).
+Checking the three coherence diagrams for this structure is tedious but routine.
+5.2.10. Proposition. [Aff product] Let (C, •, o, ⊞) be a distributive algebroidal Mactegory. Then the product category C × M can be equipped with a monoidal product ⊚,
+whose unit is (o, j) and whose product law is so defined:
+(c, m) ⊚ (d, n) := (c ⊞ (m • d), m ⊗ n)
+
+(5.15)
+
+Following the terminology in [CEG+ 20, Prop. 3.25.]) we call this the Aff product, and we
+denote such monoidal category by W(C, M).
+Proof. Following the idea outlined in Remark 5.2.11, one can verify easily that the
+repletion15 of the wide subcategory of affine endofunctors on C is closed under composition,
+hence it is a monoidal subcategory of ([C, C], 1C , ◦). Then (C × M, (o, j), ⊚) can be realized
+as a monoidal subcategory of this one, thus proving it is a well-defined monoidal category.
+15
+
+Meaning we include not just affine endofunctors, but also all endofunctors naturally isomorphic to
+
+those.
+
+90
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+Concretely, the associator for ⊚ is given by
+⊚
+α(c,m),(d,n),(e,p)
+: ((c, m) ⊚ (d, n)) ⊚ (e, p)
+
+== (c ⊞ (m • d), m ⊗ n) ⊚ (e, p)
+== ((c ⊞ (m • d)) ⊞ ((m ⊗ n) ⊞ e), (m ⊗ n) • p)
+(α⊞
+, µ•−1
+m,n,p )
+c,m•d,(m⊗n)⊞e
+
+−−−−−−−−−−−−−−−→ (c ⊞ ((m • d) ⊞ ((m ⊗ n) • e)), m • (n • p))
+(c⊞((m•d)⊞µ•−1
+m,n,e ), 1)
+
+(B.19)
+
+−−−−−−−−−−−−−→ (c ⊞ ((m • d) ⊞ (m • (n • e))), m • (n • p))
+−1
+(c⊞δm,d,n•e
+, 1)
+
+−−−−−−−−→ (c ⊞ (m • (d ⊞ (n • e))), m • (n • p))
+== (c, m) ⊚ (d ⊞ (n • e), n • p)
+== (c, m) ⊚ ((d, n) ⊚ (e, p)).
+Finally, the left and right unitors are defined respectively as
+λ⊚
+(c,m) : (o, j) ⊚ (c, m)
+== (o ⊞ (j • c), j ⊗ m)
+⊗
+(λ⊞
+j•c ,λm )
+
+−−−−−→ (j • c, m)
+(η • ,1)
+
+−−c−→ (c, m).
+
+ρ⊚
+(c,m) : (c, m) ⊚ (o, j)
+== (c ⊞ (m • o), m ⊗ j)
+(B.20)
+
+(c⊞γm ,ρ⊗
+m)
+
+−−−−−−→ (c ⊞ o), m)
+(ρ⊞ ,1)
+
+−−c−→ (c, m).
+Notice the role of the distributor and absorber in defining α⊚ and ρ⊚ .
+B.0.1. Corollary. The monoidal category (C×M, (o, j), ⊚) defined in Proposition 5.2.10
+acts on C.
+Proof. We established in the previous proof that (C × M, (o, j), ⊚) is a monoidal subcategory of ([C, C], 1C , ◦), thus we obtain an action on C from the latter by restriction of
+scalars along the inclusion C × M → [C, C].
+Concretely, the unitor and multiplicator of this action are given by:
+λ⊞
+j•c
+
+η•
+
+c
+ηc⊛ : (o, j) ⊛ c == o ⊞ (j • c) −−→ j • c −→
+c,
+
+(B.21)
+
+91
+
+B PROOFS
+µ⊛
+(a,m),(b,n),c : (a, m) ⊛ ((b, n) ⊛ c)
+== (a, m) ⊛ (b ⊞ (n • c))
+== a ⊞ (m • (b ⊞ (n • c)))
+a⊞δm,b,n•c
+
+−−−−−−→ a ⊞ ((m • b) ⊞ (m • (n • c)))
+(B.22)
+
+a⊞((m•b)⊞α−1
+m,n,c )
+
+−−−−−−−−−−→ a ⊞ ((m • b) ⊞ ((m ⊗ n) • c))
+α−1
+a,m•b,(m⊗n)•c
+
+−−−−−−−−→ (a ⊞ (m • b)) ⊞ ((m ⊗ n) • c)
+== (a ⊞ (m • b), m ⊗ n) ⊛ c
+== ((a, m) ⊚ (b, m)) ⊛ c.
+
+5.5.5. Lemma. [Characterization of the Drinfeld center] Consider the the canonical
+C-biactegory (C, ⊠, ⊠) (as defined in Example 4.3.10) associated to C, that we still denote
+by C. Then
+Z(C) ≃ [C, C]C-Act-C
+
+(5.35)
+
+where on the right we have the category of maps φ : C → C equipped with C-linear
+structures
+
+∼
+
+ℓc,d : φ(c) ⊠ d −→ φ(c ⊠ d),
+
+(5.36)
+
+∼
+
+rc,d : c ⊠ φ(d) −→ φ(c ⊠ d).
+satisfying the laws stated in Definition 4.3.2.
+Proof. Without loss of generality, suppose C is strict. Furthermore, given a bilinear
+endomorphism (φ, ℓ, r), we know by Lemma 3.4.5 we can consider ℓ to be trivial.16
+So given (φ, r) we obtain an object φ(j) and a natural isomorphism
+rj,c
+
+υc := φ(j) ⊠ c −−→ φ(j ⊠ c) == φ(c ⊠ j) == c ⊠ φ(j).
+
+(B.23)
+
+This satisfies Equation (5.31) by a reduction to Diagram (4.23).
+Vice versa, given (c, υ), we get a bilinear endomorphism − ⊠ c, whose left linear
+structure is trivial and right linear structure is given by
+d⊠υ
+
+b
+rd,b : d ⊠ c ⊠ b −−−→
+d ⊠ b ⊠ c.
+
+16
+
+(B.24)
+
+In other words, we are factoring the equivalence we have to construct through that defined in
+
+Lemma 3.4.5.
+
+92
+
+MATTEO CAPUCCI AND BRUNO GAVRANOVIĆ
+
+Well-definedness of this bilinear structure follows from the properties of υ, as above.
+Now given (φ, r), going back and forth this correspondence yields (− ⊠ φ(j), − ⊠ r).
+Hence we must check that (− ⊠ φ(j), − ⊠ r) = (φ, r) as right C-linear functors. The
+functor parts coincide by strictiness of the left C-linear structure of φ. If we check whether
+the identity is a valid right linear natural isomorphism, we are led to contemplate the
+commutativity of the following diagram (we omitted some identity morphisms arising from
+strictification):
+c ⊠ φ(j) ⊠ d
+
+φ(c) ⊠ d
+(B.25)
+
+rc,d
+
+c⊠rj,d
+
+c ⊠ φ(d)
+
+φ(c ⊠ d)
+
+It is easy to convince oneself this is what is left of Diagram (4.23) when ℓ and ζ are both
+identities.
+Instead, when (x, υ) is given, after a back and forth we get back the pair comprised of
+j ⊠ x = x and the natural isomorphism j ⊠ υz = υz .
+Finally, let us define this isomorphism on morphisms. Given a right linear transformation ξ : (φ, r) ⇒ (ψ, r′ ), we have to prove its image ξj : (φ(j), rj ) → (φ(j), rj′ ), we know
+the top square in the following diagram commutes:
+φ(j) ⊠ d
+
+ξj ⊠d
+
+ψ(j) ⊠ d
+′
+rj,d
+
+rj,d
+
+φ(j ⊠ d)
+
+ξj⊠d
+
+d ⊠ φ(j)
+
+(B.26)
+
+ψ(j ⊠ d)
+
+d ⊠ ψ(j)
+
+Since the bottom one commutes by assumption on φ, the composite square proves ξj
+satisfies the required condition (namely Diagram (5.32)). Contemplating the same diagram
+proves that given f : (c, υ) → (d, τ ), we get a well-defined right linear transformation
+b⊠f
+
+ξ : (− ⊠ c, − ⊠ υ) ⇒ (− ⊠ d, − ⊠ τ ) whose components are defined as ξb := b ⊠ c −−→ b ⊠ d.
+Mathematically Structured Programming Group,
+Department of Computer and Information Sciences,
+University of Strathclyde,
+
+B PROOFS
+Glasgow, Scotland
+
+Email: matteo.capucci@strath.ac.uk
+bruno@brunogavranovic.com
+
+93
+
+

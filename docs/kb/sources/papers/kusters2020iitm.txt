@@ -1,0 +1,351 @@
+J Cryptol (2020) 33:1461–1584
+https://doi.org/10.1007/s00145-020-09352-1
+
+The IITM Model: A Simple and Expressive Model
+for Universal Composability
+Ralf Küsters
+University of Stuttgart, Stuttgart, Germany
+ralf.kuesters@sec.uni-stuttgart.de
+
+Max Tuengerthal
+Siemens Mobility, Erlangen, Germany
+max.tuengerthal@siemens.com
+
+Daniel Rausch
+University of Stuttgart, Stuttgart, Germany
+daniel.rausch@sec.uni-stuttgart.de
+Communicated by Kenneth G. Paterson
+Received 18 January 2013 / Revised 1 July 2019
+Online publication 15 June 2020
+Abstract. The universal composability paradigm allows for the modular design and
+analysis of cryptographic protocols. It has been widely and successfully used in cryptography. However, devising a coherent yet simple and expressive model for universal
+composability is, as the history of such models shows, highly non-trivial. For example,
+several partly severe problems have been pointed out in the literature for the UC model.
+In this work, we propose a coherent model for universal composability, called the IITM
+model (“Inexhaustible Interactive Turing Machine”). A main feature of the model is that
+it is stated without a priori fixing irrelevant details, such as a specific way of addressing
+of machines by session and party identifiers, a specific modeling of corruption, or a specific protocol hierarchy. In addition, we employ a very general notion of runtime. All
+reasonable protocols and ideal functionalities should be expressible based on this notion
+in a direct and natural way, and without tweaks, such as (artificial) padding of messages
+or (artificially) adding extra messages. Not least because of these features, the model
+is simple and expressive. Also the general results that we prove, such as composition
+theorems, hold independently of how such details are fixed for concrete applications.
+Being inspired by other models for universal composability, in particular the UC model
+and because of the flexibility and expressivity of the IITM model, conceptually, results
+formulated in these models directly carry over to the IITM model.
+Keywords. Universal composability, Protocol analysis, Foundations.
+
+© The Author(s) 2020
+
+1462
+
+R. Küsters et al.
+
+1. Introduction
+In the universal composability paradigm [5,36], the security of protocols is defined in
+such a way that security is preserved even if the protocols are used as components of an
+arbitrary (polynomially bounded) distributed system. This strong composability property
+allows for the modular design and analysis of protocols. More specifically, the security
+of a protocol is defined in terms of an ideal protocol (also called an ideal functionality).
+A real protocol securely realizes the ideal protocol if every attack on the real protocol
+can be translated into an “equivalent” attack on the ideal protocol, where equivalence is
+specified based on an environment trying to distinguish the real attack from the ideal one.
+That is, for every real adversary on the real protocol there must exist an ideal adversary
+(also called a simulator) on the ideal protocol such that no environment can distinguish
+whether it interacts with the real protocol and the real adversary or the ideal protocol
+and the ideal adversary. So the real protocol is as secure as the ideal protocol (which, by
+definition, is secure) in all environments.
+At the core of the universal composability paradigm are composition theorems which
+say that if a protocol uses one or more (independent) instances of an ideal functionality,
+then all instances of the ideal functionality can be replaced by instances of the real protocol that realizes the ideal functionality. In this way, more and more complex protocols
+can be designed and analyzed in a modular way based on ideal functionalities. Often
+different protocol instances share some state, such as long-term keys. Consider, for example, an ideal functionality for public-key encryption. Such a functionality typically
+encapsulates one public key (and its corresponding private key), say pk, and models
+ideal encryption under pk. That is, when this functionality is used to encryption a message m (under pk), then the resulting ciphertext does not contain any information about
+m, except the length of m. Now, consider a protocol, for example, a key exchange protocol, that uses this ideal functionality. Then, in the universal composability paradigm, in
+different sessions of the protocol different independent instances of the ideal public-key
+encryption functionality would be used. But this means that different sessions of the
+protocol would use different public keys. This is of course impractical and unrealistic.
+One would rather like to use the same public key (and hence, the same private key)
+in all protocol sessions. Fortunately, so-called joint state theorems allow one to argue
+about protocols in a modular way, similar to the general composition theorem mentioned
+above, even if several instances of a protocol/functionality share some state [14,26,30]
+(see also Sect. 10.2 for more details). Moreover, in some cases it is necessary that all
+components of a system have access to some global state information, such as a common
+reference string (CRS). For this purpose, composition theorems with global state (also
+called global setup) have been proposed [9] (see also Sect. 10.3).
+The universal composition paradigm has been widely and successfully used in cryptography to design and analyze complex protocols in a modular way (see, e.g., [6] for
+an overview).
+However, devising a coherent yet simple and expressive model for this paradigm has
+turned out to be highly non-trivial (see Sect. 11 for a more detailed discussion). For
+example, several partly severe problems have been pointed out in the literature for the
+UC model [5], concerning, for instance, the validity of the composition and joint state
+
+The IITM Model: A Simple and Expressive Model
+
+1463
+
+theorems, the way corruption is handled, the notion of runtime, and the expressivity of
+the model.
+Contribution. In this paper, we propose a coherent model for universal composability
+that is both simple and expressive. Our model coincides with the IITM model proposed in
+previous work [23] (where IITM stands for “Inexhaustible Interactive Turing Machine”),
+except that we now use a more general notion of runtime than the one used in the original
+version of the IITM model, namely one that is based on a runtime notion proposed by
+Hofheinz et al. [21]. We therefore stick to the name IITM model also for the model
+proposed here. The main features of the IITM model are as follows.
+• The IITM model is very simple and expressive, not least because it is formulated
+in a very general way without fixing irrelevant details:
+– The IITM model provides a very flexible and generic mechanism to address
+instances of machines. Unlike other models, in which a specific way of addressing of machines by session identifiers (SIDs) and party identifiers (PIDs)
+is fixed, the IITM model does not hard-wire how machines are addressed.
+– Unlike other models, the IITM model also does not hard-wire corruption into
+the model. Corruption instead can be specified in a very general and flexible
+way as part of the protocol specification.
+– Unlike other models, the IITM model does not impose a specific structure on
+protocols, such as a hierarchical structure with protocols and subroutines. This
+is, for example, important for seamlessly dealing with joint and global state,
+and for faithfully modeling real-world protocols.
+– The runtime of machines and systems of machines is defined in a very general
+way. All reasonable (real and ideal) protocols should be expressible in a very
+natural way based on this runtime notion, without tweaks, such as (artificial)
+padding of messages or (artificially) adding extra messages, as necessary in
+other models.
+• All common universal composability security notions, including (dummy) UC,
+strong simulatability, black-box simulatability, and reactive simulatability are equivalent in the IITM model.1
+• The composition, joint state, and global setup theorems are very general: the class
+of protocols they cover is large, both in terms of the structure and the runtime of
+protocols. These theorems are stated and proven independently of many details fixed
+in other models (such as addressing of machines and corruption). Hence, they hold
+true no matter how these details are fixed in concrete applications. The generality
+of the theorems and the IITM model is also apparent in the fact that to state the joint
+state and global setup theorems the IITM does not have to be changed or extended,
+unlike other models. These theorems can smoothly be stated and proven within the
+model. Moreover, the joint state theorem and the main global setup theorems are
+even merely direct consequences of our general composition theorems. In other
+models, new notation is required to state those theorems and the theorems require
+1 For reactive simulatability, this is true for environments with external input (non-uniform environments),
+as detailed in Sect. 6.3.
+
+1464
+
+R. Küsters et al.
+
+(non-trivial) proofs. The flexibility of the IITM model and the generality of its
+composition theorems also allow us to directly support many forms of joint state
+and global setup, including arbitrary combinations of both, which have not been
+considered in the literature so far and would require extensions in other models (cf.
+Sects. 10, 11 for more details and discussion).
+• Since the IITM model conceptually follows other models for universal composability, in particular the UC model, and because of its high expressivity and flexibility,
+results established in other models easily carry over to the IITM model.
+Structure of the Paper. In Sect. 2, we present the IITM model in a nutshell in order to
+provide a first impression of the model. We then, in Sect. 3, define the computational
+model on which the IITM model is based. This model is stated independently of the
+application to universal composability and is of independent interest. The runtime notions
+that we use are introduced in Sect. 4, along with basic properties. While these properties
+are as expected, some of the problems in other models stem from the fact that not all of
+these properties are satisfied in these models. For example, not in all models it is possible
+to specify a dummy machine which simply forwards messages back and forth between
+different system components. Also, in some models it is not possible to simulate arbitrary
+subsystems by one machine. In Sect. 5, we present general composition theorems for
+systems that are computationally indistinguishable by environments. These composition
+theorems are the core of the composition theorems for universal composition, presented
+in Sect. 7. The common notions for universal composability, namely (dummy) UC, strong
+simulatability, black-box simulatability, and reactive simulatability, are introduced in
+Sect. 6, along with basic properties. We show that all these notions are equivalent, where,
+as already mentioned, for reactive simulatability this requires environments with external
+input. The general composition theorems are then, as mentioned, stated and proven in
+Sect. 7. They follow easily from those established in Sect. 5. The composability of
+the runtime notions that we use is discussed in Sect. 8. An alternative runtime notion
+and why it is unsuitable is explained in Sect. 9. In Sect. 10, we illustrate how the
+IITM model can be used to design and analyze (multi-party) protocols in a modular
+way. In particular, we present one way of addressing multiple sessions and modeling
+corruption of machines/instances/parties. We also briefly discuss joint state and global
+state composition theorems. Related work is discussed in Sect. 11. Details omitted in
+the main body of the paper can be found in appendix.
+
+2. The IITM Model in a Nutshell
+In this section, we provide a brief introduction to the IITM model, with full details
+presented in the subsequent sections. In the IITM model, security notions and composition/joint state theorems are formalized based on a very simple and at the same time
+very expressive general computational model, in which IITMs (inexhaustible interactive
+Turing Machines) and systems of IITMs are defined. We first sketch the general computational model and then, based on it, formulate universal composability security notions
+and state composition theorems.
+
+The IITM Model: A Simple and Expressive Model
+
+1465
+
+The General Computational Model. The general computational model is defined in
+terms of systems of IITMs. An inexhaustible interactive Turing Machine (IITM) is a
+probabilistic Turing machine with named input and output tapes as well as an associated polynomial. The tape names determine how different machines are connected in a
+system of IITMs (see below). An IITM runs in one of two modes, CheckAddress and
+Compute. The CheckAddress mode is used as a generic mechanism for addressing
+instances of IITMs in a system of IITMs, as explained below. In this mode, an IITM may
+perform, in every activation, a deterministic polynomial time computation in the length
+of the security parameter plus the length of the current input plus the length of its current
+configuration, where the polynomial is the one associated with the IITM. The IITM
+is supposed to output “accept” or “reject” at the end of the computation in this mode,
+indicating whether the received message is processed further or ignored. The actual processing of the message, if accepted, is done in mode Compute. In mode Compute, a
+machine may output only at most one message on an output tape (and hence, only at
+most one other machine is triggered). The runtime in this mode is not a priori bounded.
+Later the runtime of systems and their subsystems will be defined in such a way that the
+overall runtime of a system of IITMs is polynomially bounded in the security parameter
+plus the length of the external input. We note that in both modes, an IITM cannot be
+exhausted (hence, the name): in every activation it can perform actions and cannot be
+forced to stop. This property, while not satisfied in all other models, is crucial to obtain
+a reasonable model for universal composability (see also Sect. 11).
+A system S of IITMs is of the form S = M1 | · · · | Mk | ! M1 | · · · | ! Mk  where Mi ,
+i ∈ {1, . . . , k}, and M j , j ∈ {1, . . . , k  }, are IITMs such that, for every tape name c,
+at most two of these IITMs have a tape named c and if two IITMs have a tape named
+c, then c is an input tape in one of the machines and an output tape in the other. We
+say that the IITMs M j are in the scope of a bang operator. This operator indicates that
+in a run of a system an unbounded number of (fresh) instances of a machine can be
+generated. Conversely, if a machine is not in the scope of a bang operator, there may
+be at most one instance of the machine in every run of the system. Systems in which
+multiple instances of a machine may be generated are often needed, e.g., in the case
+of multi-party protocols or in the case a system describes the concurrent execution of
+multiple instances of a protocol.
+Before explaining runs of systems, we would like to emphasize the difference between
+a description of a machine and an instance (or copy) of a machine. The difference is the
+same as the one between program code and a process in an operating system: a process
+has state and performs the actual actions in a run of a system; it does so following its
+program code. In our setting, the description of a machine M specifies the behavior of
+a machine (its program code) and is part of the specification of a system S. In a run of
+S, instances of M are created. These instances have a specific state (or configuration),
+receive input on their input tapes, process the input according to their specifications
+(program code), thereby updating their state, and produce output. In what follows, for
+simplicity, we often use the terms IITMs and machines to denote both static descriptions
+and instances, depending on the context. More specifically, in the context of systems
+we mean the static descriptions of machines. In the context of runs of systems or in the
+context of the runtime behavior of machines, we refer to instances of machines.
+
+1466
+
+R. Küsters et al.
+
+In a run of a system S at any time only one instance of an IITM is active and all
+other instances wait for new input. The first instance to be activated in a run of S is an
+instance of the so-called master IITM. A system has at most one master IITM, which
+may get external input; a run may have several instances of the master IITM, though, if
+this machine is in the scope of a bang operator (see below). By the definition of IITMs,
+the active machine may output only at most one message on one of its output tapes, and
+hence, at most one other machine is triggered after the activation of the currently active
+machine. To illustrate runs of systems, consider, for example, the system S = M1 | ! M2
+and assume that M1 has an output tape named c, M2 has an input tape named c, and M1
+is the master IITM. (There may be other tapes connecting M1 and M2 .) Furthermore,
+assume that in the run of S executed so far, two instances of M2 , say M2 and M2 , have
+been generated, with M2 generated before M2 , and that M1 just sent a message m on
+tape c. This message is delivered to M2 (as the first copy of M2 ). First, M2 runs in
+mode CheckAddress with input m; as mentioned, this is a deterministic polynomial
+time computation which outputs “accept” or “reject”. If M2 accepts m, then M2 gets
+to process m in mode Compute and could, for example, send a message back to M1 .
+Otherwise, m is given to M2 which then runs in mode CheckAddress with input m. If
+M2 accepts m, then M2 gets to process m in mode Compute. Otherwise (if both M2
+and M2 do not accept m), a new copy M2 of M2 with fresh randomness is generated
+and M2 runs in mode CheckAddress with input m. (Note that a new copy of M2
+is generated only because in the system description S M2 is in the scope of a bang.)
+If M2 accepts m, then M2 gets to process m. Otherwise, M2 is removed again, the
+message m is dropped, and an instance of the master IITM is activated with empty
+input, in this case M1 . More precisely, (the single instance of) M1 first runs in mode
+CheckAddress to determine whether it accepts the empty input. If M1 does, it gets to
+process the empty input. Otherwise, no new instance of M1 is generated, because M1
+is not in the scope of a bang operator. Now, since M1 is a master IITM, this means that
+the run stops. In general, master IITMs can also be in the scope of a bang operator, and
+hence, analogously to M2 in the example, new instances of such an IITM can be created.
+If none of the existing instances of a master IITM nor a newly created master instance
+accepts an input message, the system run stops. A run also stops if a master instance
+active in mode Compute does not produce output (and hence, does not trigger another
+machine). If a currently active non-master instance running in mode Compute does
+not produce output, a master instance is triggered (with empty input). In particular, this
+does not (immediately) terminate a run. Finally, a run also terminates if an instance of a
+machine (not necessarily a master instance) outputs a message on an output tape named
+decision.2 Such a message is considered to be the (overall) output of the system.
+As mentioned in the definition of systems, tape names of machines are unique in the
+context of the static description of a system: there are no two machines in a system
+which have an input tape with the same name; analogously for output tapes. For every
+tape name c, there may, however, exist at most two machines in a system where one has
+an input tape named c and the other has an output tape named c, which, as explained,
+means that the two machines are connected. For instances of machines, we do not have
+uniqueness of names, though. For example, both instances M2 and M2 from above have
+2 Note that, by the definition of systems, only one of the specified IITMs can have such an output tape.
+
+The IITM Model: A Simple and Expressive Model
+
+1467
+
+an input tape named c as they are copies of M2 . Because (the static description of) M1
+has an output tape named c and (the static description of) M2 has an input tape name
+c, (an instance of) M1 can send a message via c to an instance of M2 . As explained,
+the CheckAddress mode of M2 is used to determine which copy of M2 actually gets
+to process the message sent by M1 . If M1 did not have any output tape whose name
+coincides with the name of an input tape of M2 , then M1 could not send a message to
+(an instance of) M2 .
+Two systems P and Q are called indistinguishable (P ≡ Q) if and only if the difference
+between the probability that the output of P is 1 and the probability that the output of
+Q is 1 is negligible.
+Note that we do not fix details such as addressing of machines by party/session IDs or
+corruption in this model. We also do not impose any specific structure, e.g., a hierarchical
+structure with protocols and subroutines, on systems. This makes the model both simpler
+and more expressive.
+Universal Composability Security Notions. We need the following terminology. For
+a system S, the input/output tapes of IITMs in S that do not have a matching output/input tape in S are called external, where an input/output tape of one IITM in S
+matches an output/input tape of another IITM in S if both tapes have the same name.
+External tapes are grouped into I/O and network tapes. I/O tapes are used to model
+secure direct connections between two machines, for example, to model subroutine relationships where one machine locally calls another one, whereas network tapes model
+untrusted communication with the adversary/environment or communication with a simulator (see below). We often refer to the sets of I/O and network tapes of S by I/O and
+network interface, respectively. We consider three different types of systems: protocol
+systems, adversarial systems, and environmental systems, modeling (i) real and ideal
+protocols/functionalities, (ii) adversaries and simulators, and (iii) environments, respectively. Protocol systems, adversarial systems, and environmental systems are systems
+which have an I/O and network interface, i.e., they may have I/O and network tapes.
+Adversarial systems may only connect to the network interface of a protocol system but
+not to its I/O interface. Environmental systems may contain a master machine and may
+produce output on the tape decision.
+So far, we have not restricted the runtime of IITMs in mode Compute in any way.
+The following constraints will be used to enforce that systems run in polynomial time
+(possibly except with negligible probability): (i) Every environmental system E has to be
+universally bounded, i.e., there exists a polynomial p such that for all systems S which
+connect only to the external tapes of E, we have that the overall runtime of E in mode
+Compute in runs of the system E | S, with security parameter η and external input a, is
+bounded by p(η + |a|). (ii) A protocol system P typically3 has to be environmentally
+bounded, i.e., for all environmental systems E there exists a polynomial p such that
+the overall runtime of P in mode Compute in runs of the system E | P, with security
+parameter η and external input a, is bounded by p(η + |a|) (in all runs except for
+a negligible set of runs). Since the runtime in mode CheckAddress is polynomially
+bounded, this guarantees that, for a protocol system P and environmental system E,
+3 Our formal definition (see Definition 11) is more general. See also the remarks following Definition 11.
+
+1468
+
+R. Küsters et al.
+
+Fig. 1. Strong simulatability (SS). We note that P and F have the same I/O interface .
+
+the overall runtime of E | P is polynomially bounded in the security parameter plus the
+length of the external input (except with negligible probability). This runtime notion
+for protocol systems is very general. We claim that it includes all reasonable protocol
+systems that occur in applications, as further explained in [21] and subsequent sections.
+In most other models, such as Canetti’s UC model, the runtime notions are more restricted
+and more complex.
+We now informally define strong simulatability; other equivalent security notions,
+such as universal composability (UC) and dummy UC, are defined in a similar way in
+subsequent sections. The systems considered in the following definition are illustrated
+in Fig. 1.
+Definition 1. (Informal) Let P and F be protocol systems with the same I/O interface
+(i.e., with the same set of I/O tapes), the real and the ideal protocol, respectively. Then,
+P realizes F (P ≤SS F) if and only if there exists an adversarial system S (called a
+simulator or an ideal adversary) such that S connects only to the network interface of
+F, the systems P and S | F have the same external interface, S | F is environmentally
+bounded, and for all environmental systems E, connecting only to the external interface
+of P (and hence, S | F), it holds that E | P ≡ E | S | F.
+We note that this relation is reflexive and transitive. We also emphasize that still details
+such as addressing of machines by party/session IDs, corruption, and the structure of
+protocols are not, and do not need to be fixed in order to define this realization relation.
+Composition Theorems. Composition theorems allow for the modular analysis and
+design of systems and are one of the main features of the universal composability
+paradigm. Our first composition theorem handles concurrent composition of a fixed
+number of (different) protocol systems. The second one guarantees secure composition
+of an unbounded number of instances of a protocol system.
+Theorem 1. (Informal) Let k ≥ 1. Let Q, P1 , . . . , Pk , F1 , . . . , Fk be protocol systems such that they connect only via their I/O interfaces, Q | P1 | · · · | Pk is environmentally bounded, and Pi ≤SS Fi , for i ∈ {1, . . . , k}. Then, Q | P1 | · · · | Pk ≤SS
+Q | F1 | · · · | F k .
+
+

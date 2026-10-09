@@ -1,0 +1,1723 @@
+arXiv:1804.01682v1 [cs.LO] 5 Apr 2018
+
+ON THE AXIOMATIZABILITY OF QUANTITATIVE
+ALGEBRAS
+RADU MARDARE, PRAKASH PANANGADEN, AND GORDON PLOTKIN
+Dept. of Computer Science, Aalborg University, Denmark
+e-mail address: mardare@cs.aau.dk
+School of Computer Science, McGill University, Canada
+e-mail address: prakash@cs.mcgill.ca
+School of Informatics, University of Edinburgh, Scotland
+e-mail address: gdp@inf.ed.ac.uk
+
+Abstract. Quantitative algebras (QAs) are algebras over metric spaces
+defined by quantitative equational theories as introduced by the same authors in a related paper presented at LICS 2016. These algebras provide the
+mathematical foundation for metric semantics of probabilistic, stochastic
+and other quantitative systems. This paper considers the issue of axiomatizability of QAs. We investigate the entire spectrum of types of quantitative
+equations that can be used to axiomatize theories: (i) simple quantitative
+equations; (ii) Horn clauses with no more than c equations between variables as hypotheses, where c is a cardinal and (iii) the most general case of
+Horn clauses. In each case we characterize the class of QAs and prove variety/quasivariety theorems that extend and generalize classical results from
+model theory for algebras and first-order structures.
+
+1. Introduction
+In [MPP16] we introduced the concept of a quantitative equational theory in
+order to support a quantitative algebraic theory of eﬀects and address metricsemantics issues for probabilistic, stochastic and quantitative theories of systems. Probabilistic programming, in particular, has become very important
+recently [Pfe16], see, for example, the web site [Roy]. The need for semantics
+and reasoning principles for such languages is important as well and recently one
+Key words and phrases: Universal algebra, quantitative algebra, equational logic, varieties,
+quasivarieties, first-order structure.
+An earlier version of this paper appeared as...
+
+LOGICAL METHODS
+IN COMPUTER SCIENCE
+
+DOI:10.2168/LMCS-???
+
+1
+
+c R. Mardare, P. Panangaden, and G. Plotkin
+Creative Commons
+
+2
+
+R. MARDARE, P. PANANGADEN, AND G. PLOTKIN
+
+can witness an increased interest of the research community in this topic. Equational reasoning is the most basic form of logical reasoning and it is with the
+aim of making this available in a metric context that we began this work.
+A quantitative equational theory allows one to write equations of the form s =ǫ t,
+where ǫ is a rational number, in order to characterize metric structures in an
+algebraic context. We developed the analogue of universal algebras over metric spaces – called quantitative algebras (QAs), proved analogues of Birkhoﬀ’s
+completeness theorem and showed that quantitative equations deﬁned monads
+on metric spaces. We also presented a number of examples of interesting quantitative algebras widely used in semantics. We presented variants of barycentric
+algebra [Sto49] that model the space of probabilistic/subprobabilistic distributions with either the Kantorovich, Wasserstein or total variation metrics; the
+same algebras can also be used to characterize the space of Markov processes
+with the Kantorovich metric. We also gave a notion of quantitative semilattice
+that characterizes the space of closed subsets of an extended metric space with
+the Hausdorﬀ metric. In all these examples we emphasized elegant axiomatizations characterizing these well-known metric spaces. In [BBLM16] the same
+tools are used to provide axiomatizations for a ﬁx-point semantics for Markov
+chains. Of course, some of these examples can be given by ordinary monads,
+as shown in [vBHMW07, AMM12], but we are aiming to fully integrate metric
+reasoning into equational reasoning.
+What was left open in our previous work was what kinds of metric-algebraic
+structures could be axiomatized. This is an important issue if we want a general
+theory for metric-based semantics, since we will need to understand whether
+the class of systems of interest with their natural metrics can, in fact, be axiomatized. In the present paper, we discuss the general question of what classes of
+quantitative algebras can be axiomatized by quantitative equations, or by more
+general axioms like Horn clauses.
+The celebrated Birkhoﬀ variety theorem [Bir35] states that a class of algebras
+is equationally deﬁnable if and only if it is closed under homomorphic images,
+subalgebras, and products. Many extensions have been proved for more general
+kinds of axioms [AP98] and for coalgebras instead of algebras [AP01, Gol01],
+and see [ARV10, Bar94, Man12] for a categorical perspective. It is natural to ask
+if there are corresponding results for quantitative equations and quantitative
+algebras. Since classical equations s = t deﬁne a congruence over the algebraic
+structure, while quantitative equations s =ǫ t deﬁne a pseudometric coherent
+with the algebraic structure, the classical results do not apply directly to our
+case. One therefore needs fully to understand how metric structures behave
+equationally to answer the question. This is the challenge we take up here.
+The interesting examples that we present in [MPP16] require not only axiomatizations involving quantitative equations of the form s =ǫ t, but also conditional
+equations, i.e., Horn clauses involving quantitative equations. Already the simple case of Horn clauses of the form {xi =ǫi yi | i ∈ I} as hypotheses, where
+
+ON THE AXIOMATIZABILITY OF QUANTITATIVE ALGEBRAS
+
+3
+
+xi , yi are variables only, provides interesting examples. All this forces us to develop some new concepts and proof techniques that are innovative in a number
+of ways.
+Firstly, we show that considering a metric structure on top of an algebraic structure, which implicitly requires one to replace the concept of congruence with
+a pseudometric coherent with the algebraic structure, is not a straightforward
+generalization. Indeed, one can always think of a congruence ∼
+= on an algebra
+∼
+(a,
+b)
+=
+0 iﬀ a ∼
+deﬁned
+by
+p
+A as to the kernel of the pseudometric p∼
+= b and
+=
+=
+∼
+p= (a, b) = 1 otherwise. Nevertheless, many standard model-theoretic results
+about axiomatizability of algebras are particular consequences of the discrete
+nature of this pseudometric. Many of these results fail when one takes a more
+complex pseudometric, even if its kernel remains a congruence.
+Secondly, we show that in the case of quantitative algebras, quantitative equationbased axiomatizations behave very similarly to axiomatizations by Horn clauses
+involving only quantitative equations between variables as hypotheses. And this
+remains true even when one allows functions of countable arity in the signature.
+Horn clauses of this type are directly connected to enriched Lawvere theories
+[Rob02]. We give a uniform treatment of all these cases by interpreting quantitative equations as Horn clauses with empty sets of hypotheses.
+We discover, in this context, a special class of homomorphisms that we call
+c-reflexive homomorphisms, for a cardinal c, that play a crucial role. These
+homomorphisms preserve distances on selected subsets of cardinality less than
+c of the metric space, i.e., any c-space in the image pulls back (modulo nonexpansiveness) to one in the domain. This concept generalizes the concept of
+homomorphism of quantitative algebras, since any homomorphism of quantitative algebras is 1-reﬂexive. The central role of c-reﬂexive homomorphisms is
+demonstrated by a weak universality property, proved below.
+This result also shows that the classical canonical model construction for classes
+of universal algebras is mathematically inadequate and works in the traditional
+settings only because it is, coincidentally, a model isomorphic with the more
+general one that we present here. However, apart from the classic settings (of
+universal algebras and congruences) the standard construction fails to produce
+a model isomorphic with the “natural” one and consequently, it fails to reﬂect
+the weak universality properly up to c-reﬂexive homomorphisms.
+Our main result in this ﬁrst part of the paper is the c-variety theorem for a
+regular cardinal c ≤ ℵ1 : a class of quantitative algebras can be axiomatized by
+Horn clauses, each axiom having fewer than c equations between variables as
+hypotheses, if, and only if, the class is closed under subobjects, products and
+c-reﬂexive homomorphisms. In particular, (i) the class is a 1-variety (closed
+under subobjects, products and homomorphisms) iﬀ it can be axiomatized by
+quantitative equations; (ii) it is an ℵ0 -variety iﬀ it can be axiomatized by Horn
+clauses with ﬁnite sets of quantitative equations between variables as hypotheses; and (iii) it is an ℵ1 -variety iﬀ it can be axiomatized by Horn clauses with
+
+4
+
+R. MARDARE, P. PANANGADEN, AND G. PLOTKIN
+
+countable sets of quantitative equations between variables as hypotheses. Notice that in the light of the previously mentioned relation between congruences
+and pseudometrics, (i) generalizes the original Birkhoﬀ result for universal algebras. Without the concept of c-reﬂexivity, one can only state a quasi-variety
+theorem under the very strong assumption that reduced products always exist,
+as happens, e.g., in [Wea95].
+Thirdly, we also study the axiomatizability of classes of quantitative algebras
+that admit Horn clauses as axioms, but which are not restricted to quantitative
+equations between variables as hypotheses. We prove that a class of quantitative
+algebras admits an axiomatization of this type, whenever it is closed under
+isomorphisms, subalgebras and what we call subreduced products. These are
+quantitative subalgebras of (a special type of) products of elements in the given
+class; however, while these products are always algebras, they are not always
+quantitative algebras, and this is where the new concept plays its role. This new
+type of closure condition allows us to generalize the usual quasivariety theorem
+of universal algebras.
+Since all the isomorphisms of quantitative algebras are c-reﬂexive homomorphisms, and since a c-variety is closed under subalgebras and products, it is
+also closed under subreduced products, as they are quantitative subalgebras of
+the product. Hence, a c-variety is closed under these operators for any regular
+cardinal c > 0 and so our quasivariety theorem extends the c-variety theorem
+further. These all are novel generalizations of the classical results.
+Last, but not least, to achieve the aforementioned results for general Horn
+clauses, we had to generalize concepts and results from model theory of ﬁrstorder structures considering ﬁrst-order model theory on metric structures. Thus,
+we extended to the general unrestricted case the pioneering work in [YBHU08]
+devoted to continuous logic over complete bounded metric spaces. We identiﬁed
+the ﬁrst-order counterpart of a quantitative algebra, that we call a quantitative first-order structure, and prove that the category of quantitative algebras
+is isomorphic to the category of quantitative ﬁrst-order structures. We have
+developed first-order equational logic for these structures and extended standard model theoretic results for quantitative ﬁrst-order structures. Finally, the
+proof of the quasivariety theorem, which actively involves the new concept of
+subreduced product, is based on a more fundamental proof pattern that can
+be further used in model theory for other types of ﬁrst-order structures. We
+essentially show how one can prove a quasivariety theorem for a restricted class
+of ﬁrst-order structures that obey inﬁnitary axiomatizations.
+We have left behind an open question: the results regarding unrestricted Horn
+clauses have been proved under the restriction of having only ﬁnitary functions
+in the algebraic signature. This was required in order to use standard model theoretic techniques. We believe that a similar result might also hold for countable
+functions.
+
+ON THE AXIOMATIZABILITY OF QUANTITATIVE ALGEBRAS
+
+5
+
+2. Preliminaries on Quantitative Algebras
+In this section we recall some basic concepts used to deﬁne the quantitative
+algebras, from [MPP16], and introduce a couple of new concepts needed in our
+development.
+2.1. Quantitative Equational Theories. Consider an algebraic similarity
+type Ω, which is a set containing function symbols of ﬁnite or countable arity
+(we see constants as functions of arity 0). If c is the arity of the function f in
+Ω, we write f : c ∈ Ω.
+Given a set X of variables, let TX be the Ω-term algebra over X, i.e., the Ωalgebra having as elements all the terms generated from the set X of variables
+and the functions symbols in Ω.
+If f : c ∈ Ω and (ti )i∈I is an indexed family of terms with with |I| = c, we write
+f ((ti )i∈I ) for the term obtained by applying f to this family of terms in the
+order given by I.
+A substitution is a function σ : X → TX. It can be canonically extended to a
+homomorphism of Ω-algebras σ : TX → TX by:
+for any f : |I| ∈ Ω, σ(f ((ti )i∈I )) = f (σ(ti )i∈I ).
+In what follows Σ(X) denotes the set of substitutions on TX.
+If Γ ⊆ TX is a set of terms and σ ∈ Σ(X), let σ(Γ) = {σ(t) | t ∈ Γ}.
+We use V(X) to denote the set of indexed equations of the form x =ǫ y for
+x, y ∈ X and ǫ ∈ Q+ ; similarly, we use V(TX) to denote the set of indexed
+equations of the form t =ǫ s for t, s ∈ TX, ǫ ∈ Q+ . We call them quantitative
+equations.
+Let E(TX) be the class of conditional quantitative equations on TX, which are
+constructions of the form
+{si =ǫi ti | i ∈ I} ⊢ s =ǫ t,
+1
+
+where I is a countable index set, (si )i∈I , (ti )i∈I ⊆ TX and s, t ∈ TX.
+If V ⊢ φ ∈ E(TX), we refer to the elements of V as the hypotheses and to
+quantitative equation φ as the conclusion of the conditional equation.
+When the hypotheses are only quantitative equations between variables, the
+quantitative conditional equation is called basic conditional equation. These
+play a central role in our theory and for this reason it is useful to identify a few
+subclasses of them.
+1Anticipating the deduction system, notice that, as usual, the hypotheses containing only
+
+variables and functions that are not present in the syntax of φ can be ignored (e.g., by involving
+a cut-elimination rule), and since φ can only contain a countable set of terms and functions,
+we can safely assume that conditional equations have a countable (possibly finite or empty)
+set of hypotheses.
+
+6
+
+R. MARDARE, P. PANANGADEN, AND G. PLOTKIN
+
+(Refl)
+
+⊢ t =0 t ,
+
+(Symm)
+
+{t =ǫ s} ⊢ s =ǫ t ,
+
+(Triang)
+
+{t =ǫ u, u =ǫ′ s} ⊢ t =ǫ+ǫ′ s ,
+
+(Max) {t =ǫ s} ⊢ t =ǫ+ǫ′ s , for all ǫ′ > 0 ,
+(Arch)
+
+for ǫ ≥ 0, {t =ǫ′ s | ǫ′ > ǫ} ⊢ t =ǫ s ,
+
+(NExp) for f : |I| ∈ Ω, {ti =ǫ si | i ∈ I} ⊢ f ((ti )i∈I ) =ǫ f ((si )i∈I ) ,
+(Subst) for all σ ∈ Σ(X), Γ ⊢ t =ǫ s implies σ(Γ) ⊢ σ(t) =ǫ σ(t) ,
+(Cut) if Γ ⊢ ψ for all ψ ∈ Θ, and Θ ⊢ t =ǫ s, then Γ ⊢ t =ǫ s ,
+(Assumpt)
+
+If t =ǫ s ∈ Γ, then Γ ⊢ t =ǫ s .
+Table 1: MetaAxioms
+
+Given a cardinal 0 < c ≤ ℵ1 , a c-basic conditional equation on TX is a conditional quantitative equation of the form
+{xi =ǫi yi | i ∈ I} ⊢ s =ǫ t,
+where |I| < c, (xi )i∈I , (yi )i∈I ⊆ X and s, t ∈ TX.
+Note that the 1-basic conditional equations are the conditional equations with
+an empty set of hypotheses, i.e., of type ∅ ⊢ s =ǫ t. We call them unconditional
+equations and, for simplifying notation, we often write ⊢ s =ǫ t.
+The ℵ0 -basic conditional equations are the conditional equations with a ﬁnite
+set of hypotheses, all equating variables only. We call them finitary-basic quantitative equations.
+The ℵ1 -basic conditional equations are all the basic conditional equations, hence
+with countable (including ﬁnite, or empty) sets of equations between variables
+as hypotheses.
+The conditional quantitative equations are used for reasoning, and to this end
+we deﬁne the concept of quantitative equational theory, which, as expected, will
+generalize the classical one, in the sense that =0 is the classical term equality.
+However, for ǫ 6= 0, =ǫ is not an equivalence: the transitivity is replaced by a rule
+encoding the triangle inequality. Notice also that the rule (Arch) is inﬁnitary
+and it reﬂects the Archimedean property of rationals. For a comprehensive
+study of the quantitative equational theory, see [MPP16].
+Definition 2.1 (Quantitative Equational Theory). A quantitative equational
+theory of type Ω over X is a set U of conditional equations on TX closed under
+the rules stated in Table 1, for arbitrary t, s, u ∈ TX, (si )i∈I , (ti )i∈I ⊆ TX,
+ǫ, ǫ′ ∈ Q+ , Γ, Γ′ ⊆ V(TX) and φ, ψ ∈ V(TX).
+Given a quantitative equational theory U and a set S ⊆ U , we say that S is
+a set of axioms for U , or S axiomatizes U , if U is the smallest quantitative
+equational theory that contains S.
+
+ON THE AXIOMATIZABILITY OF QUANTITATIVE ALGEBRAS
+
+7
+
+A quantitative equational theory U over TX is inconsistent if ∅ ⊢ x =0 y ∈ U ,
+where x, y ∈ X are two distinct variables. U is consistent if it is not inconsistent.
+2.2. Quantitative Algebras. The quantitative equational theories characterize algebras supported by metric spaces, when interpreting s =ǫ t as ”s and t
+are at most at distance ǫ. We call them quantitative algebras.
+Definition 2.2 (Quantitative Algebra). Given an algebraic similarity type Ω,
+an Ω-quantitative algebra (QA) is a tuple A = (A, ΩA , dA ), where (A, ΩA ) is
+an Ω-algebra and dA : A × A → R+ ∪ {∞} is a metric on A (possibly taking
+inﬁnite values) such that all the functions in ΩA are non-expansive, i.e., for any
+f : |I| ∈ Ω, (ai )i∈I , (bi )i∈I ⊆ A, and any ǫ ≥ 0, if dA (ai , bi ) ≤ ǫ for all i ∈ I,
+then
+dA (f ((ai )i∈I ), f ((bi )i∈I )) ≤ ǫ.
+A quantitative algebra is void when its support is void and it is degenerate if
+its support is a singleton.
+As emphasized before, our intuition is that quantitative algebras generalize the
+concept of algebra and seen from this perspective, requiring that any function in
+the signature is non-expansive seems the natural way of deﬁning the interaction
+between the support metric space and the algebraic structure. For the same
+reason the non-expensiveness must be preserved by homomorphisms.
+Definition 2.3 (Homomorphism of Quantitative Algebras). Given two quantitative algebras of type Ω, Ai = (Ai , Ω, dAi ), i = 1, 2, a homomorphism of
+quantitative algebras is a homomorphism h : A1 → A2 of Ω-algebras, which is
+non-expansive, i.e., s.t., for arbitrary a, b ∈ A1 ,
+dA1 (a, b) ≥ dA2 (h(a), h(b)).
+Notice that identity maps are homomorphisms and that homomorphisms are
+closed under composition, hence quantitative algebras of type Ω and their homomorphisms form a category, written QAΩ .
+Reflexive Homomorphisms. There are some classes of specialized homomorphisms that play a central role in describing the quasivarieties of QAs. We call
+them reflexive homomorphisms.
+Hereafter we use A ⊆c B for a cardinal c > 0 to mean that A is a subset of
+B and |A| < c. Notice that A ⊆ℵ0 B means that A is a ﬁnite subset of B
+and A ⊆ℵ1 B means that A is a countable (possible ﬁnite or void) subset of
+B.
+Definition 2.4 (Reﬂexive Homomorphism). Given two quantitative algebras
+of type Ω, Ai = (Ai , Ω, dAi ), i = 1, 2, a homomorphism f : A1 → A2 of
+quantitative algebras is c-reflexive, where c is a cardinal, if for any subset B2 ⊆c
+A2 there exists a set B1 ⊆ A1 such that f (B1 ) = B2 and
+for any a, b ∈ B1 , dA1 (a, b) = dA2 (f (a), f (b)).
+
+8
+
+R. MARDARE, P. PANANGADEN, AND G. PLOTKIN
+
+If f : A → B is a c-reﬂexive homomorphism, f (A) is a c-reflexive homomorphic
+image of A.
+Note that any homomorphism of quantitative algebras is 1-reﬂexive. Moreover,
+for c > c′ , a c-reﬂexive homomorphism is also c′ -reﬂexive.
+Observe also that the restriction f |B1 : B1 → B2 deﬁned in Deﬁnition 2.4 is an
+isometry of metric spaces. Indeed, f |B1 is surjective, since f (B1 ) = B2 . It is also
+injective because otherwise, from f (a) = f (b), we get that dA2 (f (a), f (b)) = 0,
+implying dA1 (a, b) = 0; and since dA1 is a metric, we must have a = b.
+Quantitative Subalgebra. The concept of subalgebra generalizes, as expected, both the concept of Ω-subalgebra and of metric subspace.
+Given a quantitative algebra A = (A, Ω, dA ), a quantitative algebra B =
+(B, Ω, dB ) is a quantitative subalgebra of A, denoted by B ≤ A, if B is an
+Ω-subalgebra of A and for any a, b ∈ B, dB (a, b) = dA (a, b).
+Direct Products of Quantitative Algebras. Let (Ai )i∈I be an I-indexed
+family of quantitative algebras of type Ω, where Ai = (Ai , Ω, di ) for all i ∈ I.
+Their (direct) product is the quantitative algebra A = (A, Ω, d) such that
+Y
+• A=
+Ai is the direct product of the sets Ai , for i ∈ I;
+i∈I
+
+• for each f : |J| ∈ Ω and each aj = (bij )i∈I for j ∈ J,
+f A ((aj )j∈J ) = (f Ai ((bij )j∈J ))i∈I ;
+• for a = (ai )i∈I , b = (bi )i∈I ,
+d(a, b) = sup di (ai , bi ).
+i∈I
+
+The empty product
+
+Y
+
+∅ is the degenerate algebra with universe {∅}.
+
+The fact that this is a QA follows from the pointwise constructions of products
+in both the category of Ω-algebras and in the category of metric spaces with
+inﬁnite values where the product metric is the pointwise supremum. The nonexpansiveness of the functions in the product algebra follows from the nonexpansiveness of the
+Y functions in the components. The product quantitative
+algebra is written
+Ai .
+i∈I
+
+Direct products have projection maps for each k ∈ I,
+Y
+πk :
+Ai → Ak ,
+i∈I
+
+deﬁned for arbitrary a = (ai )i∈I ∈
+
+Y
+
+Ai by πk (a) = ak . If none of the quanti-
+
+i∈I
+
+tative algebras in the family is void, the projection maps are always surjective
+homomorphisms of QAs.
+
+ON THE AXIOMATIZABILITY OF QUANTITATIVE ALGEBRAS
+
+9
+
+Closure Operators. It is useful in what follows to deﬁne a few operators
+mapping classes of QAs into classes of QAs.
+Definition 2.5. Given a class K of quantitative algebras and a cardinal c,
+let I(K), S(K), Hc (K), P(K) and Vc (K) be the classes of quantitative algebras
+deﬁned as follows.
+• A ∈ I(K) iﬀ A is isomorphic to some member of K;
+• A ∈ S(K) iﬀ A is a quantitative subalgebra of some member of K;
+• A ∈ Hc (K) iﬀ A is the c-reﬂexive homomorphic image of some algebra in K;
+in particular, we denote H1 (K) simply by H(K) since it is the closure under
+homomorphic images;
+• A ∈ P(K) iﬀ A is a direct product of a family of elements in K;
+• Vc (K) is the smallest class of quantitative algebras containing K and closed
+under subalgebras, direct products, and c-reﬂexive homomorphic images; such
+a class is called a c-variety of quantitative algebras. In particular, for c = 1
+we also write V1 (K) as V(K) and call it a variety.
+For any operators X, Y ∈ {I, S, Hc , P, Vc }, we write XY for their composition;
+and since this composition is associative, we ignore parentheses when composing
+more than two operators. Furthermore, for any compositions X, Y of these we
+write X ⊆ Y if X(K) ⊆ Y(K) for any class K.
+The next lemma establishes a series of properties of these operators, similar to
+the ones on classes of universal algebras.
+Lemma 2.6. The closure operators on classes of quantitative algebras enjoy
+the following properties:
+(1) whenever c < c′ , Hc ⊆ Hc′ ;
+(2) whenever c < c′ , if K is Hc -closed, then it is Hc′ -closed; in particular, a
+H-closed class is Hc -closed for any c;
+(3) whenever c < c′ , if K is c-variety, then it is a c′ -variety; in particular, a
+variety is a c-variety for any c;
+(4) SHc ⊆ Hc S; in particular, SH ⊆ HS;
+(5) PHc ⊆ Hc P; in particular, PH ⊆ HP;
+(6) PS ⊆ SP;
+(7) Hc , H, S and IP are idempotent;
+(8) Vc = Hc SP; in particular, V = HSP.
+Proof. 1, 2, 3. Follow from the fact that any c′ -reﬂexive homomorphism is
+c-reﬂexive as well.
+
+10
+
+R. MARDARE, P. PANANGADEN, AND G. PLOTKIN
+
+4. Let A ∈ SHc (K). Then, there exists B ∈ K and a surjective c-reﬂexive
+homomorphism f : B ։ C such that A ≤ C.
+We have that B ′ = f −1 (A) ≤ B, hence B ′ ∈ S(K) and there exists the surjective
+homomorphism f |B′ : B ′ ։ A. Since f is c-reﬂexive, also f |B′ must be creﬂexive. Hence, A ∈ Hc S.
+5. Let A ∈ PHc (K). Then, there exist a family (Bi )i∈I ⊆ K and a family
+Y
+of surjective c-reﬂexive homomorphisms fi : Bi ։ Ai such that A =
+Ai .
+i∈I
+
+But then, there exists a surjective homomorphism f :
+
+Y
+i∈I
+
+Bi ։
+
+Y
+
+Ai deﬁned
+
+i∈I
+
+by f (b)(i) = fi (b(i)). Moreover, since each fi is c-reﬂexive, also f must be a
+c-reﬂexive. Hence, A ∈ Hc P(K).
+Y
+6. Let A ∈ PS(K). Then, A =
+Ai for some Ai ≤ Bi ∈ K. But then, it is not
+diﬃcult to see that
+
+Y
+i∈I
+
+Yi∈I
+Ai ≤
+Bi implying A ∈ SP(K).
+i∈I
+
+7. The class of c-reﬂexive homomorphisms is closed under composition. All
+these are trivial.
+8. We obviously have Hc Vc = SVc = IPVc = Vc .
+Since I ⊆ Vc , Hc SP ⊆ Hc SPVc = Vc .
+Since Hc is idempotent, Hc (Hc SP) = Hc SP.
+Applying the previous results we get S(Hc SP) ⊆ Hc SSP = Hc SP and
+P(Hc SP) ⊆ Hc PSP ⊆ Hc SPP ⊆ Hc SIPIP = Hc SIP ⊆ Hc SHc P ⊆ Hc Hc SP = Hc SP.
+Obviously K ⊆ Hc SP(K) and Hc SP(K) is closed under Hc , S, P. Since Vc (K) is
+the smallest class containing K and closed under Hc , S, P, we get that Vc (K) ⊆
+Hc SP(K).
+
+2.3. Algebraic Semantics for Conditional Quantitative Equations. Quantitative algebras are used to interpret quantitative equational theories.
+Given a quantitative algebra A = (A, ΩA , dA ) of type Ω and a set X of variables,
+an assignment on A is an Ω-homomorphism α : TX → A; it is used to interpret
+abstract terms in TX as concrete elements in A. We denote by T(X|A) the set
+of assignments on A.
+Definition 2.7 (Satisﬁability). A quantitative algebra A = (A, ΩA , dA ) of
+type Ω under the assignment α ∈ T(X|A) satisfies a conditional quantitative
+equation Γ ⊢ s =ǫ t ∈ E(TX), whenever
+[dA (α(t′ ), α(s′ )) ≤ ǫ′ for all s′ =ǫ′ t′ ∈ Γ] implies dA (α(s), α(t)) ≤ ǫ.
+This is denoted by
+Γ |=A,α s =ǫ t.
+
+ON THE AXIOMATIZABILITY OF QUANTITATIVE ALGEBRAS
+
+11
+
+A satisfies Γ ⊢ s =ǫ t ∈ E(TX), written
+Γ |=A s =ǫ t,
+if Γ |=A,α s =ǫ t, for all assignments α ∈ T(X|A); in this case A is a model of
+the conditional quantitative equation.
+Similarly, for a set U of conditional quantitative equations (e.g., a quantitative
+equational theory), we say that A is a model of U if A satisﬁes each conditional
+quantitative equation in U .
+If K is a class of quantitative algebras we write
+Γ |=K s =ǫ t,
+if for any A ∈ K, Γ |=A s =ǫ t . Furthermore, if U is a quantitative equational
+theory we write
+K |= U
+if all algebras in K are models for U .
+For the case of unconditional equations, note that the left-hand side of the
+implication that deﬁnes the satisﬁability relation in Deﬁnition 2.7 is vacuously
+satisﬁed. For these, instead of ∅ |=A,α s =ǫ t and ∅ |=A s =ǫ t we will often
+write A, α |= s =ǫ t and A |= s =ǫ t respectively. Furthermore, for a class K of
+quantitative algebras,
+K |= s =ǫ t
+denotes that A |= s =ǫ t for all A ∈ K.
+With these concepts in hand we can proceed and deﬁne equational classes.
+Definition 2.8 (Equational Class of Quantitative Algebras). For a signature
+Ω and a set U ⊆ E(TX) of conditional quantitative equations over the Ω-terms
+TX, the conditional equational class induced by U is the class of quantitative
+algebras of signature Ω satisfying U .
+We denote this class, as well as the full subcategory of Ω-quantitative algebras
+satisfying U , by K(Ω, U ). We say that a class of algebras that is a conditional
+equational class is conditional-equationally definable.
+If S is an axiomatization for U , the equational class induced by U coincides
+with the equational class induced by S.
+Lemma 2.9. Given a set U of conditional quantitative equations of type Ω
+over TX, K(Ω, U ) is closed under taking isomorphic images and subalgebras.
+Consequently, if K is a class of quantitative algebras over Ω, then K, I(K) and
+S(K) satisfy the same conditional quantitative equations.
+Proof. The closure w.r.t. isomorphic images derives trivially from Deﬁnition
+2.7. We prove now the closure under subalgebras.
+Let A ∈ K(Ω, U ) and B ≤ A. We prove that B ∈ K(Ω, U ).
+
+12
+
+R. MARDARE, P. PANANGADEN, AND G. PLOTKIN
+
+Since B ≤ A, idB : B → A deﬁned by idB (b) = b is a morphism of quantitative
+algebras.
+Suppose that {si =ǫi ti | i ∈ I} ⊢ s =e t ∈ U . Hence,
+{si =ǫi ti | i ∈ I} |=A s =e t ∈ U ,
+meaning that for any α ∈ T(X|A),
+[dA (α(si ), α(ti )) ≤ ǫi for all i ∈ I] implies dA (α(s), α(t) ≤ e.
+Consider an arbitrary α ∈ T(X|B) and note that α ∈ T(X|A) as well.
+Suppose that [dB (α(si ), α(ti )) ≤ ǫi for all i ∈ I]. This is equivalent to
+[dA (α(si ), α(ti )) ≤ ǫi for all i ∈ I].
+But then, we also have dA (α(s), α(t)) ≤ e. Hence, dB (α(s), α(t)) ≤ e.
+
+3. The Variety Theorem for Basic Conditional Equations
+In this section we focus on the quantitative equational theories that admit
+an axiomatization containing only basic conditional equations, i.e., conditional
+equations of type
+{xi =ǫi yi | i ∈ I} ⊢ s =ǫ t,
+for xi , yi ∈ X, s, t ∈ TX and ǫi , ǫ ∈ Q+ . We shall call such a theory basic
+equational theory.
+For a cardinal c ≤ ℵ1 , a basic equational theory is a c-basic equational theory if
+it admits an axiomatization containing only c-basic conditional equations, i.e.,
+of type
+{xi =ǫi yi | i ∈ I} ⊢ s =ǫ t,
+for |I| < c, xi , yi ∈ X, s, t ∈ TX and ǫi , ǫ ∈ Q+ .
+An ℵ0 -basic equational theory is called a finitary-basic equational theory; it
+admits an axiomatization containing only ﬁnitary-basic conditional equations,
+i.e., of type
+{xi =ǫi yi | i ∈ 1, .., n} ⊢ s =ǫ t,
+for n ∈ N, xi , yi ∈ X, s, t ∈ TX and ǫi , ǫ ∈ Q+ .
+A 1-basic equational theory is called an unconditional equational theory; it
+admits an axiomatization containing only unconditional equations of type ∅ ⊢
+s =ǫ t, for s, t ∈ TX and ǫ ∈ Q+ .
+
+ON THE AXIOMATIZABILITY OF QUANTITATIVE ALGEBRAS
+
+13
+
+3.1. Closure under Products and Homomorphisms. The basic equational
+theories are special since they guarantee, for their equational class, the closure
+under direct products, as the following lemma states.
+Lemma 3.1. If U is a basic equational theory (in particular, finitary-basic or
+unconditional), then K(Ω, U ) is closed under direct products.
+Proof. Assume that (Ai )i∈I ⊆ K(Ω, U ). We know that since U is a basic theory,
+it exists an axiomatization for U containing only basic quantitative equations. It
+is suﬃcient to prove that
+Ywhenever all Ai satisfy a basic quantitative equation,
+this is also satisﬁed by
+Ai .
+i∈I
+
+TX
+α
+
+Y
+
+Ai
+
+πj
+
+πj ◦α
+
+Aj
+
+i∈I
+
+Observe, for the begining, that for any assignment α : TX →
+
+Y
+
+Ai and any
+
+i∈I
+
+j ∈ I, πj ◦ α ∈ T(X|Aj ) is an assignment in Aj .
+Consider now an arbitrary basic quantitative equation
+{xi =ǫi yi | i ∈ I} ⊢ s =ǫ t ∈ U .
+Suppose that for all i ∈ I,
+{xi =ǫi yi | i ∈ I} |=Ai s =ǫ t.
+This means that for any assignment, in particular for πj ◦ α, we have
+dj (πj (α(xi )), πj (α(yi ))) ≤ ǫi for all i ∈ I implies dj (πj (α(s)), πj (α(t))) ≤ ǫ.
+Denote byY
+d the product metric and suppose that for an arbitrary assignment
+α ∈ T(X|
+Ai ),
+i∈I
+
+d(α(xi ), α(yi )) ≤ ǫi for all i ∈ I.
+Hence,
+sup{dj (πj (α(xi )), πj (α(yi ))) |  ∈ I} ≤ ǫi for all i ∈ I,
+implying further that for each j ∈ I,
+dj (πj (α(xi )), πj (α(yi ))) ≤ ǫi for all i ∈ I.
+But then, the hypothesis guarantees that for any j ∈ I,
+dj (πj (α(s)), πj (α(t))) ≤ ǫ,
+equivalent to
+sup{dj (πj (α(s)), πj (α(t))) | j ∈ I} ≤ ǫ.
+Hence,
+d(α(s), α(t)) ≤ ǫ.
+
+14
+
+R. MARDARE, P. PANANGADEN, AND G. PLOTKIN
+
+In conclusion, all
+Ythe axioms of U (which
+Y are basic quantitative equations) must
+be satisﬁed by
+Ai implying that
+Ai |= U .
+i∈I
+
+i∈I
+
+The c-reﬂexive homomorphisms play a central role in characterizing the basic
+equational theories in the case of the regular cardinals2. In fact, because our
+signature admits only functions of countable (including ﬁnite) arities, we will
+only focus on three regular cardinals: 1, ℵ0 and ℵ1 .
+The next lemma relates the classes of quantitative algebras that admit c-basic
+quantitative equational axiomatizations to their closure under c-reﬂexive homomorphisms.
+Lemma 3.2. If U is a c-basic equational theory, where c is a non-null regular cardinal, then K(Ω, U ) is closed under c-reflexive homomorphic images. In
+particular,
+• if U is an unconditional equational theory, then K(Ω, U ) is closed under homomorphic images;
+• if U is a finitary-basic equational theory, then K(Ω, U ) is closed under ℵ0 reflexive homomorphic images;
+• if U is a basic equational theory, then K(Ω, U ) is closed under ℵ1 -reflexive
+homomorphic images.
+Proof. Let A ∈ K(Ω, U ), where U is a c-basic equational theory, f : A → B a
+c-reﬂexive homomorphism for B = f (A). Since f is a homomorphism, B is a
+quantitative algebra and f : A ։ B is obviously surjective.
+Let {xi =ǫi yi | i ∈ I} ⊢ s =ǫ t ∈ U be a c-basic quantitative equation (hence
+|I| < c) satisﬁed by A. Assume that the terms s and t depend on (a subset of)
+the set
+{xi , yi | i ∈ I} ∪ {zj | j ∈ J} ⊆ X.
+We denote this by s((xi )i∈I , (yi )i∈I , (zj )j∈J ) and t((xi )i∈I , (yi )i∈I , (zj )j∈J ). Here,
+the zj are variables that may occur in the terms s, t but are not among the variables that occur in the left-hand side of the basic inference.
+Since
+{xi =ǫi yi | i ∈ I} |=A s((xi )i∈I , (yi )i∈I , (zj )j∈J ) =ǫ t((xi )i∈I , (yi )i∈I , (zj )j∈J ),
+for any assignment α ∈ T(X|A), [dA (α(xi ), α(yi )) ≤ ǫi for all i ∈ I] implies
+dA (s(α(xi ))i∈I , (α(yi ))i∈I , α(zj )j∈J ), t((α(xi ))i∈I , (α(yi ))i∈I , α(zj )j∈J ) ≤ ǫ.
+Suppose there exists β ∈ T(X|B) such that [dB (β(xi ), β(yi )) ≤ ǫi for all i ∈ I].
+Let (ai )i∈I , (bi )i∈I , (cj )j∈J ⊆ B s.t. β(xi ) = ai , β(yi ) = bi and β(zj ) = cj .
+2 The regular cardinals are the cardinals that cannot be obtained by using arithmetic
+
+involving smaller cardinals. Thus, for example, 23 is not a regular cardinal but 1, ℵ0 or ℵ1
+are, because none of them can be written as a smaller sum of smaller cardinals.
+
+ON THE AXIOMATIZABILITY OF QUANTITATIVE ALGEBRAS
+
+15
+
+Since c is a regular cardinal, hence closed under union, {ai , bi | i ∈ I} ⊆c B.
+Because f is c-reﬂexive, there exist
+mi ∈ f −1 (ai ), ni ∈ f −1 (bi ) ∈ A for each i ∈ I, such that
+dA (mi , ni ) = dB (ai , bi ).
+Since f is surjective there exist uj ∈ f −1 (cj ) for all j ∈ J.
+Let us write sA for the element of A obtained by substituting mi for the xi , ni
+for the yi and uj for the zj ; similarly we write tA . We write sB for the element
+of B obtained by substituting ai for the xi , bi for the yi and cj for the zj .
+Now the algebra A satisﬁes the basic quantitative equation, so using the substitution that produces sA and tA we conclude that dA (sA , tA ) ≤ ǫ.
+The homomorphism f maps sA to sB and tA to tB and being non-expansive we
+conclude that dB (sB , tB ) ≤ ǫ.
+This proves that B also satisﬁes the basic quantitative equation.
+
+Putting together the results of Lemma 2.9, Lemma 3.1 and Lemma 3.2, we get
+the following result that emphasize the role of the c-basic quantitative equations
+for c-varieties.
+Corollary 3.3. Let K be a class of quantitative algebras over the same signature
+and c ≤ ℵ1 a regular non-null cardinal. Then K, P(K), Hc (K) and Vc (K) satisfy
+all the same c-basic conditional equations.
+
+3.2. Canonical Model and Weak Universality. In this subsection we give
+the quantitative analogue of the canonical model construction and prove weak
+universality. Before we begin the detailed arguments, we note a few points.
+In the original variety theorem for universal algebras one proceeds by looking
+at all congruences on the term algebra and quotienting by the coarsest. This
+strategy does not work in the present case. We need to consider the pseudometrics induced by all assignments of variables; next, instead of quotienting
+by the kernel of the coarsest pseudometric, as the analogy with the usual case
+would suggest, we need to take the product of the quotient algebras indexed
+by these pseudometrics. We note that this is indeed a generalization of the
+non-quantitative case where, coincidentally, this product algebra is isomorphic
+to the quotient algebra by the coarsest congruence. However, our proof here
+shows that the natural construction that guarantees the weak universality, even
+when one considers reﬂexive homomorphisms, is the product of the quotient algebras.
+Consider, as before, an algebraic similarity type Ω and a set X of variables.
+Let PTX be the set of all pseudometrics p : TX 2 → R+ ∪ {∞} such that all
+
+16
+
+R. MARDARE, P. PANANGADEN, AND G. PLOTKIN
+
+the functions in Ω are non-expansive with respect to p. For arbitrary p ∈ PTX ,
+let
+TX|p = (TX|ker(p) , Ω, p)
+be the quantitative algebra obtained by taking the quotient of TX with respect
+to the congruence relation3
+ker(p) = {(s, t) ∈ TX 2 | p(s, t) = 0}.
+Let K be a family of quantitative algebras of type Ω and
+PK = {p ∈ PTX | TX|p ∈ IS(K)}.
+We begin by showing that PK 6= ∅ whenever K 6= ∅.
+Consider an algebra A ∈ K, let α ∈ T(X|A) be an arbitrary assignment and
+[α] : TX 2 → R+ ∪ {∞} a pseudometric deﬁned for arbitrary s, t ∈ TX by
+[α](s, t) = inf{ǫ | A, α |= s =ǫ t}.
+Lemma 3.4. If A ∈ K and α ∈ T(X|A), then [α] ∈ PK . Moreover, TX|[α] is
+a quantitative algebra isomorphic to α(TX).
+Proof. The fact that [α] is a pseudometric follows directly from the algebraic
+semantics.
+Let f : |I| ∈ Ω and (si )i∈I , (ti )i∈I ⊆ TX. Assume that [α](si , ti ) ≤ ǫ for all
+i ∈ I. This means that for each i ∈ I, A, α |= si =δ ti for any δ ∈ Q+ with
+δ ≥ ǫ. The soundness of (NExp) provides A, α |= f ((si )i∈I ) =δ f ((ti )i∈I ), i.e.,
+[α](f ((si )i∈I ), f ((ti )i∈I )) ≤ δ for any δ ≥ ǫ. And this proves that [α] ∈ PTX .
+We know that α : TX → A is a homomorphism of quantitative algebras, hence
+α(TX) ≤ A and α̂ : TX → α(TX) deﬁned by α̂(s) = α(s) for any s ∈ TX is a
+surjection. Since from the way we have deﬁned [α] we have that
+α̂(s) = α̂(t) iﬀ [α](s, t) = 0,
+we obtain that the map α : TX|[α] → α(TX) deﬁned by α(s|[α] ) = α(s) for
+any s ∈ TX, where s|[α] denotes the ker([α])-congruence class of s, is a QAs
+isomorphism.
+The previous lemma states that for any algebra A ∈ K and any assignment
+α ∈ T(X|A),
+TX|[α] ≃ α(TX) ≤ A.
+Since a consequence of it is PK 6= ∅ whenever K 6= ∅, we can deﬁne a pointwise
+supremum over the elements in PK :
+dK (s, t) = sup p(s, t), for arbitrary s, t ∈ TX.
+p∈PK
+
+It is not diﬃcult to notice that, dK ∈ PTX .
+3The non-expansiveness of p w.r.t.
+
+congruence with respect to Ω.
+
+all the functions in Ω guarantees that ker(p) is a
+
+ON THE AXIOMATIZABILITY OF QUANTITATIVE ALGEBRAS
+
+Let TK X = (
+
+Y
+
+17
+
+TX|p , Ω, dK ) be the product quantitative algebra with the
+
+p∈PK
+
+index set PK .
+For arbitrary s ∈ TX, let hsi ∈ TK X be the element such that for any p ∈ PK ,
+πp (hsi) = s|p , where s|p ∈ TX|p denotes the ker(p)-equivalence class of s.
+Now note that, if K is a class of quantitative algebras of the same type containing
+non-degenerate elements, then the map γ : TX → TK X deﬁned by γ(t) = hti
+for any t ∈ TX is an injective homomorphism of Ω-algebras.
+Lemma 3.5. If K is a non-trivial class of quantitative algebras of the same
+type, the map γ : TX → TK X defined by γ(t) = hti for any t ∈ TX is an
+injective homomorphism of Ω-algebras.
+Proof. Since for any p ∈ PK , ker(p) is a congruence and ker(dK ) =
+
+\
+
+ker(p),
+
+p∈PK
+
+γ is obviously a homomorphism of Ω-algebras.
+We prove now that it is injective. In order to have that for two distinct terms
+s, t ∈ TX we have hsi = hti, we need that for any p ∈ PK , s|p = t|p . Since
+for any p ∈ PK , ker(p) is a congruence, this will only happen if there exist two
+distinct variables x, y ∈ X such that hxi = hyi.
+Note that if p ∈ PK and σ : X → X is a bijection, then σp deﬁned by
+σp(s, t) = p(σ(s), σ(t)) is an element of PK as well and TX|p ≃ TX|σp . With
+this observation we can conclude that if there exist two distinct variables
+x, y ∈ X such that hxi = hyi, then for any two distinct variables u, v ∈ X
+we have hui = hvi, which implies that K only contains degenerate algebras, a
+contradiction.
+In order to state now the weak universality property for a class K of quantitative
+algebras, we need ﬁrstly to identify a cardinal that plays a key role in our
+statement as an upper bound for the reﬂexive homomorphisms. We shall denote
+it by r(K):
+
+ℵ1
+if ∃A ∈ K, |A|+ ≥ ℵ1
+r(K) =
++
+sup{|A| | A ∈ K} otherwise
+where |A| denotes of the cardinal of the support set of A and c+ denotes the
+successor of the cardinal c.
+The following theorem is a central result of this paper. One might be tempted
+to just use a quotient by ker(dK ) but in that case the homomorphism that one
+gets by weak universality does not satisfy the c-reﬂexive condition.
+Theorem 3.6 (Weak Universality). Consider a class K of quantitative algebras
+containing non-degenerate elements. For any A ∈ K and any map α : X → A
+there exists a r(K)-reflexive homomorphism β : TK X → A such that
+for any x ∈ X, β(hxi) = α(x).
+
+18
+
+R. MARDARE, P. PANANGADEN, AND G. PLOTKIN
+
+Proof. Let QAΩ be the category of Ω-quantitative algebras.
+The map α : X → A can be canonically extended to an Ω-homomorphism
+α̂ : TX → A.
+Let γ : TX ֒→ TK X be the aforementioned injective homomorphism of Ωalgebras.
+From Lemma 3.4 we know that TX|[α̂] ≃ α̂(TX) ≤ A. So, we consider the
+projection π[α̂] : TK X ։ TX|[α̂] which is a surjective morphism of quantitaive
+algebras.
+Let α : TX|[α̂] → α̂(TX) be the isomorphism of quantitaive algebras deﬁned in
+(the proof of) Lemma 3.4.
+These maps give us the following commutative diagram.
+in Set
+idX
+
+X
+
+TX
+β
+
+α̂
+
+α
+
+in QAΩ
+γ
+
+A id
+
+α̂(TX)
+
+α̂(TX)
+
+α
+
+TK X
+
+TK X
+
+π[α̂]
+
+β
+
+TX|[α̂]
+
+A
+
+The diagonal of this diagram is a map β deﬁned for arbitrary u ∈ TK X as
+follows:
+β(u) = α ◦ π[α̂] (u).
+Note that if u = hsi for some s ∈ TX, then
+β(hsi) = α(π[α̂] (hsi)) = α(s|[α̂] ) = α̂(s)
+and further more, if x ∈ X,
+β(hxi) = α(π[α̂] (hxi)) = α(x|[α̂] ) = α̂(x) = α(x).
+Since β is the composition of two homomorphisms of quantitative algebras, it
+is a homomorphism of quantitative algebras.
+Finally we show that β is a r(K)-reﬂexive.
+To start with, note that α̂(TX) ≤ A is the image of TK X through β. Since
+|α̂(TX)| < r(K), it only remains to prove that there exists a subset in TK X
+such that for any a, b ∈ α̂(TX) we ﬁnd two elements u, v in this subset such
+that β(u) = a, β(v) = b and
+dA (a, b) = dK (u, v).
+Let s, t ∈ TX be such that α̂(s) = a and α̂(t) = b. Let u, v ∈ TK X such that
+π[α̂] (u) = s|[α̂] , π[α̂] (v) = t|[α̂] and for any p 6= [α̂], πp (u) = πp (v).
+Since dK (u, v) = sup p(πp (u), πp (v)) and πp (u) = πp (v) for p 6= [α̂], we obtain
+p∈PK
+
+that indeed
+
+dK (u, v) = [α̂](s, t) = dA (a, b).
+
+ON THE AXIOMATIZABILITY OF QUANTITATIVE ALGEBRAS
+
+19
+
+Observe that the homomorphism β is not unique, since any pseudometric
+p ∈ PK can be associated to a projection πp that will eventually deﬁne a homomorphism of type β making the diagram commutative - hence, we have
+weak-universality. However, only for β associated to [α], can we guarantee that
+β is r(K)-reﬂexive.
+The weak universality reﬂects a fundamental relation between TK X and the
+r(K)-reﬂexive closure operator Hr(K) , as stated below.
+Corollary 3.7. If A ∈ K, then for X sufficiently large,
+A ∈ Hr(K) ({TK X}).
+Proof. Let X be a set such that |X| ≥ |A|. Then, there exists a surjective
+map α : X ։ A. Let β : TK X → A be the r(K)-reﬂexive homomorphism of
+quantitative algebras deﬁned in the previous theorem. Since α is surjective, so
+is β.
+Corollary 3.8. Suppose that TX 6= ∅ 6= K. Then,
+TK X ∈ Hr(K) SP(K).
+Hence, if K is closed under Hr(K) , S and P, then TK X ∈ K.
+Proof. Note that there exists a map α : X →
+
+Y
+
+TX|p deﬁned by α(x) = hxi.
+
+p∈PK
+
+Then, applying the weak universality result, in Theorem
+3.6, we get that there
+Y
+exists a c-reﬂexive homomorphism β : TK X →
+TX|p .
+p∈PK
+
+The following theorem explains why we refer to TK X as to the canonical model:
+it is because the class K and the quantitative algebra TK X satisfy the same
+c-basic quantitative equations for any non-null regular cardinal c ≤ r(K).
+Theorem 3.9. Let K be a class of quantitative algebras containing non-degenerate
+elements and c ≤ r(K) a non-null regular cardinal. Let
+{xi =ǫi yi | i ∈ I} ⊢ s =ǫ t
+be an arbitrary c-basic conditional equation on TX 6= ∅, i.e., |I| < c. Then,
+{xi =ǫi yi | i ∈ I} |=K s =ǫ t iff {xi =ǫi yi | i ∈ I} |=TK X s =ǫ t.
+Proof. (=⇒) : If {xi =ǫi yi | i ∈ I} |=K s =ǫ t, then Corollary 3.3 and Lemma
+2.6 guarantee that {xi =ǫi yi | i ∈ I} |=Hc SP(K) s =ǫ t. From Lemma 3.8
+applying also Lemma 2.6 we know that TK X ∈ Hc SP(K). Hence,
+{xi =ǫi yi | i ∈ I} |=TK X s =ǫ t.
+
+20
+
+R. MARDARE, P. PANANGADEN, AND G. PLOTKIN
+
+(⇐=) : Suppose now that {xi =ǫi yi | i ∈ I} |=TK X s =ǫ t. And assume in
+addition that s and t depend on (a subset of) the set
+{xi , yi | i ∈ I} ∪ {zj | j ∈ J} ⊆ X
+of variables. We denote this by writing, as before, s((xi )i∈I , (yi )i∈I , (zj )j∈J ) and
+t((xi )i∈I , (yi )i∈I , (zj )j∈J ).
+Suppose there exists A ∈ K such that
+{xi =ǫi yi | i ∈ I} 6|=A s((xi )i∈I , (yi )i∈I , (zj )j∈J ) =ǫ t((xi )i∈I , (yi )i∈I , (zj )j∈J ).
+This means that there exists α ∈ T(X|A) such that
+for all i ∈ I, dA (α(xi ), α(yi )) ≤ ǫi and dA (α(s), α(t)) > ǫ.
+Moreover, α(s) = s((α(xi ))i∈I , (α(yi ))i∈I , (α(zj ))j∈J ) and
+α(t) = t((α(xi ))i∈I , (α(yi ))i∈I , (α(zj ))j∈J ).
+Applying the weak universality, Theorem 3.6, we obtain that α can be extended
+to a r(K)-reﬂexive homomorphism β : TK X → A such that α(x) = β(hxi) for
+any x ∈ X. Since c ≤ r(K), β is also c-reﬂexive.
+Since c is regular, |{xi , yi | i ∈ I}| < c.
+Because α(xi ), α(yi ) ∈ α̂(TX) = β(TK X) ≤ A and β is c-reﬂexive, we obtain
+that there exist mi , ni ∈ TK X for all i ∈ I such that α(xi ) = β(mi ), α(yi ) =
+β(ni ) and dA (α(xi ), α(yi )) = dK (mi , ni′ ) for any i ∈ I.
+Also α(zj ) ∈ α̂(TX) = β(TK X), hence there exists uj ∈ TK X such that α(zj ) =
+β(uj ) for all j ∈ J.
+From here we derive ﬁrstly that
+for all i ∈ I, dK (mi , ni ) = dA (α(xi ), α(yi )) ≤ ǫi .
+Secondly, since β is non-expansive,
+dK (s((mi )i∈I , (ni )i∈I , (uj )j∈J ), t((mi )i∈I , (ni )i∈I , (uj )j∈J ))) ≥ dA (α(s), α(t)) > ǫ.
+With these results in hand, we can deﬁne α0 ∈ T(X|TK X) such that
+α0 (xi ) = mi , α0 (yi ) = ni for any i ∈ I and α0 (zj ) = uj for any j ∈ J.
+The previous results demonstrates that
+for all i ∈ I, dK (α0 (xi ), α0 (yi )) ≤ ǫi and dK (α0 (s), α0 (t)) > ǫ
+which contradicts the fact that {xi =ǫi yi | i ∈ I} |=TK X s =ǫ t.
+
+ON THE AXIOMATIZABILITY OF QUANTITATIVE ALGEBRAS
+
+21
+
+This last result can further be instantiated for unconditional quantitative equations, which, in addition, can be used to characterize the metric dK .
+Corollary 3.10. Let K be a class of quantitative algebras containing nondegenerate elements and TX 6= ∅. Then for arbitrary s, t ∈ TX and arbitrary
+ǫ ∈ Q+ ,
+K |= s =ǫ t iff TK X |= s =ǫ t iff dK (hsi, hti) ≤ ǫ.
+Proof. The equivalence between the ﬁrst two statements follows directly from
+Theorem 3.9.
+For the equivalence with the last statement, suppose that TK X |= s =ǫ t. Since
+the injection γ : TX ֒→ TK X ∈ T(X|TK X) is an assignment, we obtain that
+dK (γ(s), γ(t)) ≤ ǫ. Hence, dK (hsi, hti) ≤ ǫ.
+Suppose now that dK (hsi, hti) ≤ ǫ. Then for any p ∈ PK , p(s, t) ≤ ǫ.
+Let A ∈ K and assume that s and t depend of (xi )i∈I ∈ X; for convenience we
+denote the two terms by s((xi )i∈I ) and t((xI )I∈I ).
+Consider arbitrary (ai )i∈I ⊆ A and let α ∈ T(X|A) such that α(xi ) = ai for
+any i ∈ I.
+For arbitrary i, j we have that dK (hxi i, hxj i) ≥ dA (ai , aj ) because as long as
+K 6= ∅ 6= TX, for any distinct variables x, y ∈ X,
+dK (hxi, hyi) = sup
+
+sup dA (a, b).
+
+A∈S(K) a,b∈A
+
+Theorem 3.6 guarantees that the aforementioned α can be extended to a homomorphism β : TK X → A, which is non-expansive. Hence,
+dA (s((ai )i∈I , ), t((ai )i∈I )) = dA (s((α(xi ))i∈I ), t((α(xi ))i∈I )) =
+dA (s((β(hxi i)i∈I ), t((β(hxi i)i∈I )) ≤ dK (hsi, hti) ≤ ǫ.
+Consequently, for any A ∈ K and any assignment α ∈ T(X|A),
+dA (α(s), α(t)) ≤ ǫ,
+implying K |= s =ǫ t.
+Corollary 3.11. Let K 6= ∅ 6= TX and let Y be a set of variables such that
+|Y | ≥ |X|. For any c-basic conditional equation {xi =ǫi yi | i ∈ I} ⊢ s =ǫ t,
+where c ≤ r(K) is a non-zero regular cardinal,
+{xi =ǫi yi | i ∈ I} |=K s =ǫ t iff {xi =ǫi yi | i ∈ I} |=TK Y s =ǫ t.
+
+22
+
+R. MARDARE, P. PANANGADEN, AND G. PLOTKIN
+
+3.3. Variety Theorem. With these results in hand, we are ready to prove a
+general variety theorem for quantitative algebras.
+Hereafter the signature Ω remains ﬁxed; so, if S is an axiomatization for U , we
+use K(S) to denote the class K(Ω, U ).
+If S is a set of c-basic conditional equations, we say that K(S) is a c-basic
+conditional equational class. We call an ℵ1 -basic conditional equational class
+simply basic equational class. A finitary-basic equational class is an ℵ0 -basic
+conditional equational class. An unconditional equational class is a 1-basic
+conditional equational class.
+We propose now a symmetric concept: if K is a set of quantitative algebras
+c (K) be the set of all c-basic conditional
+and 0 < c ≤ ℵ1 is a cardinal, let EX
+equations over the set X of variables that are satisﬁed by all the elements of
+K.
+Lemma 3.12. If K is a non-void c-variety for a regular cardinal 0 < c ≤ r(K)
+and X is an infinite set of variables, then
+c
+K = K(EX
+(K)).
+c (K)). Obviously K ⊆ K′ .
+Proof. Let K′ = K(EX
+c (K) = E c (K′ ).
+We prove for the beginning that EX
+X
+c (K) ⊇ E c (K′ ).
+Since K ⊆ K′ , EX
+X
+c (K) be a c-basic quantitative inference. Then, for any A ∈ K,
+Let Γ ⊢ φ ∈ EX
+c (K)), B must satisfy
+Γ |=A φ. Consider an arbitrary B ∈ K′ . Since K′ = K(EX
+c (K); in particular, Γ |= φ. Hence,
+all the c-basic conditional equations in EX
+B
+c
+c
+′
+EX (K) ⊆ EX (K ).
+
+Consider now an arbitrary A′ ∈ K′ .
+From Corollary 3.7, for a suitable set Y of variables such that |Y | ≥ r(K′ ), we
+can deﬁne a surjection α : TY ։ A′ .
+Y
+For arbitrary s ∈ TY , let s|K ∈
+TY |p be the element4 such that for any
+p∈PK
+
+p ∈ PK , πp (s|K ) = s|p and similarly s|K′ ∈
+
+Y
+
+TY |p be the element such that
+
+p∈PK′
+
+for any p ∈ PK′ , πp (s|K′ ) = s|p .
+Theorem 3.6 provides an injection γ ′ : TY ֒→ TK′ Y deﬁned by γ ′ (s) = s|K′ for
+any s ∈ TY ; and a r(K′ )-reﬂexive homomorphism β ′ : TK′ Y ։ A′ which has
+the property that β ′ (s|K′ ) = α(s). Moreover, β ′ is a surjection since α is.
+Because c ≤ r(K) ≤ r(K′ ), β ′ is also r(K)-reﬂexive and c-reﬂexive. Note now
+that also β̂ ′ : γ ′ (TY ) → A′ , which is deﬁned by β̂ ′ (u) = β ′ (u) for any u ∈
+4Observe that s| has been denoted by hsi previously, when K was fixed. We change the
+K
+notation here because we need to speak of such elements for various classes K, K′ .
+
+ON THE AXIOMATIZABILITY OF QUANTITATIVE ALGEBRAS
+
+23
+
+γ ′ (TY ), is a surjective c-reﬂexive homomorphism of quantitative algebras such
+that β̂ ′ (s|K′ ) = α(s).
+Similarly, there exists an injection γ : TY ֒→ TK Y deﬁned by γ(s) = s|K for
+any s ∈ TY .
+Consider now the following two quantitative algebras
+TY |dK = (TY |ker(dK ) , Ω, dK ) and
+′
+
+TY |dK′ = (TY |ker(dK′ ) , Ω, dK ).
+Note that the functions θ : TY |dK → γ(TY ) deﬁned by θ(s|dK ) = γ(s) and θ ′ :
+TY |dK′ → γ ′ (TY ) deﬁned by θ ′ (s|dK′ ) = γ ′ (s) are isomorphisms of quantitative
+algebras.
+TK Y ≥ TY |dK
+
+γ
+
+TY
+α
+
+γ′
+
+TY |dK′
+
+id
+
+TK′ Y
+
+βˆ′
+β′
+
+A′
+Repeatedly applying Corollary 3.10 we get that for arbitrary s, t ∈ TY ,
+dK (s|K , t|K ) = 0 iﬀ
+TK Y |= s =0 t, iﬀ
+K |= s =0 t, iﬀ
+c
+∅ ⊢ s =0 t ∈ EY (K) (since EYc (K) = EYc (K′ )), iﬀ
+∅ ⊢ s =0 t ∈ EYc (K′ ), iﬀ
+K′ |= s =0 t, iﬀ
+TK′ Y |= s =0 t, iﬀ
+′
+
+dK (s|K′ , t|K′ ) = 0.
+′
+
+Hence, ker(dK ) = ker(dK ) implying that TY |dK and TY |dK′ are isomorphic
+Ω-algebras.
+Similarly, we can apply Corollary 3.10 for arbitrary s, t ∈ TY and ǫ ∈ Q+ , as
+we did it before for ǫ = 0, and obtain:
+dK (s|K , t|K ) ≤ ǫ iﬀ
+TK Y |= s =ǫ t, iﬀ
+K |= s =ǫ t, iﬀ
+∅ ⊢ s =ǫ t ∈ EYc (K), iﬀ
+∅ ⊢ s =ǫ t ∈ EYc (K′ ), iﬀ
+K′ |= s =ǫ t, iﬀ
+TK′ Y |= s =ǫ t, iﬀ
+′
+
+dK (s|K′ , t|K′ ) ≤ ǫ;
+and since this is true for any ǫ ∈ Q+ , we obtain
+′
+
+dK (s|K , t|K ) = dK (s|K′ , t|K′ ).
+
+24
+
+R. MARDARE, P. PANANGADEN, AND G. PLOTKIN
+
+Hence, TY |dK and TY |dK′ are isomorphic quantitative algebras implying further
+that γ(TY ) is isomorphic to γ ′ (TY ).
+Now, since A′ is the c-homomorphic image of γ ′ (TY ), it is also a c-homomorphic
+image of γ(TY ). But γ(T Y ) ≤ TK Y and since K is a c-variety, from Lemma
+3.8 we know that TK Y ∈ K, hence γ(TY ) ∈ K.
+Consequently, A′ ∈ Hc (K) and since K is a c-variety, A′ ∈ K, from which we
+conclude K′ ⊆ K.
+Now we prove the variety theorem for quantitative algebras.
+Theorem 3.13 (c-Variety Theorem). Let K be a class of quantitative algebras
+and 0 < c ≤ r(K) a regular cardinal. Then, K is a c-basic conditional equational
+class iff K is a c-variety. In particular,
+(1) K is an unconditional equational class iff it is a variety;
+(2) K is a finitary-basic equational class iff it is an ℵ0 -variety;
+(3) K is a basic equational class iff it is an ℵ1 -variety.
+Proof. (=⇒): K = K(U ) for some set U of c-basic conditional equations. Then,
+Vc (K) |= U implying further that Vc (K) ⊆ K(U ) = K. Hence, Vc (K) = K.
+(⇐=): this is guaranteed by Lemma 3.12.
+Birkhoff Theorem in perspective. Before concluding this section, we notice
+that our variety theorem also generalizes the original Birkhoﬀ theorem. This
+is because any congruence ∼
+= on an Ω-algebra A can be seen as the kernel of
+∼
+the pseudometric p∼
+deﬁned
+by p∼
+=
+= (a, b) = 0 whenever a = b and p∼
+= (a, b) = 1
+otherwise. The quotient algebra A|∼
+= is a quantitative algebra. Any quantitative
+equational theory satisﬁed by A|∼
+= can be axiomatized by equations involving
+only =0 and =1 , since 0 and 1 are the only possible distances between its
+elements. However, this algebra also satisﬁes the equation x =1 y for any two
+variables x and y, because 1 is the diameter of its support. Consequently, the
+only non-redundant equations satisﬁed by such an algebra are of type s =0 t,
+and these correspond to the equations of the form s = t.
+4. The Quasivariety Theorem for General Conditional Equations
+In this section we study the axiomatizability of classes of quantitative algebras
+that can be axiomatized by conditional quantitative equations, but not necessarily by basic conditional quantitative equations. Thus, we are now looking for
+more relaxed types of axioms and consequently we will identify more relaxed
+closure conditions.
+We prove that a class K of Ω-quantitative algebras admits an axiomatization
+consisting of conditional quantitative equations, whenever it is closed under isomorphisms, subalgebras and what we call subreduced products. A subreduced
+
+ON THE AXIOMATIZABILITY OF QUANTITATIVE ALGEBRAS
+
+25
+
+product is a quantitative subalgebra of a (special type of) product of elements
+in K; however, while these products are always Ω-algebras, they are not always
+quantitative algebras. This closure condition allow us to generalize the classical
+quasivariety theorem that characterizes the classes of universal algebras with
+an axiomatization consisting of Horn clauses.
+It is not trivial to see that a c-variety is closed under these operators for any
+regular cardinal c > 0 and so our quasivariety theorem extends the c-variety
+theorem presented in the previous section. Indeed, all isomorphisms are creﬂexive homomorphisms and since a c-variety is closed under subalgebras and
+products, it must be closed under subreduced products, as they are quantitative
+subalgebras of the product.
+However, to achieve these results we had to involve and generalize concepts and
+results from model theory of ﬁrst-order structures. This required us to restrict
+ourselves to the signatures Ω containing only functions of ﬁnite arity.
+4.1. Preliminaries in Model Theory. In this subsection we recall some basic
+concepts and results about the model theory of ﬁrst order structures.
+A first-order language is a tuple L = (Ω, R) where Ω is an algebraic similarity
+type containing functions of ﬁnite arity and R is a set of relation symbols of
+ﬁnite arity.
+A first-order structure of type L = (Ω, R) is a tuple M = (M, ΩM , RM ) where
+(M, ΩM ) is an Ω-algebra and for any relation R : i ∈ R, RM ⊆ M i .
+A morphism of first-order structures of type L = (Ω, R) is a map
+f : (M, ΩM , RM ) → (N, ΩN , RN )
+that is a homomorphism of Ω-algebras such that for any relation R : i ∈ R and
+m1 , ..mi ∈ M ,
+(m1 , .., mi ) ∈ RM iﬀ (f (m1 ), .., f (mi )) ∈ RN .
+M = (M, ΩM , RM ) is a subobject of N = (N, ΩN , RN ) if (M, ΩM ) is an Ωsubalgebra of (N, ΩN ) and for any R : i ∈ R and m1 , ..mi ∈ M ,
+(m1 , .., mi ) ∈ RM iﬀ (m1 , .., mi ) ∈ RN ;
+In this case we write M ≤ N .
+Equational First-Order Logic. Given a ﬁrst-order structure L = (Ω, R) and
+a set X of variables, let TX be the set of terms induced by X over Ω. The
+atomic formulas of type L = (Ω, R) over X are expressions of the form
+• s = t for s, t ∈ TX;
+• R(s1 , .., sk ) for R : k ∈ R and s1 , .., sk ∈ TX.
+
+26
+
+R. MARDARE, P. PANANGADEN, AND G. PLOTKIN
+
+The set LX of ﬁrst-order formulas of type L over X is the smallest collection of
+formulas containing the atomic formulas and closed under conjunction, negation
+and universal quantiﬁcation ∀x for x ∈ X. In addition we consider, as usual,
+all the Boolean operators and the existential quantiﬁcation.
+If M is a structure of type L, let LM be the ﬁrst-order language obtained by
+adding to L the elements of M as constants.
+Given a ﬁrst-order formula φ(x1 , .., xi , ..xk ), in which x1 , .., xk ∈ X are all the
+free variables, we denote by φ(x1 , .., xi−1 , m, xi+1 , ..xk ), as usual, the formula
+obtained by replacing all the free occurrences of xi by m ∈ M.
+Satisfiability. For a closed formula φ ∈ LM , we deﬁne M |= φ inductively on
+the structure of formulas as follows.
+• M |= s = t for s, t ∈ T X containing no variables iﬀ sM = tM .
+• M |= R(s1 , .., sk ) for R : k ∈ R and s1 , .., sk ∈ TX containing no variables iﬀ
+M
+M
+(sM
+1 , .., sk ) ∈ R ;
+• M |= φ ∧ ψ iﬀ M |= φ and M |= ψ;
+• M |= ¬φ iﬀ M 6|= φ;
+• M |= ∀xφ(x) iﬀ M |= φ(m) for any m ∈ M.
+The semantics of the derived operators is standard. The de Morgan laws give
+us semantically-equivalent prenex forms for any ﬁrst-order formula.
+A ﬁrst-order formula is an universal formula if it is in prenex form and all the
+quantiﬁers are universal.
+A Horn formula has the following prenex form
+Q1 x1 ..Qk xk (φ1 (x1 , .., xk ) ∧ .. ∧ φj (x1 , .., xk ) → φ(x1 , .., xk )),
+where each Ql is a quantiﬁer and each φl and φ is an atomic formula with (a
+subset of) the set {x1 , .., xk } of free variables5.
+A universal Horn formula is a Horn formula which is also an universal formula.
+Direct Products. Given a non-empty indexed family (Mi )i∈I of ﬁrst-order
+Mi
+Mi
+structures
+direct product
+Y of type L = (Ω, R), where Mi = (Mi , Ω , R ), the Y
+M=
+Mi is the L-structure whose universe is the product set
+Mi and its
+i∈I
+
+functions and relations are deﬁned as follows, where πi :
+
+i∈I
+
+Y
+
+Mi → Ai denotes
+
+i∈I
+
+the i-th projection.
+
+5Some authors define a Horn formula as a conjunction of such constructs, or allow φ = ⊤;
+
+none of these choices affect our development here.
+
+ON THE AXIOMATIZABILITY OF QUANTITATIVE ALGEBRAS
+
+• for f : k ∈ Ω, and m1 , .., mk ∈
+
+Y
+
+27
+
+Mi ,
+
+i∈I
+
+(m1 , .., mk )) = f Mi (πi (m1 ), .., πi (mk ));
+Y
+Mi ,
+• for R : k ∈ R, and m1 , .., mk ∈
+πi (f
+
+M
+
+i∈I
+
+(m1 , .., mk ) ∈ R
+
+M
+
+iﬀ (πi (m1 ), .., πi (mk )) ∈ RMi for all i ∈ I.
+
+Reduced Products. Let (Mi )i∈I be an indexed family of ﬁrst-order structures
+of type L = (Ω, R) and F a proper ﬁlter over I.
+Y
+Y
+Consider the relation ∼F ⊆
+Mi ×
+Mi s.t.
+i∈I
+
+i∈I
+
+m ∼F n iﬀ {i ∈ I | πi (m) = πi (n)} ∈ F.
+It is known that when F is a proper ﬁlter of
+YI, ∼F is a congruence relation with
+respect to the algebraic structure of M =
+Mi (see, e.g., [BS81, Lemma 2.2]).
+i∈I
+
+This
+Y allows us to deﬁne the reduced product induced by a proper filter F , written
+( Mi )|F , as the L ﬁrst-order structure such that
+i∈I
+
+Y
+Y
+• its universe is the set ( Mi )|∼F , which is the quotient of
+Mi with respect
+i∈I
+
+to ∼F ; we denote by mF the ∼F -congruence class of m ∈
+
+i∈I
+Y
+
+Mi ;
+
+i∈I
+
+• for f : k ∈ Ω, and (m1 , .., mk ) ∈
+
+Y
+
+Mi ,
+
+i∈I
+
+f (m1F , .., mkF ) = (f (m1 , .., mk ))F :
+Y
+• for R : k ∈ R, and (m1 , .., mk ) ∈
+Mi ,
+i∈I
+
+R(m1F , .., mkF )
+
+iﬀ {i ∈ I | R(πi (m1 ), .., πi (mk )} ∈ F.
+
+Quasivariety Theorem. A class M of L-structures is an elementary class
+if there exists a set Φ of ﬁrst-order L-formulas such that for any L-structure
+M,
+M ∈ M iﬀ M |= Φ.
+An elementary class is an universal class if it can be axiomatized by universal
+formulas; it is an universal Horn class if it can be axiomatized by universal
+Horn formulas.
+We conclude this section with the quasivariety theorem (see, e.g., [BS81, Theorem 2.23]). To state it, we deﬁne a few closure operators on classes of Lstructures.
+
+28
+
+R. MARDARE, P. PANANGADEN, AND G. PLOTKIN
+
+Let M be an arbitrary class of L-structures.
+• I(M) denotes the closure of M under isomorphisms of L-structures;
+• S(M) denotes the closure of M under subobjects of L-structures;
+• P(M) denotes the closure of M under direct products of L-structures;
+• PR (M) denotes the closure of M under reduced products of L-structures.
+Theorem 4.1 (Quasivariety Theorem). Let M be a class of L-structures. The
+following statements are equivalent.
+(1) M is a universal Horn class;
+(2) M is closed under I, S and PR ;
+(3) M = ISPR (M′ ) for some class M′ of L-structures.
+
+4.2. Quantitative First-Order Structures. In this subsection we identify
+a class of ﬁrst-order structures, the quantitative first-order structures (QFOs),
+which are the ﬁrst-order counterparts of the quantitative algebras.
+Given a ﬁrst-order structure M = (M, ΩM , RM ) of type (Ω, R), f : k ∈ Ω and
+R : l ∈ R, let f (RM ) ⊆ M l be the set of the tuples (f (m11 , .., m1k ), .., f (ml1 , .., mlk ))
+such that for each i = 1, .., k, (m1i , .., mli ) ∈ RM .
+Definition 4.2. [Quantitative First-Order Structure] An Ω-quantitative firstorder structure for a signature Ω is a ﬁrst-order structure M = (M, ΩM , ≡M )
+of type (Ω, ≡), where ≡ = {=ǫ | ǫ ∈ Q+ }, that satisﬁes the following axioms for
+any ǫ, δ ∈ Q+
+(1) =M
+0 is the identity on M;
+(2) =M
+ǫ is symmetric;
+M
+M
+(3) =M
+ǫ ◦ =δ ⊆=ǫ+δ ;
+M
+(4) =M
+ǫ ⊆=ǫ+δ ;
+M
+(5) for any f : k ∈ Ω, f (=M
+ǫ ) ⊆=ǫ ;
+\
+=ǫ ⊆=δ ;
+(6) for any δ,
+ǫ>δ
+
+Theorem 4.3. (i) Any quantitative algebra A = (A, Ω, d) defines uniquely a
+quantitative first-order structure by
+a =ǫ b iff d(a, b) ≤ ǫ.
+(ii) Any quantitative first-order structure M = (M, ΩM , ≡M ) defines uniquely
+a quantitative algebra by letting
+d(m, n) = inf{ǫ ∈ Q+ | m =ǫ n}.
+These define an isomorphism between the category of Ω-quantitative algebras
+and Ω-quantitative first-order structures.
+
+ON THE AXIOMATIZABILITY OF QUANTITATIVE ALGEBRAS
+
+29
+
+Proof. The proof is trivial and relies on the fact that conditions (1)-(6) in
+Deﬁnition 4.2 corresponds to (Reﬂ), (Symm), (Triang), (Max), (Arch) and
+(NExp) respectively.
+Let QAΩ be the category of Ω-quantitative algebras and QFOΩ the category
+of Ω-quantitative ﬁrst-order structures. Theorem 4.3 deﬁnes two functors F
+and G that act as identities on morphisms, which deﬁne an isomorphism of
+categories as in the ﬁgure below.
+F
+
+QAΩ
+
+G
+
+QFOΩ
+
+We already know that the subobjects and the direct products of quantitative ﬁrst-order structures are ﬁrst-order structures. However, since the isomorphisms of categories preserve limits and colimits, we can prove that the
+subobjects and the direct products of quantitative ﬁrst-order structures are, in
+fact, quantitative ﬁrst-order structures, i.e., they satisfy the axioms (1)-(6) of
+Deﬁnition 4.2, as the next lemma establishes.
+Lemma 4.4. I. If M, N are Ω-quantitative first-order structures s.t. M ≤ N ,
+then
+GM ≤ GN .
+II. If (Mi )i∈I is a family of Ω-quantitative first-order structures, then
+Y
+Y
+G( Mi ) =
+GMi .
+i∈I
+
+i∈I
+
+III. If A, B are Ω-quantitative algebras such that A ≤ B, then
+F(A) ≤ FB.
+IV. If (Ai )i∈I is a family of Ω-quantitative algebras, then
+Y
+Y
+F( Ai ) =
+FAi .
+i∈I
+
+i∈I
+
+4.3. Subreduced Products of Quantitative First-Order Structures. Given
+an indexed family (Mi )i∈I of Ω-quantitative ﬁrst-order structures and a proper
+ﬁlter F on I, we can construct, as before, the reduced product ((Mi )i∈I )|F of
+ﬁrst-order structures, which is a ﬁrst-order structure. But it is not guaranteed
+that it satisﬁes the axioms in Deﬁnition 4.2. From the deﬁnition of the reduced
+product we obtain a ﬁrst-order structure ((Mi )i∈I )|F that enjoys the following
+property for any ǫ ∈ Q+ .
+mF =ǫ nF iﬀ {i ∈ I | πi (m) =ǫ πi (n)} ∈ F.
+Note that if for all i ∈ I, Mi satisﬁes the axioms (1)-(5) from Deﬁnition 4.2,
+then ((Mi )i∈I )|F satisﬁes them as well.
+
+30
+
+R. MARDARE, P. PANANGADEN, AND G. PLOTKIN
+
+For instance, we can verify the condition (3): suppose that mF =ǫ nF and
+nF =δ uF . Hence,
+{i ∈ I | πi (m) =ǫ πi (n)}, {i ∈ I | πi (n) =δ πi (u)} ∈ F.
+Since F is a ﬁlter, it is closed under intersection, so
+{i ∈ I | πi (m) =ǫ πi (n) and πi (n) =δ πi (u)} ∈ F.
+Now, axiom (3) guarantees that
+{i ∈ I | πi (m) =ǫ πi (n) and πi (n) =δ πi (u)}
+⊆ {i ∈ I | πi (m) =ǫ+δ πi (u)}
+and since F is closed under supersets,
+{i ∈ I | πi (m) =ǫ+δ πi (u)} ∈ F.
+Similarly, one can verify each of the axioms but (6). This is because axiom (6)
+requires that any reduced product has the property that for any δ ∈ Q+ ,
+{i ∈ I | πi (m) =ǫ πi (n)} ∈ F for all ǫ > δ
+implies
+{i ∈ I | πi (m) =δ πi (n)} ∈ F.
+This is a very strong condition not necessarily satisﬁed by a ﬁlter or an ultraﬁlter.
+It is, for instance, satisﬁed by the ﬁlters and ultraﬁlters closed under countable
+intersections, but the existence of such ﬁlters requires measurable cardinals (see
+for instance [CK92] for a detailed discussion).
+Hence, while the reduced products of quantitative ﬁrst-order structures can
+always be deﬁned as ﬁrst-order structures, they are not always quantitative
+ﬁrst-order structures, since they might not satisfy axiom (6) in Deﬁnition 4.2.
+Therefore, taking reduced products and ultraproducts are not internal operations over the class of quantitative ﬁrst-order structures of the same type, even
+if they are internal operations over the larger class of ﬁrst-order structures of
+the same type. This observation motivates our next deﬁnition.
+Definition 4.5 (Subreduced Products). Given an indexed family (Mi )i∈I of
+quantitative ﬁrst-order structures and a proper ﬁlter F on I, a subreduced product
+Y of this family induced by F is any subobject M of the ﬁrst-order structure
+( Mi )|F such that M is a quantitative ﬁrst-order structure.
+i∈I
+
+Given a class M of quantitative ﬁrst-order structures of the same type, the
+closure of M under subreduced products is denoted by PSR (M).
+With this concept in hand we can generalize the quasivariety theorem for ﬁrstorder structures to get a similar result for classes of QFOs that can be properly
+axiomatized.
+Theorem 4.6 (Quasivariety Theorem for Quantitative First-Order Structures).
+Let M be a class of Ω-quantitative first-order structures. Then, the following
+statements are equivalent.
+
+ON THE AXIOMATIZABILITY OF QUANTITATIVE ALGEBRAS
+
+31
+
+(1) M is an universal Horn class;
+(2) M is closed under I, S and PSR ;
+(3) M = ISPSR (M0 ) for some class M0 of Ω-quantitative first-order structures.
+Proof. (1) =⇒ (2): let M be an universal Horn class of Ω-QFOs. Then there
+exists an universal Horn class of Ω-ﬁrst-order structures M′ that satisﬁes the
+same ﬁrst-order theory T that M does. If we denote the class of Ω-quantitative
+ﬁrst-order theories by QFOΩ , we have
+M = M′ ∩ QFOΩ .
+Applying Theorem 4.1, M′ is closed under I, S and PR .
+Obviously, M is closed under I, since isomorphic ﬁrst-order structures satisfy the
+same ﬁrst-order sentences. M is also closed under S, as Lemma 4.4 guarantees.
+Let {Mi | i ∈ I} ⊆ M and F a proper ﬁlter of I.
+Y
+Let M ≤ ( Mi )|F such that M ∈ QFOΩ .
+i∈I
+
+Y
+Since {Mi | i ∈ I} ⊆ M′ and PR (M′ ) = M′ , we get that ( Mi )|F ∈ M′ .
+i∈I
+
+Hence, M ∈ S(M′ ) = M′ . And further, M ∈ M′ ∩ QFOΩ = M. In conclusion,
+M is also closed under PSR .
+(2) =⇒ (3): since M is closed under I, S and PSR ,
+M = ISPSR (M).
+(3) =⇒ (1): suppose that M = ISPSR (M0 ) for some class M0 of quantitative
+ﬁrst-order structures.
+Let M′ = ISPR (M). Applying Theorem 4.1, M′ is a universal Horn class of
+ﬁrst-order structures. We prove now that M = M′ ∩ QFOΩ .
+Y
+Let M ∈ M′ ∩ QFOΩ . Then, M is isomorphic to some N ≤ ( Mi )|F
+i∈I
+
+for some (Mi )i∈I ⊆ M and a proper ﬁlter F of I, and N ∈ QFOΩ. Hence,
+M ∈ ISPSR (M) = M. And this concludes that M′ ∩ QFOΩ ⊆ M.
+Since we have trivially M ⊆ M′ ∩ QFOΩ from the way we constructed M′ , we
+get that M = M′ ∩ QFOΩ .
+Now, since M′ is a universal Horn class of ﬁrst-order structures, we obtain that
+M is a universal Horn class of quantitative ﬁrst-order structures.
+
+32
+
+R. MARDARE, P. PANANGADEN, AND G. PLOTKIN
+
+4.4. Subreduced Products of Quantitative Algebras. Theorem 4.6 characterizes classes of Ω-QFOs as universal Horn classes. In this subsection we
+convert this result into a result regarding the axiomatizability of classes of
+quantitative algebras.
+For the beginning, we note an equivalence between the conditional equations
+interpreted over the class of quantitative algebras and the universal Horn formulas interpreted over the class of quantitative ﬁrst-order structures. This relies
+on the fact that a quantitative equation of type s =ǫ t is also an atomic formula in the corresponding quantitative ﬁrst-order language and vice versa. The
+following theorem establishes this correspondence.
+Theorem 4.7. Let φ1 (x1 , .., xk ) . . . , φl (x1 , .., xk ) and ψ(x1 , .., xk ) be Ω-quantitative
+first-order atomic formulas depending of the variables x1 , .., xk ∈ X.
+I. If M is an Ω-quantitative first-order structure, then the following statements
+are equivalent
+M |= ∀x1 ..∀xk (φ1 (x1 , ..xk ) ∧ .. ∧ φl (x1 , ..xk ) → ψ(x1 , ..xk )),
+{φ1 (x1 , .., xk ) ∧ .. ∧ φl (x1 , .., xk )} |=GM ψ(x1 , .., xk ).
+II. If A is an Ω-quantitative algebra, then the following statements are equivalent
+{φ1 (x1 , .., xk ) ∧ .. ∧ φl (x1 , .., xk )} |=A ψ(x1 , .., xk ),
+FA |= ∀x1 ..∀xk (φ1 (x1 , ..xk ) ∧ .. ∧ φn (x1 , ..xk ) → ψ(x1 , ..xk )).
+As in the case of quantitative ﬁrst-order structures, the concept of subdirect
+product of an indexed family of quantitative algebras for a given proper ﬁlter
+is not always deﬁned. The following deﬁnition reﬂects this issue.
+Definition 4.8 (Subreduced products of Quantitative Algebras). Let (Ai )i∈I
+be an indexed family of Ω-quantitative algebras and F a proper ﬁlter of I. A
+subreduced product of this family induced by F is a quantitative algebra A s.t.
+Y
+FA ≤
+(FAi )|F .
+i∈I
+
+Let PSR (K) be the closure of the class K of quantitative algebras under subreduced products. Now we can provide the analogue of Theorem 4.6 for quantitative algebras as a direct consequence of Theorem 4.3 , Theorem 4.6 and
+Theorem 4.7.
+Theorem 4.9. Let K be a class of Ω-quantitative algebras. The following statements are equivalent.
+(1) K is a conditional equational class;
+(2) K is closed under I, S and PSR ;
+(3) K = ISPSR (K0 ) for some class K0 of Ω-quantitative algebras.
+
+ON THE AXIOMATIZABILITY OF QUANTITATIVE ALGEBRAS
+
+33
+
+4.5. Going further: Complete Quantitative Algebras. The proof pattern
+that we developed to prove the quasivariety theorem for QFOs, Theorem 4.6,
+is actually more general and it could be used to provide similar theorems for
+other classes of quantitative algebras. In [MPP16] we have shown that the class
+of quantitative algebras deﬁned over complete metric spaces plays a central in
+the theory of quantitative algebras. For this reason we will brieﬂy show how a
+quasivariety theorem could be done for complete metric spaces.
+We call a quantitative algebra over a complete metric space a complete quantitative algebra.
+If we follow the intuition behind Theorem 4.3, we will discover that we can deﬁne the concept of complete quantitative ﬁrst-order structure as being a quantitative ﬁrst-order structure for which the corresponding quantitative algebra
+through the functor G is a complete quantitative algebra. In fact, the completeness condition can be encoded by an inﬁnitary axiom to be added to the
+conditions (1)-(6) in Deﬁnition 4.2, namely the axiom that requires that any
+Cauchy sequence has a limit. Let us call it the Cauchy condition.
+We will be then able to prove that the category of Ω-complete quantitative
+algebras is isomorphic to the category of Ω-complete quantitative ﬁrst-order
+structures.
+Further we can deﬁne, given a class M of Ω-complete quantitative ﬁrst-order
+structures, the concept of complete-subreduced product: given an indexed
+family (Mi )i∈I of Ω-complete quantitative ﬁrst-order structures, a completesubreduced product is any Ω-complete
+Y quantitative ﬁrst-order structure that is
+a subobject of the reduced product
+Mi |F for some proper ﬁlter F of I.
+i∈I
+
+With this in hand, one can redo the proof of Theorem 4.6 in these new settings
+and should obtain a quasivariety theorem for complete QFOs.
+5. Conclusions
+In this paper we have established the fundamental results on the axiomatizability of classes of quantitative algebras by equations, conditional equations
+and Horn clauses. These results required substantial new techniques. We
+have not put this work into a fully categorical framework such as described
+in [Bar94, AP98, ARV10, Man12]. We are actively working on understanding these connections and also the connections with enriched Lawvere theories.
+There is also much to understand when looking at other approaches to quantitative reasoning, for example the work of Jacobs and his group [CJWW15].
+
+34
+
+R. MARDARE, P. PANANGADEN, AND G. PLOTKIN
+
+Acknowledgements
+Prakash Panangaden is supported by the Natural Science and Engineering Research Council of Canada, Radu Mardare is supported by the Project 418100360 of the Danish Council for Independent Research. We thank Giorgio
+Bacci, Florence Clerc, Robert Furber and Dexter Kozen for useful discussions.
+We thank the Simons Institute for hosting the Fall 2016 program on Logical
+Structures in Computation which we all attended at various times, beneﬁtting
+from the stimulating atmosphere there.
+References
+[AMM12]
+
+Jiřı́ Adámek, Stefan Milius, and Lawrence S. Moss. On finitary functors and
+their presentations. In Coalgebraic Methods in Computer Science, pages 51–70.
+Springer, 2012.
+[AP98]
+Jiřı Adámek and Hans-E Porst. Algebraic theories of quasivarieties. Journal of
+Algebra, 208(2):379–398, 1998.
+[AP01]
+Jiřı́ Adámek and Hans-E Porst. From varieties of algebras to covarieties of coalgebras. Electronic Notes in Theoretical Computer Science, 44(1):27–46, 2001.
+[ARV10]
+Jiřı́ Adámek, Jiřı́ Rosickỳ, and Enrico Maria Vitale. Algebraic theories: a categorical introduction to general algebra, volume 184. Cambridge University Press,
+2010.
+[Bar94]
+Michael Barr. Functorial semantics and HSP type theorems. algebra universalis,
+31(2):223–251, 1994.
+[BBLM16]
+Giorgio Bacci, Giovanni Bacci, Kim G. Larsen, and Radu Mardare. Complete
+axiomatization for the bisimilarity distance on markov chains. In Proceedings of
+CONCUR, pages 21:1–21:14, 2016.
+[Bir35]
+G. Birkhoff. On the structure of abstract algebras. Proc. Cambridge Philos. Soc.,
+31:433–454, 1935.
+[BS81]
+S. Burris and H. P. Sankappanavar. A course in universal algebra. Number 78
+in Graduate Texts in Mathematics. Springer-Verlag, 1981.
+[CJWW15] Kenta Cho, Bart Jacobs, Bas Westerbaan, and Abraham Westerbaan. An introduction to effectus theory. avialable on the Arxiv as 1512.05813, Dec 2015.
+[CK92]
+C. C. Chang and H. Jerome Keisler. Model Theory. North-Holland, 1992.
+[Gol01]
+R. Goldblatt. What is the coalgebraic analogue of Birkhoff’s variety theorem?
+Theoretical Computer Science, 266:853–886, 2001.
+[Man12]
+Ernest Manes. Algebraic theories, volume 26. Springer-Verlag, 2012.
+[MPP16]
+Radu Mardare, Prakash Panangaden, and Gordon Plotkin. Quantitative algebraic reasoning. In Proceedings of the 31st Annual ACM-IEEE Symposium on
+Logic in Computer Science, pages 700–709, 2016.
+[Pfe16]
+Avi Pfeffer. Practical Probabilistic Programming. Manning, 2016.
+[Rob02]
+Edmund Robinson. Variations on algebra:monadicity and generalisations of equational theories. Formal Aspects of Computing, 13:308–326, 2002.
+[Roy]
+Daniel Roy. Probabilistic-programming.org. Web Site.
+[Sto49]
+Marshall H. Stone. Postulates for the barycentric calculus. Annali di Matematica
+Pura ed Applicata, 29(1):25–30, December 1949.
+[vBHMW07] Franck van Breugel, Claudio Hermida, Michael Makkai, and James Worrell. Recursively defined metric spaces without contraction. Theoretical Computer Science, 380(1/2):143–163, June 2007.
+[Wea95]
+N. Weaver. Quasi-varieties of metric algebras. Algebra Universalis, 33:1–9, 1995.
+[YBHU08]
+Itai Ben Yaacov, Alexander Berenstein, C. Ward Henson, and Alexander Usvyatsov. Model theory with applications to algebra and analysis. Vol. 2, chapter
+
+ON THE AXIOMATIZABILITY OF QUANTITATIVE ALGEBRAS
+
+35
+
+Model theory for metric structures, pages 315–427. Number 350 in London Math.
+Soc. Lecture Note Ser. Cambridge Univ. Press, 2008.
+
+
