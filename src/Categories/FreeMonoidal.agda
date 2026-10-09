@@ -19,6 +19,7 @@ open import Categories.Category.Monoidal.Symmetric
 open import Categories.Functor using (Functor)
 open import Categories.Functor.Monoidal
 open import Categories.NaturalTransformation using (ntHelper)
+open import Categories.NaturalTransformation.NaturalIsomorphism using (niHelper)
 open import Categories.NaturalTransformation.NaturalIsomorphism.Properties
 
 open import Data.List using (List; []; _∷_; _++_)
@@ -511,3 +512,28 @@ module FreeFunctor {d : FreeMonoidalData {ℓ′}} (ffd : FreeFunctorData d {o} 
     }
     where open Category.HomReasoning C
           open MR C
+
+-- The free functor is strict, so `ε` and `⊗-homo` are identities and the
+-- coherence laws are `isMonoidal-freeFunctor`'s.  Their implicits are restated:
+-- inferred through the non-injective `⟦_⟧₀` they stay unsolved.
+freeStrongMonoidal : {d : FreeMonoidalData {ℓ′}} (ffd : FreeFunctorData d {o} {ℓ} {e})
+                   → StrongMonoidalFunctor (FreeFunctor.FreeMonoidalM ffd) (FreeFunctor.CM ffd)
+freeStrongMonoidal ffd = record
+  { F                = freeFunctor
+  ; isStrongMonoidal = record
+    { ε             = record { from = C.id ; to = C.id ; iso = record { isoˡ = C.identity² ; isoʳ = C.identity² } }
+    ; ⊗-homo        = niHelper record
+      { η       = λ _ → C.id
+      ; η⁻¹     = λ _ → C.id
+      ; commute = M.⊗-homo.commute
+      ; iso     = λ _ → record { isoˡ = C.identity² ; isoʳ = C.identity² }
+      }
+    ; associativity = λ {X Y Z} → M.associativity {X} {Y} {Z}
+    ; unitaryˡ      = λ {X} → M.unitaryˡ {X}
+    ; unitaryʳ      = λ {X} → M.unitaryʳ {X}
+    }
+  }
+  where
+  open FreeFunctorData ffd
+  open FreeFunctor ffd
+  module M = IsMonoidalFunctor isMonoidal-freeFunctor
