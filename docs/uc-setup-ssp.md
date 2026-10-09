@@ -1,7 +1,8 @@
 # State-separating proofs as a UC setup
 
-Plan, 2026-10-09. Nothing here is typechecked; every claim about a module that does not
-exist yet is a design claim. Line references are to the `uc-setup-landscape` worktree.
+Plan, 2026-10-09. A1–A7 and C3 are built on branch `ssp-setup`; §6 records their names, warm
+times and deviations. Every other claim about a module is a design claim. Line references are
+to the `uc-setup-landscape` worktree.
 
 ## 1. Summary
 
@@ -107,7 +108,8 @@ record _⇒ᴵ_ (A B : Iface) : Set where         -- CryptHOL's embeddings = con
   field ch : Ch A → Ch B
         qu : ∀ {c} → Q A c → Q B (ch c)
         re : ∀ {c} → R B (ch c) → R A c
--- idᴵ, _∘ᴵ_, _⊗ᴵᴵ_, ι₁ ι₂, ∇, αᴵ λᴵ ρᴵ swapᴵ: pointwise, by case on Ch
+-- idᴵ, _∘ᴵ_, _⊗ᴵᴵ_, ι₁ ι₂, ∇, λᴵ ρᴵ αᴵ αᴵ⁻¹ swapᴵ: pointwise, by case on Ch
+-- (as built: one direction each; λᴵ and ρᴵ are inverted by ι₂ and ι₁)
 
 oneᴵ : Flat.Iface → Iface                      -- today's Iface is the one-channel case
 oneᴵ A = record { Ch = ⊤ ; Q = λ _ → Flat.Neg A ; R = λ _ → Flat.Pos A }
@@ -200,35 +202,35 @@ Prot-setoid A B = record { Carrier = Protocol A B ; _≈_ = _≈ᵖ_ ; isEquival
   - *Syntactic equality*: the two sides have different state types (`⊤ × St` against `St`).
   - *Relational bisimulation with couplings* (lochbihler2019cc Def. 4): coarser and not needed, and it cannot reach `≈ᴹ` without a quotient (landscape §4).
   - *Pullback of `≈ᴹ` along `morphism`*: not a `⊗ᵖ`-congruence (§4.1).
-- **Consequence for `F-resp-≈`.** `θ ↦ MSt-map θ` is pure, so `morphism-resp` is one induction on `drive`.
+- **Consequence for `F-resp-≈`** (corrected while building A1–A7). `θ ↦ MSt-map θ` is *not* a machine simulation, so `morphism-resp` is not one induction on `drive`. A `wait` state stores the continuation: where `step P′ (θ s)` reaches `wait k′`, `MSt-map θ` gives `wait (mapᶜ (map₁ θ) ∘ k)`, and the two are only `≈ᶜ`-equal pointwise. `≈ₚ` quantifies over every test of the states (`Dp.agda:427-431`), so without funext the machine step square does not close. `morphism-resp` needs the `Protocol/Machine/Compose.agda:12-19` technique instead: a third machine on pairs of `≈ᶜ`-related configurations, stepped in lockstep along the `≈ᶜ` proof, with both projections as simulations out of it.
 
 ### 3.4 The monoidal category
 
 ```agda
--- CategoricalCrypto/SSP/Protocol/Category.agda, …/Monoidal.agda
-Prot : Category (suc 0ℓ) (suc 0ℓ) (suc 0ℓ)
-Prot = categoryHelper record
-  { Obj = Iface ; _⇒_ = Protocol ; _≈_ = _≈ᵖ_ ; id = wireᵖ ; _∘_ = _∘ᵖ_
-  ; assoc = ≲⇒≈ᵖ ∘ᵖ-assoc ; identityˡ = ≲⇒≈ᵖ wireᵖ-identityˡ ; identityʳ = ≲⇒≈ᵖ wireᵖ-identityʳ
-  ; equiv = EqC.isEquivalence _≲ᵖ_ ; ∘-resp-≈ = ∘ᵖ-resp-≈ᵖ }
+-- CategoricalCrypto/SSP/Protocol/Category.agda, …/Monoidal.agda (as built)
+Prot : Category (suc 0ℓ) (suc 0ℓ) (suc 0ℓ)                    -- Categories.Category.EquivClosureHelper
+Prot = categoryHelperᵉ record                                  -- laws at _≲ᵖ_; _≈_ = EqClosure _≲ᵖ_ = _≈ᵖ_
+  { Obj = Iface ; _⇒_ = Protocol ; _≈_ = _≲ᵖ_ ; id = wireᵖ ; _∘_ = _∘ᵖ_
+  ; assoc = ∘ᵖ-assoc h g f ; identityˡ = wireᵖ-identityˡ f ; identityʳ = wireᵖ-identityʳ f
+  ; ∘-resp-≈ = ∘ᵖ-resp-≲ᵖ }                                    -- one joint simulation, θ = map θ₁ θ₂
 
 Protᴹ : MonoidalCategory (suc 0ℓ) (suc 0ℓ) (suc 0ℓ)
 Protᴹ = record { U = Prot ; monoidal = monoidalHelper Prot record
-  { ⊗ = record { F₀ = uncurry _⊗ᴵ_ ; F₁ = uncurry _⊗ᵖ_ ; identity = ≲⇒≈ᵖ ⊗ᵖ-identity
-               ; homomorphism = ≲⇒≈ᵖ ⊗ᵖ-interchange ; F-resp-≈ = uncurry ⊗ᵖ-resp-≈ᵖ }
-  ; unit = unitᴵ ; unitorˡ = ⌜ λᴵ ⌝≅ ; unitorʳ = ⌜ ρᴵ ⌝≅ ; associator = ⌜ αᴵ ⌝≅
-  ; unitorˡ-commute = ⌜⌝-natˡ ; unitorʳ-commute = ⌜⌝-natʳ ; assoc-commute = ⌜⌝-natα
-  ; triangle = ⌜⌝-triangle ; pentagon = ⌜⌝-pentagon } }
+  { ⊗ = ⊗ᵖ-bifunctor                                           -- ⊗ᵖ-identity, ⊗ᵖ-homomorphism, ⊗ᵖ-resp-≈ᵖ
+  ; unit = unitᴵ
+  ; unitorˡ = ⌜ ι₂ ⌝ / ⌜ λᴵ ⌝ ; unitorʳ = ⌜ ι₁ ⌝ / ⌜ ρᴵ ⌝ ; associator = ⌜ αᴵ⁻¹ ⌝ / ⌜ αᴵ ⌝   -- from / to
+  ; unitorˡ-commute = ⌜⌝-natˡ f ; unitorʳ-commute = ⌜⌝-natʳ f ; assoc-commute = ⌜⌝-natα f g h
+  ; triangle = … ; pentagon = … } }                            -- ≲ᵖ-const, by computation per channel
 ```
 
 | law | proof (all simulations, all structural inductions) |
 |---|---|
 | `wireᵖ-identityˡ/ʳ` (Lemma 2) | `θ = proj₂`/`proj₁`; one induction on the call tree |
-| `∘ᵖ-assoc` (Lemma 1) | `θ = assocʳ`; three mutual lemmas (`graft∘graft`, `graft∘serve`, `serve∘serve`) on the termination pattern `Protocol.agda:73-88` already passes |
-| `∘ᵖ-resp-≈ᵖ`, `⊗ᵖ-resp-≈ᵖ` | `graft`/`reindex` are natural in state maps; `EqC.gmap` per argument |
+| `∘ᵖ-assoc` (Lemma 1) | `θ = assocʳ′`; three mutual lemmas (`graft-graft`, `graft-serve`, `serve-serve`) on the termination pattern `Protocol.agda:73-88` already passes |
+| `∘ᵖ-resp-≲ᵖ`, `⊗ᵖ-resp-≲ᵖ` | one joint simulation each (`graft-sim`/`serve-sim`; `reindex-sim`); `≈ᵖ` versions by `EqC.gmap` per argument |
 | `⊗ᵖ-identity` | `θ = const tt`: `reindex ι₁ (call c q k)` reduces to `call (inj₁ c) q k` |
-| `⊗ᵖ-interchange` (Lemma 4) | `θ` = the middle-four iso; `graft` commutes with `reindex ι₁` |
-| unitors, associator, coherence | `⌜⌝-∘`, `⌜⌝-⊗`, `⌜⌝-above`, `⌜⌝-below`; triangle and pentagon become lens equations, proved pointwise. This is the reduction of `GConstructionMonoidal.agda:4-9` |
+| `⊗ᵖ-homomorphism` (Lemma 4) | `θ` = the middle-four iso; per side, `graft`/`serve` commute with `mapᶜ ∘ reindex ιᵢ` (two mutual lemmas each) |
+| unitors, associator, coherence | `⌜ m ⌝` is contravariant, so `λ⇒ = ⌜ ι₂ ⌝`, `ρ⇒ = ⌜ ι₁ ⌝`, `α⇒ = ⌜ αᴵ⁻¹ ⌝`. Iso laws, triangle and pentagon are wires against wires: `≲ᵖ-const` and one `≈ᶜ-refl` per channel case, so no `⌜⌝-∘`/`⌜⌝-⊗`/`⌜⌝-above`/`⌜⌝-below` is needed. Naturality: `⌜⌝-natˡ`/`⌜⌝-natʳ` slide the wire through the factor's step tree (one induction; they hold for an arbitrary discarded factor, not only `unitᴵ`), `⌜⌝-natα` one induction per channel group |
 
 - **Lemma 3** (optional): braiding `⌜ swapᴵ ⌝` gives `Protˢ`.
 - **The unit is terminal**: all protocols `A → unitᴵ` are `≈ᵖ`. So `⌜ ι ⌝` is SSP's discard.
@@ -242,7 +244,7 @@ evalC (ret x) = return⊥ x ; evalC (call () _ _) ; evalC (coin μ k) = μ >>=�
 evalC dead = return-ℚ nothing
 
 runᵖ : Protocol unitᴵ Ωᴵ → Dist⊥ Bool          -- the adversary's whole interaction is ONE activation
-runᵖ W = Dmap⊥ proj₂ (evalC (step W (init W) tt tt))
+runᵖ W = evalC (mapᶜ proj₂ (step W (init W) tt tt))   -- as built: = Dmap⊥ proj₂ (evalC …), map kept on the tree
 
 Approximation⊥ : Approximation (Dist⊥ Bool) ℚ-ordered 0ℓ      -- `Approx/Error.agda:61-72`
 Approximation⊥ = record { _≈[_]_ = λ μ ε ν → (b : Bool) → advᵇ⊥ b μ ν ≤ ε
@@ -250,7 +252,8 @@ Approximation⊥ = record { _≈[_]_ = λ μ ε ν → (b : Bool) → advᵇ⊥ 
 
 qevaluationᵖ : QEvaluation Prot 0ℓ 0ℓ         -- `Approx/Evaluation.agda:36-51`
 qevaluationᵖ = record { J = unitᴵ ; Ω = Ωᴵ ; X = record { Carrier = Dist⊥ Bool ; approx = Approximation⊥ }
-                      ; eval₀ = record { to = runᵖ ; cong = runᵖ-resp } }   -- W ≈ᵖ W′ → … ≈[ 0ℚ ] …
+                      ; eval₀ = record { to = runᵖ ; cong = ≈Mℚ⇒≈[0] ∘ runᵖ-resp } }
+-- as built: runᵖ-resp : W ≈ᵖ W′ → runᵖ W ≈Mℚ runᵖ W′ (exact; EqC.gfold of runᵖ-sim), ≈Mℚ⇒≈[0] turns it into zero error
 evaluationᵖ : Evaluation Prot 0ℓ 0ℓ
 evaluationᵖ = qual₊ ℚ-refinement qevaluationᵖ    -- the `UC/Model/Observation.agda:69-76` pattern
 ```
@@ -279,7 +282,7 @@ open Observable observable public using (Test; _≋_; ℰ₀) renaming (≈⇒�
 open Std2.StdUC Protᴹ ℰᵖ public     -- StdSetup : UCSetup (suc 0ℓ) … (suc 0ℓ), all eight levels
 ```
 
-- Under `src/CategoricalCrypto/SSP/`: `Iface`, `Protocol`, `Protocol/Category`, `Protocol/Monoidal`, `Observation`, `Setup`, and optionally `Reduction`. All are `--safe --without-K`.
+- Under `src/CategoricalCrypto/SSP/`: `Iface`, `Protocol`, `Protocol/Category`, `Protocol/Monoidal`, `Observation`, `Setup`, optionally `Reduction`, and the test leaf `Pin` (refl pins of `runᵖ` and `observe`). All are `--safe --without-K`. None is imported by the root `src/CategoricalCrypto.agda`.
 - The modules of §4 add `--guardedness`.
 - In the grade reading, `T₀ X B = X ⊗ᴵ B` is a protocol that also exports adversary oracles `X`. `sub c` puts a simulator protocol on them, so `≤UC` reads "for every adversary-side protocol there is a simulator".
 
@@ -524,24 +527,36 @@ Choose **(a)**:
 
 Every step is checked by `pagda` per module. The warning grep must be empty and the escape-hatch baseline must not grow. Paths are under `src/CategoricalCrypto/`.
 
-| # | module | delivers | acceptance |
-|---|---|---|---|
-| A1 | `SSP/Iface` | `Iface`, `unitᴵ`, `Ωᴵ`, `_⊗ᴵ_`, `_⇒ᴵ_` (+ `idᴵ`/`∘ᴵ`/`ι`/`∇`/`αᴵ λᴵ ρᴵ swapᴵ`), `oneᴵ`, `flat` | typechecks `--safe --without-K` |
-| A2 | `SSP/Protocol` | `Calls`, `mapᶜ`, `reindex`, `_≈ᶜ_`, `Protocol`, `graft`/`serve`, `_∘ᵖ_`, `⌜_⌝`, `wireᵖ`, `_⊗ᵖ_`, `_≲ᵖ_`, `_≈ᵖ_`, `Prot-setoid` | exports `≈ᶜ-isEquivalence` |
-| A3 | `SSP/Protocol/Category` | identity, associativity, congruence | exports `Prot : Category (suc 0ℓ) (suc 0ℓ) (suc 0ℓ)` |
-| A4 | `SSP/Protocol/Monoidal` | `⊗ᵖ` laws, the `⌜⌝` lemmas, coherence | exports `Protᴹ`; optionally `Protˢ` |
-| A5 | `SSP/Observation` | `evalC`, `runᵖ`, `runᵖ-resp`, `Approximation⊥`, `qevaluationᵖ`, `evaluationᵖ` | a two-protocol composite pins by `refl` |
-| A6 | `SSP/Setup` | §3.6 | `StdSetup : UCSetup (suc 0ℓ)…`; warm time recorded |
-| A7 | `SSP/Reduction` (optional) | Lemma 6 = `pull-∘` + assoc; Lemma 5; `closed-bridge` | exports `closed-bridge` |
-| B1 | `SSP/Obstruction` (optional, `--guardedness`) | `morphism-not-unital`, `morphism-not-monoidal` (first-step invariant as `UC.Machine.Run.step-sim`, new `¬ botₚ ≈ₚ returnₚ x`) | both exported: §4.1 checkable |
-| C1 | `SSP/Compile` | `toProtocol`, `toProtocol-∘`, `toProtocol-resp`, a flat `_≲ᵖ_`, `morphism-resp` | exports `morphism-resp` |
-| C2 | `UC/Bracket` (+ `Dp` `Supp-iterₚ`) | `Phase`/`Opp`/`Ply`/`W`, closure lemmas, `morphism-W`, `𝒲ᴹ`, `ιᴹ` and its `StdUCMorphism` | exports `morphism-W` and the inclusion |
-| C3 | `Standard2/UKernel` (generic; uses the RS plan's step 1, `Categories/Category/Monoidal/Construction/Quotient`) | `uKernel : MonoidalCongruence 𝕄 (o ⊔ cs ⊔ ℓs)`, `∼⇒≈ℰ`, `∼⇒≈ᵁ` | `--safe --without-K`; exports `uKernel` |
-| C4 | `UC/Bracket/Setup` | `evaluationᵂ`, `ℰᵂ`, `PM[wb]ᴹ = quotient 𝒲ᴹ (uKernel 𝒲ᴹ ℰᵂ)`, `ℰ[wb] = descend …`, `q = StdUCMorphism … quotientF descendᵛ` | `PM[wb].StdSetup` and `q` typecheck |
-| C5 | `UC/Bracket/Monitor` | `e`, `e-idem`, `monitor-invisible`, `⊗-monitor` | exports `monitor-invisible` |
-| C6 | `SSP/Semantics` | `wire≈σ`, `⊗≈⊗`, `games-dense`, `Fᵂ`, `νᵂ` | exports `SSP→PM[wb] : UCSetupMorphism SSP.StdSetup PM[wb].StdSetup` |
+Status: warm single-module check (one `Checking` line, `+RTS -M3G -H1G`, free gate), measured 2026-10-09; the budget is 60 s + LOC/4 s, and every built module is far inside it.
+
+| # | module | delivers (as built where ✓) | acceptance | status |
+|---|---|---|---|---|
+| A1 | `SSP/Iface` | `Iface` (`Ch`, `Q`, `R`), `unitᴵ`, `Ωᴵ`, `_⊗ᴵ_`, `_⇒ᴵ_` (`ch`, `qu`, `re`), `idᴵ`, `_∘ᴵ_`, `_⊗ᴵᴵ_`, `ι₁`, `ι₂`, `∇`, `λᴵ`, `ρᴵ`, `αᴵ`, `αᴵ⁻¹`, `swapᴵ`, `oneᴵ`, `flat` | typechecks `--safe --without-K` | ✓ 107 lines, 1.7 s |
+| A2 | `SSP/Protocol` | `Calls`, `mapᶜ`, `mapᶜ-cong`, `mapᶜ-id`, `mapᶜ-∘`, `reindex`, `reindex-sim`, `_≈ᶜ_`, `≈ᶜ-refl`/`-sym`/`-trans`, `Protocol` (`St`, `init`, `step`), `graft`/`serve`, `_∘ᵖ_`, `⌜_⌝`, `wireᵖ`, `_⊗ᵖ_`, `_≲ᵖ_` (`θ`, `θ-init`, `θ-step`), `≲ᵖ-refl`, `≲ᵖ-const`, `_≈ᵖ_`, `≲⇒≈ᵖ`, `Prot-setoid` | exports `≈ᶜ-isEquivalence` | ✓ 189 lines, 7.5 s |
+| A3 | `SSP/Protocol/Category` | `wireᵖ-identityˡ`, `wireᵖ-identityʳ`, `∘ᵖ-assoc`, `∘ᵖ-resp-≲ᵖ`, `∘ᵖ-resp-≈ᵖ` | exports `Prot : Category (suc 0ℓ) (suc 0ℓ) (suc 0ℓ)` | ✓ 123 lines, 7.5 s |
+| A4 | `SSP/Protocol/Monoidal` | `⊗ᵖ-identity`, `⊗ᵖ-homomorphism`, `⊗ᵖ-resp-≲ᵖ`, `⊗ᵖ-resp-≈ᵖ`, `⊗ᵖ-bifunctor`, `⌜⌝-natˡ`, `⌜⌝-natʳ`, `⌜⌝-natα`, `⌜⌝-natσ` | exports `Protᴹ`; optionally `Protˢ` | ✓ both; 299 lines, 9.1 s |
+| A5 | `SSP/Observation`; test leaf `SSP/Pin` | `evalC`, `evalC-cong`, `runᵖ`, `runᵖ-sim`, `runᵖ-resp`, `Approximation⊥`, `≈Mℚ⇒≈[0]`, `qevaluationᵖ`, `evaluationᵖ`; pins `echo-flip`, `echo-flip-false`, `echo-nay`, `echo-nay-false`, `echo-stuck-false`, `same-flip`, `same-alt`, `both-flip-nay`, `observe-echo-flip` | a two-protocol composite pins by `refl` | ✓ 89 lines, 8.0 s; `Pin` 86 lines, 7.6 s |
+| A6 | `SSP/Setup` | §3.6: the fields of `evaluationᵖ`, `Test`, `_≋_`, `ℰ₀`, `≈ᵖ⇒≋`, `ℰᵖ`, and `StdUC Protᴹ ℰᵖ` (`StdSetup`, `Channel`, `∣machines∣`, the `AbstractUC` names) | `StdSetup : UCSetup (suc 0ℓ)…`; warm time recorded | ✓ 23 lines, 10.2 s |
+| A7 | `SSP/Reduction` (optional) | `_≈ᵍ[_]_`, `≈ᵍ-trans` (Lemma 5), `reduction` (Lemma 6), `≈ᵍ-reduce`, `closed-bridge` | exports `closed-bridge` | ✓ 108 lines, 10.3 s |
+| B1 | `SSP/Obstruction` (optional, `--guardedness`) | `morphism-not-unital`, `morphism-not-monoidal` (first-step invariant as `UC.Machine.Run.step-sim`, new `¬ botₚ ≈ₚ returnₚ x`) | both exported: §4.1 checkable | not started |
+| C1 | `SSP/Compile` | `toProtocol`, `toProtocol-∘`, `toProtocol-resp`, a flat `_≲ᵖ_`, `morphism-resp` | exports `morphism-resp` | not started |
+| C2 | `UC/Bracket` (+ `Dp` `Supp-iterₚ`) | `Phase`/`Opp`/`Ply`/`W`, closure lemmas, `morphism-W`, `𝒲ᴹ`, `ιᴹ` and its `StdUCMorphism` | exports `morphism-W` and the inclusion | not started |
+| C3 | `Standard2/UKernel` (generic; uses the RS plan's step 1, `Categories/Category/Monoidal/Construction/Quotient`) | module parameters `𝕄 ℰ`; `_∼_`, `∼-equiv`, `≈⇒∼`, `∘-resp-∼`, `⊗-resp-∼`, `uKernel : MonoidalCongruence 𝕄 (o ⊔ cs ⊔ ℓs)`, `∼⇒≈ℰ`, `∼⇒≈ᵁ` | `--safe --without-K`; exports `uKernel` | ✓ 125 lines, 10.3 s; `Quotient` copied verbatim from `rs-quotient` `e5eddcdb`, 105 lines, 4.1 s |
+| C4 | `UC/Bracket/Setup` | `evaluationᵂ`, `ℰᵂ`, `PM[wb]ᴹ = quotient 𝒲ᴹ (uKernel 𝒲ᴹ ℰᵂ)`, `ℰ[wb] = descend …`, `q = StdUCMorphism … quotientF descendᵛ` | `PM[wb].StdSetup` and `q` typecheck | not started |
+| C5 | `UC/Bracket/Monitor` | `e`, `e-idem`, `monitor-invisible`, `⊗-monitor` | exports `monitor-invisible` | not started |
+| C6 | `SSP/Semantics` | `wire≈σ`, `⊗≈⊗`, `games-dense`, `Fᵂ`, `νᵂ` | exports `SSP→PM[wb] : UCSetupMorphism SSP.StdSetup PM[wb].StdSetup` | not started |
 
 Order: A1–A6 deliver the standalone setup (the primary deliverable); C1–C6 deliver the link. A7 and B1 can be done at any time.
+
+**Deviations of the built steps** (the code blocks of §3 carry the same corrections):
+
+- **A1.** Each structural map exists in one direction; `λᴵ` and `ρᴵ` are inverted by `ι₂` and `ι₁`, `αᴵ` by the added `αᴵ⁻¹`.
+- **A3.** `Prot` is built with `Categories.Category.EquivClosureHelper.categoryHelperᵉ`: the laws are simulations (`_≲ᵖ_`) and the helper lifts them to `_≈ᵖ_ = EqClosure _≲ᵖ_`. The congruence is `∘ᵖ-resp-≲ᵖ`, one joint simulation; `∘ᵖ-resp-≈ᵖ` is derived.
+- **A4.** The interchange law is `⊗ᵖ-homomorphism`. Since `⌜_⌝` is contravariant, `λ⇒ = ⌜ ι₂ ⌝`, `ρ⇒ = ⌜ ι₁ ⌝`, `α⇒ = ⌜ αᴵ⁻¹ ⌝`. Iso laws, triangle, pentagon and hexagon are `≲ᵖ-const` with one `≈ᶜ-refl` per channel case, so the `⌜⌝-∘`/`⌜⌝-⊗`/`⌜⌝-above`/`⌜⌝-below` lemmas were not needed.
+- **A5.** `runᵖ` maps `proj₂` on the tree before `evalC`. `runᵖ-resp` is exact (`≈Mℚ`, by `EqC.gfold` of `runᵖ-sim`), and `≈Mℚ⇒≈[0]` turns it into zero error. The `refl` pins live in the leaf `SSP/Pin`, which nothing imports.
+- **A7.** Lemma 6 is `reduction = runᵖ-sim (∘ᵖ-assoc D M G)`, the associativity simulation read out, rather than `pull-∘` plus associativity.
+- **C3.** `uKernel` is a definition inside the module `Standard2.UKernel 𝕄 ℰ` rather than a function of `𝕄` and `ℰ`.
+- **C1 (design).** `morphism-resp` is not one induction on `drive` (§3.3).
 
 ## 7. Sources
 
