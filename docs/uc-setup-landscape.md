@@ -2,10 +2,21 @@
 
 Findings of a 2026-10-09 study of the `UCSetup` instances that exist in the tree
 (after merging `protocol-rewrite` and `machine-iso`) and of those worth adding:
-interactive Turing machines, random systems, state-separating proofs (SSP) and IPDL.
+interactive Turing machines, random systems, state-separating proofs (SSP), IPDL,
+causal boxes, the symbolic model, nondeterministic choice, and robust compilation.
 The question throughout is which `UCSetupMorphism`s exist, which are blocked, and by
-what.  Nothing in this document was typechecked beyond the merged tree itself; every
-claim about a *not-yet-written* setup is a design claim.
+what.  §1–§2 are checked against the tree; §3–§5 summarise the per-setup plans of §7,
+which are design documents — nothing in them is typechecked.
+
+**Provenance.** Branch `uc-setup-landscape` = `origin/protocol-rewrite` with
+`origin/machine-iso` merged.  Two semantic conflicts beyond git's: `protocol-rewrite`'s
+solver refactor removed the symmetric variant `SymSolve`/`solveMorσ!`, so
+`Machine/Monoidal/Naturality.agda` now proves its two naturality laws by hand from
+`σ-natural`/`assoc-commute-from` and `Machine/UC/Kleisli.agda` passes its single
+crossing to the monoidal solver as an opaque generator; and `UCSetup`'s `T₁` became the
+graded monad's own action (`FromMonad`), so `Machine/UC.agda:T₁-⊗ʳ` is `≅ᴹ-refl`.  The
+root closure `src/CategoricalCrypto.agda` checks (353 modules, warning gate empty).
+`docs/kb` is the knowledge base from branch `pagda`, extended by the plans' sources.
 
 ## 1. What a morphism costs
 
@@ -216,7 +227,7 @@ possibilistic, so only the deterministic fragment maps into RS (`det-≈ᴮ⇒�
   threaded routing functor with a pointwise transfer theorem.  `P ∥ Q` is not derivable
   from `choose` and `_⊗ᵖ_` (caller-scheduled interleaving is `(P ⊗ᵖ Q) ∘ ∇`).  Open
   decision before the first module: global vs site-local scheduler information.
-- **Robust compilation** (plan, on `main`: `docs/uc-robust-compilation.md`).  Not a
+- **Robust compilation** (plan: [uc-robust-compilation.md](uc-robust-compilation.md)).  Not a
   setup: a theorem about the order.  `f ≤UC g ⇔ ∀ H : Predᵁ. Robustᵁ H g → Robustᵁ H f`
   over `≈ᵁ`-respecting predicates on *attacked* programs (UC = RHP; the converse by a
   Yoneda-style instance `Hyp g`).  The naive version over outcome-only `Predℰ` fails
@@ -267,7 +278,7 @@ hypothesised in the first draft are **gone**: `SSP → 𝔾ᵒ` directly, `IPDL 
 | causal boxes | [uc-setup-causal-boxes.md](uc-setup-causal-boxes.md) |
 | symbolic / Dolev–Yao | [uc-setup-symbolic.md](uc-setup-symbolic.md) |
 | nondeterministic choice | [uc-setup-nondeterministic.md](uc-setup-nondeterministic.md) |
-| robust compilation (theorem, not a setup) | `docs/uc-robust-compilation.md` on `main` |
+| robust compilation (theorem, not a setup) | [uc-robust-compilation.md](uc-robust-compilation.md) |
 
 Shared infrastructure the plans agree on: `Categories.Category.Monoidal.Construction.Quotient`
 (RS, SSP), `freeStrongMonoidal` in `Categories/FreeMonoidal.agda` (ITM, symbolic),
