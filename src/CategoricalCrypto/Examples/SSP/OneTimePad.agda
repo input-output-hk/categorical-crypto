@@ -18,13 +18,19 @@
 
 module CategoricalCrypto.Examples.SSP.OneTimePad where
 
+open import Categories.Category
+
 open import Data.Bool.Base
 open import Data.Maybe.Base
-open import Data.Product.Base using (_×_; _,_; proj₂)
-open import Data.Rational using (0ℚ)
+open import Data.Product.Base using (_×_; _,_; proj₁; proj₂; map₁)
+open import Data.Rational using (ℚ; 0ℚ; ½; _*_; _+_)
+open import Data.Rational.Properties.Ext
 open import Data.Sum.Base using (inj₁; inj₂)
 open import Data.Unit.Base
+open import Function.Base using (case_of_; _∘′_)
 open import Relation.Binary.PropositionalEquality
+import Relation.Binary.Construct.Closure.Equivalence as EqC
+open import Relation.Nullary
 
 open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Partial
@@ -32,15 +38,22 @@ open import ProbabilisticLogic.Distribution.RationalDist.Setoid
 open import ProbabilisticLogic.Distribution.Uniform
 open import ProbabilisticLogic.Distribution.Uniform.Flip
 
+open import CategoricalCrypto.Approx.Error
 open import CategoricalCrypto.Iface using (_⇿_)
 open import CategoricalCrypto.SSP.Iface
 open import CategoricalCrypto.SSP.Observation
 open import CategoricalCrypto.SSP.Protocol
+open import CategoricalCrypto.SSP.Protocol.Category
 open import CategoricalCrypto.SSP.Reduction
 open import CategoricalCrypto.SSP.Setup
 
+private variable
+  A : Iface
+  L L′ X Y : Set
+
 ------------------------------------------------------------------------
 -- Interfaces and resources
+------------------------------------------------------------------------
 
 Msg Key Cipher : Set
 Msg    = Bool
@@ -61,7 +74,7 @@ Honᴵ  = Sendᴵ ⊗ᴵ Recvᴵ
 Eveᴵ  = Pollᴵ (Maybe Cipher)
 
 -- One message, kept from the first send; Eve's poll is answered by `leak`.
-channel : {L : Set} → (Maybe Msg → L) → unit ⇒ T₀ (Pollᴵ L) Honᴵ
+channel : (Maybe Msg → L) → unit ⇒ T₀ (Pollᴵ L) Honᴵ
 channel leak = record
   { St = Maybe Msg ; init = nothing
   ; step = λ where
@@ -86,6 +99,7 @@ key = record
 
 ------------------------------------------------------------------------
 -- The protocol, the real world and the simulator
+------------------------------------------------------------------------
 
 enc : Protocol (Keyᴵ ⊗ᴵ Sendᴵ) Sendᴵ
 enc = record { St = ⊤ ; init = tt ; step = λ _ _ m →
@@ -112,7 +126,7 @@ encdec : Protocol (Honᴵ ⊗ᴵ Keyᴵ) Honᴵ
 encdec = (enc ⊗ᵖ dec) ∘ᵖ ⌜ share ⌝
 
 otp : unit ⇒ T₀ Eveᴵ Honᴵ
-otp = (wireᵖ {Eveᴵ} ⊗ᵖ encdec) ∘ᵖ ⌜ αᴵ⁻¹ {Eveᴵ} {Honᴵ} {Keyᴵ} ⌝ ∘ᵖ (aut ⊗ᵖ key) ∘ᵖ ⌜ ∇ ⌝
+otp = (wireᵖ ⊗ᵖ encdec) ∘ᵖ ⌜ αᴵ⁻¹ ⌝ ∘ᵖ (aut ⊗ᵖ key) ∘ᵖ ⌜ ∇ ⌝
 
 -- On Eve's first poll after a send, draw a ciphertext and keep it.
 sim : Pollᴵ Bool ⇒ Eveᴵ
@@ -126,6 +140,7 @@ sim = record
 
 ------------------------------------------------------------------------
 -- Inlining: both worlds as one package each
+------------------------------------------------------------------------
 
 -- The ciphertext on the channel and the key, drawn when first fetched.
 real : unit ⇒ T₀ Eveᴵ Honᴵ
@@ -137,7 +152,7 @@ real = record
       (nothing , k) (inj₂ (inj₂ _)) _ → ret ((nothing , k) , nothing)
       (just c , k)  (inj₂ (inj₂ _)) _ → fetch k λ k′ → ret ((just c , just k′) , just (c xor k′)) }
   where
-  fetch : {X : Set} → Maybe Key → (Key → Calls unitᴵ X) → Calls unitᴵ X
+  fetch : Maybe Key → (Key → Calls unitᴵ X) → Calls unitᴵ X
   fetch nothing  f = coin uniform-Bool f
   fetch (just k) f = f k
 
@@ -175,6 +190,7 @@ ideal≲simulated = record
 
 ------------------------------------------------------------------------
 -- Deferred sampling: the two packages at every distinguisher
+------------------------------------------------------------------------
 
 -- An activation of `D` against a game from the given state.
 play : (D : Protocol (Eveᴵ ⊗ᴵ Honᴵ) Ωᴵ) (G : Protocol unitᴵ (Eveᴵ ⊗ᴵ Honᴵ))
@@ -243,3 +259,147 @@ perfect D = ≈Mℚ⇒≈[0] {runᵖ (D ∘ᵖ real)} {runᵖ (D ∘ᵖ simulate
 otp≤ideal : otp ≤UC ideal
 otp≤ideal = dummy-complete (sim , ≈ᵁ-trans (≈C⇒≈ᵁ (≲⇒≈ᵖ otp≲real))
   (≈ᵁ-trans (≈ᵍ⇒≈ᵁ perfect) (≈ᵁ-sym (≈C⇒≈ᵁ (≲⇒≈ᵖ ideal≲simulated)))))
+
+------------------------------------------------------------------------
+-- Why no simulation does it: ≈ᵖ keeps where the coins are
+------------------------------------------------------------------------
+
+private
+  tosses : Calls A X → Bool
+  tosses (coin _ _) = true
+  tosses _          = false
+
+  tosses-map : (f : X → Y) (t : Calls A X) → tosses (mapᶜ f t) ≡ tosses t
+  tosses-map f (ret _)      = refl
+  tosses-map f (call _ _ _) = refl
+  tosses-map f (coin _ _)   = refl
+  tosses-map f dead         = refl
+
+  tosses-≈ᶜ : {t t′ : Calls A X} → t ≈ᶜ t′ → tosses t ≡ tosses t′
+  tosses-≈ᶜ (ret _)  = refl
+  tosses-≈ᶜ (call _) = refl
+  tosses-≈ᶜ (coin _) = refl
+  tosses-≈ᶜ dead     = refl
+
+  -- Does Alice's first send draw?
+  draws : unit ⇒ T₀ Eveᴵ Honᴵ → Bool
+  draws G = tosses (step G (init G) (inj₂ (inj₁ tt)) false)
+
+  draws-sim : {G G′ : unit ⇒ T₀ Eveᴵ Honᴵ} → G ≲ᵖ G′ → draws G ≡ draws G′
+  draws-sim {G} {G′} u =
+    trans (sym (tosses-map (map₁ (θ u)) (step G (init G) (inj₂ (inj₁ tt)) false)))
+          (trans (tosses-≈ᶜ (θ-step u (init G) (inj₂ (inj₁ tt)) false))
+                 (cong (λ s → tosses (step G′ s (inj₂ (inj₁ tt)) false)) (θ-init u)))
+
+-- The key is drawn at Alice's send, where a simulator cannot draw.
+no-tree-simulation : (s : Pollᴵ Bool ⇒ Eveᴵ) → ¬ otp ≈ᵖ sub s ∘ ideal
+no-tree-simulation s e = case EqC.gfold isEquivalence draws draws-sim e of λ ()
+
+------------------------------------------------------------------------
+-- Leaky channels (`Examples.RelSetup`'s relays)
+------------------------------------------------------------------------
+
+-- A simulator that relabels Eve's answer.
+poll : (L → L′) → Pollᴵ L ⇒ Pollᴵ L′
+poll f = ⌜ record { ch = λ _ → tt ; qu = λ _ → tt ; re = f } ⌝
+
+relabel : (f : L → L′) (leak : Maybe Msg → L) → channel (f ∘′ leak) ≲ᵖ sub (poll f) ∘ channel leak
+relabel f leak = record
+  { θ = λ s → (tt , tt) , s ; θ-init = refl
+  ; θ-step = λ where
+      _ (inj₁ _)        _ → ≈ᶜ-refl
+      _ (inj₂ (inj₁ _)) _ → ≈ᶜ-refl
+      _ (inj₂ (inj₂ _)) _ → ≈ᶜ-refl }
+
+-- Leakage may always be added.
+ideal≤aut : ideal ≤UC aut
+ideal≤aut = dummy-complete (poll is-just , ≈C⇒≈ᵁ (≲⇒≈ᵖ (relabel is-just (λ s → s))))
+
+otp≤aut : otp ≤UC aut
+otp≤aut = ≤UC-trans otp≤ideal ideal≤aut
+
+-- Forward the message, leaking its complement.
+relayEnc : unit ⇒ T₀ Eveᴵ Honᴵ
+relayEnc = channel (map not)
+
+complement : Eveᴵ ⇒ Eveᴵ
+complement = poll (map not)
+
+relay≤aut : relayEnc ≤UC aut
+relay≤aut = dummy-complete (complement , ≈C⇒≈ᵁ (≲⇒≈ᵖ (relabel (map not) (λ s → s))))
+
+------------------------------------------------------------------------
+-- The authenticated channel does not realize the secure one
+------------------------------------------------------------------------
+
+-- Send `m`, then report whether Eve saw `true`.
+probe : Msg → Protocol (Eveᴵ ⊗ᴵ Honᴵ) Ωᴵ
+probe m = record { St = ⊤ ; init = tt ; step = λ _ _ _ →
+  call (inj₂ (inj₁ tt)) m λ _ → call (inj₁ tt) tt λ r → ret (tt , fromMaybe false r) }
+
+-- Relabelling the message by `not` is invisible to the secure channel, and
+-- turns one probe into the other.
+notᴵ : Honᴵ ⇒ᴵ Honᴵ
+notᴵ = record
+  { ch = λ c → c
+  ; qu = λ { {inj₁ _} q → not q ; {inj₂ _} q → q }
+  ; re = λ { {inj₁ _} r → r ; {inj₂ _} r → map not r } }
+
+flip-ideal : T₁ (Pollᴵ Bool) ⌜ notᴵ ⌝ ∘ ideal ≲ᵖ ideal
+flip-ideal = record
+  { θ = λ (_ , s) → map not s ; θ-init = refl
+  ; θ-step = λ where
+      (_ , nothing) (inj₁ _)        _     → ≈ᶜ-refl
+      (_ , just _)  (inj₁ _)        _     → ≈ᶜ-refl
+      (_ , nothing) (inj₂ (inj₁ _)) false → ≈ᶜ-refl
+      (_ , nothing) (inj₂ (inj₁ _)) true  → ≈ᶜ-refl
+      (_ , just _)  (inj₂ (inj₁ _)) _     → ≈ᶜ-refl
+      _             (inj₂ (inj₂ _)) _     → ≈ᶜ-refl }
+
+probe-flip : probe true ∘ᵖ T₁ Eveᴵ ⌜ notᴵ ⌝ ≲ᵖ probe false
+probe-flip = ≲ᵖ-const λ _ _ _ → ≈ᶜ-refl
+
+-- In an abstract category: at `Prot` the unifier would solve each implicit
+-- morphism through the transparent `_∘ᵖ_` (as `SSP.Reduction.Closed`).
+private
+  module Slide {o ℓ e} (𝒟 : Category o ℓ e) where
+    module D = Category 𝒟
+    open D.HomReasoning
+    open import Categories.Morphism.Reasoning 𝒟
+
+    -- The probe's relabelling slides past the simulator onto an ideal that absorbs it.
+    slide : {U X Y Z : D.Obj} {G : U D.⇒ X} {S : X D.⇒ Y} {F′ : X D.⇒ X} {F : Y D.⇒ Y} {p₀ p₁ : Y D.⇒ Z}
+          → p₀ D.≈ p₁ D.∘ F → F D.∘ S D.≈ S D.∘ F′ → F′ D.∘ G D.≈ G → p₀ D.∘ S D.∘ G D.≈ p₁ D.∘ S D.∘ G
+    slide e₀ e₁ e₂ = (e₀ ⟩∘⟨refl) ○ pullʳ (pullˡ e₁) ○ (refl⟩∘⟨ pullʳ e₂)
+
+leaky-not-secure : ¬ aut ≤UC ideal
+leaky-not-secure le = 1≰½ (gap true)
+  where
+  open Approximation Approximation⊥ using (_≈[_]_; ≈[]-sym; ≈[]-trans)
+
+  s : Pollᴵ Bool ⇒ Eveᴵ
+  s = proj₁ (≤UC⇒dummy le)
+
+  onAut onIdeal : Msg → Dist⊥ Bool
+  onAut m   = runᵖ ((probe m ∘ᵖ aut) ∘ᵖ wireᵖ)
+  onIdeal m = runᵖ ((probe m ∘ᵖ (sub s ∘ ideal)) ∘ᵖ wireᵖ)
+
+  ¼ : ℚ
+  ¼ = ½ * ½
+
+  seen : ∀ m → onAut m ≈[ ¼ ] onIdeal m
+  seen m = KE.run∼ (≈ᵁ⇒≈ℰ (proj₂ (≤UC⇒dummy le))) {probe m} id ¼ (0<½* (0<½* 0<1ℚ))
+
+  -- Whatever the simulator, the simulated ideal shows both probes the same.
+  blind : onIdeal true ≈Mℚ onIdeal false
+  blind = runᵖ-resp (∘ᵖ-resp-≈ᵖ {f = probe true ∘ᵖ (sub s ∘ ideal)} {h = probe false ∘ᵖ (sub s ∘ ideal)}
+                                {g = wireᵖ} {i = wireᵖ}
+    (Equiv.sym (Slide.slide Prot {G = ideal} {S = sub s} {F′ = T₁ (Pollᴵ Bool) ⌜ notᴵ ⌝}
+                            {F = T₁ Eveᴵ ⌜ notᴵ ⌝} {p₀ = probe false} {p₁ = probe true}
+                            (Equiv.sym (≲⇒≈ᵖ probe-flip)) (Equiv.sym sub-commute′) (≲⇒≈ᵖ flip-ideal)))
+    Equiv.refl)
+
+  gap : onAut true ≈[ ¼ + (0ℚ + ¼) ] onAut false
+  gap = ≈[]-trans {onAut true} {onIdeal true} {onAut false} (seen true)
+          (≈[]-trans {onIdeal true} {onIdeal false} {onAut false} (≈Mℚ⇒≈[0] {onIdeal true} {onIdeal false} blind)
+                     (≈[]-sym {onAut false} {onIdeal false} (seen false)))
