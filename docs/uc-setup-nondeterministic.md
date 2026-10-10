@@ -87,13 +87,14 @@ Let f : A → T_{ιX} B and g : A → T_{ιY} B be protocols of 𝕊|ι; ≈ᵁ|
 - **(c) Preservation under (b).**  f ≤UC|ι g ⇒ f ≤UC g: the dummy simulator s₀ ∈ 𝒥(Y, X) of the
   hypothesis gives f ≈ᵁ sub_{ιs₀} ∘ g by (b), and `dummy-complete` (`Abstract2.agda:156`) gives the
   simulator a ∘ ιs₀ for each a : ιX → X″.  No `GradeStable`, no Epi.
-- **(d) Preservation for every ι when 𝕊 is grade-stable.**  𝕊|ι is then grade-stable (T′_Y = T_{ιY}), and
-  f ≈ᵁ|ι g ⇒ f ≈ℰ g ⇒ f ≈ᵁ g by `bridge` (`Abstract2.agda:124`).  This is
+- **(d) Preservation for every ι when 𝕊 is grade-stable.**  f ≈ᵁ|ι g ⇒ f ≈ℰ g (`≈ᵁ⇒≈ℰ` in 𝕊|ι) ⇒
+  f ≈ᵁ g (`bridge`, `Abstract2.agda:124`); 𝕊|ι is grade-stable too (T′_Y = T_{ιY}).  This is
   `Transfer.transfer inclusion idᵛ-epi gs` (`Abstract2/Morphism.agda:75`), the route the causal-boxes
   sketch takes.
 - **(e) Without (b) or (d) preservation fails.**  Take ι : `Oneᴹ` → ℐ, the unit (`Oneᴹ` is
   `Categories/Monad/Graded/Trivial.agda:24`).  𝕊|ι is the adversary-free setup: one ancilla and one
-  simulator, so ≈ᵁ|ι and ≤UC|ι are ≈ℰ on unit-graded protocols.  At PM the reveal pair
+  simulator, so for standard 𝕊 (T_I f is f conjugated by λ) ≈ᵁ|ι and ≤UC|ι are ≈ℰ on unit-graded
+  protocols.  At PM the reveal pair
   r_true ≈ℰ r_false (`UC/RandomSystems/FullAbstraction.agda:186`) is ≤UC|ι, while r_true ≰UC r_false: a
   simulator I → I has the empty interface, so sub_s ∘ r_false still never sends `true`, and ≈ᵁ ⇒ ≈ᴿ
   separates the two [INFERENCE: that every s : I → I of 𝔾ᵒ is inert].
@@ -138,7 +139,7 @@ module R = AbstractUC regraded       -- R.T₀ X = T₀ (ι.₀ X), R.sub c = su
 inclusion : UCSetupMorphism regraded 𝕊
 inclusion = record { ν = idᵛ ℰ ; effect = record { F = idF ; Φ = ι ; κ = 𝒞.id
   ; isGradedKleisliMorphism = record { κ-return = 𝒞.identityˡ ; κ-sub = λ _ → id-comm-sym
-                                     ; κ-ext = λ f → 𝒞.identityˡ ○ pullback-ext ι triple f ○ … } } }
+                                     ; κ-ext = λ f → 𝒞.identityˡ ○ ext-pullback f ○ … } } }
 
 ≈ᵁ⇒≈ᵁ|ι : {f g : A 𝒞.⇒ T₀ (ι.₀ X) B} → f ≈ᵁ g → f R.≈ᵁ g                       -- (a)
 ≈ᵁ⇒≈ᵁ|ι e W = ≈ℰ-cong-post (sub (ι₂ W _)) (e (ι.₀ W))                            -- up to R.μ's spelling
@@ -167,10 +168,12 @@ module Trivial where                                                            
   to = restrict-≤UC (λ s → s , ℐ.Equiv.refl) ; from = unrestrict-≤UC
 ```
 
-`cancel` (post-compose sub r, `sub-homomorphism`, `sub-identity`) and `conjugate` (the identity of (b))
-are private.  The `refl`s of `R.T₀`/`R.sub`/`R.return` must survive `FromMonad`'s `triple`: the
-causal-boxes plan flags it, and `pullback-*` are stated on `GradedMonad⇒GradedKleisliTriple`, which is
-what `UCSetup.triple` is (`FromMonad.agda:36-37`).
+`cancel` (post-compose sub r, `sub-homomorphism`, `sub-identity`), `conjugate` (the identity of (b)) and
+`ext-pullback` (R.ext W f ≈ sub (ι₂ W _) ∘ ext (ι.₀ W) f) are private.  `Pullback.agda`'s lemmas are
+stated for `pullback ι triple`, which round-trips ℳ through `GradedKleisliTriple⇒GradedMonad`;
+`regraded`'s triple is `FromMonad (pullbackM ι ℳ)` without the round trip.  So `R.T₀`, `R.sub` and
+`R.return` should hold by `refl` directly (`F₀`/`F₁` of `∘-Monoidal`), and `pullback-ext`'s proof is
+replayed as `ext-pullback` — the causal-boxes plan's "else one round-trip lemma" [INFERENCE].
 
 ### 1.6 Relation to `WideSubcategory`, causal boxes' `regrade`, `Oneᴹ`
 
@@ -283,7 +286,7 @@ resolve qs (choose i k) with pop i qs
 ... | just (p , qs′) = resolve qs′ (k p)
 ... | nothing        = dead                     -- an unanswered request
 -- ret, call, coin, dead: structural, threading qs
-⌈_⌉ : Protocol⁺ S⃗ A B → A ⇒ T₀ Cᴵ⟦ S⃗ ⟧ B      -- = Protocol A (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ B)
+⌈_⌉ : Protocol⁺ S⃗ A B → A ⇒ T₀ Cᴵ⟦ S⃗ ⟧ B      -- = Protocol A (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ B); for B = X ⊗ᴵ B′ a wire regrades to (X, S⃗)
 ⌈ P ⌉ = record { St = St P × Queues S⃗ ; init = init P , empty ; step = λ where
   (s , qs) (inj₁ i) p → ret ((s , push i p qs) , tt)                 -- a pick arrives on site i
   (s , qs) (inj₂ c) q → mapᶜ regroup (resolve qs (step P s c q)) }
@@ -390,9 +393,9 @@ SSP alike].  (ii) In PM, ⟨t₀⟩ ≤UC_B ⟨[t₀, t₁]⟩ (§2.5) while ⟨
 
 - **Nothing inverts the inclusion on designated grades.**  A morphism B → A fixing them would carry
   B-simulators to A-simulators (κ-sub), and witness (i)'s simulator is no relabelling [INFERENCE].
-- **Undesignation is a morphism B → A.**  Φ_u : 𝒢_B → 𝒢_A, (X, S⃗) ↦ (⌊X,S⃗⌋, []), is the identity on
-  morphisms (between site-free grades every morphism is in R, with ρ = id_[]) and strong (comparison φ).
-  `between Φ_u θ` (§1.4), θ the unitor ⌊⌊X,S⃗⌋, []⌋ = ⌊X,S⃗⌋ ⊗ I ≅ ⌊X,S⃗⌋.  ι_A ∘ Φ_u and ι_B have the
+- **Undesignation is a morphism B → A.**  Φ_u : 𝒢_B → 𝒢_A, (X, S⃗) ↦ (⌊X,S⃗⌋, []), u ↦ u ⊗ ⌈id_[]⌉, is a
+  functor (between site-free grades every morphism is in R) and strong (comparison φ).  With ND_A in its
+  direct form Std(𝕄)|(ι_B ∘ incl), it is `between Φ_u θ` (§1.4), θ the unitor ⌊X,S⃗⌋ ⊗ I ≅ ⌊X,S⃗⌋.  ι_A ∘ Φ_u and ι_B have the
   same essential image (all of 𝕄) and Φ_u is full, so it preserves and reflects ≤UC.  B embeds into A as
   A's site-free part: B → A → B ≅ id, while A → B → A forgets the designation, sending A-emulation to
   B-emulation inside A.  B is a retract of A, not conversely.
@@ -414,7 +417,7 @@ about ⌈−⌉.
 | law | after ⌈−⌉ | A | B, PM | B, SSP |
 |---|---|---|---|---|
 | congruence: `k i ≈ᶜ k′ i` ⇒ `choose i k ≈ᶜ choose i k′` | ≈ᵖ (`resolve` pointwise) | ✓ | ✓ | ✓ |
-| `choose` past `coin` or `call` in one step | ≈ᶜ: the pick precedes the activation | ✓ | no syntax | ✓ |
+| `choose` past `coin` or `call` in one step | ≈ᵈ, hence ≈ᵁ: the pick precedes the activation | ✓ | no syntax | ✓ |
 | permutation `k ∘ π`; commutativity `[t₀,t₁] ~ [t₁,t₀]` | ≈ᵖ after the relabelling ⌈π⌉ | mutual | mutual | mutual |
 | collapse: ∀ i. k i ≈ k₀ ⇒ ⟨k⟩ ~ ⟨const k₀⟩ (same site) | ≈ᵖ | ✓ | ✓ | ✓ |
 | idempotence ⟨const t⟩ ~ ⟨t⟩ (one site against none) | grades differ | ✗ both ways | ⟨t⟩ ≤ ⟨const t⟩ only | ✗ |
@@ -422,8 +425,10 @@ about ⌈−⌉.
 
 - Row 2 is new.  Under the old global demon `coin-unit` and choose/coin commutation were non-laws (a
   demon saw the toss: CE0, CE1); under pick-ahead `choose` reads the queue, which no coin or reply
-  feeds.  In PM a request's position within an activation is observable, so the row holds there only for
-  requests raised on every branch [INFERENCE].
+  feeds.  With a pick queued the two trees are ≈ᶜ; with none, one dies after the coin or call and the
+  other before it: `coin-drop`, and a "`dead` absorbs a call" square [INFERENCE].  In PM a request's
+  position within an activation is observable, so the row holds there only for requests raised on
+  every branch [INFERENCE].
 - Idempotence: in A an unanswered site hangs one side only; in PM-B the simulator answers the ideal's
   request invisibly (⟨t⟩ ≤ ⟨const t⟩) but cannot raise the real one's; in SSP-B the simulator is never
   activated, and the real side dies on an empty queue.  Flattening's B rows and both idempotence
