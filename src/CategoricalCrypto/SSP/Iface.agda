@@ -8,8 +8,12 @@
 --
 -- `_⇒ᴵ_` are container morphisms: channels and queries forward, replies
 -- backward.  The flat `CategoricalCrypto.Iface` is the one-channel case
--- (`oneᴵ`), and `flat` is the wire format of the machine layer.
+-- (`oneᴵ`), and `flat` is the wire format of the machine layer.  Channels are
+-- decidable — SSP's oracle names are — because the machine layer receives a
+-- reply tagged with its channel and has to check it against the open call
+-- (`SSP.Compile.reply`).
 
+open import Class.DecEq
 open import Data.Bool.Base using (Bool)
 open import Data.Empty
 open import Data.Product.Base using (Σ)
@@ -26,16 +30,18 @@ infixr 9 _∘ᴵ_
 infixr 10 _⊗ᴵ_ _⊗ᴵᴵ_
 
 record Iface : Set₁ where
-  field Ch : Set
-        Q R : Ch → Set
+  field Ch     : Set
+        Q R    : Ch → Set
+        Ch-dec : DecEq Ch
 open Iface public
 
 unitᴵ Ωᴵ : Iface
-unitᴵ = record { Ch = ⊥ ; Q = λ () ; R = λ () }
-Ωᴵ = record { Ch = ⊤ ; Q = const ⊤ ; R = const Bool }
+unitᴵ = record { Ch = ⊥ ; Q = λ () ; R = λ () ; Ch-dec = DecEq-⊥ }
+Ωᴵ = record { Ch = ⊤ ; Q = const ⊤ ; R = const Bool ; Ch-dec = DecEq-⊤ }
 
 _⊗ᴵ_ : Iface → Iface → Iface
-A ⊗ᴵ B = record { Ch = Ch A ⊎ Ch B ; Q = [ Q A , Q B ]′ ; R = [ R A , R B ]′ }
+A ⊗ᴵ B = record
+  { Ch = Ch A ⊎ Ch B ; Q = [ Q A , Q B ]′ ; R = [ R A , R B ]′ ; Ch-dec = DecEq-⊎ ⦃ Ch-dec A ⦄ ⦃ Ch-dec B ⦄ }
 
 record _⇒ᴵ_ (A B : Iface) : Set where
   field ch : Ch A → Ch B
@@ -101,7 +107,7 @@ swapᴵ = record
   ; re = λ { {inj₁ _} → id ; {inj₂ _} → id } }
 
 oneᴵ : Flat.Iface → Iface
-oneᴵ A = record { Ch = ⊤ ; Q = const (Flat.Neg A) ; R = const (Flat.Pos A) }
+oneᴵ A = record { Ch = ⊤ ; Q = const (Flat.Neg A) ; R = const (Flat.Pos A) ; Ch-dec = DecEq-⊤ }
 
 flat : Iface → Flat.Iface
 flat A = Σ (Ch A) (R A) Flat.⇿ Σ (Ch A) (Q A)

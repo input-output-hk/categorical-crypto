@@ -52,10 +52,11 @@ _⊙_ : Proc (flat B) (flat C) → Proc (flat A) (flat B) → Proc (flat A) (fla
 _⊙_ {B = B} g f = Col.MT.traceᴹ _ _ (Σ (Ch B) (Q B) ⊎ Σ (Ch B) (R B)) (MC.mk (Col.Sᴳ g f) (Col.kᴳ g f))
 
 ⊙≈∘ : (g : Proc (flat B) (flat C)) (f : Proc (flat A) (flat B))
-    → Category._≈_ 𝒫ᴵ {flat A} {flat C} (g ⊙ f) (Category._∘_ 𝒫ᴵ {flat A} {flat B} {flat C} g f)
+    → Category._≈_ 𝒫ᴵ {flat A} {flat C} (_⊙_ {B = B} {C = C} {A = A} g f)
+        (Category._∘_ 𝒫ᴵ {flat A} {flat B} {flat C} g f)
 ⊙≈∘ g f = S.⟺ᴹ (Col.collapseᵀ g f) S.○ᴹ Col.compose-raw≈∘ᴳ g f
 
-module _ {g : Proc (flat B) (flat C)} {f : Proc (flat A) (flat B)} (wg : W g) (wf : W f) where
+module _ {g : Proc (flat B) (flat C)} {f : Proc (flat A) (flat B)} (wg : W {B} {C} g) (wf : W {A} {B} f) where
 
   private
     module G = W wg
@@ -94,7 +95,8 @@ module _ {g : Proc (flat B) (flat C)} {f : Proc (flat A) (flat B)} (wg : W g) (w
         Supp-bind _ j _ _ (Supp-map _ _ (λ _ if → Supp-return _ _ (ig , if)) j _ (F.I-init j)))
         i _ (G.I-init i))) n)
 
-    I-step : ∀ {s φ x φ′} → I s φ → Opp φ x φ′ → ∀ n → Supp n (MC.step (g ⊙ f) (s , x)) (Legal I φ′)
+    I-step : ∀ {s φ x φ′} → I s φ → Opp φ x φ′ → ∀ n
+           → Supp n (MC.step (_⊙_ {B = B} {C = C} {A = A} g f) (s , x)) (Legal I φ′)
     I-step {_ , _} {x = inj₂ (c , _)} (ig , if) query =
       Supp-traced {S = Col.Sᴳ g f} {k = Col.kᴳ g f} (loop c) λ n →
         Supp-bind _ n _ _ (Supp-map _ _ (route-g if) n _ (G.I-step ig query n))
@@ -102,7 +104,7 @@ module _ {g : Proc (flat B) (flat C)} {f : Proc (flat A) (flat B)} (wg : W g) (w
       Supp-traced {S = Col.Sᴳ g f} {k = Col.kᴳ g f} (loop c) λ n →
         Supp-bind _ n _ _ (Supp-map _ _ (route-f ig) n _ (F.I-step if return n))
 
-  ⊙-W : W (g ⊙ f)
+  ⊙-W : W {A} {C} (_⊙_ {B = B} {C = C} {A = A} g f)
   ⊙-W = record { I = I ; I-init = I-init ; I-step = I-step }
 
 ------------------------------------------------------------------------
@@ -112,7 +114,7 @@ module _ {g : Proc (flat B) (flat C)} {f : Proc (flat A) (flat B)} (wg : W g) (w
 -- which `⊙` and `𝒫ᴵ`'s composite do not share; saturated, the class is closed
 -- under `𝒫ᴵ`'s own identity and composite.
 W̃ : Proc (flat A) (flat B) → Set₁
-W̃ {A} {B} f = Σ[ f′ ∈ Proc (flat A) (flat B) ] W f′ × Category._≈_ 𝒫ᴵ {flat A} {flat B} f f′
+W̃ {A} {B} f = Σ[ f′ ∈ Proc (flat A) (flat B) ] W {A} {B} f′ × Category._≈_ 𝒫ᴵ {flat A} {flat B} f f′
 
 bracketed : SubCat Iface
 bracketed = record
@@ -120,7 +122,8 @@ bracketed = record
   ; R    = W̃
   ; Rid  = λ {A} → Category.id 𝒫ᴵ {flat A} , id-W , S.reflᴹ
   ; _∘R_ = λ {A} {B} {C} (g′ , wg , eg) (f′ , wf , ef) →
-      g′ ⊙ f′ , ⊙-W wg wf , Category.∘-resp-≈ 𝒫ᴵ {flat A} {flat B} {flat C} eg ef S.○ᴹ S.⟺ᴹ (⊙≈∘ g′ f′)
+      _⊙_ {B = B} {C = C} {A = A} g′ f′ , ⊙-W {B = B} {C = C} {A = A} wg wf
+    , Category.∘-resp-≈ 𝒫ᴵ {flat A} {flat B} {flat C} eg ef S.○ᴹ S.⟺ᴹ (⊙≈∘ {B = B} {C = C} {A = A} g′ f′)
   }
 
 𝒲 : Category (suc 0ℓ) (suc 0ℓ) (suc 0ℓ)

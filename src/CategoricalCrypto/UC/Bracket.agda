@@ -77,20 +77,21 @@ record W (f : Proc (flat A) (flat B)) : Set₁ where
 -- Compiled protocols
 
 -- A flat step tree that answers only on `b`, and after each call continues
--- well at every return on the called channel.
-data Bracketed {A : Iface} {S : Set} (B : Iface) (b : Ch B)
+-- well at every return on the called channel.  The interfaces are explicit:
+-- `flat` forgets `Ch-dec`, so a flat type does not determine them.
+data Bracketed (A : Iface) {S : Set} (B : Iface) (b : Ch B)
      : Flat.Calls (flat A) (S × Σ (Ch B) (R B)) → Set where
-  ret  : ∀ {s r} → Bracketed B b (Flat.ret (s , b , r))
-  call : ∀ {a q k} → (∀ r → Bracketed B b (k (a , r))) → Bracketed B b (Flat.call (a , q) k)
-  coin : ∀ {μ k} → (∀ x → Bracketed B b (k x)) → Bracketed B b (Flat.coin μ k)
-  dead : Bracketed B b Flat.dead
+  ret  : ∀ {s r} → Bracketed A B b (Flat.ret (s , b , r))
+  call : ∀ {a q k} → (∀ r → Bracketed A B b (k (a , r))) → Bracketed A B b (Flat.call (a , q) k)
+  coin : ∀ {μ k} → (∀ x → Bracketed A B b (k x)) → Bracketed A B b (Flat.coin μ k)
+  dead : Bracketed A B b Flat.dead
 
 module _ ⦃ _ : DecEq (Ch A) ⦄ where
 
-  toCalls-bracketed : (b : Ch B) (t : Calls A (S × R B b)) → Bracketed B b (toCalls (mapᶜ (map₂ (b ,_)) t))
+  toCalls-bracketed : (b : Ch B) (t : Calls A (S × R B b)) → Bracketed A B b (toCalls (mapᶜ (map₂ (b ,_)) t))
   toCalls-bracketed b (ret _)      = ret
   toCalls-bracketed b (call _ _ k) =
-    call λ r → subst (Bracketed _ b) (sym (reply-refl r _)) (toCalls-bracketed b (k r))
+    call λ r → subst (Bracketed A _ b) (sym (reply-refl r _)) (toCalls-bracketed b (k r))
   toCalls-bracketed b (coin _ k)   = coin λ x → toCalls-bracketed b (k x)
   toCalls-bracketed b dead         = dead
 
@@ -99,10 +100,10 @@ module _ ⦃ _ : DecEq (Ch A) ⦄ where
     private
       I : MSt (toProtocol P) → Phase A B → Set
       I (idle _) idle          = ⊤
-      I (wait k) (calling b a) = ∀ r → Bracketed B b (k (a , r))
+      I (wait k) (calling b a) = ∀ r → Bracketed A B b (k (a , r))
       I _        _             = ⊥
 
-      drive-W : {b : Ch B} {t : Flat.Calls (flat A) (St P × Σ (Ch B) (R B))} → Bracketed B b t
+      drive-W : {b : Ch B} {t : Flat.Calls (flat A) (St P × Σ (Ch B) (R B))} → Bracketed A B b t
               → ∀ n → Supp n (drive (toProtocol P) t) (Legal I (serving b))
       drive-W ret      = Supp-return _ _ (idle , answer , tt)
       drive-W (call g) = Supp-return _ _ (calling _ _ , call , g)
@@ -116,7 +117,7 @@ module _ ⦃ _ : DecEq (Ch A) ⦄ where
       I-step {wait _} () query
       I-step {idle _} () return
 
-    morphism-W : W (morphism (toProtocol P))
+    morphism-W : W {A} {B} (morphism (toProtocol P))
     morphism-W = record { I = I ; I-init = Supp-return _ _ tt ; I-step = I-step }
 
 ------------------------------------------------------------------------
@@ -156,5 +157,5 @@ module _ {up : Σ (Ch A) (R A) → Σ (Ch B) (R B)} {down : Σ (Ch B) (Q B) → 
     I-step g (return {r = r}) =
       Supp-return _ _ (idle , subst (λ b → Ply (serving b) (inj₂ (up (_ , r))) idle) (g r) answer , tt)
 
-  wire-W : W (wireᴹ up down)
+  wire-W : W {A} {B} (wireᴹ up down)
   wire-W = record { I = I ; I-init = Supp-return _ _ tt ; I-step = I-step }
