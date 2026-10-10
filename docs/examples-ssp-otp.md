@@ -1,9 +1,8 @@
 # The one-time pad in the SSP setup
 
-`src/CategoricalCrypto/Examples/SSP/OneTimePad.agda`: maurer2011cc §3.2–3.3's one-time pad in
-`SSP.Setup` (`StdUC Protᴹ ℰᵖ`, `docs/uc-setup-ssp.md`), beside the possibilistic
-`Examples/RelSetup.agda`.  Interfaces are `oneᴵ`s; a message travels by pollable state (plan §5.2):
-Alice sends, Bob, Eve and the key fetches poll.
+`src/CategoricalCrypto/Examples/SSP/OneTimePad.agda`: maurer2011cc §3.2–3.3's one-time pad in `SSP.Setup`
+(`StdUC Protᴹ ℰᵖ`), beside the possibilistic `Examples/RelSetup.agda`.  Interfaces are `oneᴵ`s; a message
+travels by pollable state (`docs/uc-setup-ssp.md` §5.2): Alice sends, Bob, Eve and the key fetches poll.
 
 ## 1. What is proved (all in the SSP setup)
 
@@ -43,14 +42,16 @@ From `aut ≤UC ideal`, `≤UC⇒dummy` and `≈ᵁ⇒≈ℰ` give a simulator `
 report whether Eve saw `true`" agree within ¼ on `aut` and on `sub s ∘ ideal`.  On `aut` they read 1
 and 0.  On `sub s ∘ ideal` they read the same: `ideal` absorbs relabelling the message by `not`
 (`flip-ideal`), the relabelling turns one probe into the other (`probe-flip`), and it commutes with
-the simulator by `sub-commute′` (`Slide.slide`).  Hence `1 ≤ ½`.  `≈ᵁ⇒≈ℰ` suffices; RelSetup's
-`ℰ-faithful` has no analogue here and is not needed.
+the simulator by `sub-commute′` (`Slide.slide`).  Hence `1 ≤ ½`.  `≈ᵁ⇒≈ℰ` suffices (RelSetup's `ℰ-faithful` has no analogue).
 
 ## 4. Crossing to other setups: the next step (nothing has crossed yet)
 
 - **PM[wb]** (`docs/uc-setup-ssp.md` §4.2–4.3): `Fᵂ otp ≤UC Fᵂ ideal`, i.e. `morphism (toProtocol otp)
   ≤UC morphism (toProtocol ideal)` against well-bracketed environments, from `otp≤ideal` by the
-  corollary of `SSP→PM[wb]` (C4–C6, on branch `ssp-bridge`); a one-line application once it lands.
+  `≤UC` corollary of `SSP→PM[wb]` (C2–C6, on branch `ssp-bridge`, not landed).  That corollary is
+  itself open: `νᵂ` is not Epi (a W-test can carry an irrational verdict mass no SSP distinguisher
+  matches), so `Transfer.transfer` does not apply as is.  The module checks on top of the bridge's
+  `Ch-dec` change (`c9a4bf0e`), so the application will not need to touch it.
 - **𝔾ᴿ**: `rewrite⇒RS` starts at PM, not at PM[wb], so the bridge does not reach random systems.  The
   𝔾ᴿ statement needs the PM statement against all environments first, which needs an adequacy of
   `runᵖ` for compiled closed games that the tree does not have.
