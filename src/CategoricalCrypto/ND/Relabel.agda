@@ -156,53 +156,58 @@ Alph = categoryHelper record
   ; ∘-resp-≈  = ∘ʳ-resp-≈ʳ
   }
 
-infixr 6 _++ʳ_
-_++ʳ_ : S⃗ ⇝ T⃗ → S⃗′ ⇝ T⃗′ → S⃗ ++ S⃗′ ⇝ T⃗ ++ T⃗′
-_++ʳ_ {S⃗} {T⃗} {S⃗′} {T⃗′} ρ ρ′ = record
-  { route     = λ c → Maybe.map (map₂ (_∘ qu (split S⃗ S⃗′))) (side (ch (split S⃗ S⃗′) c))
-  ; injective = λ {c} {c′} e e′ →
-      let (y , eτ , ey)    = map-just (τ (ch (split S⃗ S⃗′) c)) (from e)
-          (y′ , eτ′ , ey′) = map-just (τ (ch (split S⃗ S⃗′) c′)) (from e′)
-          y≡y′ = trans (sym (split-join T⃗ T⃗′ y))
-                       (trans (cong (ch (split T⃗ T⃗′)) (trans ey (sym ey′))) (split-join T⃗ T⃗′ y′))
-      in trans (sym (join-split S⃗ S⃗′ c))
-               (trans (cong (ch (join S⃗ S⃗′)) (τ-injective eτ (trans eτ′ (cong just (sym y≡y′)))))
-                      (join-split S⃗ S⃗′ c′)) }
-  where
-  side : (x : Ch (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧))
-       → Maybe (Σ[ l ∈ Ch Cᴵ⟦ T⃗ ++ T⃗′ ⟧ ] (Q (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧) x → Q Cᴵ⟦ T⃗ ++ T⃗′ ⟧ l))
-  side (inj₁ i) = Maybe.map (λ (k , r) → ch (join T⃗ T⃗′) (inj₁ k) , qu (join T⃗ T⃗′) {inj₁ k} ∘ r) (route ρ i)
-  side (inj₂ j) = Maybe.map (λ (k , r) → ch (join T⃗ T⃗′) (inj₂ k) , qu (join T⃗ T⃗′) {inj₂ k} ∘ r) (route ρ′ j)
+module _ {S⃗ T⃗ S⃗′ T⃗′ : List Set} (ρ : S⃗ ⇝ T⃗) (ρ′ : S⃗′ ⇝ T⃗′) where
 
-  τ : Ch (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧) → Maybe (Ch (Cᴵ⟦ T⃗ ⟧ ⊗ᴵ Cᴵ⟦ T⃗′ ⟧))
-  τ (inj₁ i) = Maybe.map inj₁ (target (route ρ i))
-  τ (inj₂ j) = Maybe.map inj₂ (target (route ρ′ j))
+  -- A site of the juxtaposition, by the side `split` puts it on.
+  route-++ : (x : Ch (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧))
+           → Maybe (Σ[ l ∈ Ch Cᴵ⟦ T⃗ ++ T⃗′ ⟧ ] (Q (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧) x → Q Cᴵ⟦ T⃗ ++ T⃗′ ⟧ l))
+  route-++ (inj₁ i) = Maybe.map (λ (k , r) → ch (join T⃗ T⃗′) (inj₁ k) , qu (join T⃗ T⃗′) {inj₁ k} ∘ r) (route ρ i)
+  route-++ (inj₂ j) = Maybe.map (λ (k , r) → ch (join T⃗ T⃗′) (inj₂ k) , qu (join T⃗ T⃗′) {inj₂ k} ∘ r) (route ρ′ j)
 
-  target-side : (x : Ch (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧)) → target (side x) ≡ Maybe.map (ch (join T⃗ T⃗′)) (τ x)
-  target-side (inj₁ i) with route ρ i
-  ... | nothing = refl
-  ... | just _  = refl
-  target-side (inj₂ j) with route ρ′ j
-  ... | nothing = refl
-  ... | just _  = refl
+  private
+    τ : Ch (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧) → Maybe (Ch (Cᴵ⟦ T⃗ ⟧ ⊗ᴵ Cᴵ⟦ T⃗′ ⟧))
+    τ (inj₁ i) = Maybe.map inj₁ (target (route ρ i))
+    τ (inj₂ j) = Maybe.map inj₂ (target (route ρ′ j))
 
-  from : ∀ {c l} → target (Maybe.map (map₂ (_∘ qu (split S⃗ S⃗′) {c})) (side (ch (split S⃗ S⃗′) c))) ≡ just l
-       → Maybe.map (ch (join T⃗ T⃗′)) (τ (ch (split S⃗ S⃗′) c)) ≡ just l
-  from {c} e = trans (sym (target-side (ch (split S⃗ S⃗′) c))) (trans (sym (target-map (side (ch (split S⃗ S⃗′) c)))) e)
+    target-route : (x : Ch (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧)) → target (route-++ x) ≡ Maybe.map (ch (join T⃗ T⃗′)) (τ x)
+    target-route (inj₁ i) with route ρ i
+    ... | nothing = refl
+    ... | just _  = refl
+    target-route (inj₂ j) with route ρ′ j
+    ... | nothing = refl
+    ... | just _  = refl
 
-  τ-injective : ∀ {x x′ y} → τ x ≡ just y → τ x′ ≡ just y → x ≡ x′
-  τ-injective {inj₁ i} {inj₁ i′} e e′ =
-    let (k , eₖ , ek) = map-just (target (route ρ i)) e ; (k′ , eₖ′ , ek′) = map-just (target (route ρ i′)) e′
-    in cong inj₁ (injective ρ eₖ (trans eₖ′ (cong just (inj₁-injective (trans ek′ (sym ek))))))
-  τ-injective {inj₂ j} {inj₂ j′} e e′ =
-    let (k , eₖ , ek) = map-just (target (route ρ′ j)) e ; (k′ , eₖ′ , ek′) = map-just (target (route ρ′ j′)) e′
-    in cong inj₂ (injective ρ′ eₖ (trans eₖ′ (cong just (inj₂-injective (trans ek′ (sym ek))))))
-  τ-injective {inj₁ i} {inj₂ j′} e e′ =
-    let (k , _ , ek) = map-just (target (route ρ i)) e ; (k′ , _ , ek′) = map-just (target (route ρ′ j′)) e′
-    in case trans ek (sym ek′) of λ ()
-  τ-injective {inj₂ j} {inj₁ i′} e e′ =
-    let (k , _ , ek) = map-just (target (route ρ′ j)) e ; (k′ , _ , ek′) = map-just (target (route ρ i′)) e′
-    in case trans ek (sym ek′) of λ ()
+    from : ∀ {c l} → target (Maybe.map (map₂ (_∘ qu (split S⃗ S⃗′) {c})) (route-++ (ch (split S⃗ S⃗′) c))) ≡ just l
+         → Maybe.map (ch (join T⃗ T⃗′)) (τ (ch (split S⃗ S⃗′) c)) ≡ just l
+    from {c} e = trans (sym (target-route (ch (split S⃗ S⃗′) c)))
+                       (trans (sym (target-map (route-++ (ch (split S⃗ S⃗′) c)))) e)
+
+    τ-injective : ∀ {x x′ y} → τ x ≡ just y → τ x′ ≡ just y → x ≡ x′
+    τ-injective {inj₁ i} {inj₁ i′} e e′ =
+      let (k , eₖ , ek) = map-just (target (route ρ i)) e ; (k′ , eₖ′ , ek′) = map-just (target (route ρ i′)) e′
+      in cong inj₁ (injective ρ eₖ (trans eₖ′ (cong just (inj₁-injective (trans ek′ (sym ek))))))
+    τ-injective {inj₂ j} {inj₂ j′} e e′ =
+      let (k , eₖ , ek) = map-just (target (route ρ′ j)) e ; (k′ , eₖ′ , ek′) = map-just (target (route ρ′ j′)) e′
+      in cong inj₂ (injective ρ′ eₖ (trans eₖ′ (cong just (inj₂-injective (trans ek′ (sym ek))))))
+    τ-injective {inj₁ i} {inj₂ j′} e e′ =
+      let (k , _ , ek) = map-just (target (route ρ i)) e ; (k′ , _ , ek′) = map-just (target (route ρ′ j′)) e′
+      in case trans ek (sym ek′) of λ ()
+    τ-injective {inj₂ j} {inj₁ i′} e e′ =
+      let (k , _ , ek) = map-just (target (route ρ′ j)) e ; (k′ , _ , ek′) = map-just (target (route ρ i′)) e′
+      in case trans ek (sym ek′) of λ ()
+
+  infixr 6 _++ʳ_
+  _++ʳ_ : S⃗ ++ S⃗′ ⇝ T⃗ ++ T⃗′
+  _++ʳ_ = record
+    { route     = λ c → Maybe.map (map₂ (_∘ qu (split S⃗ S⃗′))) (route-++ (ch (split S⃗ S⃗′) c))
+    ; injective = λ {c} {c′} e e′ →
+        let (y , eτ , ey)    = map-just (τ (ch (split S⃗ S⃗′) c)) (from e)
+            (y′ , eτ′ , ey′) = map-just (τ (ch (split S⃗ S⃗′) c′)) (from e′)
+            y≡y′ = trans (sym (split-join T⃗ T⃗′ y))
+                         (trans (cong (ch (split T⃗ T⃗′)) (trans ey (sym ey′))) (split-join T⃗ T⃗′ y′))
+        in trans (sym (join-split S⃗ S⃗′ c))
+                 (trans (cong (ch (join S⃗ S⃗′)) (τ-injective eτ (trans eτ′ (cong just (sym y≡y′)))))
+                        (join-split S⃗ S⃗′ c′)) }
 
 ------------------------------------------------------------------------
 -- The SSP wires
@@ -270,3 +275,26 @@ relabelᴵ {S⃗} {T⃗} ρ = record
   ; homomorphism = λ {f = f} {g = g} → ≲⇒≈ᵖ (⌈⌉ʳ-∘ f g)
   ; F-resp-≈     = λ e → ≲⇒≈ᵖ (⌈⌉ʳ-resp e)
   }
+
+-- `⌈−⌉ʳ` is monoidal: juxtaposed relabellings are wired side by side, between
+-- the regroupings of `Choice`.
+module _ {S⃗ T⃗ S⃗′ T⃗′ : List Set} (ρ : S⃗ ⇝ T⃗) (ρ′ : S⃗′ ⇝ T⃗′) where
+
+  ⌈⌉ʳ-++ : ⌈ ρ ++ʳ ρ′ ⌉ʳ ≈ᵖ ⌜ split S⃗ S⃗′ ⌝ ∘ᵖ ⌈ ρ ⌉ʳ ⊗ᵖ ⌈ ρ′ ⌉ʳ ∘ᵖ ⌜ join T⃗ T⃗′ ⌝
+  ⌈⌉ʳ-++ = ≲⇒≈ᵖ (≲ᵖ-const λ _ c p →
+    go c p (ch (split S⃗ S⃗′) c) (qu (split S⃗ S⃗′) {c}) (re (split S⃗ S⃗′) {c}))
+    where
+    -- `split`'s routing of `c`, abstracted together with its pick and reply maps.
+    go : (c : Ch Cᴵ⟦ S⃗ ++ S⃗′ ⟧) (p : Q Cᴵ⟦ S⃗ ++ S⃗′ ⟧ c) (x : Ch (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧))
+         (g : Q Cᴵ⟦ S⃗ ++ S⃗′ ⟧ c → Q (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧) x)
+         (h : R (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧) x → R Cᴵ⟦ S⃗ ++ S⃗′ ⟧ c)
+       → mapᶜ (map₁ (const ((tt , tt , tt) , tt)))
+              (forward (tt⟦ S⃗ ++ S⃗′ ⟧ c) (Maybe.map (map₂ (_∘ g)) (route-++ ρ ρ′ x)) p)
+         ≈ᶜ graft (⌜ split S⃗ S⃗′ ⌝ ∘ᵖ ⌈ ρ ⌉ʳ ⊗ᵖ ⌈ ρ′ ⌉ʳ) ⌜ join T⃗ T⃗′ ⌝
+              (graft ⌜ split S⃗ S⃗′ ⌝ (⌈ ρ ⌉ʳ ⊗ᵖ ⌈ ρ′ ⌉ʳ) (call x (g p) λ r → ret (tt , h r)) (tt , tt)) tt
+    go c p (inj₁ i) g h with route ρ i
+    ... | nothing = ret (cong (_ ,_) (sym (tt⟦⟧-unique (S⃗ ++ S⃗′) _)))
+    ... | just _  = call λ _ → ret (cong (_ ,_) (sym (tt⟦⟧-unique (S⃗ ++ S⃗′) _)))
+    go c p (inj₂ j) g h with route ρ′ j
+    ... | nothing = ret (cong (_ ,_) (sym (tt⟦⟧-unique (S⃗ ++ S⃗′) _)))
+    ... | just _  = call λ _ → ret (cong (_ ,_) (sym (tt⟦⟧-unique (S⃗ ++ S⃗′) _)))
