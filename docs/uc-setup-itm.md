@@ -484,7 +484,10 @@ single-module wall clock at `+RTS -M3G -H1G`, of which about 9 s is startup and 
    `-M6G` and is checked alone first (its header), 30.6 s at a 5.4 GiB peak against 27.6 s and
    5.4 GiB at `7d722e1f`, where a root check re-elaborating it exhausts `-M6G` the same way; the
    eight modules above it, `Examples.ChimericLedger.Transfer` and the root take 15–24 s under
-   2.8 GiB, within 2 s and 0.2 GiB of `7d722e1f`.
+   2.8 GiB, within 2 s and 0.2 GiB of `7d722e1f`. The whole merge cone (every importer of `Seal`,
+   `FreeMonoidal` or `UC.Machine.Run`, and every new module) rebuilds green at `-M6G -H1G` in
+   997 s: `UC.Model.Family` with its stale imports 272 s, the root 245 s, the 34 cone modules
+   outside the root 480 s.
 8. *(optional; the one hard proof)* `ITM/Flatten.agda`: `flatten : HomTerm A B → Gen A B` with
    `⟦ var (flatten t) ⟧₁ G.≈ ⟦ t ⟧₁`. The `∘` case follows `Protocol/Machine/Compose.agda`
    (reachable-configuration machine, two simulations, `Col.collapseᵀ`), plus `iterₚ-codiagonal`
