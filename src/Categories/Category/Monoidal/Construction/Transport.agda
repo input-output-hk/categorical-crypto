@@ -3,10 +3,12 @@
 -- Transport of structure along a re-indexing U : I → Obj 𝕄 with isos
 -- φ : U a ⊗₀ U b ≅ U (a ⊕ b) and υ : unit ≅ U 𝟙.  Every structure map is 𝕄's own
 -- conjugated by φ and υ, so each law is 𝕄's once the φ/υ round trips cancel.  Over a
--- class R of maps closed under identities, ∘ and these conjugates, the subcategory of 𝕄
--- indexed by I with homs in R is monoidal, and its inclusion is strong monoidal with
--- ⊗-homo φ and ε υ.  The conjugates are literal right-nested composites, not built with
--- 𝕄's iso combinators, because clients identify them term by term.
+-- class R of maps closed under identities, ∘ and these conjugates (`Closed R`), the
+-- subcategory of 𝕄 indexed by I with homs in R is monoidal, and its inclusion is strong
+-- monoidal with ⊗-homo φ and ε υ.  For R ⊆ R′ both closed, the transport at R includes
+-- into the one at R′ (`weaken`), the identity on objects with identity comparisons.
+-- The conjugates are literal right-nested composites, not built with 𝕄's iso
+-- combinators, because clients identify them term by term.
 
 open import Categories.Category.Monoidal.Bundle
 open import Categories.Morphism.Notation
@@ -180,14 +182,19 @@ pentagonᵗ = begin
     ≈˘⟨ pullʳ (pullʳ (pullʳ (cancelInner φ.isoˡ))) ⟩
   αᵗ⇒ ∘ αᵗ⇒ ∎
 
-module Restriction {r} (R : ∀ {a b} → U a ⇒ U b → Set r)
-         (R-id : ∀ {a} → R (id {U a}))
-         (R-∘ : ∀ {a b c} {f : U b ⇒ U c} {g : U a ⇒ U b} → R f → R g → R (f ∘ g))
-         (R-⊗ : ∀ {a b c d} {f : U a ⇒ U b} {g : U c ⇒ U d} → R f → R g → R (f ⊗ᵗ g))
-         (R-λ⇒ : ∀ {a} → R (λᵗ⇒ {a})) (R-λ⇐ : ∀ {a} → R (λᵗ⇐ {a}))
-         (R-ρ⇒ : ∀ {a} → R (ρᵗ⇒ {a})) (R-ρ⇐ : ∀ {a} → R (ρᵗ⇐ {a}))
-         (R-α⇒ : ∀ {a b c} → R (αᵗ⇒ {a} {b} {c})) (R-α⇐ : ∀ {a b c} → R (αᵗ⇐ {a} {b} {c}))
-         where
+record Closed {r} (R : ∀ {a b} → U a ⇒ U b → Set r) : Set (i ⊔ ℓ ⊔ r) where
+  field R-id : ∀ {a} → R (id {U a})
+        R-∘  : ∀ {a b c} {f : U b ⇒ U c} {g : U a ⇒ U b} → R f → R g → R (f ∘ g)
+        R-⊗  : ∀ {a b c d} {f : U a ⇒ U b} {g : U c ⇒ U d} → R f → R g → R (f ⊗ᵗ g)
+        R-λ⇒ : ∀ {a} → R (λᵗ⇒ {a})
+        R-λ⇐ : ∀ {a} → R (λᵗ⇐ {a})
+        R-ρ⇒ : ∀ {a} → R (ρᵗ⇒ {a})
+        R-ρ⇐ : ∀ {a} → R (ρᵗ⇐ {a})
+        R-α⇒ : ∀ {a b c} → R (αᵗ⇒ {a} {b} {c})
+        R-α⇐ : ∀ {a b c} → R (αᵗ⇐ {a} {b} {c})
+
+module Restriction {r} (R : ∀ {a b} → U a ⇒ U b → Set r) (c : Closed R) where
+  open Closed c
 
   subCat : SubCat I
   subCat = record { U = U ; R = R ; Rid = R-id ; _∘R_ = R-∘ }
@@ -218,3 +225,22 @@ module Restriction {r} (R : ∀ {a b} → U a ⇒ U b → Set r)
       ; ⊗-homo = niHelper record
         { η = λ _ → φ.from ; η⁻¹ = λ _ → φ.to ; commute = λ _ → φ-commute ; iso = λ _ → φ.iso }
       ; associativity = associativityᵗ ; unitaryˡ = unitaryˡᵗ ; unitaryʳ = unitaryʳᵗ } }
+
+weaken : ∀ {r r′} {R : ∀ {a b} → U a ⇒ U b → Set r} {R′ : ∀ {a b} → U a ⇒ U b → Set r′}
+         (c : Closed R) (c′ : Closed R′) → (∀ {a b} {f : U a ⇒ U b} → R f → R′ f)
+       → StrongMonoidalFunctor (Restriction.transport R c) (Restriction.transport R′ c′)
+weaken {R′ = R′} c c′ R⊆R′ = record
+  { F = record
+    { F₀ = λ a → a ; F₁ = map₂ R⊆R′ ; identity = Equiv.refl ; homomorphism = Equiv.refl
+    ; F-resp-≈ = λ e → e }
+  ; isStrongMonoidal = record
+    { ε = record { from = id′ ; to = id′ ; iso = record { isoˡ = identity² ; isoʳ = identity² } }
+    ; ⊗-homo = niHelper record
+      { η = λ _ → id′ ; η⁻¹ = λ _ → id′ ; commute = λ _ → id-comm-sym
+      ; iso = λ _ → record { isoˡ = identity² ; isoʳ = identity² } }
+    ; associativity = refl⟩∘⟨ identityˡ ○ elimʳ ⊗ᵗ-identity ○ ⟺ (identityˡ ○ elimˡ ⊗ᵗ-identity)
+    ; unitaryˡ = refl⟩∘⟨ identityˡ ○ elimʳ ⊗ᵗ-identity
+    ; unitaryʳ = refl⟩∘⟨ identityˡ ○ elimʳ ⊗ᵗ-identity } }
+  where
+    id′ : Σ (U a ⇒ U a) R′
+    id′ = id , Closed.R-id c′

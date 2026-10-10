@@ -302,9 +302,10 @@ opaque
 
 private
   module 𝕋 = Transport 𝔾ᵒ Uᵂ _⊗ᴵ_ unitᴵ (λ {a} {b} → φ {a} {b}) υ
-  module 𝕎 = 𝕋.Restriction (λ {a} {b} → Wᵒ {a} {b}) (λ {a} → Wᵒ-id {a}) Wᵒ-∘ Wᵒ-⊗
-    (λ {a} → Wᵒ-λ⇒ {a}) (λ {a} → Wᵒ-λ⇐ {a}) (λ {a} → Wᵒ-ρ⇒ {a}) (λ {a} → Wᵒ-ρ⇐ {a})
-    (λ {a} {b} {c} → Wᵒ-α⇒ {a} {b} {c}) (λ {a} {b} {c} → Wᵒ-α⇐ {a} {b} {c})
+  module 𝕎 = 𝕋.Restriction (λ {a} {b} → Wᵒ {a} {b}) record
+    { R-id = λ {a} → Wᵒ-id {a} ; R-∘ = Wᵒ-∘ ; R-⊗ = Wᵒ-⊗
+    ; R-λ⇒ = λ {a} → Wᵒ-λ⇒ {a} ; R-λ⇐ = λ {a} → Wᵒ-λ⇐ {a} ; R-ρ⇒ = λ {a} → Wᵒ-ρ⇒ {a} ; R-ρ⇐ = λ {a} → Wᵒ-ρ⇐ {a}
+    ; R-α⇒ = λ {a} {b} {c} → Wᵒ-α⇒ {a} {b} {c} ; R-α⇐ = λ {a} {b} {c} → Wᵒ-α⇐ {a} {b} {c} }
 
 𝒲ᴹ : MonoidalCategory (suc 0ℓ) (suc 0ℓ) (suc 0ℓ)
 𝒲ᴹ = 𝕎.transport
