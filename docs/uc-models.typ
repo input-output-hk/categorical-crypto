@@ -426,6 +426,11 @@ tensor, morphisms with their hom-equality — and the test presheaf. #design row
     [#Iso's tests of the relational interpretation],
     [ITMs, possibilistically],
     [#formal #cc("ITM/Relational.agda", 125, "StdUC 𝕋ᴹ ℰᴵˢᵒ"), #cc("ITM/Relational.agda", 122, "ℰᴵˢᵒ")],
+    [#Sym, #Symiso \ Dolev–Yao], [trees of atoms: term ports, the verdict, the void; concatenation of trees],
+    [free monoidal category on Dolev–Yao roles with unit-free boundaries; free monoidal congruence],
+    [Dolev–Yao role circuits with an ancilla; #Sym: possible verdicts under globally fresh naming (DY trace equivalence); #Symiso: syntactic equality],
+    [symbolic security @dolevyao1983 @canettiherzog2006],
+    [#formal #cc("Symbolic/Setup.agda", 105, "StdUC 𝔻𝕐 ℰˢʸᵐ"), #cc("Symbolic/Fine.agda", 74, "StdUC 𝔻𝕐 ℰ≅"), #cc("Symbolic/Fine.agda", 41, "𝔻𝕐"), #cc("Symbolic/Setup.agda", 102, "ℰˢʸᵐ"), #cc("Symbolic/Fine.agda", 71, "ℰ≅")],
     [#Iso \ relational machines], [channels $(sans("in"), sans("out"))$ of sets; $+$, grade on the right],
     [relations $S × sans("In") × (sans("Out") + 1) × S$ without initial state; composition by ping-pong; $isoM$: step-preserving bijection of state sets],
     [pairs $(Y, E : A ⊗ Y → Ω)$ of an ancilla and an environment, up to $isoM$],
@@ -466,11 +471,6 @@ tensor, morphisms with their hom-equality — and the test presheaf. #design row
     [distinguishers (Portmann Def. 7.1)],
     [causal boxes @portmann2017],
     [#design #plan("uc-setup-causal-boxes.md")],
-    [#Sym, #Symiso \ Dolev–Yao], [port trees of term sorts],
-    [free monoidal category on Dolev–Yao roles; free monoidal congruence],
-    [Dolev–Yao roles with an ancilla; #Sym: possible verdicts under globally fresh naming (DY trace equivalence); #Symiso: syntactic equality],
-    [symbolic security @dolevyao1983 @canettiherzog2006],
-    [#design #plan("uc-setup-symbolic.md")],
     [#NDA, #NDB \ nondeterministic choice], [#PM's (or #SSP's) objects; grades $X ⊗ C_(S_1) ⊗ dots.c ⊗ C_(S_n)$ with choice factors $C_S = (1, S)$],
     [#PM's morphisms; grade morphisms: all of them between such grades (#NDB), or $u ⊗ ρ$ with $ρ$ a relabelling of choice factors (#NDA)],
     [the ambient tests],
@@ -844,6 +844,31 @@ For parallel $f, g$ in $𝕋$: $f eqE g$ in #ITM iff $F^p f eqE F^p g$ in #PM.
 identities, and reactive PPT is not closed under composition (@hofheinz2013, §1.5). "Feasible" must
 therefore be a side condition over a security-parameter tier, not a sub-setup.
 
+== #Sym and #Symiso: the Dolev–Yao model <sec:sym>
+
+#definition(name: [#Sym, #Symiso])[
+$𝔻 𝕐$ is the free monoidal category on _Dolev–Yao roles_ — finite reactive programs whose outputs are
+recipes over their own frame (the roles of @canettiherzog2006), between unit-free trees of term
+ports — with the free monoidal congruence as hom-equality. A test on $A$ is a pair $(Y, T : Y ⊗ A →
+Ω)$ of an ancilla and a role circuit, as in #Iso but with the ancilla on the grade side. In #Symiso two
+tests are equal when their circuits are. In #Sym they are equal when every closure allows the same
+verdicts, each possible verdict being the answer of the closed run in #PM at term alphabets under
+some globally fresh naming: every generator occurrence draws its names from a supply of its own,
+and the supplies are injective.
+#srcs(cc("Symbolic/Role.agda", 203, "Role"), cc("Symbolic/Fine.agda", 41, "𝔻𝕐"), cc("Symbolic/Fine.agda", 71, "ℰ≅"), cc("Symbolic/Fine.agda", 74, "StdUC 𝔻𝕐 ℰ≅"), cc("Symbolic/Semantics.agda", 92, "runᴿ"), cc("Symbolic/Semantics.agda", 114, "eval"), cc("Symbolic/Semantics.agda", 123, "eval-cong"), cc("Symbolic/Setup.agda", 102, "ℰˢʸᵐ"), cc("Symbolic/Setup.agda", 105, "StdUC 𝔻𝕐 ℰˢʸᵐ"))
+] <def:sym>
+
+#theorem(name: [the kernel of #Sym])[
+(1) #Sym is grade-stable without hypotheses, so $f eqU g$ iff $f eqE g$. (2) Roles emit and store
+canonical forms of a convergent theory $E$, so two programs of one shape whose recipes agree modulo
+$E$ on every frame are $eqE$-equal generators.
+#srcs(cc("Symbolic/Setup.agda", 123, "grade-stable"), cc("Symbolic/Setup.agda", 129, "≈ᵁ⇔≈ℰ"), cc("Symbolic/Role.agda", 383, "exec-≈E"), cc("Symbolic/Setup.agda", 146, "emit-≈E"))
+] <thm:sym-kernel>
+
+The kernel of #Sym is Dolev–Yao trace (may-testing) equivalence (@dolevyao1983). On frame emitters
+it should be static equivalence #design: one direction is a distinguishing test, the other needs
+simulations along a message relation, which the machine layer lacks. #plan("uc-setup-symbolic.md")
+
 == #Iso: relational machines up to isomorphism <sec:iso>
 
 #definition(name: [#Iso])[
@@ -1061,16 +1086,6 @@ adaptive environments and the tests are Portmann's distinguishers (Def. 7.1). Th
 theorem of a traced symmetric monoidal category (its identity is not causal, §7); the two-phase
 discipline supplies one. #plan("uc-setup-causal-boxes.md")
 
-== #Sym and #Symiso: the Dolev–Yao model
-
-$𝔻 𝕐$ is the free monoidal category on _Dolev–Yao roles_ — finite reactive programs whose outputs are
-recipes over their own frame (the roles of @canettiherzog2006) — with the free monoidal congruence as
-hom-equality. Tests are roles with an ancilla, as in #Iso. In #Sym two tests are equal when the same
-verdicts are possible under some globally fresh naming, run in #PM at term alphabets; its kernel is
-Dolev–Yao trace (may-testing) equivalence (@dolevyao1983), and #Sym is grade-stable without
-hypotheses. #Symiso is the syntactic twin with the same $𝔻 𝕐$ and tests up to syntactic equality; all
-morphisms leave from it (@sec:designed-morphisms). #plan("uc-setup-symbolic.md")
-
 == #NDA and #NDB: nondeterministic choice <sec:nd>
 
 The scheduler of a nondeterministic protocol is placed in the _grade_, as a negative factor.
@@ -1157,7 +1172,7 @@ kernel relation on one computational structure (@thm:refine), not drawn.
     node((1.3, 4), $Rel$, name: <rel>),
     node((2.6, 4), $IPDL$, name: <ipdl>),
     node((3.9, 4), $CB$, name: <cb>),
-    edge(<symiso>, <sym>, "-->", label: $mcoarse$, label-side: right),
+    edge(<symiso>, <sym>, "->", label: $mcoarse$, label-side: right),
     edge(<symiso>, <iso>, "-->", label: $msym$),
     edge(<symiso>, <pmn>, "-->", label: $mcs$),
     edge(<itmiso>, <iso>, "->", label: $mitmiso$, label-side: right),
@@ -1247,11 +1262,18 @@ densities serve their quantifier by approximation, not by representation.
 The quotient morphism of @prop:quotient(1) at $simW$, with the descended test map.
 #srcs(cc("UC/Bracket/Setup.agda", 155, "q"))
 
+=== $mcoarse : Symiso → Sym$
+
+The change of kernel $mck$ from syntactic equality of test circuits to equality of their possible
+verdicts: identity on tests, Epi, so it carries every #Symiso emulation to #Sym by
+@thm:transport(2) with @thm:sym-kernel(1).
+#srcs(cc("Symbolic/Setup.agda", 154, "coarse"), cc("Symbolic/Setup.agda", 159, "coarse-epi"), cc("Symbolic/Setup.agda", 162, "fine→sym"))
+
 === The generic morphisms, instantiated
 
-Change of kernel $mck$ and the wide-subcategory inclusion $mincl$ (@sec:setup-morphisms) have one
-concrete use each: the refinements between each tier and its quantitative family
-(@thm:tiers(3), through @thm:refine) and #NDA $→$ #NDB (@prop:nd-incl, designed).
+Besides $mcoarse$, change of kernel $mck$ and the wide-subcategory inclusion $mincl$
+(@sec:setup-morphisms) have one concrete use each: the refinements between each tier and its
+quantitative family (@thm:tiers(3), through @thm:refine) and #NDA $→$ #NDB (@prop:nd-incl, designed).
 
 == Designed morphisms <sec:designed-morphisms>
 
@@ -1262,9 +1284,8 @@ Then $F$ runs a machine in $Dp$ from its initial state, and $ν(Y, E) = F E ∘ 
 closes the ancilla with the divergent process. Without the changes only the stateless deterministic
 fragment maps.
 
-*$msym : Symiso → Iso$, $mcoarse : Symiso → Sym$, $mcs : Symiso → PMN$.* #design $msym$ is the free
-strong monoidal functor on roles into (reversed) relational machines. $mcoarse$ is a change of kernel
-from syntactic equality to Dolev–Yao trace equivalence. $mcs$ is a standard morphism into the
+*$msym : Symiso → Iso$, $mcs : Symiso → PMN$.* #design $msym$ is the free strong monoidal functor on
+roles into (reversed) relational machines. $mcs$ is a standard morphism into the
 negligible tier, unconditional; _computational soundness_ is then a separate theorem over it, under
 the usual side conditions (IND-CPA with INT-CTXT, or IND-CCA2 with EUF-CMA; typing and tagging) — the
 test map being Mono gives completeness, not soundness. Nothing leaves #Sym itself.
