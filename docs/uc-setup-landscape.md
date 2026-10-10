@@ -25,11 +25,12 @@ escape-hatch baseline unchanged):
 
 | setup | what exists | key exports |
 |---|---|---|
-| random systems `𝔾ᴿ` | `Categories/…/Construction/Quotient` (generic), `UC/Machine/Behaviour*` (`_≈ᴿ_`, congruence for G-composition and tensor), `UC/RandomSystems/{Seal,Setup,Morphism,FullAbstraction}` | `rewrite⇒RS : UCSetupMorphism`, `≈ᴿ⇒≈ᵁ`, **`≈ᵁ⇒≈ᴿ`**, **`¬gradeStableᵒ`**, `≈ᴮ⇒≈ᴿ-fin` |
+| random systems `𝔾ᴿ` | `Categories/…/Construction/Quotient` (generic), `UC/Machine/Behaviour*` (`_≈ᴿ_`, congruence for G-composition and tensor), `UC/RandomSystems/{Seal,Setup,Morphism,FullAbstraction,Advantage,Composition,Construction,Quantitative}` | `rewrite⇒RS : UCSetupMorphism`, `≈ᴿ⇒≈ᵁ`, **`≈ᵁ⇒≈ᴿ`**, **`¬gradeStableᵒ`**, `≈ᴮ⇒≈ᴿ-fin`, `Δ`, `absorbs-Δ`, `hybrid`, `≤UC⇔Constructs₀`, `≤UCᴿ[]⇔Constructs` |
 | ITM `𝕋ᴹ` | `ITM/{Core,Run,Functor,Setup,Relational}`, `FreeMonoidal.freeStrongMonoidal`, `Seal.unitᵒ` | `itm⇒prot` (`ν` Epi+Mono), `≈ℰ⇔`, `itm⇒iso` |
 | SSP (call/return) | `SSP/{Iface,Protocol,Protocol/Category,Protocol/Monoidal,Observation,Setup,Reduction,Compile}`, `Standard2/UKernel`, `Protocol/{Sim,Machine/Resp}`, `UC/Bracket{,/Category}` | `StdSetup`, `Protᴹ`/`Protˢ`, `toProtocol`, `morphism-resp`, `W`, `morphism-W`, `𝒲`, `ι` |
 
-**Major findings** (all proven unless marked):
+**Major findings** (proven unless marked; finding 3's non-existence claim is argued in
+`Protocol/Machine.agda:14-19`'s header, not a theorem):
 
 1. **`≈ᵁ` at protocol-model IS behavioural equivalence of random systems**
    (`≈ᵁ⇒≈ᴿ` + `≈ᴿ⇒≈ᵁ`).  This fixes the meaning of the library's security notion.
@@ -48,8 +49,15 @@ escape-hatch baseline unchanged):
 4. **IPDL and causal boxes are islands** for `UCSetupMorphism` (design-level proofs in
    their plans); **symbolic** reaches only the negligible tier; the first-draft edges
    `SSP → 𝔾ᵒ`, `IPDL → RS`, `RS → causal boxes` are withdrawn.
-5. **Nondeterminism**: `SSP → ND` with constant tests is not a presheaf morphism (a
-   demonic closure sees a toss); only a one-way `≤UC` reflection exists.  [plan only]
+5. **Nondeterminism** [design]: the scheduler is a choice factor of the *grade*, not an
+   effect.  Model B (adversary-resolved, Canetti) is `Std(𝕄)` with the `choose`
+   constructor compiled to a request on that factor; model A (environment-resolved,
+   "order does not matter") is the grade-side restriction of B to relabellings — a
+   generic construction, *restriction of a standard setup along a wide monoidal
+   subcategory of grades* (`Graded/Pullback`), the dual of `WideSubcategory`.
+   A-emulation ⇒ B-emulation for all `f, g` by dummy completeness; not conversely.
+   This supersedes the image-equality design in `docs/uc-setup-nondeterministic.md`;
+   see `docs/uc-models.typ` §4.
 6. **Robust compilation** holds: `≤UC⇔robustᵁ` (UC = RHP over `≈ᵁ`-respecting
    predicates on attacked programs; `UC/Robust/Compilation.agda`), its trace form, and
    the two-setup version along a `UCSetupMorphism` (`robustᵁ-transfer` needs `ν.Epi` +
@@ -85,8 +93,8 @@ escape-hatch baseline unchanged):
 - **Interaction discipline**: standalone SSP setup (built) vs the `W`-restricted
   `𝒲 ⊆ 𝔾ᵒ` (built) — both halves exist; the bridge between them is the missing piece.
   Which one do examples get written in?
-- **Nondeterminism**: global perfect-information schedulers vs site-local demons
-  (`docs/uc-setup-nondeterministic.md` §5.1) — blocks its first module.
+- **Nondeterminism**: the design is settled (finding 5); the pending item is to rewrite
+  `docs/uc-setup-nondeterministic.md` around the generic grade restriction and build it.
 - **Hom-equality for RS**: adaptive `≈ᴿ` (built) was chosen over Maurer's
   non-adaptive `≈ᴮ` because congruence under feedback needs decidable message
   equality; `≈ᴮ⇒≈ᴿ-fin` covers finite alphabets.  Accept, or require `≈ᴮ` generally?
@@ -122,8 +130,9 @@ tensor), so the morphism shape is `Standard2/Morphism.agda:StdUCMorphism`: a
 
 The existing constructors are `changeKernel` (same 𝒞/ℐ/ℳ, new tests), `idᵁ`,
 `composeᵁ`, the epi/mono `Factorization`, `Abstract2/WideSubcategory` (restrict to a
-wide subcategory of admissible morphisms, pull tests back) and `StdUCMorphism`.  No
-concrete cross-model instance exists in the tree.
+wide subcategory of admissible morphisms, pull tests back) and `StdUCMorphism`.  Concrete
+cross-model instances now in the tree: `rewrite⇒RS`, `itm⇒prot`, `itm⇒iso`, `ι⇒prot`
+(§0 table; the complete list with their data is `docs/uc-models.typ` §5).
 
 ## 2. The two concrete setups in the tree
 
@@ -230,8 +239,9 @@ deterministic leaves, up to a mirror iso of wires.
   abstraction = `Mono`" was wrong (`Mono` compares tests and is trivial for `ν = id`);
   and `ℰᵒ` is **not `GradeStable`** — two reveal machines are `≈ℰ`-equal but separated
   by `T₁ (Bool ⇿ ⊥)` (§5.3 there) — so `bridge` is unusable at `ℰᵒ` and `≈ᴿ⇒≈ᵁ` is the
-  route to `≈ᵁ`.  `𝔾ᴿ` has no `QEvaluation` (slack 0 is unavailable), hence no family
-  or negligible tier on RS.
+  route to `≈ᵁ`.  `𝔾ᴿ` now has a `QEvaluation` with the closed readout
+  (`UC/RandomSystems/Quantitative.agda`); a family/negligible tier over RS still needs
+  a resource grading on `𝔾ᴿ`.
 - **SSP / the call-return discipline** (plan: [uc-setup-ssp.md](uc-setup-ssp.md)).  A
   standalone setup `StdUC Protᴹ ℰᵖ` in namespace `CategoricalCrypto.SSP` with
   **channel-indexed** interfaces (`Iface = Ch/Q/R`; the flat `Pos ⇿ Neg` is the
@@ -294,26 +304,19 @@ possibilistic, so only the deterministic fragment maps into RS (`det-≈ᴮ⇒�
   soundness is a `StdUCMorphism` `Sym≅ → UC.Model.Family.ucSetupᴺ` (the negligible
   tier over `𝔾ᵒ`) plus a side-conditioned pointwise theorem `sound⁺` over it
   (hypothesis table: IND-CPA+INT-CTXT or IND-CCA2/EUF-CMA, sorts, tags, …); `ν Mono`
-  gives completeness, not soundness.  Needs a new `transfer⁺` in `Abstract2/Morphism`
-  since `ℰᵒ` is not `GradeStable`.
-- **Nondeterministic choice** (plan: [uc-setup-nondeterministic.md](uc-setup-nondeterministic.md)).
-  The SSP setup plus `choose : (Fin (suc n) → Calls A X) → Calls A X`, schedulers
-  resolved only at observation of a closed system, outcome space `Sched → Dist⊥ Bool`
-  under image equality (Segala-style ∀-scheduler semantics; a probability×nondeterminism
-  monad exists only as the convex powerset, `bonchi2022`, rejected there; no
-  distributive law, `varacca2006`, `zwart2019nogo`).  `Sched` must be history-dependent
-  and see coin tosses, else `choose`-commutativity under a coin fails.  The `choose` laws
-  (`choose-set`, `-unit`, `-join`, `coin-comm`, `coin-dead`) are best made constructors
-  of the call-tree equality with one soundness proof against `run⁺`, so "order does not
-  matter" is a hom-equality reaching `≈ᵁ` by `≈C⇒≈ᵁ` without `GradeStable`.
-  **Corrections:** `SSP → ND` with constant-in-σ tests is **not** a presheaf morphism —
-  a demonic closure sees an SSP test's toss (task-PIOA's leak); what exists is a trivial
-  pullback morphism and a one-way reflection (`ND f ≤UC g ⇒ SSP f ≤UC g` for
-  `choose`-free `f, g`).  The Kleisli-valued generalisation (2b) has no instance
-  (`GradedKleisli` carries no monoidal structure); the recommended relation to SSP is a
-  threaded routing functor with a pointwise transfer theorem.  `P ∥ Q` is not derivable
-  from `choose` and `_⊗ᵖ_` (caller-scheduled interleaving is `(P ⊗ᵖ Q) ∘ ∇`).  Open
-  decision before the first module: global vs site-local scheduler information.
+  gives completeness, not soundness.  Needs the pointwise transfer in
+  `Abstract2/Morphism` (`Preserves-≈ᵁ`/`transfer⁺`, landing with the SSP bridge) since
+  `ℰᵒ` is not `GradeStable`.
+- **Nondeterministic choice** (plan: [uc-setup-nondeterministic.md](uc-setup-nondeterministic.md),
+  **superseded** in its observation model; current design in `docs/uc-models.typ` §4
+  and finding 5).  Kept from the plan: the `choose : (Fin (suc n) → Calls A X) → Calls
+  A X` constructor on the SSP side and the structural extension of `graft`/`serve`;
+  the no-go for a probability×nondeterminism monad (`varacca2006`, `zwart2019nogo`;
+  convex powerset `bonchi2022` rejected); `P ∥ Q` is not derivable from `choose` and
+  `_⊗ᵖ_`.  Dropped: the `Sched → Dist⊥ Bool` outcome space and image equality, the
+  Kleisli-valued morphism, and the global-vs-site-local decision — all replaced by
+  "`choose` compiles to a request on a choice factor of the grade", with model A
+  (relabelling schedulers) as the grade-side restriction of model B (= `Std(𝕄)`).
 - **Robust compilation** (plan: [uc-robust-compilation.md](uc-robust-compilation.md)).  Not a
   setup: a theorem about the order.  `f ≤UC g ⇔ ∀ H : Predᵁ. Robustᵁ H g → Robustᵁ H f`
   over `≈ᵁ`-respecting predicates on *attacked* programs (UC = RHP; the converse by a
@@ -343,9 +346,9 @@ TM functions (×) ──▶ Rel    Sym≅ ──▶ machine-iso ◀── ITM(de
                              │   𝒲[ι*ℰᵒ] ──▶ protocol-rewrite 𝔾ᵒ ◀── ITM 𝕋ᴹ
                              │    ▲                   │
                              │  SSP ──▶ PM[wb] ◀── 𝒲[ℰᵂ]           ▼
-                             │   ┆ (≤UC reflection only)    random systems 𝔾ᴿ ◀⇢ machine-category (det.)
+                             │   │                           random systems 𝔾ᴿ ◀⇢ machine-category (det.)
                              ▼   ▼
-              ucSetupᴺ (negligible tier over 𝔾ᵒ)    ND (nondeterministic)
+              ucSetupᴺ (negligible tier over 𝔾ᵒ)    ND_A ──▶ ND_B = Std(𝕄)  (design)
 
 islands: IPDL;  causal boxes (RSIM / task-PIOA inside)
 ```
@@ -372,7 +375,8 @@ each linked to its Agda identifier: [uc-models.typ](uc-models.typ).
 
 Shared infrastructure the plans agree on: `Categories.Category.Monoidal.Construction.Quotient`
 (RS, SSP), `freeStrongMonoidal` in `Categories/FreeMonoidal.agda` (ITM, symbolic),
-`transfer⁺` in `Abstract2/Morphism.agda` (symbolic, RS), and the `GradeStable`
+`Preserves-≈ᵁ`/`transfer⁺` in `Abstract2/Morphism.agda` (symbolic, SSP bridge), the
+generic grade-side restriction (nondeterminism, causal boxes' `regrade`), and the `GradeStable`
 counterexample for `ℰᵒ` (RS §5.3), which every plan relying on `bridge` must route around.
 
 ## 8. Recommended order of construction
