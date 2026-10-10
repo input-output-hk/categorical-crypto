@@ -35,6 +35,7 @@ open import CategoricalCrypto.Abstract2
 import CategoricalCrypto.Abstract2.Regrade as Regrade
 open import CategoricalCrypto.ND.Grade 𝕄 C
 open import CategoricalCrypto.ND.Relabel
+open import CategoricalCrypto.Standard2
 open import CategoricalCrypto.UCSetup
 
 open SymmetricMonoidalCategory 𝕄
@@ -182,3 +183,13 @@ module _ (rel : Relabelling) where
         → NA.R._≤UC_ {X = a} {Y = b} f g → AbstractUC._≤UC_ (NDB ℰ) {X = a} {Y = b} f g
     A⇒B {a = a} {b} = NA.Preserves.unrestrict-≤UC (id , tt) identity² (λ c → c , Mor.≅.refl (MonoidalCategory.U 𝒢B))
                                                    {X = a} {Y = b}
+
+    -- A simulator u ⊗ ⌈ ρ ⌉, up to Std(𝕄)'s U-kernel, is an A-emulation.
+    relabel-≤UC : {A B : Obj} {a b : Grade} {f : A ⇒ ⌊ a ⌋ ⊗₀ B} {g : A ⇒ ⌊ b ⌋ ⊗₀ B}
+                → (s : ⌊ b ⌋ ⇒ ⌊ a ⌋) → Relabels {b} {a} s
+                → AbstractUC._≈ᵁ_ (StdUC.StdSetup monoidalCategory ℰ) f (s ⊗₁ id ∘ g)
+                → NA.R._≤UC_ {X = a} {Y = b} f g
+    relabel-≤UC {a = a} {b} s rs e = NA.R.dummy-complete {X = a} {Y = b}
+      ((s , rs) , NA.≈ᵁ⇒≈ᵁ|ι {X = a}
+                    (Regrade.≈ᵁ⇒≈ᵁ|ι (StdUC.StdSetup monoidalCategory ℰ) (StrongMonoidalFunctor.monoidalFunctor ιB)
+                                     {X = a} e))

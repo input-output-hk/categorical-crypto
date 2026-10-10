@@ -30,7 +30,7 @@ open import CategoricalCrypto.SSP.Iface
 open import CategoricalCrypto.SSP.Protocol
 open import CategoricalCrypto.SSP.Protocol.Monoidal
 open import CategoricalCrypto.SSP.Protocol.Wire
-open import CategoricalCrypto.SSP.Setup using (ℰᵖ; _≤UC_)
+open import CategoricalCrypto.SSP.Setup using (ℰᵖ; _≤UC_; _≈ᵁ_)
 open import CategoricalCrypto.UCSetup
 
 private
@@ -201,8 +201,10 @@ NDB = G.NDB ℰᵖ
 NDA : UCSetup (suc 0ℓ) (suc 0ℓ) (suc 0ℓ) (suc 0ℓ) (suc 0ℓ) (suc 0ℓ) _ _
 NDA = 𝔸.NDA relabelling ℰᵖ
 
--- (Generalized variables over these dependent types crash Agda 2.8.0 in
--- `EtaContract`; the telescope is bound explicitly.)
+-- Generalized variables over these dependent types crash Agda 2.8.0 in
+-- `EtaContract`, so the telescope is bound explicitly.  Each statement is
+-- instantiated here, at variables: crossing between `ND.A`'s setups and these
+-- at concrete protocols unfolds both (`ND.SSP.Laws`: 129 s against 10 s).
 module _ {A B : Iface} {a b : Grade} {f : Protocol A (⌊ a ⌋ ⊗ᴵ B)} {g : Protocol A (⌊ b ⌋ ⊗ᴵ B)} where
 
   ≤UC-B⇔≤UC : AbstractUC._≤UC_ NDB {X = a} {Y = b} f g ⇔ f ≤UC g
@@ -213,3 +215,7 @@ module _ {A B : Iface} {a b : Grade} {f : Protocol A (⌊ a ⌋ ⊗ᴵ B)} {g : 
 
   A⇒SSP : AbstractUC._≤UC_ NDA {X = a} {Y = b} f g → f ≤UC g
   A⇒SSP = Equivalence.to ≤UC-B⇔≤UC ∘ A⇒B
+
+  relabel-≤UC : (s : Protocol ⌊ b ⌋ ⌊ a ⌋) → 𝔸.Relabels relabelling {b} {a} s
+              → _≈ᵁ_ {X = ⌊ a ⌋} f (s ⊗ᵖ wireᵖ ∘ᵖ g) → AbstractUC._≤UC_ NDA {X = a} {Y = b} f g
+  relabel-≤UC = 𝔸.relabel-≤UC relabelling ℰᵖ {A = A} {B = B} {a = a} {b = b} {f = f} {g = g}
