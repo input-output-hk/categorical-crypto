@@ -256,6 +256,18 @@ relabelᴵ {S⃗} {T⃗} ρ = record
   ... | nothing = ret refl
   ... | just _  = call λ _ → ret refl
 
+-- A relabelling routing every site along a container map with a left inverse
+-- on sites; its wire is the map's.
+wireʳ : (m : Cᴵ⟦ S⃗ ⟧ ⇒ᴵ Cᴵ⟦ T⃗ ⟧) (back : Ch Cᴵ⟦ T⃗ ⟧ → Ch Cᴵ⟦ S⃗ ⟧) → (∀ i → back (ch m i) ≡ i) → S⃗ ⇝ T⃗
+wireʳ m back inv = record
+  { route     = λ i → just (ch m i , qu m)
+  ; injective = λ {i} {j} e e′ →
+      trans (sym (inv i)) (trans (cong back (just-injective (trans e (sym e′)))) (inv j)) }
+
+⌈⌉ʳ-wire : (m : Cᴵ⟦ S⃗ ⟧ ⇒ᴵ Cᴵ⟦ T⃗ ⟧) (back : Ch Cᴵ⟦ T⃗ ⟧ → Ch Cᴵ⟦ S⃗ ⟧) (inv : ∀ i → back (ch m i) ≡ i)
+         → ⌈ wireʳ {S⃗} {T⃗} m back inv ⌉ʳ ≲ᵖ ⌜ m ⌝
+⌈⌉ʳ-wire {S⃗} m _ _ = ≲ᵖ-const λ _ i p → call λ r → ret (cong (tt ,_) (sym (tt⟦⟧-unique S⃗ (re m r))))
+
 ⌈⌉ʳ-id : ⌈ idʳ {S⃗} ⌉ʳ ≲ᵖ wireᵖ
 ⌈⌉ʳ-id {S⃗} = ≲ᵖ-const λ _ i p → call λ r → ret (cong (tt ,_) (sym (tt⟦⟧-unique S⃗ r)))
 
