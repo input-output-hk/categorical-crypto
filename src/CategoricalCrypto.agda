@@ -79,6 +79,10 @@ import CategoricalCrypto.SSP.Dist.Setup
 import CategoricalCrypto.SSP.Pin
 import CategoricalCrypto.SSP.Reduction
 import CategoricalCrypto.SSP.Setup
+import CategoricalCrypto.ND.Relabel
+import CategoricalCrypto.ND.SSP.Choice.Compose
+import CategoricalCrypto.ND.SSP.Choice.Dist
+import CategoricalCrypto.ND.SSP.Choice.Pin
 open import CategoricalCrypto.UC.Approximate.LocalTests
 open import CategoricalCrypto.UC.Family.Negligible.Quantitative
 open import CategoricalCrypto.UC.Family.Quantitative

@@ -13,13 +13,13 @@
 -- of `_∙_` does.  Site lists are explicit arguments wherever only `Cᴵ⟦_⟧` or
 -- `Queues` mentions them: neither function is injective.
 --
--- `⌈_⌉` is no `StdUCMorphism`: a `StdUCMorphism` acts on homs by a functor,
--- `Prot⁺ (A , B) → Prot (F A , F B)`, while `⌈ P ⌉`'s codomain `Cᴵ⟦ S⃗ ⟧ ⊗ᴵ B`
--- depends on `P`'s sites.  It lands in graded homs `A ⇒ T₀ Cᴵ⟦ S⃗ ⟧ B` instead,
--- and preserves identities and composition only up to the unitor and the
--- regrouping `join` (`⌈⌉-plain`, `Choice.Compose`).  None is needed:
--- `Protocol⁺` is syntax and `⌈_⌉` its meaning, ND_B's morphisms at choice
--- grades being the compiled protocols.
+-- `⌈_⌉` is no `StdUCMorphism`: one acts on protocols by a functor, `A ⇒ B` to
+-- `F A ⇒ F B`, while `⌈ P ⌉`'s codomain `Cᴵ⟦ S⃗ ⟧ ⊗ᴵ B` depends on `P`'s
+-- sites.  It lands in graded homs `A ⇒ T₀ Cᴵ⟦ S⃗ ⟧ B` instead, and preserves
+-- identities and composition only up to the unitor and the regrouping `join`
+-- (`⌈⌉-plain`, `Choice.Compose`).  None is needed: `Protocol⁺` is syntax and
+-- `⌈_⌉` its meaning, ND_B's morphisms at choice grades being the compiled
+-- protocols.
 
 open import Class.DecEq
 open import Data.Bool.Base using (Bool)
