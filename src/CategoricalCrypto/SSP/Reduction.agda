@@ -14,12 +14,12 @@
 
 open import Categories.Category.Monoidal.Bundle
 
-open import Data.Rational using (ℚ; _+_)
+open import Data.Rational using (ℚ; 0ℚ; _+_)
 
 open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Setoid using (module Mℚ)
 
-open import CategoricalCrypto.Approx.Error using (Approximation; ≈[]-resp₀; ℚ-ordered)
+open import CategoricalCrypto.Approx.Error using (module AllPositive; Approximation; ≈[]-resp₀; ℚ-ordered; ℚ-refinement)
 open import CategoricalCrypto.SSP.Iface
 open import CategoricalCrypto.SSP.Observation
 open import CategoricalCrypto.SSP.Protocol
@@ -106,3 +106,16 @@ closed-bridge : {f g : unit ⇒ T₀ X B} → f ≈ℰ g → f ≈ᵁ g
 closed-bridge {X} {B} {f} {g} e Y = KE.mk∼ λ {t} m →
   read-cast (Closed.close Protᴹ {X} {B} {Y} {Ω} f t m) (Closed.close Protᴹ {X} {B} {Y} {Ω} g t m)
             (KE.run∼ e {t ∘ α⇐ ∘ (ρ⇒ ∘ m) ⊗₁ id ∘ λ⇐} id)
+
+-- Its perfect case: games no distinguisher separates are U-equivalent, a
+-- closure `unit ⇒ unit` being the identity.
+≈ᵍ⇒≈ᵁ : {G₀ G₁ : unit ⇒ T₀ X B} → G₀ ≈ᵍ[ 0ℚ ] G₁ → G₀ ≈ᵁ G₁
+≈ᵍ⇒≈ᵁ {G₀ = G₀} {G₁} h = closed-bridge (KE.mk∼ λ {t} m →
+  read-cast (unit-closure (t ∘ G₀) m) (unit-closure (t ∘ G₁) m)
+            (zero⇒positive {runᵖ (t ∘ᵖ G₀)} {runᵖ (t ∘ᵖ G₁)} (h t)))
+  where
+  open AllPositive ℚ-refinement Approximation⊥ using (zero⇒positive)
+  unit-closure : (W : unit ⇒ Ω) (m : unit ⇒ unit) → W ≈ W ∘ m
+  unit-closure W m = Equiv.sym (Equiv.trans
+    (∘ᵖ-resp-≈ᵖ {f = W} {h = W} {g = m} {i = wireᵖ} Equiv.refl (≲⇒≈ᵖ (≲ᵖ-const λ _ ())))
+    (≲⇒≈ᵖ (wireᵖ-identityʳ W)))
