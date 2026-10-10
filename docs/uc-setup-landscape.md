@@ -87,6 +87,9 @@ escape-hatch baseline unchanged):
    is checked alone first — pre-existing, now in its header.  Known traps: unfolding
    `⟦A ⊗ B⟧` at the transparent machine category (ITM's `⊗-step` abstract target) and
    `pullbackᵛ` against a named presheaf (35 s+; write `ν` by hand).
+10. **SSP up to distributions** ([uc-setup-ssp-dist.md](uc-setup-ssp-dist.md)): `≈ᵈ`, `UKernel`'s kernel
+    of `ℰᵖ`, makes deferred sampling and fair-coin relabelling laws via sampling simulations; the
+    one-time pad's core becomes nine per-activation squares, local but no shorter (51 vs 53 lines).
 
 **Decisions pending from the maintainer:**
 
@@ -364,6 +367,7 @@ hypothesised in the first draft are **gone**: `SSP → 𝔾ᵒ` directly, `IPDL 
 | interactive Turing machines (ports) | [uc-setup-itm.md](uc-setup-itm.md) |
 | random systems | [uc-setup-random-systems.md](uc-setup-random-systems.md) |
 | state-separating proofs / call-return discipline | [uc-setup-ssp.md](uc-setup-ssp.md) |
+| SSP up to distributions (`≈ᵈ`, deferred sampling) | [uc-setup-ssp-dist.md](uc-setup-ssp-dist.md) |
 | IPDL | [uc-setup-ipdl.md](uc-setup-ipdl.md) |
 | causal boxes | [uc-setup-causal-boxes.md](uc-setup-causal-boxes.md) |
 | symbolic / Dolev–Yao | [uc-setup-symbolic.md](uc-setup-symbolic.md) |

@@ -202,6 +202,7 @@ Prot-setoid A B = record { Carrier = Protocol A B ; _≈_ = _≈ᵖ_ ; isEquival
   - *Syntactic equality*: the two sides have different state types (`⊤ × St` against `St`).
   - *Relational bisimulation with couplings* (lochbihler2019cc Def. 4): coarser and not needed, and it cannot reach `≈ᴹ` without a quotient (landscape §4).
   - *Pullback of `≈ᴹ` along `morphism`*: not a `⊗ᵖ`-congruence (§4.1).
+- **Coarser, distributional** (built on `ssp-dist`): `≈ᵈ`, the U-kernel of `ℰᵖ`, under which deferred sampling and fair-coin relabelling are laws; see [uc-setup-ssp-dist.md](uc-setup-ssp-dist.md).
 - **Consequence for `F-resp-≈`** (corrected while building A1–A7). `θ ↦ MSt-map θ` is *not* a machine simulation, so `morphism-resp` is not one induction on `drive`. A `wait` state stores the continuation: where `step P′ (θ s)` reaches `wait k′`, `MSt-map θ` gives `wait (mapᶜ (map₁ θ) ∘ k)`, and the two are only `≈ᶜ`-equal pointwise. `≈ₚ` quantifies over every test of the states (`Dp.agda:427-431`), so without funext the machine step square does not close. `morphism-resp` needs the `Protocol/Machine/Compose.agda:12-19` technique instead: a third machine on pairs of `≈ᶜ`-related configurations, stepped in lockstep along the `≈ᶜ` proof, with both projections as simulations out of it.
 
 ### 3.4 The monoidal category
