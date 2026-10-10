@@ -266,7 +266,7 @@ compatible with unit and multiplication. The general constructions are all forma
 - _identities and composites_ $opid_𝕊$ and $𝕄' ∘ 𝕄$ (with test map $ν'_F ∘ ν$); the unit laws hold
   componentwise #srcs(cc("UCSetup/Morphism.agda", 57, "idᵁ"), cc("UCSetup/Morphism.agda", 65, "composeᵁ"), cc("UCSetup/Morphism.agda", 83, "identityʳ-κ"), cc("UCSetup/Morphism.agda", 86, "identityˡ-κ"));
 - _change of kernel_: for $ν : cal(E) ⇒ cal(E)'$ over the same $(cal(C), cal(I), cal(M))$,
-  $mck_ν := ("Id", "Id", opid, ν)$ #srcs(cc("UCSetup/Morphism.agda", 48, "changeKernel"), cc("Abstract2/Morphism.agda", 106, "reobserve"));
+  $mck_ν := ("Id", "Id", opid, ν)$ #srcs(cc("UCSetup/Morphism.agda", 48, "changeKernel"), cc("Abstract2/Morphism.agda", 114, "reobserve"));
 - _image factorisation_: every $𝕄$ factors as an Epi change of kernel $𝕊 → 𝕊[op("Im") ν]$ followed by a
   morphism with Mono test map, where $op("Im") ν (A)$ is $cal(E)(A)$ with the equality induced by $ν_A$
   #srcs(cc("UCSetup/Morphism.agda", 101, "Factorization"), ag("Categories/Functor/Presheaf/Morphism.agda", 89, "image"), cc("UCSetup/Morphism.agda", 110, "coarsen-to-image"), cc("UCSetup/Morphism.agda", 113, "image-morphism"));
@@ -283,7 +283,7 @@ Let $𝕄 = (F, Φ, κ, ν) : 𝕊 → 𝕊'$.
   impossibility proved in $𝕊'$ is one in $𝕊$.
 + If $Φ$ is full, $κ$ is mono up to $eqE$ ($κ ∘ h eqE κ ∘ h' ⇒ h eqE h'$), $ν$ is Mono and $𝕊$ is
   grade-stable, then $G f leUC G g ⇒ f leUC g$.
-#srcs(ag("Categories/Functor/Presheaf/Morphism.agda", 73, "epi⇒preserves"), ag("Categories/Functor/Presheaf/Morphism.agda", 81, "mono⇒reflects"), cc("Abstract2/Morphism.agda", 48, "epi⇒preserves-≈ℰ"), cc("Abstract2/Morphism.agda", 51, "mono⇒reflects-≈ℰ"), cc("Abstract2/Morphism.agda", 56, "transfer"), cc("Abstract2/Morphism.agda", 71, "transfer-impossible"), cc("Abstract2/Morphism.agda", 75, "κ-Mono"), cc("Abstract2/Morphism.agda", 82, "reflects-≤UC"))
+#srcs(ag("Categories/Functor/Presheaf/Morphism.agda", 73, "epi⇒preserves"), ag("Categories/Functor/Presheaf/Morphism.agda", 81, "mono⇒reflects"), cc("Abstract2/Morphism.agda", 51, "epi⇒preserves-≈ℰ"), cc("Abstract2/Morphism.agda", 54, "mono⇒reflects-≈ℰ"), cc("Abstract2/Morphism.agda", 75, "transfer"), cc("Abstract2/Morphism.agda", 79, "transfer-impossible"), cc("Abstract2/Morphism.agda", 83, "κ-Mono"), cc("Abstract2/Morphism.agda", 90, "reflects-≤UC"))
 ] <thm:transport>
 
 #proofidea[(1) is one naturality square of $ν$, cancelled on the surjective or the injective side.
@@ -300,7 +300,7 @@ emulation such as the construction theorem of @sec:rs.
 Let $cal(E)'$ be a second test presheaf on the same $cal(C)$ with $eqE ⊆ scripts(≈)_(cal(E)')$. Then
 $eqU ⊆ scripts(≈)^upright(U)'$ and $leUC ⊆ scripts(≤)'_"UC"$, with the same simulators. No epi, mono or
 grade-stability hypothesis is spent.
-#srcs(cc("Abstract2/Morphism.agda", 117, "Refine"), cc("Abstract2/Morphism.agda", 131, "≈ᵁ-refine"), cc("Abstract2/Morphism.agda", 134, "≤UC-refine"))
+#srcs(cc("Abstract2/Morphism.agda", 125, "Refine"), cc("Abstract2/Morphism.agda", 139, "≈ᵁ-refine"), cc("Abstract2/Morphism.agda", 142, "≤UC-refine"))
 ] <thm:refine>
 
 == The standard instantiation <sec:std>
@@ -324,7 +324,7 @@ onto the ideal protocol's. *Every setup in this note is standard.*
 If $F : 𝕄 → 𝕄'$ is strong monoidal and $ν : cal(E) ⇒ cal(E)' ∘ F^"op"$, then $(F, F, δ, ν)$ is a setup
 morphism $Std(𝕄, cal(E)) → Std(𝕄', cal(E)')$, where $δ_(X,A) : F(X ⊗ A) → F X ⊗ F A$ is the inverse of
 the strong comparison.
-#srcs(cc("Standard2/Morphism.agda", 37, "StdUCMorphism"))
+#srcs(cc("Standard2/Morphism.agda", 41, "StdUCMorphism"))
 ] <prop:std-morphism>
 
 The general @def:morphism relaxes "strong" only to "oplax relative to $Φ$": $κ$ always points from
@@ -406,12 +406,12 @@ tensor, morphisms with their hom-equality — and the test presheaf. #design row
     [#PM morphisms between flattened signatures that are $eqM$-equal to a well-bracketed machine; $eqM$],
     [$iota^* cal(E)^o$: all #PM tests; $cal(E)^W$: well-bracketed tests modulo well-bracketed closures],
     [call/return discipline inside #PM; respectfulness @lochbihler2019cc],
-    [#formal #cc("UC/Bracket/Monoidal.agda", 309, "𝒲ᴹ"), #cc("UC/Bracket/Monoidal.agda", 332, "StdUC.StdSetup 𝒲ᴹ ι*ℰᵒ"), #cc("UC/Bracket/Setup.agda", 71, "StdUC 𝒲ᴹ ℰᵂ")],
+    [#formal #cc("UC/Bracket/Monoidal.agda", 309, "𝒲ᴹ"), #cc("UC/Bracket/Monoidal.agda", 332, "StdUC.StdSetup 𝒲ᴹ ι*ℰᵒ"), #cc("UC/Bracket/Setup.agda", 75, "StdUC 𝒲ᴹ ℰᵂ")],
     [#PMwb \ well-bracketed quotient], [as #Wsub],
     [#Wsub's morphisms modulo the two-sided ancilla kernel $simW$ of well-bracketed tests],
     [$cal(E)^W$, descended],
     [#PM against call/return environments],
-    [#formal #cc("UC/Bracket/Setup.agda", 88, "StdUC PM[wb]ᴹ ℰ[wb]"), #cc("UC/Bracket/Setup.agda", 78, "PM[wb]ᴹ"), #cc("UC/Bracket/Setup.agda", 85, "ℰ[wb]")],
+    [#formal #cc("UC/Bracket/Setup.agda", 153, "StdUC PM[wb]ᴹ ℰ[wb]"), #cc("UC/Bracket/Setup.agda", 88, "PM[wb]ᴹ"), #cc("UC/Bracket/Setup.agda", 150, "ℰ[wb]")],
     [#SSP \ call/return packages], [oracle signatures $(sans("Ch"), Q, R)$; disjoint union of channels],
     [packages: a state, an initial state, and a step answering each query by a finite tree of calls, rational coins and aborts; composition by inlining; $eqP$: simulations up to syntactic tree equality],
     [distinguishers $D : A → Ω$, identified when all games $G : 1 → A$ give close verdict subdistributions],
@@ -686,7 +686,7 @@ $Wio := Std(cal(W), cal(E)^o ∘ ι^"op")$ (all #PM tests and closures), and $WW
 with
 $ cal(E)^W (A) = cal(W)(A, Ω) slash ≋, quad t ≋ t' :⟺ ∀ m ∈ cal(W)(1, A). thin Obs(t ∘ m) simA Obs(t' ∘ m), $
 well-bracketed tests modulo well-bracketed closures, observed exactly as #PM observes them.
-#srcs(cc("UC/Bracket/Monoidal.agda", 255, "Wᵒ"), cc("UC/Bracket/Monoidal.agda", 145, "Uᵂ"), cc("UC/Bracket/Monoidal.agda", 151, "φ"), cc("UC/Bracket/Monoidal.agda", 161, "υ"), cc("UC/Bracket/Monoidal.agda", 309, "𝒲ᴹ"), cc("UC/Bracket/Monoidal.agda", 312, "ιᴹ"), cc("UC/Bracket/Monoidal.agda", 318, "ι*ℰᵒ"), cc("UC/Bracket/Setup.agda", 55, "Obsᵂ"), cc("UC/Bracket/Setup.agda", 67, "ℰᵂ"), cc("UC/Bracket/Setup.agda", 71, "StdUC 𝒲ᴹ ℰᵂ"))
+#srcs(cc("UC/Bracket/Monoidal.agda", 255, "Wᵒ"), cc("UC/Bracket/Monoidal.agda", 145, "Uᵂ"), cc("UC/Bracket/Monoidal.agda", 151, "φ"), cc("UC/Bracket/Monoidal.agda", 161, "υ"), cc("UC/Bracket/Monoidal.agda", 309, "𝒲ᴹ"), cc("UC/Bracket/Monoidal.agda", 312, "ιᴹ"), cc("UC/Bracket/Monoidal.agda", 318, "ι*ℰᵒ"), cc("UC/Bracket/Setup.agda", 59, "Obsᵂ"), cc("UC/Bracket/Setup.agda", 71, "ℰᵂ"), cc("UC/Bracket/Setup.agda", 75, "StdUC 𝒲ᴹ ℰᵂ"))
 ] <def:W>
 
 Well-bracketedness reads the support of a step, which the equality $apx_p$ of laws does not preserve; this
@@ -695,7 +695,7 @@ is why $cal(W)$ takes the saturation "equal to a well-bracketed machine" as its 
 #definition(name: [#PMwb])[
 Let $simW$ be the two-sided ancilla kernel of $cal(E)^W$ (@prop:quotient(2)). Then
 $PMwb := Std(cal(W) slash simW, cal(E)^W "descended")$.
-#srcs(cc("UC/Bracket/Setup.agda", 78, "PM[wb]ᴹ"), cc("UC/Bracket/Setup.agda", 81, "∼⇒≋ᵂ"), cc("UC/Bracket/Setup.agda", 85, "ℰ[wb]"), cc("UC/Bracket/Setup.agda", 88, "StdUC PM[wb]ᴹ ℰ[wb]"))
+#srcs(cc("UC/Bracket/Setup.agda", 88, "PM[wb]ᴹ"), cc("UC/Bracket/Setup.agda", 93, "∼⇒≋ᵂ"), cc("UC/Bracket/Setup.agda", 150, "ℰ[wb]"), cc("UC/Bracket/Setup.agda", 153, "StdUC PM[wb]ᴹ ℰ[wb]"))
 ] <def:pmwb>
 
 The quotient changes neither the contexts nor the kernel, so emulation in #PMwb is emulation in #WW.
@@ -1226,7 +1226,7 @@ $mitmiso = (F^r, F^r, opid, ν^r)$ with $F^r$ the halting-relation interpretatio
 $ν^r$ Epi and Mono. #instance Since #Iso is grade-stable (@thm:iso-gs), @thm:transport(1)–(2) apply:
 $F^r$ preserves and reflects $eqE$, and $f leUC g$ in #ITMiso implies $F^r f leUC F^r g$ in #Iso, so an
 impossibility in #Iso is one in #ITMiso.
-#srcs(cc("ITM/Relational.agda", 138, "itm⇒iso"), cc("ITM/Relational.agda", 117, "Fᴿ"), cc("ITM/Relational.agda", 128, "νᴿ"), cc("ITM/Relational.agda", 132, "νᴿ-epi"), cc("ITM/Relational.agda", 135, "νᴿ-mono"), cc("Machine/UC.agda", 164, "grade-stable"), cc("Abstract2/Morphism.agda", 56, "transfer"))
+#srcs(cc("ITM/Relational.agda", 138, "itm⇒iso"), cc("ITM/Relational.agda", 117, "Fᴿ"), cc("ITM/Relational.agda", 128, "νᴿ"), cc("ITM/Relational.agda", 132, "νᴿ-epi"), cc("ITM/Relational.agda", 135, "νᴿ-mono"), cc("Machine/UC.agda", 164, "grade-stable"), cc("Abstract2/Morphism.agda", 75, "transfer"))
 ] <prop:mitmiso>
 
 This is the only formal morphism whose transport of $leUC$ is the general theorem. The triangle
