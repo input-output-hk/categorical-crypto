@@ -87,7 +87,7 @@ eᵂ-idem {A} = G.Equiv.trans (G.Equiv.sym (⟦⟧ᵂ-∘ (wireᵖ {A}) (wireᵖ
 -- A map padded with identities and run against a closure is, as a hom of
 -- `𝔾ᵒ`, the machine composite of the two witnesses.
 pad∘ : {Y A B Z : Iface} (X : A 𝒲ᵂ.⇒ B) (c : unitᴵ 𝒲ᵂ.⇒ (Y ⊗ᴵ A) ⊗ᴵ Z)
-     → proj₁ ((𝒲ᵂ.id {Y} 𝒲ᵂ.⊗₁ X) 𝒲ᵂ.⊗₁ 𝒲ᵂ.id {Z} 𝒲ᵂ.∘ c)
+     → proj₁ (pad {Y} {Z = Z} X 𝒲ᵂ.∘ c)
        G.≈ procᵒ (𝒫._∘_ {flat unitᴵ} {flat ((Y ⊗ᴵ A) ⊗ᴵ Z)} {flat ((Y ⊗ᴵ B) ⊗ᴵ Z)}
                     (_⊗ʷ_ {Y ⊗ᴵ A} {Y ⊗ᴵ B} {Z} {Z} (_⊗ʷ_ {Y} {Y} {A} {B} (𝒫.id {flat Y}) (proj₁ (proj₂ X)))
                           (𝒫.id {flat Z}))
@@ -98,6 +98,7 @@ pad∘ {Y} {A} {B} {Z} (x , x̂ , _ , ex) (c , ĉ , _ , ec) =
   ○ ⟺ (procᵒ-∘ {flat unitᴵ} {flat ((Y ⊗ᴵ A) ⊗ᴵ Z)} {flat ((Y ⊗ᴵ B) ⊗ᴵ Z)} _ ĉ)
   where
   open G.HomReasoning
+  -- Ascribed: the product's `F-resp-≈` leaves the pair's type to it.
   inner : Gᴹ._≅_.from (φ {Y} {B}) G.∘ (G.id G.⊗₁ x) G.∘ Gᴹ._≅_.to (φ {Y} {A})
           G.≈ procᵒ (_⊗ʷ_ {Y} {Y} {A} {B} (𝒫.id {flat Y}) x̂)
   inner = (refl⟩∘⟨ (G.⊗.F-resp-≈ (procᵒ-id , ex) ⟩∘⟨refl)) ○ ⊗-conj {Y} {Y} {A} {B} (𝒫.id {flat Y}) x̂
