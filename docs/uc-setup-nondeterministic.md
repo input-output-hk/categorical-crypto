@@ -279,8 +279,8 @@ _⊗⁺_ : Protocol⁺ S⃗ A B → Protocol⁺ T⃗ C D → Protocol⁺ (S⃗ +
 -- the old `choose : (n : ℕ) → (Fin (suc n) → Calls A X) → Calls A X` is one site, S = Fin (suc n)
 ```
 
-Against the pseudocode this section carried before the build: a site is a channel of `Cᴵ⟦ S⃗ ⟧` and its pick a
-query there, not `Fin (length S⃗)` with `lookup S⃗ i`, so compiling converts nothing; `_∘⁺_`'s
+Against the pseudocode this section carried before the build: a site is a channel of `Cᴵ⟦ S⃗ ⟧` and its
+pick a query there, not `Fin (length S⃗)` with `lookup S⃗ i`, so compiling converts nothing; `_∘⁺_`'s
 `graft⁺`/`serve⁺` move each factor's sites into `S⃗ ++ T⃗` along `join` (below), `_⊗⁺_` by `relocate`;
 and site lists are explicit arguments of the helpers (`push S⃗`, `pop S⃗`, `join S⃗ T⃗`), since neither
 `Cᴵ⟦_⟧` nor `Queues` is injective and Agda cannot infer them.
