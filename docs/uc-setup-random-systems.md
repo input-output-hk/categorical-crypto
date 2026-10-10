@@ -84,9 +84,10 @@ as a G-composite loop produces) has true-mass at most `½(1 − 3⁻ⁿ)` at dep
 is `_≈ᴮ_` with `_≈ₚ_`: too fine, and non-adaptive.)  `∼ᵃ`, every positive slack of `_≈ₚ[_]_` on
 both verdict masses (`Dp/Advantage.agda:48-52`, `Approx/Error.agda:118-119`), is equality of
 lower-real masses, i.e. Δ = 0, and is what `ℰᵒ` reads (`UC/Model/Observation.agda:45`).  Cost:
-no slack-0 readout, hence no `QEvaluation` over 𝔾ᴿ (`Approx/Evaluation.agda:5-7, 43`) and no
-`UC.Family` tier on RS (a slack-closed space, `d ≈[ε] e := ∀ δ > 0, d ≈ₚ[ε + δ] e`, would
-restore it; not planned).
+no slack-0 readout in the open space, hence no `QEvaluation` over 𝔾ᴿ on it
+(`Approx/Evaluation.agda:5-7, 43`).  The slack-closed space, `d ≈̄[ε] e := ∀ δ > 0,
+d ≈ₚ[ε + δ] e` (`Approx.Rational.Closure`), restores it: `qevaluationᴿ` (§4.4).  A `UC.Family`
+tier on RS is not planned.
 
 ### 3.2 The behavioural setoid (`UC/Machine/Behaviour.agda`)
 
@@ -426,7 +427,8 @@ hypothesis-free, and ν (`t ↦ (unit , t)`) stays `Mono` but stops being `Epi`.
   with it, RS supplies the `∘ᵖ`-congruence that branch could not prove.
 - **symbolic** (`docs/uc-setup-symbolic.md`): none.  Exact soundness fails once names exist (a
   sampled nonce is guessed with positive probability, canettiherzog2006; backes2003library §5.3),
-  and negligible soundness needs a `QEvaluation`, which 𝔾ᴿ lacks (§3.1): that plan targets 𝔾ᵒ's tier.
+  and negligible soundness needs a `QEvaluation` — 𝔾ᴿ's is `qevaluationᴿ` (§4.4), but that plan
+  targets 𝔾ᵒ's tier.
 - **Causal boxes** (`docs/uc-setup-causal-boxes.md`): none, either direction (§4.1–4.2 there).
 - **SSP** (`docs/uc-setup-ssp.md`): none.  `morphism wireᵖ` is not the G-identity under any
   distinguisher equality — a `Strat` may send an unsolicited answer (`Protocol/Machine.agda:14-19`).
@@ -521,13 +523,22 @@ Constructs ε f g = Σ[ s ∈ Y ℐ.⇒ X ] f ∼ᴿ[ ε ] (sub s ∘ g)     -- 
 | Δ against `UC.Quantitative.Observed`'s `≈ᵁ[ε]` at 𝔾ᵒ (`UC.Model.Quantitative.QUCᵒ`): `(f ∼ᴿ[ ε ] g) ⇔ (∀ δ → 0ℚ < δ → f QUCᵒ.≈ᵁ[ ε + δ ] g)` | `≈ᵁ[]⇒∼ᴿ[]` (the cup, `play-cup`), `∼ᴿ[]⇒≈ᵁ[]` (`close-∼ᴿ[]`), `∼ᴿ[]⇔≈ᵁ[]` |
 | the ε-version: `Constructs ε f g ⇔ Witness⁺ ε f g`, `Witness⁺ ε f g = Σ[ s ] (∀ δ → 0ℚ < δ → QUCᵒ.At s (ε + δ) f g)`; `QUCᵒ.Witness ε f g → Constructs ε f g` | `Constructs⇔Witness⁺`, `Witness⇒Constructs` |
 | Thm 1: (iii); (i), simulators composed in fn. 15's order, error ε + ε′; serial composition (`UC-compose`), simulator `(id ⊗ t) ∘ (s ⊗ id)`, error ε′ + ε | `constructs-refl`, `constructs-trans`, `constructs-∙` |
+| exact, at 𝔾ᴿ (`UC/RandomSystems/Quantitative.agda`, `QUCᴿ` = Observed at 𝔾ᴿ read through `Verdict.closure`, `qevaluationᴿ`): `(f QUCᴿ.≈ᵁ[ ε ] g) ⇔ (f ∼ᴿ[ ε ] g)` | `≈ᵁᴿ[]⇒∼ᴿ[]` (the cup), `∼ᴿ[]⇒≈ᵁᴿ[]` (`close-∼ᴿ[]`), `≈ᵁᴿ[]⇔∼ᴿ[]` |
+| Def 3 at ε, exactly: `f ≤UCᴿ[ ε ] g = QUCᴿ.Witness ε f g`, `(f ≤UCᴿ[ ε ] g) ⇔ Constructs ε f g`; at zero `(G f Sᴿ.≤UC G g) ⇔ (f ≤UCᴿ[ 0ℚ ] g)` | `≤UCᴿ[]⇔Constructs`, `≤UCᴿ⇔≤UCᴿ[0]` |
+| along `rewrite⇒RS` (`G = Transfer.G rewrite⇒RS`), pointwise: 𝔾ᵒ's error crosses unchanged, `f QUCᵒ.≈ᵁ[ ε ] g → G f QUCᴿ.≈ᵁ[ ε ] G g` and `QUCᵒ.Witness ε f g → G f ≤UCᴿ[ ε ] G g`; 𝔾ᴿ's is the slack closure of 𝔾ᵒ's, `(G f QUCᴿ.≈ᵁ[ ε ] G g) ⇔ (∀ δ → 0ℚ < δ → f QUCᵒ.≈ᵁ[ ε + δ ] g)` and `(G f ≤UCᴿ[ ε ] G g) ⇔ Witness⁺ ε f g` | `≈ᵁ[]⇒≈ᵁᴿ[]`, `Witness⇒≤UCᴿ[]`, `≈ᵁᴿ[]⇔≈ᵁ[]⁺`, `≤UCᴿ[]⇔Witness⁺` (with `≈ᵁᴿ[]-G⇔`, `≤UCᴿ[]-G⇔`) |
+| Thm 1 at `≤UCᴿ[ ε ]`: errors 0, ε + ε′, ε′ + ε as above | `≤UCᴿ[]-refl`, `≤UCᴿ[]-trans`, `≤UCᴿ[]-∙` |
 
 The levels permit the ε-version: `QUCᵒ.≈ᵁ[ε]` is `Set₁` (it quantifies over ancillas), Δ is
-`Set`, and the `⇔`s straddle them.  It holds up to every positive slack, not at ε itself, because
-Observed's readout space at 𝔾ᵒ is `spaceᴹ`, the open `_≈ₚ[_]_`; the simulator is fixed before
-the slack, `Witness₊`'s discipline (`UC/Quantitative/Bridge.agda`).  An exact match needs Observed
-instantiated at 𝔾ᴿ with the closed readout `Verdict.closure`, a `QEvaluation` over 𝔾ᴿ that the
-open space cannot give (§3.1); not built.  Not covered: Def 3's availability condition
+`Set`, and the `⇔`s straddle them.  At 𝔾ᵒ it holds up to every positive slack, not at ε itself,
+because Observed's readout space there is `spaceᴹ`, the open `_≈ₚ[_]_`; the simulator is fixed
+before the slack, `Witness₊`'s discipline (`UC/Quantitative/Bridge.agda`).  The open space is no
+`QEvaluation` over 𝔾ᴿ: its zero error is `≈ₚ`, which 𝔾ᴿ's hom equality `∼ᴿ` does not imply
+(§3.1).  The closed one is: its zero error is `∼ᵃ` (`≈̄[0]⇔∼ᵃ`), which `∼ᴿ⇒Obs` reads off a
+closed `∼ᴿ`.  There the match is exact — `close-∼ᴿ[]` lands at `≈̄[ ε ]` and the cup reads it
+back — and so is Def 3 at ε.  `UC/Quantitative.agda` has no quantitative `UCSetupMorphism`, so
+the relation to `QUCᵒ` is stated pointwise.  Thm 1 at `≤UCᴿ[ ε ]` is `constructs-*` transported
+along `≤UCᴿ[]⇔Constructs`; `QUCᴿ.at-trans` and `QUCᴿ.at-compose` would give the same errors
+directly.  Not covered: Def 3's availability condition
 d(π⊥R, ⊥S) ≤ ε, a separate statement since `≤UC` never fixes the simulator of the silent adversary;
 and Thm 1 (ii), parallel composition, whose graded tensor of two emulations needs the interchange
 `(X ⊗ B) ⊗ (X′ ⊗ B′) ≅ (X ⊗ X′) ⊗ (B ⊗ B′)`, a braiding 𝔾ᵒ does not export (§5.1).
@@ -592,10 +603,10 @@ under Seal.agda's four disciplines; (ii) `congᴿ`'s body is checked with 𝔾�
 
 ## 6. Work breakdown
 
-Status 2026-10-09; row 11 2026-10-10.  "Warm" is a single-module check (`+RTS -M3G -H1G -RTS`,
-one `Checking` line) on a ≈12 s startup floor; `UC.Model.Setup` itself measures 13.7 s.  Every
-landed row is green with an empty warning gate.  Row 11's times were taken beside one to three
-other agda runs on the shared box.
+Status 2026-10-09; row 11 2026-10-10; row 12 2026-10-10.  "Warm" is a single-module check
+(`+RTS -M3G -H1G -RTS`, one `Checking` line) on a ≈12 s startup floor; `UC.Model.Setup` itself
+measures 13.7 s.  Every landed row is green with an empty warning gate.  Row 11's times were taken
+beside one to three other agda runs on the shared box.
 
 | # | module(s) | landed (exports) | warm |
 |---|---|---|---|
@@ -610,6 +621,7 @@ other agda runs on the shared box.
 | 9 | `UC/Machine/Behaviour/Finite.agda` | `≈ᴮ⇒≈ᴿ-fin : DecidableEquality X → (enum : List X) → (∀ x → x ∈ enum) → f ≈ᴮ g → f ≈ᴿ g`; its steps `Below`, `FirstAsksIn`, `play`, `answer`, `cut`, `keep`, `drop`, `only`, `without`, `next`, the `asks-`/`first-` bounds, `bind-split`, `feed`, `Ψ`, `feed-cong`, `feed-snoc`, `feed-runᴸ`, `feed-cofinal`, `feed-split`, `play-run`, `cut-approx`, `run-split`, `asked`, `only-step`, `Ψ-split`, `Ψ-only`, `Ψ-askfree`, `Ψ-bounded` | 13.1 s |
 | 10 | `src/CategoricalCrypto.agda`; `docs/uc-setup-landscape.md` §4 | entry point; correct the `Mono` remark | not started |
 | 11 | `Approx/Rational.agda`; `UC/RandomSystems/Advantage.agda`; `…/Composition.agda`; `…/Construction.agda` (§4.4) | Rational: `½-split`, `module Closure` (`_≈̄[_]_` with `slack`/`≈̄⇒≈`, `≈⇒≈̄`, `≈̄-trans`, `closure`, `≈̄-closed`, `≈̄[0]⇔∼ᵃ`, `≈̄-resp-∼ᵃ`), `hybrid`.  Advantage: `Verdict`, `Δ[_]⟨_,_⟩≤_`, `_≈ᴿ[_]_`, `≈ᴿ[]-trans`, `≈ᴿ[]-mono`, `advantage`, `approxᴿ`, `≈ᴿ⇔≈ᴿ[0]`, `≈ᴿ⇔≈ᴿ[+]`, `≈ᴿ[]-resp`.  Composition: `absorbs-Δ`, `absorbs-≈ᴿ[]`, `hybrid-absorbs`, `composeᴳ-≈ᴿ[]`, `⊗₁ᴳ-≈ᴿ[]`, `_∼ᴿ[_]_`, `approxᵒ`, `∘-resp-∼ᴿ[]`, `⊗-resp-∼ᴿ[]`, `≈⇒∼ᴿ[0]`, `∼ᴿ⇔∼ᴿ[0]`, `obs-∼ᴿ[]`, `close-∼ᴿ[]`.  Construction: `≈ᵁ[]⇒∼ᴿ[]`, `∼ᴿ[]⇒≈ᵁ[]`, `∼ᴿ[]⇔≈ᵁ[]`, `Constructs`, `≤UC⇒Constructs₀`, `Constructs₀⇒≤UC`, `≤UC⇔Constructs₀`, `≈ᵁᴿ⇒∼ᴿ`, `≤UCᴿ⇒Constructs₀`, `Constructs₀⇒≤UCᴿ`, `≤UCᴿ⇔Constructs₀`, `Witness⁺`, `Constructs⇒Witness⁺`, `Witness⁺⇒Constructs`, `Constructs⇔Witness⁺`, `Witness⇒Constructs`, `constructs-refl`, `constructs-trans`, `constructs-∙` | 6.1 s; 13.0 s; 13.7 s; 15.9 s |
+| 12 | `UC/RandomSystems/Quantitative.agda` (§4.4, the exact ε-version) | `spaceᴿ`, `qevaluationᴿ`, `module Observedᴿ` (Observed at 𝔾ᴿ), `Qᴿ`, `QSetupᴿ`, `module QUCᴿ`; `≈ᵁᴿ[]⇒∼ᴿ[]`, `∼ᴿ[]⇒≈ᵁᴿ[]`, `≈ᵁᴿ[]⇔∼ᴿ[]`, `_≤UCᴿ[_]_`, `≤UCᴿ[]⇒Constructs`, `Constructs⇒≤UCᴿ[]`, `≤UCᴿ[]⇔Constructs`, `≈ᵁᴿ[]-G⇔`, `≤UCᴿ[]-G⇔`, `≈ᵁ[]⇒≈ᵁᴿ[]`, `Witness⇒≤UCᴿ[]`, `≈ᵁᴿ[]⇔≈ᵁ[]⁺`, `≤UCᴿ[]⇔Witness⁺`, `≤UCᴿ⇔≤UCᴿ[0]`, `≤UCᴿ[]-refl`, `≤UCᴿ[]-trans`, `≤UCᴿ[]-∙` | 24 s at `-M5G -H1G` (exhausts `-M4G`) |
 
 Departures from §3–§5:
 
@@ -651,9 +663,13 @@ Departures from §3–§5:
   Measured with `runᴹ-resp-≈ᴹ` opaque (step 2); the inferring version ran past 15 min before that
   change and exhausted 6 GiB in 244 s after it.  `UC.RandomSystems.Construction` is a new leaf,
   not yet in the root (row 10).
+- **Row 12.**  Exhausts `-M3G` and `-M4G`: 2.3 GB residency against 1.2 GB for its imports
+  alone; the rest is the `Observed` application, which costs `UC.Model.Quantitative` the same (a
+  copy of it exhausts `-M4G`).  Checked warm at `-M5G -H1G`.  Morphisms are passed explicitly as
+  in row 11.  A new leaf, not yet in the root (row 10).
 
-Order: 1 ∥ 2; 2 → 3 → … → 8; 9 after 2; 11 after 8.  Steps 1–7 give setup and morphism, 8–9 the
-characterisation, 11 the toolkit.
+Order: 1 ∥ 2; 2 → 3 → … → 8; 9 after 2; 11 after 8; 12 after 11.  Steps 1–7 give setup and
+morphism, 8–9 the characterisation, 11–12 the toolkit.
 
 ## 7. Sources
 
