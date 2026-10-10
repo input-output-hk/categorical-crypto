@@ -46,17 +46,17 @@ and 0.  On `sub s ∘ ideal` they read the same: `ideal` absorbs relabelling the
 (`flip-ideal`), the relabelling turns one probe into the other (`probe-flip`), and it commutes with
 the simulator by `sub-commute′` (`Slide.slide`).  Hence `1 ≤ ½`.  `≈ᵁ⇒≈ℰ` suffices (RelSetup's `ℰ-faithful` has no analogue).
 
-## 4. Crossing to other setups: the next step (nothing has crossed yet)
+## 4. Crossing to other setups
 
-- **PM[wb]** (`docs/uc-setup-ssp.md` §4.2–4.3): `Fᵂ otp ≤UC Fᵂ ideal`, i.e. `morphism (toProtocol otp)
-  ≤UC morphism (toProtocol ideal)` against well-bracketed environments, from `otp≤ideal` by
-  `GamesDense.≤UC-transfer : Preserves-≈ℰ SSP→PM[wb] → Preserves-≤UC SSP→PM[wb]` (`SSP/Semantics`, from
-  branch `ssp-bridge2`), which needs no `ν.Epi`.  It is conditional on two open facts, the module
-  parameter `games-dense` and the hypothesis `Preserves-≈ℰ` (`docs/uc-setup-ssp.md` §6).  The module
-  checks on top of the bridge's `Ch-dec` change (`c9a4bf0e`), so the application will not need to touch it.
+- **PM[wb]** (`docs/uc-setup-ssp.md` §4.2–4.3), crossed: `Examples/SSP/OneTimePad/WB.agda:otp≤idealᵂ`,
+  `Fᵂ otp ≤UC Fᵂ ideal`, i.e. `morphism (toProtocol otp) ≤UC morphism (toProtocol ideal)` against
+  well-bracketed environments, is `SSP.Dense.Tests.preserves-≤UC otp≤ideal`.  `preserves-≤UC` is
+  unconditional: `SSP→PM[wb]` is built over `games-dense` and preserves `≈ℰ` by `tests-dense`
+  (`docs/uc-setup-ssp.md` §5.1, §6 C7); no `ν.Epi` is used.
 - **𝔾ᴿ**: `rewrite⇒RS` starts at PM, not at PM[wb], so the bridge does not reach random systems.  The
   𝔾ᴿ statement needs the PM statement against all environments first, which needs an adequacy of
   `runᵖ` for compiled closed games that the tree does not have.
 
 Checks (warm single-module, `+RTS -M3G -H1G`): `Uniform/Flip` 7 s (30 lines), `SSP/Reduction` 11 s
-(121 lines), `Examples/SSP/OneTimePad` 14 s (409 lines); warning gate empty, escape hatches unchanged.
+(121 lines), `Examples/SSP/OneTimePad` 14 s (409 lines), `Examples/SSP/OneTimePad/WB` 15 s (16 lines);
+warning gate empty, escape hatches unchanged.

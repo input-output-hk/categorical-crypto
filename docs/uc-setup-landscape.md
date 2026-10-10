@@ -27,7 +27,7 @@ escape-hatch baseline unchanged):
 |---|---|---|
 | random systems `𝔾ᴿ` | `Categories/…/Construction/Quotient` (generic), `UC/Machine/Behaviour*` (`_≈ᴿ_`, congruence for G-composition and tensor), `UC/RandomSystems/{Seal,Setup,Morphism,FullAbstraction,Advantage,Composition,Construction,Quantitative}` | `rewrite⇒RS : UCSetupMorphism`, `≈ᴿ⇒≈ᵁ`, **`≈ᵁ⇒≈ᴿ`**, **`¬gradeStableᵒ`**, `≈ᴮ⇒≈ᴿ-fin`, `Δ`, `absorbs-Δ`, `hybrid`, `≤UC⇔Constructs₀`, `≤UCᴿ[]⇔Constructs` |
 | ITM `𝕋ᴹ` | `ITM/{Core,Run,Functor,Setup,Relational}`, `FreeMonoidal.freeStrongMonoidal`, `Seal.unitᵒ` | `itm⇒prot` (`ν` Epi+Mono), `≈ℰ⇔`, `itm⇒iso` |
-| SSP (call/return) | `SSP/{Iface,Protocol,Protocol/Category,Protocol/Monoidal,Observation,Setup,Reduction,Compile}`, `Standard2/UKernel`, `Protocol/{Sim,Machine/Resp}`, `UC/Bracket{,/Category}` | `StdSetup`, `Protᴹ`/`Protˢ`, `toProtocol`, `morphism-resp`, `W`, `morphism-W`, `𝒲`, `ι` |
+| SSP (call/return) | `SSP/{Iface,Protocol,Protocol/Category,Protocol/Monoidal,Observation,Setup,Reduction,Compile,Semantics,Cut,Dense,Dense/Tests}`, `Standard2/UKernel`, `Protocol/{Sim,Machine/Resp,Machine/Oracle}`, `UC/Bracket{,/Category}` | `StdSetup`, `Protᴹ`/`Protˢ`, `toProtocol`, `morphism-resp`, `W`, `morphism-W`, `𝒲`, `ι`, **`games-dense`**, **`SSP→PM[wb]`**, **`preserves-≤UC`** |
 
 **Major findings** (proven unless marked; finding 3's non-existence claim is argued in
 `Protocol/Machine.agda:14-19`'s header, not a theorem):
@@ -43,10 +43,13 @@ escape-hatch baseline unchanged):
    `ι⇒prot : UCSetupMorphism` into protocol-model, `PM[wb]`'s setup and the quotient
    morphism `q` (`UC/Bracket/Setup`), the monitor lemmas (`UC/Bracket/{Monitor,Relabel}`),
    and `Fᵂ : StrongMonoidalFunctor Protᴹ PM[wb]ᴹ` with `wire≈σ` and `⊗≈⊗` (`SSP/Semantics`).
-   `SSP→PM[wb]` and the `≤UC` transfer are built over one unproved density fact,
-   `games-dense` (SSP-indistinguishable tests stay so against every well-bracketed
-   closure); the transfer also needs `Preserves-≈ℰ` (`transfer⁺`; `ν.Epi` is likely
-   false: `Dₚ`-limit verdicts vs finite rational ones).  Status: `docs/uc-setup-ssp.md` §6.
+   **`SSP→PM[wb] : UCSetupMorphism` is built unconditionally** (`SSP/Dense`): SSP games
+   are dense among well-bracketed closures (`games-dense`), so SSP-indistinguishable
+   tests stay so against every well-bracketed closure.  **The `≤UC` transfer is
+   unconditional too** (`SSP/Dense/Tests.preserves-≤UC`): compiled distinguishers are
+   dense among well-bracketed tests (`tests-dense`), which gives `Preserves-≈ℰ`; no
+   `ν.Epi` is used.  Both densities approximate from below, by depth-cut call trees.
+   Status: `docs/uc-setup-ssp.md` §6, C7.
 4. **IPDL and causal boxes are islands** for `UCSetupMorphism` (design-level proofs in
    their plans); **symbolic** reaches only the negligible tier; the first-draft edges
    `SSP → 𝔾ᵒ`, `IPDL → RS`, `RS → causal boxes` are withdrawn.
@@ -81,9 +84,9 @@ escape-hatch baseline unchanged):
    `no-tree-simulation` shows syntactic `≈ᵖ` cannot move the key draw from `send` to
    `poll` (deferred sampling), so the core is a run-level induction.  The call/return
    discipline buys clean composition, not clean probabilistic reasoning — a
-   distributional equivalence on call trees is the next design lever.  Transport to
-   `𝔾ᵒ` waits on the bridge; `νᵂ` is not `Epi` (well-bracketed tests can carry an
-   irrational verdict mass), so the transfer corollary will be conditional.
+   distributional equivalence on call trees is the next design lever.  The pad crosses
+   to PM[wb] (`Examples/SSP/OneTimePad/WB.otp≤idealᵂ`, by `preserves-≤UC`); to `𝔾ᵒ` it
+   waits on the bridge.
 9. **Performance** (resolved): the `UC.Graded` hang after the merges came from
    `UC/Machine/Run.agda:runᴹ-resp-≈ᴹ` being re-derived transparently; made `opaque`
    (>1800 s → 24 s).  Every new module is within budget at `-M3G` (worst 24.8 s);
@@ -98,8 +101,8 @@ escape-hatch baseline unchanged):
 **Decisions pending from the maintainer:**
 
 - **Interaction discipline**: standalone SSP setup (built) vs the `W`-restricted
-  `𝒲 ⊆ 𝔾ᵒ` (built) — both halves exist; the bridge between them is the missing piece.
-  Which one do examples get written in?
+  `𝒲 ⊆ 𝔾ᵒ` (built) — both halves exist and `SSP→PM[wb]` links them, transferring `≤UC`
+  (finding 3).  Which one do examples get written in?
 - **Nondeterminism**: the design is settled (finding 5) and planned
   ([uc-setup-nondeterministic.md](uc-setup-nondeterministic.md) §0): accept SSP's pick-ahead
   `choose`, or do model B in PM (needs `𝔾ᵒ`'s braiding)?  `Abstract2/Regrade` comes first.
@@ -117,7 +120,7 @@ escape-hatch baseline unchanged):
   is yours); `UC.Model.Family` needs >6 GiB to rebuild, which caps parallel agent work.
 
 **In progress** (branches off `uc-setup-landscape`): `ssp-bridge` (𝒲 tensor,
-`SSP→PM[wb]`, transfer corollary), `rs-toolkit` (advantage Δ, composition theorem,
+`SSP→PM[wb]`, transfer corollary; finished by `games-dense`), `rs-toolkit` (advantage Δ, composition theorem,
 hybrid lemma, CC construction notion), `otp-example` (one-time pad in SSP, transported),
 `robust-lemma` (`≤UC ⇔ robust preservation`), plus the performance investigation.
 
