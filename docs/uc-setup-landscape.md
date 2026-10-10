@@ -367,6 +367,9 @@ hypothesised in the first draft are **gone**: `SSP → 𝔾ᵒ` directly, `IPDL 
 | nondeterministic choice | [uc-setup-nondeterministic.md](uc-setup-nondeterministic.md) |
 | robust compilation (theorem, not a setup) | [uc-robust-compilation.md](uc-robust-compilation.md) |
 
+A self-contained mathematical account of the setups, morphisms, non-morphisms and major theorems,
+each linked to its Agda identifier: [uc-models.typ](uc-models.typ).
+
 Shared infrastructure the plans agree on: `Categories.Category.Monoidal.Construction.Quotient`
 (RS, SSP), `freeStrongMonoidal` in `Categories/FreeMonoidal.agda` (ITM, symbolic),
 `transfer⁺` in `Abstract2/Morphism.agda` (symbolic, RS), and the `GradeStable`
