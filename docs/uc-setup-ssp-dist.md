@@ -57,4 +57,4 @@ the identity on protocols and tests, `ν` mono and epi.  With one spelling of th
 Core 51 lines against the run-level 53 (`play`–`perfect`): it buys locality, not length.
 
 Warm checks (`+RTS -M3G -H1G`, one `Checking` line, warning gate empty): Kernel 492 lines 16 s,
-Dist 73 lines 10 s, Laws 81 lines 9 s, Setup 32 lines 12 s, OneTimePad/Dist 95 lines 10 s.
+Dist 73 lines 10 s, Laws 76 lines 10 s, Setup 32 lines 12 s, OneTimePad/Dist 95 lines 10 s.
