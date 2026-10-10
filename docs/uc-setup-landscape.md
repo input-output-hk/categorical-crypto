@@ -55,9 +55,11 @@ escape-hatch baseline unchanged):
    the two-setup version along a `UCSetupMorphism` (`robustᵁ-transfer` needs `ν.Epi` +
    target `GradeStable`; `robustᵁ-reflect` needs `ν.Mono` + full `Φ`); the
    outcome-only version is refuted (`Examples/RelSetup.agda:blind-incomplete`).
-7. **`≤UC` is constructive cryptography's construction notion at ε = 0**
-   (`UC/RandomSystems/Construction.agda:≤UC⇔Constructs₀`), and the ε-version matches
-   `UC/Quantitative/Observed`'s `≈ᵁ[ε]` up to every positive slack.  The random-systems
+7. **`≤UC` is constructive cryptography's construction notion**: at ε = 0
+   (`UC/RandomSystems/Construction.agda:≤UC⇔Constructs₀`) and **exactly at every ε**
+   on the quantitative setup over `𝔾ᴿ` with the closed readout
+   (`UC/RandomSystems/Quantitative.agda:≤UCᴿ[]⇔Constructs`, `≈ᵁᴿ[]⇔∼ᴿ[]`, errors add
+   under composition); `𝔾ᵒ`'s own `≈ᵁ[ε]` matches up to every positive slack.  The random-systems
    toolkit exists: advantage `Δ` with triangle inequality (`Advantage.agda`), Maurer's
    composition theorem at slack ε and the hybrid lemma (`Composition.agda`,
    `Approx/Rational.agda:hybrid`).  Amplification (`maurer2007`) is out of reach: `Dₚ`
