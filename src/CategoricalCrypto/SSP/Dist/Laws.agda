@@ -1,13 +1,8 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The laws of `_≈ᵈ_` (`docs/uc-setup-ssp-dist.md` §3).  Within an activation
--- call trees are compared by `_≈ᵏ_`: a coin tree commutes with any tree whose
--- result it does not feed (`coins-comm`; past a call `coin-call`, past a coin
--- `coin-comm`), an unused coin vanishes (`coin-drop`), and a fair coin may be
--- relabelled by a bijection (`coin-flip`, `coin-xor`); `stepwise` lifts these
--- to protocols.  Across activations, `defer` is deferred sampling: a coin tree
--- drawn into the state where one protocol draws it eagerly is drawn by the
--- other when first used, given one square of call trees per activation.
+-- The laws of `_≈ᵈ_` (`docs/uc-setup-ssp-dist.md` §3): `_≈ᵏ_` laws of call
+-- trees within an activation, which `stepwise` lifts to protocols, and
+-- deferred sampling across activations (`defer`).
 
 module CategoricalCrypto.SSP.Dist.Laws where
 
