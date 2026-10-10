@@ -53,7 +53,8 @@ For a setup 𝕊 = (𝒞, ℐ, ℳ, ℰ) and a lax monoidal functor ι : 𝒥 �
 
   𝕊|ι := (𝒞, 𝒥, ℳ ∘ ι, ℰ),
 
-with the graded monad pulled back (`Categories/Monad/Graded/Pullback.agda:32`, `pullbackM = ∘-Monoidal ℳ ι`):
+with the graded monad pulled back — a graded monad is a lax monoidal functor ℐ → [𝒞, 𝒞] (fujii2016), so this is
+precomposition (`Categories/Monad/Graded/Pullback.agda:32`, `pullbackM = ∘-Monoidal ℳ ι`):
 T′_X = T_{ιX}, sub′_c = sub_{ιc}, η′ = sub_{ι_ε} ∘ η, μ′_{W,X} = sub_{ι₂} ∘ μ_{ιW,ιX}.  Computations, tests
 and the kernel ≈ℰ are 𝕊's; a protocol of 𝕊|ι at grade X *is* a protocol of 𝕊 at grade ιX.  Only the
 adversaries, the simulators and the ancillas are cut down to ι's image.
@@ -275,7 +276,8 @@ record Protocol⁺ (S⃗ : List Set) (A B : Iface) : Set₁        -- `Protocol`
 ```
 
 Notation: for a family k : S → (step trees over one state), ⟨k⟩ is the one-site protocol stepping by
-`choose 0 (λ i → k i …)`, ⟨t⟩ the site-free one stepping by t, and [t₀, t₁] the family on `Fin 2`.
+`choose 0 (λ i → k i …)`, ⟨t⟩ the site-free one stepping by t, and [t₀, t₁] the family on `Fin 2`; in PM
+the same names denote the machines that request a pick and run accordingly.
 
 **Compilation, SSP side: pick-ahead.**
 
@@ -299,7 +301,7 @@ resolve qs (choose i k) with pop i qs
   `flat (Cᴵ S)` the pick is the query.  Only PM proper raises the request online: a machine at grade
   X ⊗ C_S emits ⋆ on C_S⁺ mid-activation and resumes on the pick, the suspended step in its state.  PM
   has no call-tree syntax for that; there, protocols with choices are machines at choice grades.
-- **Who sees what.**  The old global demon saw every coin ⊐ PM online sees that and when a site asks
+- **Who sees what.**  The old global demon (segala1995 §5.2's perfect information) saw every coin ⊐ PM online sees that and when a site asks
   (the header view of canetti2015suc's router, backes2007rsim's "realistic information"), not the coins
   ⊐ SSP pick-ahead sees activation boundaries only (oblivious within an activation) ⊐ a task schedule
   fixed in advance (canetti2006taskpioa).
@@ -487,7 +489,7 @@ A1–A2, L1 over SSP; P1–P2 when PM's online B, or A at PM, is wanted.  Traps:
 ## 7. Sources
 
 **Reused, archived** (`docs/kb/sources/papers/`, each with an `INDEX.md` line and a `refs.bib` entry):
-**segala1995** (§5.2, §5.6: perfect-information schedulers, adversary schemas), **canetti2006taskpioa**
+**segala1995** (§5.2: perfect-information schedulers), **canetti2006taskpioa**
 (abstract, §1: perfect information is too strong for security; task schedules for inessential choices),
 **varacca2006** (§1), **zwart2019nogo** (§1, §3.1, Thms 3.5, 3.12), **bonchi2022** (§4.1–4.2, §5),
 **canetti2015suc** (§1.3, §2.2: the router; delivery when the adversary instructs), **backes2007rsim**
