@@ -88,8 +88,15 @@ open Decorated symData ⟦v⟧ᵒ (ifaceᵒ ∘′ atomᴵ) ℕ leafᵒ public
 ------------------------------------------------------------------------
 -- The observation
 
-eval : HomTerm (Var void) (Var verdict) → Bool → Set
-eval c b = Σ[ ι ∈ (Occ c → ℕ) ] Injective _≡_ _≡_ ι × Obs ⟦ c ⟧[ ι ] ≈ₚ returnₚ b
+-- A record, not a `Σ`: unification then compares circuits, where a definition
+-- would unfold into `_≈ₚ_`'s rationals at every meta (Setup's presheaf ran out
+-- of a 3 GiB heap that way).
+record eval (c : HomTerm (Var void) (Var verdict)) (b : Bool) : Set where
+  constructor named
+  field
+    naming : Occ c → ℕ
+    fresh  : Injective _≡_ _≡_ naming
+    answer : Obs ⟦ c ⟧[ naming ] ≈ₚ returnₚ b
 
 -- A naming of `c′` reads back along the occurrence bijection on the nose; a
 -- naming of `c` only up to `from ∘ to` pointwise, which `⟦⟧[]-cong` absorbs.
@@ -100,17 +107,15 @@ eval-cong {c} {c′} e b = mk⇔ forth back
   open Inverse π
 
   forth : eval c b → eval c′ b
-  forth (ι , inj , o) =
-      ι ∘′ from
-    , (λ eq → trans (sym (strictlyInverseˡ _)) (trans (cong to (inj eq)) (strictlyInverseˡ _)))
-    , (obs-resp (G.Equiv.sym (proj₂ (⟦⟧[]-resp-≈ e) (ι ∘′ from)))
-      ⟨≈⟩ ≡⇒≈ₚ (cong Obs (⟦⟧[]-cong c λ x → cong ι (strictlyInverseʳ x))) ⟨≈⟩ o)
+  forth (named ι inj o) = named (ι ∘′ from)
+    (λ eq → trans (sym (strictlyInverseˡ _)) (trans (cong to (inj eq)) (strictlyInverseˡ _)))
+    (obs-resp (G.Equiv.sym (proj₂ (⟦⟧[]-resp-≈ e) (ι ∘′ from)))
+     ⟨≈⟩ ≡⇒≈ₚ (cong Obs (⟦⟧[]-cong c λ x → cong ι (strictlyInverseʳ x))) ⟨≈⟩ o)
 
   back : eval c′ b → eval c b
-  back (ι , inj , o) =
-      ι ∘′ to
-    , (λ eq → trans (sym (strictlyInverseʳ _)) (trans (cong from (inj eq)) (strictlyInverseʳ _)))
-    , (obs-resp (proj₂ (⟦⟧[]-resp-≈ e) ι) ⟨≈⟩ o)
+  back (named ι inj o) = named (ι ∘′ to)
+    (λ eq → trans (sym (strictlyInverseʳ _)) (trans (cong from (inj eq)) (strictlyInverseʳ _)))
+    (obs-resp (proj₂ (⟦⟧[]-resp-≈ e) ι) ⟨≈⟩ o)
 
 ------------------------------------------------------------------------
 -- Two roles: a tester draws a fresh name, sends it, and answers `true` once
@@ -164,8 +169,8 @@ private
     sent = config zero [] 1 , config zero [] 0
 
     _ : eval circuit true
-    _ = ι , ι-injective
-      , ( runᴹ-resp-≈ᴹ {Ωᴵ} (unprocᵒ-∘ {unitᴵ} {⟦ wire ⟧ᴵ} {Ωᴵ} K u) (ask tt out)
+    _ = named ι ι-injective
+        ( runᴹ-resp-≈ᴹ {Ωᴵ} (unprocᵒ-∘ {unitᴵ} {⟦ wire ⟧ᴵ} {Ωᴵ} K u) (ask tt out)
         ⟨≈⟩ P.collapse ⟨≈⟩ P.observe
         ⟨≈⟩ bindˣ (P.point-red ⟨≈⟩ >>=ₚ-identityˡ _ _ ⟨≈⟩ >>=ₚ-identityˡ _ _)
         ⟨≈⟩ >>=ₚ-identityˡ _ _
