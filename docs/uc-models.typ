@@ -714,7 +714,7 @@ no natural map exists in either direction. Two well-bracketed tests that differ 
 to a reply on the wrong channel agree on every well-bracketed closure but not on an undisciplined
 one; and "monitoring" an arbitrary test is not natural. So #PMwb cannot be reached from #Wio by a
 change of kernel or an image factorisation (@sec:setup-morphisms); the quotient morphism
-$mq : WW → PMwb$ is designed (@sec:designed-morphisms).
+$mq : WW → PMwb$ is formal (@sec:formal-morphisms).
 
 == #SSP: call/return packages <sec:ssp>
 
@@ -1165,8 +1165,8 @@ kernel relation on one computational structure (@thm:refine), not drawn.
     edge(<iso>, <pm>, "-->", label: $mdet$, label-side: right),
     edge(<pm>, <rs>, "->", label: $mrs$),
     edge(<wio>, <pm>, "->", label: $miota$),
-    edge(<ssp>, <pmwb>, "-->", label: $mwb$, label-side: right),
-    edge(<ww>, <pmwb>, "-->", label: $mq$),
+    edge(<ssp>, <pmwb>, "->", label: $mwb$, label-side: right),
+    edge(<ww>, <pmwb>, "->", label: $mq$),
     edge(<nda>, <ndb>, "-->", label: $mincl$, label-side: right),
     edge(<ndb>, <pm>, "-->", label: $≃$, label-side: right),
     edge(<tmx>, <rel>, "-->", label: $mgr$, label-side: right),
@@ -1222,6 +1222,31 @@ mirror isomorphism of port trees #design.
 The inclusion of well-bracketed machines, with the identity test map, Epi and Mono (@prop:iota). It
 preserves and reflects $eqE$; like $mitm$ it transports nothing more, for the same two reasons.
 
+=== $mwb : SSP → PMwb$
+
+#theorem(name: [the call/return bridge])[
+On objects, flattening $A ↦ op("flat") A$; on packages, compilation to a flat protocol (queries
+tagged with their channel, a reply on the wrong channel is an abort) followed by the machine semantics,
+which lands in well-bracketed machines (@thm:wb-closure), then the quotient by $simW$; it is a strong
+monoidal functor because the compiled identity wire is $simW$-equal to the identity and the compiled
+tensor to #PMwb's (both fail at $eqM$, @sec:non-morphisms). The test map sends a distinguisher to its
+compiled test; it is well defined because SSP games are dense among well-bracketed closures: a closure
+from each state, its steps cut at finite depth, is an SSP game, and the verdicts against the cuts
+approximate the closure's from below, uniformly in the test. Compiled distinguishers are likewise dense
+among well-bracketed tests, so $mwb$ preserves $eqE$, and since $mwb$ is the identity on objects it
+preserves $leUC$ without grade stability. In particular the one-time pad (@thm:otp) holds in #PMwb.
+#srcs(cc("SSP/Semantics.agda", 151, "Fᵂ"), cc("SSP/Semantics.agda", 110, "wire≈σ"), cc("SSP/Semantics.agda", 131, "⊗≈⊗"), cc("Protocol/Machine/Oracle.agda", 113, "oracle≈∘"), cc("SSP/Dense.agda", 365, "games-dense"), cc("SSP/Dense.agda", 381, "SSP→PM[wb]"), cc("SSP/Dense/Tests.agda", 460, "tests-dense"), cc("SSP/Dense/Tests.agda", 474, "preserves-≈ℰ"), cc("SSP/Dense/Tests.agda", 489, "preserves-≤UC"), cc("Standard2/Morphism.agda", 97, "surjective⇒preserves-≈ᵁ"), cc("Examples/SSP/OneTimePad/WB.agda", 15, "otp≤idealᵂ"))
+] <def:mwb>
+
+The test map is not known to be Epi, and likely is not: a well-bracketed test can carry an
+irrational verdict mass, a distinguisher only a finite rational one. Preservation needs no Epi: both
+densities serve their quantifier by approximation, not by representation.
+
+=== $mq : WW → PMwb$
+
+The quotient morphism of @prop:quotient(1) at $simW$, with the descended test map.
+#srcs(cc("UC/Bracket/Setup.agda", 155, "q"))
+
 === The generic morphisms, instantiated
 
 Change of kernel $mck$ and the wide-subcategory inclusion $mincl$ (@sec:setup-morphisms) have one
@@ -1229,25 +1254,6 @@ concrete use each: the refinements between each tier and its quantitative family
 (@thm:tiers(3), through @thm:refine) and #NDA $→$ #NDB (@prop:nd-incl, designed).
 
 == Designed morphisms <sec:designed-morphisms>
-
-#definition(name: [$mwb : SSP → PMwb$])[
-#design On objects, flattening $A ↦ op("flat") A$; on packages, compilation to a flat protocol (queries
-tagged with their channel, a reply on the wrong channel is an abort) followed by the machine semantics,
-which lands in well-bracketed machines (@thm:wb-closure), then the quotient by $simW$. The test map
-sends a distinguisher to its compiled well-bracketed test. The two obligations are that the compiled
-identity wire is $simW$-equal to the identity and the compiled tensor $simW$-equal to #PM's tensor —
-both fail at $eqM$ (@sec:non-morphisms), and both are about well-bracketed environments only.
-#srcs(cc("SSP/Compile.agda", 66, "toProtocol"), cc("SSP/Compile.agda", 78, "toProtocol-resp"), cc("SSP/Compile.agda", 108, "toProtocol-∘"), cc("Protocol/Machine.agda", 71, "morphism"), cc("Protocol/Machine/Resp.agda", 119, "morphism-resp"), cc("UC/Bracket.agda", 120, "morphism-W"))
-] <def:mwb>
-
-The test map is not Epi: a well-bracketed test can carry an irrational verdict mass, a distinguisher
-only a finite rational one. So the transport of the one-time pad (@thm:otp) to #PMwb goes through the
-weaker hypothesis that $F$ preserves $eqE$ #srcs(cc("Abstract2/Morphism.agda", 38, "Preserves-≈ℰ")), which
-has to be proved for $mwb$ directly.
-
-*$mq : WW → PMwb$.* The quotient morphism of @prop:quotient(1) at $simW$. The general construction is
-formal; its instance does not type-check in reasonable time (two spellings of one universe level make
-the checker compare two quotient records by eta) #design.
 
 *$mdet : Iso → PM$.* #design Three model changes are needed first: #Iso machines get an initial state
 and $isoM$ must preserve it; determinism (at most one successor) is imposed as a wide subcategory,
@@ -1300,8 +1306,6 @@ None of the following is a setup morphism.
 
 = Open problems <sec:open>
 
-+ _The call/return bridge._ Instantiate $mq$; prove the two obligations of $mwb$; prove that $mwb$
-  preserves $eqE$, and transport the one-time pad to #PMwb.
 + _Non-adaptive equivalence._ $eqB ⇒ eqR$ beyond finite alphabets (@prop:finite; @lochbihler2019cc
   Thm. 2), or a reason to keep $eqR$.
 + _Grade stability_ of #SSP, #RS and #PMwb: neither proved nor refuted.
