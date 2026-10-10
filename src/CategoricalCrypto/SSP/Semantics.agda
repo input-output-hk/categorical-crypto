@@ -7,22 +7,17 @@
 -- closure absorbs the compiled identity `eᵂ` (`absorbᵂ`), so maps that agree
 -- under `eᵂ` on both sides are equal there (`≈-under-eᵂ`), and under `eᵂ` the
 -- compiled identity, tensor and structure maps are `𝒲ᴹ`'s
--- (`UC.Bracket.Monitor`, `UC.Bracket.Relabel`).  Hence `Fᵂ`.  The morphism of
--- setups also needs SSP-indistinguishable tests to stay indistinguishable
--- against every well-bracketed closure, a density fact taken as the parameter
--- of `GamesDense`; the transfer of `≤UC` needs `Preserves-≈ℰ` besides.
+-- (`UC.Bracket.Monitor`, `UC.Bracket.Relabel`).  Hence `Fᵂ`; the morphism of
+-- setups over it is `SSP.Dense.SSP→PM[wb]`.
 
 open import Categories.Category
 open import Categories.Category.Monoidal.Bundle
 open import Categories.Functor.Monoidal
-open import Categories.Functor.Presheaf.Morphism
-open import Categories.NaturalTransformation using (ntHelper)
 open import Categories.NaturalTransformation.NaturalIsomorphism
 
 open import Data.Product.Base
 open import Level
 
-open import CategoricalCrypto.Abstract2.Morphism
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Protocol.Machine.Compose
@@ -32,22 +27,18 @@ open import CategoricalCrypto.SSP.Iface
 open import CategoricalCrypto.SSP.Protocol
 open import CategoricalCrypto.SSP.Protocol.Category
 open import CategoricalCrypto.SSP.Protocol.Monoidal
-open import CategoricalCrypto.Standard2.Morphism
 open import CategoricalCrypto.UC.Bracket
 open import CategoricalCrypto.UC.Bracket.Monitor
 open import CategoricalCrypto.UC.Bracket.Monoidal
 open import CategoricalCrypto.UC.Bracket.Relabel
 open import CategoricalCrypto.UC.Bracket.Setup
 open import CategoricalCrypto.UC.Bracket.Tensor
-open import CategoricalCrypto.UC.Core
 open import CategoricalCrypto.UC.Machine hiding (Ωᴵ)
 open import CategoricalCrypto.UC.Model.Seal
-open import CategoricalCrypto.UCSetup.Morphism
 
 import Categories.Category.Monoidal.Construction.Quotient as Quotient
 import Categories.Morphism as Mor
 import CategoricalCrypto.Machines.Sim as Sim
-import CategoricalCrypto.SSP.Setup as SSP
 
 module CategoricalCrypto.SSP.Semantics where
 
@@ -194,24 +185,3 @@ Fᵂ = record
   unmon : ∀ {A} {Y : G.Obj} {L M : Uᵂ A G.⇒ Y} → L G.≈ M G.∘ proj₁ (eᵂ {A})
         → L G.∘ proj₁ (eᵂ {A}) G.≈ M G.∘ proj₁ (eᵂ {A})
   unmon {A} r = (r ⟩∘⟨refl) ○ G.assoc ○ (refl⟩∘⟨ eᵂ-idem {A})
-
-------------------------------------------------------------------------
--- The morphism of setups, over the density of SSP games
-
-module GamesDense (games-dense : ∀ {A} {D D′ : Protocol A Ωᴵ} → D SSP.≋ D′
-                               → Observable._≋_ (Evaluation.observable evaluationᵂ) ⟦ D ⟧ᵂ ⟦ D′ ⟧ᵂ) where
-
-  νᵂ : PresheafMorphism (StrongMonoidalFunctor.F Fᵂ) SSP.ℰᵖ ℰ[wb]
-  νᵂ = record { ν = ntHelper record
-    { η = λ _ → record { to = ⟦_⟧ᵂ ; cong = games-dense }
-    ; commute = λ {_} {Y} f {D} → Observable.≈⇒≋ (Evaluation.observable evaluationᵂ) {A = Y}
-        {t = ⟦ D ∘ᵖ f ⟧ᵂ} {u = ⟦ D ⟧ᵂ 𝒲ᵂ.∘ ⟦ f ⟧ᵂ} (⟦⟧ᵂ-∘ D f) } }
-
-  SSP→PM[wb] : UCSetupMorphism SSP.StdSetup StdSetup
-  SSP→PM[wb] = StdUCMorphism Protᴹ PM[wb]ᴹ SSP.ℰᵖ ℰ[wb] Fᵂ νᵂ
-
-  -- `Fᵂ` is the identity on objects, so `≈ℰ` crossing suffices
-  -- (`Standard2.Morphism.surjective⇒preserves-≈ᵁ`).
-  ≤UC-transfer : Transfer.Preserves-≈ℰ SSP→PM[wb] → Transfer.Preserves-≤UC SSP→PM[wb]
-  ≤UC-transfer pres = Transfer.transfer⁺ SSP→PM[wb] (surjective⇒preserves-≈ᵁ Protᴹ PM[wb]ᴹ SSP.ℰᵖ ℰ[wb] Fᵂ νᵂ
-    (λ A → A , Mor.≅.refl (MonoidalCategory.U PM[wb]ᴹ)) pres)

@@ -74,10 +74,10 @@ open import CategoricalCrypto.Approx.Small.Controlled
 open import CategoricalCrypto.ITM.Relational
 open import CategoricalCrypto.ITM.Setup
 import CategoricalCrypto.SSP.Compile
+import CategoricalCrypto.SSP.Dense
 import CategoricalCrypto.SSP.Dist.Setup
 import CategoricalCrypto.SSP.Pin
 import CategoricalCrypto.SSP.Reduction
-import CategoricalCrypto.SSP.Semantics
 import CategoricalCrypto.SSP.Setup
 open import CategoricalCrypto.UC.Approximate.LocalTests
 open import CategoricalCrypto.UC.Family.Negligible.Quantitative
