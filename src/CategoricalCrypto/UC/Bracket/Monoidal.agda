@@ -255,29 +255,56 @@ opaque
 Wᵒ : {A B : Iface} → Uᵂ A G.⇒ Uᵂ B → Set₁
 Wᵒ {A} {B} h = Σ[ f ∈ Proc (flat A) (flat B) ] W {A} {B} f × h G.≈ procᵒ f
 
-Wᵒ-id : Wᵒ {A} {A} (G.id {Uᵂ A})
-Wᵒ-id {A} = 𝒫.id {flat A} , id-W , procᵒ-id
+-- The closure proofs are sealed: a well-bracketedness record is a deep
+-- support proof, and a transparent one is unfolded by every comparison of two
+-- `𝒲ᴹ`-terms that are not syntactically equal (`UC.Bracket.Setup.q` ran past
+-- 900 s with them open).  Consumers read a morphism's own witness, never one
+-- of these.
+opaque
+  Wᵒ-id : Wᵒ {A} {A} (G.id {Uᵂ A})
+  Wᵒ-id {A} = 𝒫.id {flat A} , id-W , procᵒ-id
 
-Wᵒ-∘ : ∀ {A B C} {g : Uᵂ B G.⇒ Uᵂ C} {f : Uᵂ A G.⇒ Uᵂ B} → Wᵒ {B} {C} g → Wᵒ {A} {B} f → Wᵒ {A} {C} (g G.∘ f)
-Wᵒ-∘ {A} {B} {C} (g′ , wg , eg) (f′ , wf , ef) =
-    _⊙_ {B = B} {C = C} {A = A} g′ f′
-  , ⊙-W {B = B} {C = C} {A = A} wg wf
-  , G.Equiv.trans (G.∘-resp-≈ eg ef)
-      (G.Equiv.trans (G.Equiv.sym (procᵒ-∘ g′ f′)) (≈ᴹ⇒≈ᵒ (S.⟺ᴹ (⊙≈∘ {B = B} {C = C} {A = A} g′ f′))))
+  Wᵒ-∘ : ∀ {A B C} {g : Uᵂ B G.⇒ Uᵂ C} {f : Uᵂ A G.⇒ Uᵂ B} → Wᵒ {B} {C} g → Wᵒ {A} {B} f → Wᵒ {A} {C} (g G.∘ f)
+  Wᵒ-∘ {A} {B} {C} (g′ , wg , eg) (f′ , wf , ef) =
+      _⊙_ {B = B} {C = C} {A = A} g′ f′
+    , ⊙-W {B = B} {C = C} {A = A} wg wf
+    , G.Equiv.trans (G.∘-resp-≈ eg ef)
+        (G.Equiv.trans (G.Equiv.sym (procᵒ-∘ g′ f′)) (≈ᴹ⇒≈ᵒ (S.⟺ᴹ (⊙≈∘ {B = B} {C = C} {A = A} g′ f′))))
 
-Wᵒ-⊗ : ∀ {A B C D} {f : Uᵂ A G.⇒ Uᵂ B} {g : Uᵂ C G.⇒ Uᵂ D} → Wᵒ {A} {B} f → Wᵒ {C} {D} g
-     → Wᵒ {A ⊗ᴵ C} {B ⊗ᴵ D} (Gᴹ._≅_.from (φ {B} {D}) G.∘ (f G.⊗₁ g) G.∘ Gᴹ._≅_.to (φ {A} {C}))
-Wᵒ-⊗ {A} {B} {C} {D} (f′ , wf , ef) (g′ , wg , eg) =
-    _⊗ʷ_ {A} {B} {C} {D} f′ g′
-  , ⊗ʷ-W wf wg
-  , G.Equiv.trans (G.∘-resp-≈ʳ (G.∘-resp-≈ˡ (G.⊗.F-resp-≈ (ef , eg)))) (⊗-conj f′ g′)
+  Wᵒ-⊗ : ∀ {A B C D} {f : Uᵂ A G.⇒ Uᵂ B} {g : Uᵂ C G.⇒ Uᵂ D} → Wᵒ {A} {B} f → Wᵒ {C} {D} g
+       → Wᵒ {A ⊗ᴵ C} {B ⊗ᴵ D} (Gᴹ._≅_.from (φ {B} {D}) G.∘ (f G.⊗₁ g) G.∘ Gᴹ._≅_.to (φ {A} {C}))
+  Wᵒ-⊗ {A} {B} {C} {D} (f′ , wf , ef) (g′ , wg , eg) =
+      _⊗ʷ_ {A} {B} {C} {D} f′ g′
+    , ⊗ʷ-W wf wg
+    , G.Equiv.trans (G.∘-resp-≈ʳ (G.∘-resp-≈ˡ (G.⊗.F-resp-≈ (ef , eg)))) (⊗-conj f′ g′)
+
+  Wᵒ-λ⇒ : Wᵒ {unitᴵ ⊗ᴵ A} {A} (G.unitorˡ.from G.∘ (Gᴹ._≅_.to υ G.⊗₁ G.id) G.∘ Gᴹ._≅_.to (φ {unitᴵ} {A}))
+  Wᵒ-λ⇒ {A} = λʷ {A} , λʷ-W , λ-wire
+
+  Wᵒ-λ⇐ : Wᵒ {A} {unitᴵ ⊗ᴵ A} (Gᴹ._≅_.from (φ {unitᴵ} {A}) G.∘ (Gᴹ._≅_.from υ G.⊗₁ G.id) G.∘ G.unitorˡ.to)
+  Wᵒ-λ⇐ {A} = λʷ⁻¹ {A} , λʷ⁻¹-W , λ⇐-wire
+
+  Wᵒ-ρ⇒ : Wᵒ {A ⊗ᴵ unitᴵ} {A} (G.unitorʳ.from G.∘ (G.id G.⊗₁ Gᴹ._≅_.to υ) G.∘ Gᴹ._≅_.to (φ {A} {unitᴵ}))
+  Wᵒ-ρ⇒ {A} = ρʷ {A} , ρʷ-W , ρ-wire
+
+  Wᵒ-ρ⇐ : Wᵒ {A} {A ⊗ᴵ unitᴵ} (Gᴹ._≅_.from (φ {A} {unitᴵ}) G.∘ (G.id G.⊗₁ Gᴹ._≅_.from υ) G.∘ G.unitorʳ.to)
+  Wᵒ-ρ⇐ {A} = ρʷ⁻¹ {A} , ρʷ⁻¹-W , ρ⇐-wire
+
+  Wᵒ-α⇒ : Wᵒ {(A ⊗ᴵ B) ⊗ᴵ C} {A ⊗ᴵ (B ⊗ᴵ C)}
+            (Gᴹ._≅_.from (φ {A} {B ⊗ᴵ C}) G.∘ (G.id G.⊗₁ Gᴹ._≅_.from (φ {B} {C})) G.∘ G.associator.from
+             G.∘ (Gᴹ._≅_.to (φ {A} {B}) G.⊗₁ G.id) G.∘ Gᴹ._≅_.to (φ {A ⊗ᴵ B} {C}))
+  Wᵒ-α⇒ {A} {B} {C} = αʷ {A} {B} {C} , αʷ-W , α-wire
+
+  Wᵒ-α⇐ : Wᵒ {A ⊗ᴵ (B ⊗ᴵ C)} {(A ⊗ᴵ B) ⊗ᴵ C}
+            (Gᴹ._≅_.from (φ {A ⊗ᴵ B} {C}) G.∘ (Gᴹ._≅_.from (φ {A} {B}) G.⊗₁ G.id) G.∘ G.associator.to
+             G.∘ (G.id G.⊗₁ Gᴹ._≅_.to (φ {B} {C})) G.∘ Gᴹ._≅_.to (φ {A} {B ⊗ᴵ C}))
+  Wᵒ-α⇐ {A} {B} {C} = αʷ⁻¹ {A} {B} {C} , αʷ⁻¹-W , α⇐-wire
 
 private
   module 𝕋 = Transport 𝔾ᵒ Uᵂ _⊗ᴵ_ unitᴵ (λ {a} {b} → φ {a} {b}) υ
   module 𝕎 = 𝕋.Restriction (λ {a} {b} → Wᵒ {a} {b}) (λ {a} → Wᵒ-id {a}) Wᵒ-∘ Wᵒ-⊗
-    (λ {a} → λʷ {a} , λʷ-W , λ-wire) (λ {a} → λʷ⁻¹ {a} , λʷ⁻¹-W , λ⇐-wire)
-    (λ {a} → ρʷ {a} , ρʷ-W , ρ-wire) (λ {a} → ρʷ⁻¹ {a} , ρʷ⁻¹-W , ρ⇐-wire)
-    (λ {a} {b} {c} → αʷ {a} {b} {c} , αʷ-W , α-wire) (λ {a} {b} {c} → αʷ⁻¹ {a} {b} {c} , αʷ⁻¹-W , α⇐-wire)
+    (λ {a} → Wᵒ-λ⇒ {a}) (λ {a} → Wᵒ-λ⇐ {a}) (λ {a} → Wᵒ-ρ⇒ {a}) (λ {a} → Wᵒ-ρ⇐ {a})
+    (λ {a} {b} {c} → Wᵒ-α⇒ {a} {b} {c}) (λ {a} {b} {c} → Wᵒ-α⇐ {a} {b} {c})
 
 𝒲ᴹ : MonoidalCategory (suc 0ℓ) (suc 0ℓ) (suc 0ℓ)
 𝒲ᴹ = 𝕎.transport
