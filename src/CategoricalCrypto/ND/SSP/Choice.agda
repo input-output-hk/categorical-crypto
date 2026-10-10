@@ -51,6 +51,7 @@ private variable
 
 ------------------------------------------------------------------------
 -- Choice interfaces
+------------------------------------------------------------------------
 
 Cᴵ : Set → Iface
 Cᴵ S = record { Ch = ⊤ ; Q = const S ; R = const ⊤ ; Ch-dec = DecEq-⊤ }
@@ -106,6 +107,7 @@ join-split (S ∷ S⃗) T⃗ (inj₂ c) = trans (shift (ch (split S⃗ T⃗) c))
 
 ------------------------------------------------------------------------
 -- Call trees with choices
+------------------------------------------------------------------------
 
 data Calls⁺ (A : Iface) (S⃗ : List Set) (X : Set) : Set where
   ret    : X → Calls⁺ A S⃗ X
@@ -161,6 +163,7 @@ data _≈ᶜ⁺_ {A : Iface} {S⃗ : List Set} {X : Set} : Calls⁺ A S⃗ X →
 
 ------------------------------------------------------------------------
 -- Protocols with choices
+------------------------------------------------------------------------
 
 record Protocol⁺ (S⃗ : List Set) (A B : Iface) : Set₁ where
   field St   : Set
@@ -220,6 +223,7 @@ _≈⁺_ = EqC.EqClosure _≲⁺_
 
 ------------------------------------------------------------------------
 -- Pick-ahead compilation
+------------------------------------------------------------------------
 
 Queues : List Set → Set
 Queues []      = ⊤

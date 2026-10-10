@@ -41,6 +41,7 @@ private variable
 
 ------------------------------------------------------------------------
 -- The queues of a concatenation
+------------------------------------------------------------------------
 
 splitQ : (S⃗ T⃗ : List Set) → Queues (S⃗ ++ T⃗) → Queues S⃗ × Queues T⃗
 splitQ []      T⃗ qs       = tt , qs
@@ -92,6 +93,7 @@ private
 
 ------------------------------------------------------------------------
 -- The regrouping is invertible
+------------------------------------------------------------------------
 
 split∘join : (S⃗ T⃗ : List Set) → ⌜ split S⃗ T⃗ ⌝ ∘ᵖ ⌜ join S⃗ T⃗ ⌝ ≈ᵖ wireᵖ
 split∘join []      T⃗ = ≲⇒≈ᵖ (≲ᵖ-const λ _ _ _ → ≈ᶜ-refl)
@@ -136,6 +138,7 @@ unsplit S⃗ T⃗ = begin
 
 ------------------------------------------------------------------------
 -- Composition
+------------------------------------------------------------------------
 
 module _ (g : Protocol⁺ T⃗ B C) (f : Protocol⁺ S⃗ A B) where
 
@@ -207,9 +210,7 @@ module _ (g : Protocol⁺ T⃗ B C) (f : Protocol⁺ S⃗ A B) where
 
 ------------------------------------------------------------------------
 -- Tensor
-
-interchangeᴵ : (A ⊗ᴵ B) ⊗ᴵ (C ⊗ᴵ D) ⇒ᴵ (A ⊗ᴵ C) ⊗ᴵ (B ⊗ᴵ D)
-interchangeᴵ = αᴵ⁻¹ ∘ᴵ (idᴵ ⊗ᴵᴵ (αᴵ ∘ᴵ (swapᴵ ⊗ᴵᴵ idᴵ) ∘ᴵ αᴵ⁻¹)) ∘ᴵ αᴵ
+------------------------------------------------------------------------
 
 module _ (P : Protocol⁺ S⃗ A B) (P′ : Protocol⁺ T⃗ C D) where
 

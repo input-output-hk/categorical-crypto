@@ -17,7 +17,7 @@ open import Categories.Functor.Core using (Functor)
 
 open import Data.List.Base using (List; _++_)
 open import Data.Maybe.Base as Maybe using (Maybe; just; nothing; maybe′)
-open import Data.Maybe.Properties using (just-injective)
+open import Data.Maybe.Properties using (just-injective; map-∘)
 open import Data.Maybe.Relation.Binary.Pointwise as Pointwise using (Pointwise; just; nothing)
 open import Data.Product.Base
 open import Data.Sum.Base using (inj₁; inj₂)
@@ -42,15 +42,14 @@ private variable
 target : Maybe (Σ K F) → Maybe K
 target = Maybe.map proj₁
 
-target-map : {G : K → Set} {g : ∀ {k} → F k → G k} (y : Maybe (Σ K F)) → target (Maybe.map (map₂ g) y) ≡ target y
-target-map nothing  = refl
-target-map (just _) = refl
-
-map-just : {f : X → Y} (m : Maybe X) {y : Y} → Maybe.map f m ≡ just y → Σ[ x ∈ X ] m ≡ just x × f x ≡ y
-map-just (just x) refl = x , refl , refl
+private
+  map-just⁻¹ : {f : X → Y} (m : Maybe X) {y : Y}
+             → Maybe.map f m ≡ just y → Σ[ x ∈ X ] m ≡ just x × f x ≡ y
+  map-just⁻¹ (just x) refl = x , refl , refl
 
 ------------------------------------------------------------------------
 -- Relabellings
+------------------------------------------------------------------------
 
 infix 4 _⇝_
 
@@ -68,10 +67,12 @@ just (k , r) ▷ ρ = Maybe.map (map₂ (_∘ r)) (route ρ k)
 ▷-inv : (x : Maybe (Σ[ k ∈ Ch Cᴵ⟦ T⃗ ⟧ ] (P → Q Cᴵ⟦ T⃗ ⟧ k))) (ρ : T⃗ ⇝ U⃗) {l : Ch Cᴵ⟦ U⃗ ⟧}
       → target (x ▷ ρ) ≡ just l → Σ[ k ∈ Ch Cᴵ⟦ T⃗ ⟧ ] target x ≡ just k × target (route ρ k) ≡ just l
 ▷-inv nothing        ρ ()
-▷-inv (just (k , r)) ρ e = k , refl , trans (sym (target-map (route ρ k))) e
+▷-inv (just (k , r)) ρ e = k , refl , trans (map-∘ (route ρ k)) e
 
 idʳ : S⃗ ⇝ S⃗
-idʳ = record { route = λ i → just (i , id) ; injective = λ e e′ → trans (just-injective e) (sym (just-injective e′)) }
+idʳ = record
+  { route     = λ i → just (i , id)
+  ; injective = λ e e′ → trans (just-injective e) (sym (just-injective e′)) }
 
 infixr 9 _∘ʳ_
 _∘ʳ_ : T⃗ ⇝ U⃗ → S⃗ ⇝ T⃗ → S⃗ ⇝ U⃗
@@ -129,7 +130,8 @@ open _≈ʳ_ public
   ...     | nothing = nothing
   ...     | just _  = just ≐-refl
 
-∘ʳ-resp-≈ʳ : {ρ₁ ρ₂ : T⃗ ⇝ U⃗} {ρ₁′ ρ₂′ : S⃗ ⇝ T⃗} → ρ₁ ≈ʳ ρ₂ → ρ₁′ ≈ʳ ρ₂′ → ρ₁ ∘ʳ ρ₁′ ≈ʳ ρ₂ ∘ʳ ρ₂′
+∘ʳ-resp-≈ʳ : {ρ₁ ρ₂ : T⃗ ⇝ U⃗} {ρ₁′ ρ₂′ : S⃗ ⇝ T⃗}
+           → ρ₁ ≈ʳ ρ₂ → ρ₁′ ≈ʳ ρ₂′ → ρ₁ ∘ʳ ρ₁′ ≈ʳ ρ₂ ∘ʳ ρ₂′
 ∘ʳ-resp-≈ʳ {T⃗ = T⃗} {ρ₁ = ρ₁} {ρ₂} e e′ = mk≈ʳ λ i → go (pointwise e′ i)
   where
   go : {P : Set} {x y : Maybe (Σ[ k ∈ Ch Cᴵ⟦ T⃗ ⟧ ] (P → Q Cᴵ⟦ T⃗ ⟧ k))}
@@ -161,15 +163,18 @@ module _ {S⃗ T⃗ S⃗′ T⃗′ : List Set} (ρ : S⃗ ⇝ T⃗) (ρ′ : S�
   -- A site of the juxtaposition, by the side `split` puts it on.
   route-++ : (x : Ch (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧))
            → Maybe (Σ[ l ∈ Ch Cᴵ⟦ T⃗ ++ T⃗′ ⟧ ] (Q (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧) x → Q Cᴵ⟦ T⃗ ++ T⃗′ ⟧ l))
-  route-++ (inj₁ i) = Maybe.map (λ (k , r) → ch (join T⃗ T⃗′) (inj₁ k) , qu (join T⃗ T⃗′) {inj₁ k} ∘ r) (route ρ i)
-  route-++ (inj₂ j) = Maybe.map (λ (k , r) → ch (join T⃗ T⃗′) (inj₂ k) , qu (join T⃗ T⃗′) {inj₂ k} ∘ r) (route ρ′ j)
+  route-++ (inj₁ i) =
+    Maybe.map (λ (k , r) → ch (join T⃗ T⃗′) (inj₁ k) , qu (join T⃗ T⃗′) {inj₁ k} ∘ r) (route ρ i)
+  route-++ (inj₂ j) =
+    Maybe.map (λ (k , r) → ch (join T⃗ T⃗′) (inj₂ k) , qu (join T⃗ T⃗′) {inj₂ k} ∘ r) (route ρ′ j)
 
   private
     τ : Ch (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧) → Maybe (Ch (Cᴵ⟦ T⃗ ⟧ ⊗ᴵ Cᴵ⟦ T⃗′ ⟧))
     τ (inj₁ i) = Maybe.map inj₁ (target (route ρ i))
     τ (inj₂ j) = Maybe.map inj₂ (target (route ρ′ j))
 
-    target-route : (x : Ch (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧)) → target (route-++ x) ≡ Maybe.map (ch (join T⃗ T⃗′)) (τ x)
+    target-route : (x : Ch (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧))
+                 → target (route-++ x) ≡ Maybe.map (ch (join T⃗ T⃗′)) (τ x)
     target-route (inj₁ i) with route ρ i
     ... | nothing = refl
     ... | just _  = refl
@@ -177,23 +182,28 @@ module _ {S⃗ T⃗ S⃗′ T⃗′ : List Set} (ρ : S⃗ ⇝ T⃗) (ρ′ : S�
     ... | nothing = refl
     ... | just _  = refl
 
-    from : ∀ {c l} → target (Maybe.map (map₂ (_∘ qu (split S⃗ S⃗′) {c})) (route-++ (ch (split S⃗ S⃗′) c))) ≡ just l
+    from : ∀ {c l}
+         → target (Maybe.map (map₂ (_∘ qu (split S⃗ S⃗′) {c})) (route-++ (ch (split S⃗ S⃗′) c))) ≡ just l
          → Maybe.map (ch (join T⃗ T⃗′)) (τ (ch (split S⃗ S⃗′) c)) ≡ just l
     from {c} e = trans (sym (target-route (ch (split S⃗ S⃗′) c)))
-                       (trans (sym (target-map (route-++ (ch (split S⃗ S⃗′) c)))) e)
+                       (trans (map-∘ (route-++ (ch (split S⃗ S⃗′) c))) e)
 
     τ-injective : ∀ {x x′ y} → τ x ≡ just y → τ x′ ≡ just y → x ≡ x′
     τ-injective {inj₁ i} {inj₁ i′} e e′ =
-      let (k , eₖ , ek) = map-just (target (route ρ i)) e ; (k′ , eₖ′ , ek′) = map-just (target (route ρ i′)) e′
+      let (k , eₖ , ek)    = map-just⁻¹ (target (route ρ i)) e
+          (k′ , eₖ′ , ek′) = map-just⁻¹ (target (route ρ i′)) e′
       in cong inj₁ (injective ρ eₖ (trans eₖ′ (cong just (inj₁-injective (trans ek′ (sym ek))))))
     τ-injective {inj₂ j} {inj₂ j′} e e′ =
-      let (k , eₖ , ek) = map-just (target (route ρ′ j)) e ; (k′ , eₖ′ , ek′) = map-just (target (route ρ′ j′)) e′
+      let (k , eₖ , ek)    = map-just⁻¹ (target (route ρ′ j)) e
+          (k′ , eₖ′ , ek′) = map-just⁻¹ (target (route ρ′ j′)) e′
       in cong inj₂ (injective ρ′ eₖ (trans eₖ′ (cong just (inj₂-injective (trans ek′ (sym ek))))))
     τ-injective {inj₁ i} {inj₂ j′} e e′ =
-      let (k , _ , ek) = map-just (target (route ρ i)) e ; (k′ , _ , ek′) = map-just (target (route ρ′ j′)) e′
+      let (_ , _ , ek)  = map-just⁻¹ (target (route ρ i)) e
+          (_ , _ , ek′) = map-just⁻¹ (target (route ρ′ j′)) e′
       in case trans ek (sym ek′) of λ ()
     τ-injective {inj₂ j} {inj₁ i′} e e′ =
-      let (k , _ , ek) = map-just (target (route ρ′ j)) e ; (k′ , _ , ek′) = map-just (target (route ρ i′)) e′
+      let (_ , _ , ek)  = map-just⁻¹ (target (route ρ′ j)) e
+          (_ , _ , ek′) = map-just⁻¹ (target (route ρ i′)) e′
       in case trans ek (sym ek′) of λ ()
 
   infixr 6 _++ʳ_
@@ -201,8 +211,8 @@ module _ {S⃗ T⃗ S⃗′ T⃗′ : List Set} (ρ : S⃗ ⇝ T⃗) (ρ′ : S�
   _++ʳ_ = record
     { route     = λ c → Maybe.map (map₂ (_∘ qu (split S⃗ S⃗′))) (route-++ (ch (split S⃗ S⃗′) c))
     ; injective = λ {c} {c′} e e′ →
-        let (y , eτ , ey)    = map-just (τ (ch (split S⃗ S⃗′) c)) (from e)
-            (y′ , eτ′ , ey′) = map-just (τ (ch (split S⃗ S⃗′) c′)) (from e′)
+        let (y , eτ , ey)    = map-just⁻¹ (τ (ch (split S⃗ S⃗′) c)) (from e)
+            (y′ , eτ′ , ey′) = map-just⁻¹ (τ (ch (split S⃗ S⃗′) c′)) (from e′)
             y≡y′ = trans (sym (split-join T⃗ T⃗′ y))
                          (trans (cong (ch (split T⃗ T⃗′)) (trans ey (sym ey′))) (split-join T⃗ T⃗′ y′))
         in trans (sym (join-split S⃗ S⃗′ c))
@@ -211,6 +221,7 @@ module _ {S⃗ T⃗ S⃗′ T⃗′ : List Set} (ρ : S⃗ ⇝ T⃗) (ρ′ : S�
 
 ------------------------------------------------------------------------
 -- The SSP wires
+------------------------------------------------------------------------
 
 ack : Protocol unitᴵ (Cᴵ S)
 ack = record { St = ⊤ ; init = tt ; step = λ _ _ _ → ret (tt , tt) }
@@ -251,7 +262,8 @@ relabelᴵ {S⃗} {T⃗} ρ = record
 ⌈⌉ʳ-∘ : (ρ′ : T⃗ ⇝ U⃗) (ρ : S⃗ ⇝ T⃗) → ⌈ ρ′ ∘ʳ ρ ⌉ʳ ≲ᵖ ⌈ ρ ⌉ʳ ∘ᵖ ⌈ ρ′ ⌉ʳ
 ⌈⌉ʳ-∘ {T⃗} {U⃗} {S⃗} ρ′ ρ = ≲ᵖ-const λ _ i p → go i p (route ρ i)
   where
-  go : (i : Ch Cᴵ⟦ S⃗ ⟧) (p : Q Cᴵ⟦ S⃗ ⟧ i) (x : Maybe (Σ[ k ∈ Ch Cᴵ⟦ T⃗ ⟧ ] (Q Cᴵ⟦ S⃗ ⟧ i → Q Cᴵ⟦ T⃗ ⟧ k)))
+  go : (i : Ch Cᴵ⟦ S⃗ ⟧) (p : Q Cᴵ⟦ S⃗ ⟧ i)
+       (x : Maybe (Σ[ k ∈ Ch Cᴵ⟦ T⃗ ⟧ ] (Q Cᴵ⟦ S⃗ ⟧ i → Q Cᴵ⟦ T⃗ ⟧ k)))
      → mapᶜ (map₁ (const (tt , tt))) (forward (tt⟦ S⃗ ⟧ i) (x ▷ ρ′) p)
        ≈ᶜ graft ⌈ ρ ⌉ʳ ⌈ ρ′ ⌉ʳ (forward (tt⟦ S⃗ ⟧ i) x p) tt
   go i p nothing        = ret refl
@@ -264,8 +276,8 @@ relabelᴵ {S⃗} {T⃗} ρ = record
   where
   go : {B : Iface} (y : Y) (p : P) {x x′ : Maybe (Σ[ k ∈ Ch B ] (P → Q B k))} → Pointwise _≐_ x x′
      → mapᶜ (map₁ (const tt)) (forward {B = B} y x p) ≈ᶜ forward y x′ p
-  go y p nothing                         = ret refl
-  go y p (just (fibre {r = r} {r′} h)) rewrite h p = call λ _ → ret refl
+  go y p nothing                       = ret refl
+  go y p (just (fibre h)) rewrite h p = call λ _ → ret refl
 
 ⌈−⌉ʳ : Functor (Category.op Alph) Prot
 ⌈−⌉ʳ = record
