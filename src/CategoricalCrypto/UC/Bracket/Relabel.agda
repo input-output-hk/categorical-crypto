@@ -8,15 +8,15 @@
 -- images to `𝒲ᴹ`'s structural wires.
 --
 -- `UC.Machine.Wire.wire-∘ᴹ` absorbs the wire, so no trace is unrolled.  The
--- two waiting states store different continuations, equal only pointwise, so
--- without funext neither side simulates the other: both are simulated out of a
--- machine whose state is the open call's channel, if any (the technique of
--- `Protocol.Machine.Resp`).
+-- two waiting states store different continuations, related only pointwise
+-- through `up`, so without funext neither side simulates the other: both are
+-- simulated out of a machine whose state is the open call's channel, if any
+-- (the technique of `Protocol.Machine.Resp`).
 
 open import Categories.Category
 
 open import Class.DecEq
-open import Data.Maybe.Base using (Maybe; just; nothing)
+open import Data.Maybe.Base
 open import Data.Product.Base
 open import Data.Sum.Base as Sum using (_⊎_; inj₁; inj₂)
 open import Data.Unit.Base
@@ -65,31 +65,27 @@ module _ (f : A ⇒ᴵ B) (up : Σ (Ch B) (R B) → Σ (Ch A) (R A)) (down : Σ 
     monitor : Flat.Protocol (flat B) (flat B)
     monitor = toProtocol ⦃ Ch-dec B ⦄ (wireᵖ {B})
 
-    Out : Set
-    Out = Maybe (Ch A) × (Σ (Ch B) (Q B) ⊎ Σ (Ch A) (R A))
-
-    answerʳ : {c′ : Ch B} (c : Ch A) → Dec (c′ ≡ ch f c) → R B c′ → Dₚ Out
+    answerʳ : {c′ : Ch B} (c : Ch A) → Dec (c′ ≡ ch f c) → R B c′
+            → Dₚ (Maybe (Ch A) × (Σ (Ch B) (Q B) ⊎ Σ (Ch A) (R A)))
     answerʳ c (yes refl) r = returnₚ (nothing , inj₂ (c , re f r))
     answerʳ c (no _)     _ = botₚ
 
-    stepʳ : Maybe (Ch A) × (Σ (Ch B) (R B) ⊎ Σ (Ch A) (Q A)) → Dₚ Out
-    stepʳ (nothing , inj₂ (c , q))  = returnₚ (just c , inj₁ (ch f c , qu f q))
-    stepʳ (just c  , inj₁ (c′ , r)) = answerʳ c (_≟_ ⦃ Ch-dec B ⦄ c′ (ch f c)) r
-    stepʳ (nothing , inj₁ _)        = botₚ
-    stepʳ (just _  , inj₂ _)        = botₚ
-
     machineʳ : Proc (flat B) (flat A)
-    machineʳ = MC.mk (initˢ (Maybe (Ch A)) nothing) stepʳ
+    machineʳ = MC.mk (initˢ (Maybe (Ch A)) nothing) λ where
+      (nothing , inj₂ (c , q))  → returnₚ (just c , inj₁ (ch f c , qu f q))
+      (just c  , inj₁ (c′ , r)) → answerʳ c (_≟_ ⦃ Ch-dec B ⦄ c′ (ch f c)) r
+      (nothing , inj₁ _)        → botₚ
+      (just _  , inj₂ _)        → botₚ
 
     π : Maybe (Ch A) → MSt relabel
     π nothing  = idle tt
     π (just c) = wait λ x → reply {A = B} ⦃ Ch-dec B ⦄ (_≟_ ⦃ Ch-dec B ⦄ (proj₁ x) (ch f c)) (proj₂ x)
-                                  λ r → Flat.ret (tt , c , re f r)
+                              λ r → Flat.ret (tt , c , re f r)
 
     π′ : Maybe (Ch A) → MSt monitor
     π′ nothing  = idle tt
     π′ (just c) = wait λ x → reply {A = B} ⦃ Ch-dec B ⦄ (_≟_ ⦃ Ch-dec B ⦄ (proj₁ x) (ch f c)) (proj₂ x)
-                                   λ r → Flat.ret (tt , ch f c , r)
+                               λ r → Flat.ret (tt , ch f c , r)
 
     answer-π : {c′ : Ch B} (c : Ch A) (d : Dec (c′ ≡ ch f c)) (r : R B c′)
              → (answerʳ c d r >>=ₚ Pw.padϕ π)
@@ -99,11 +95,12 @@ module _ (f : A ⇒ᴵ B) (up : Σ (Ch B) (R B) → Σ (Ch A) (R A)) (down : Σ 
 
     answer-π′ : {c′ : Ch B} (c : Ch A) (d : Dec (c′ ≡ ch f c)) (r : R B c′)
               → (answerʳ c d r >>=ₚ Pw.padϕ π′)
-                ≈ₚ mapₚ (λ q → proj₁ q , Sum.map (λ a → a) up (proj₂ q))
+                ≈ₚ mapₚ (map₂ (Sum.map (λ a → a) up))
                         (drive monitor (reply {A = B} ⦃ Ch-dec B ⦄ d r λ r → Flat.ret (tt , ch f c , r)))
     answer-π′ c (yes refl) r =
       >>=ₚ-identityˡ (nothing , inj₂ (c , re f r)) (Pw.padϕ π′)
-      ⟨≈⟩ ≈sym (>>=ₚ-identityˡ (idle tt , inj₂ (ch f c , r)) _ ⟨≈⟩ ret≡ (cong (λ y → idle tt , inj₂ y) (up-ok c r)))
+      ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ (idle tt , inj₂ (ch f c , r)) _
+               ⟨≈⟩ ret≡ (cong (λ y → idle tt , inj₂ y) (up-ok c r)))
     answer-π′ c (no _)     _ = bot-bind-≈ₚ (Pw.padϕ π′) ⟨≈⟩ ≈sym (bot-bind-≈ₚ _)
 
     π-sim : machineʳ S.≲ morphism relabel
@@ -117,8 +114,7 @@ module _ (f : A ⇒ᴵ B) (up : Σ (Ch B) (R B) → Σ (Ch A) (R A)) (down : Σ 
     π′-sim = Pw.simFn π′ (λ _ → >>=ₚ-identityˡ nothing _) λ where
       (nothing , inj₂ (c , q))  →
         >>=ₚ-identityˡ (just c , inj₁ (ch f c , qu f q)) (Pw.padϕ π′)
-        ⟨≈⟩ ≈sym ( ≡⇒≈ₚ (cong (λ n → mapₚ (λ q → proj₁ q , Sum.map (λ a → a) up (proj₂ q))
-                                           (stepᴹ monitor (idle tt , inj₂ n)))
+        ⟨≈⟩ ≈sym ( ≡⇒≈ₚ (cong (λ n → mapₚ (map₂ (Sum.map (λ a → a) up)) (stepᴹ monitor (idle tt , inj₂ n)))
                               (down-ok c q))
                  ⟨≈⟩ >>=ₚ-identityˡ (π′ (just c) , inj₁ (ch f c , qu f q)) _)
       (just c  , inj₁ (c′ , r)) → answer-π′ c (_≟_ ⦃ Ch-dec B ⦄ c′ (ch f c)) r
@@ -133,20 +129,22 @@ module _ (f : A ⇒ᴵ B) (up : Σ (Ch B) (R B) → Σ (Ch A) (R A)) (down : Σ 
 ------------------------------------------------------------------------
 -- At the structural maps of `Protᴹ`
 
-λ-relabel : 𝒫._≈_ {flat (unitᴵ ⊗ᴵ A)} {flat A} (morphism (toProtocol ⦃ Ch-dec (unitᴵ ⊗ᴵ A) ⦄ ⌜ ι₂ {B = A} {A = unitᴵ} ⌝))
+λ-relabel : 𝒫._≈_ {flat (unitᴵ ⊗ᴵ A)} {flat A}
+              (morphism (toProtocol ⦃ Ch-dec (unitᴵ ⊗ᴵ A) ⦄ ⌜ ι₂ {B = A} {A = unitᴵ} ⌝))
               (𝒫._∘_ {flat (unitᴵ ⊗ᴵ A)} {flat (unitᴵ ⊗ᴵ A)} {flat A} (λʷ {A})
                 (morphism (toProtocol ⦃ Ch-dec (unitᴵ ⊗ᴵ A) ⦄ (wireᵖ {unitᴵ ⊗ᴵ A}))))
-λ-relabel {A} = relabel≈ (ι₂ {B = A} {A = unitᴵ}) dropΣˡ addΣˡ (λ _ _ → refl) (λ _ _ → refl)
+λ-relabel = relabel≈ ι₂ dropΣˡ addΣˡ (λ _ _ → refl) (λ _ _ → refl)
 
-ρ-relabel : 𝒫._≈_ {flat (A ⊗ᴵ unitᴵ)} {flat A} (morphism (toProtocol ⦃ Ch-dec (A ⊗ᴵ unitᴵ) ⦄ ⌜ ι₁ {A = A} {B = unitᴵ} ⌝))
+ρ-relabel : 𝒫._≈_ {flat (A ⊗ᴵ unitᴵ)} {flat A}
+              (morphism (toProtocol ⦃ Ch-dec (A ⊗ᴵ unitᴵ) ⦄ ⌜ ι₁ {A = A} {B = unitᴵ} ⌝))
               (𝒫._∘_ {flat (A ⊗ᴵ unitᴵ)} {flat (A ⊗ᴵ unitᴵ)} {flat A} (ρʷ {A})
                 (morphism (toProtocol ⦃ Ch-dec (A ⊗ᴵ unitᴵ) ⦄ (wireᵖ {A ⊗ᴵ unitᴵ}))))
-ρ-relabel {A} = relabel≈ (ι₁ {A = A} {B = unitᴵ}) dropΣʳ addΣʳ (λ _ _ → refl) (λ _ _ → refl)
+ρ-relabel = relabel≈ ι₁ dropΣʳ addΣʳ (λ _ _ → refl) (λ _ _ → refl)
 
 α-relabel : 𝒫._≈_ {flat ((A ⊗ᴵ B) ⊗ᴵ C)} {flat (A ⊗ᴵ (B ⊗ᴵ C))}
               (morphism (toProtocol ⦃ Ch-dec ((A ⊗ᴵ B) ⊗ᴵ C) ⦄ ⌜ αᴵ⁻¹ {A} {B} {C} ⌝))
               (𝒫._∘_ {flat ((A ⊗ᴵ B) ⊗ᴵ C)} {flat ((A ⊗ᴵ B) ⊗ᴵ C)} {flat (A ⊗ᴵ (B ⊗ᴵ C))} (αʷ {A} {B} {C})
                 (morphism (toProtocol ⦃ Ch-dec ((A ⊗ᴵ B) ⊗ᴵ C) ⦄ (wireᵖ {(A ⊗ᴵ B) ⊗ᴵ C}))))
-α-relabel {A} {B} {C} = relabel≈ (αᴵ⁻¹ {A} {B} {C}) assocΣʳ assocΣˡ
+α-relabel = relabel≈ αᴵ⁻¹ assocΣʳ assocΣˡ
   (λ where (inj₁ _) _ → refl ; (inj₂ (inj₁ _)) _ → refl ; (inj₂ (inj₂ _)) _ → refl)
   (λ where (inj₁ _) _ → refl ; (inj₂ (inj₁ _)) _ → refl ; (inj₂ (inj₂ _)) _ → refl)
