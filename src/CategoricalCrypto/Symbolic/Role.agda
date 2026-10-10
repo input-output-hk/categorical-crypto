@@ -14,21 +14,21 @@ open import CategoricalCrypto.Symbolic.Term
 module CategoricalCrypto.Symbolic.Role (𝔖 : Signature) where
 
 open import Categories.FreeMonoidal
-open import Data.Bool.Base using (Bool; if_then_else_)
+open import Data.Bool.Base
 open import Data.Empty
-open import Data.Fin.Base using (Fin)
-open import Data.List.Base using (List; []; _∷_; _++_)
+open import Data.Fin.Base
+open import Data.List.Base
 open import Data.List.Membership.Propositional
-open import Data.List.Membership.Propositional.Properties using (∈-++⁺ˡ; ∈-++⁺ʳ; ∈-++⁻)
-open import Data.List.Relation.Unary.All using (All; []; _∷_)
-open import Data.List.Relation.Unary.All.Properties using (++⁺)
-open import Data.List.Relation.Unary.Any using (here; there)
-open import Data.Nat.Base using (ℕ; suc)
+open import Data.List.Membership.Propositional.Properties
+open import Data.List.Relation.Unary.All
+open import Data.List.Relation.Unary.All.Properties
+open import Data.List.Relation.Unary.Any
+open import Data.Nat.Base
 open import Data.Product
 open import Data.Sum.Base
 open import Data.Unit
 open import Function.Base using (_∘_)
-open import Relation.Binary.Definitions using (DecidableEquality)
+open import Relation.Binary.Definitions
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
 open import Relation.Unary using (∅; _⊆_)

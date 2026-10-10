@@ -10,12 +10,12 @@ open import CategoricalCrypto.Symbolic.Term
 
 module CategoricalCrypto.Symbolic.Deduction (𝔖 : Signature) (E : EqTheory 𝔖) where
 
-open import Data.List.Base using (List; []; _∷_)
+open import Data.List.Base using (List)
 open import Data.List.Membership.Propositional
-open import Data.List.Relation.Unary.All using (All; []; _∷_; lookup)
+open import Data.List.Relation.Unary.All
 open import Data.List.Relation.Unary.Any using (there)
 open import Data.Product
-open import Function.Bundles using (_⇔_; mk⇔)
+open import Function.Bundles
 open import Relation.Unary using (_⊆_)
 
 open Signature 𝔖

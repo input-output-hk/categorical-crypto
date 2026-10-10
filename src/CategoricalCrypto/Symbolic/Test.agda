@@ -6,14 +6,14 @@
 module CategoricalCrypto.Symbolic.Test where
 
 open import Categories.FreeMonoidal
-open import Data.Bool.Base using (true; false)
-open import Data.Fin.Base using (zero)
-open import Data.List.Base using ([]; _∷_)
-open import Data.List.Relation.Unary.All using ([]; _∷_)
-open import Data.List.Relation.Unary.Any using (here; there)
+open import Data.Bool.Base
+open import Data.Fin.Base
+open import Data.List.Base
+open import Data.List.Relation.Unary.All
+open import Data.List.Relation.Unary.Any
 open import Data.Product
 open import Data.Unit
-open import Function.Bundles using (Equivalence)
+open import Function.Bundles
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
 open import Relation.Unary using (∅)

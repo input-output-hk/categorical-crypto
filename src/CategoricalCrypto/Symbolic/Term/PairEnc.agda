@@ -9,8 +9,8 @@
 module CategoricalCrypto.Symbolic.Term.PairEnc where
 
 open import Data.Empty
-open import Data.List.Base using (List; []; _∷_)
-open import Data.List.Relation.Unary.All using (All; []; _∷_)
+open import Data.List.Base
+open import Data.List.Relation.Unary.All
 open import Data.Nat
 open import Data.Nat.Induction
 open import Data.Product
@@ -21,7 +21,7 @@ open import Induction.WellFounded
 open import Relation.Binary.Construct.Closure.Equivalence using (EqClosure; symmetric)
 open import Relation.Binary.Construct.Closure.ReflexiveTransitive
 open import Relation.Binary.Construct.Closure.Symmetric using (fwd; bwd)
-open import Relation.Binary.Definitions using (DecidableEquality)
+open import Relation.Binary.Definitions
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
 open import Relation.Nullary.Decidable

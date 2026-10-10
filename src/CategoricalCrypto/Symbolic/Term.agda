@@ -12,7 +12,7 @@ open import Axiom.UniquenessOfIdentityProofs
 open import Data.Empty
 open import Data.List.Base using (List; []; _∷_; _++_)
 open import Data.List.Membership.Propositional
-open import Data.List.Relation.Unary.All using (All; []; _∷_; lookup)
+open import Data.List.Relation.Unary.All
 open import Data.List.Relation.Unary.Any using (here; there)
 open import Data.Maybe
 open import Data.Maybe.Properties using (just-injective)
@@ -21,7 +21,7 @@ open import Data.Product
 open import Data.Product.Properties
 open import Data.Unit
 open import Function.Base
-open import Level using (0ℓ)
+open import Level
 open import Relation.Binary using (DecidableEquality; Decidable; IsEquivalence; Setoid)
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
@@ -76,7 +76,6 @@ module Terms (𝔖 : Signature) where
   names* []       = []
   names* (t ∷ ts) = names t ++ names* ts
 
-  -- Componentwise predicates and relations on tuples of terms.
   data Each (P : ∀ {s} → Tm s → Set) : ∀ {ss} → All Tm ss → Set where
     []  : Each P []
     _∷_ : {t : Tm s} {ts : All Tm ss} → P t → Each P ts → Each P (t ∷ ts)
