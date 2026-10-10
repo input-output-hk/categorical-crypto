@@ -74,7 +74,7 @@ open import CategoricalCrypto.Approx.Small.Controlled
 open import CategoricalCrypto.ITM.Relational
 open import CategoricalCrypto.ITM.Setup
 import CategoricalCrypto.SSP.Compile
-import CategoricalCrypto.SSP.Dense
+import CategoricalCrypto.SSP.Dense.Tests
 import CategoricalCrypto.SSP.Dist.Setup
 import CategoricalCrypto.SSP.Pin
 import CategoricalCrypto.SSP.Reduction
@@ -103,6 +103,7 @@ open import CategoricalCrypto.Examples.Commitment
 open import CategoricalCrypto.Examples.Signatures
 open import CategoricalCrypto.Examples.RandomOracle
 import CategoricalCrypto.Examples.SSP.OneTimePad.Dist
+import CategoricalCrypto.Examples.SSP.OneTimePad.WB
 open import CategoricalCrypto.Examples.HashForward.Audit
 open import CategoricalCrypto.Examples.RelSetup
 open import CategoricalCrypto.Examples.CoinToss.Compose
