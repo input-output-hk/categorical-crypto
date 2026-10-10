@@ -53,6 +53,11 @@ mass-nn n d = cum-nn n d _ λ _ → 0≤1ℚ
 mass-≤1 : (n : ℕ) (d : Dₚ A) → mass n d ℚ.≤ 1ℚ
 mass-≤1 n d = cum-≤1 n d _ λ _ → ≤-refl
 
+-- A constant non-negative test scores at most itself.
+cum-const-≤ : (n : ℕ) (d : Dₚ A) {r : ℚ} → 0ℚ ℚ.≤ r → cum n d (λ _ → r) ℚ.≤ r
+cum-const-≤ n d {r} 0≤r = ≤-trans (≤-reflexive (cum-const n d r))
+  (≤-trans (*-monoʳ-≤-nonNeg r ⦃ ℚ.nonNegative 0≤r ⦄ (mass-≤1 n d)) (≤-reflexive (*-identityˡ r)))
+
 verdict-mass : (n : ℕ) (d : Dₚ Bool) → Pr≤[ true ] n d ℚ.+ Pr≤[ false ] n d ≡ mass n d
 verdict-mass n d = trans (sym (cum-add n d (indᵇ true) (indᵇ false)))
                          (cum-cong-P n d _ (λ _ → 1ℚ) λ { true → +-identityʳ 1ℚ ; false → +-identityˡ 1ℚ })

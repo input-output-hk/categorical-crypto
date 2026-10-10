@@ -44,7 +44,7 @@ open import ProbabilisticLogic.Distribution.RationalDist.Expectation
 open import ProbabilisticLogic.Distribution.Uniform using (indᵇ; indᵇ-nn)
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Coin
-open import ProbabilisticLogic.Dp.Mass using (mass-≤1)
+open import ProbabilisticLogic.Dp.Mass using (cum-const-≤)
 open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Abstract2.Morphism
@@ -93,12 +93,11 @@ private variable A : Iface
 -- A closure's games, and a compiled test's tree
 
 -- A closure has nothing below it.
-private
-  e⁺ : ¬ Σ (Ch unitᴵ) (R unitᴵ)
-  e⁺ (() , _)
+e⁺ : ¬ Σ (Ch unitᴵ) (R unitᴵ)
+e⁺ (() , _)
 
-  e⁻ : ¬ Σ (Ch unitᴵ) (Q unitᴵ)
-  e⁻ (() , _)
+e⁻ : ¬ Σ (Ch unitᴵ) (Q unitᴵ)
+e⁻ (() , _)
 
 -- An answer on `c′` to a call on `c`.
 replyᵍ : {S : Set} {c c′ : Ch A} → Dec (c′ ≡ c) → S → R A c′ → Calls unitᴵ (S × R A c)
@@ -349,10 +348,6 @@ module _ {D D′ : Protocol A Ωᴵ} (agree : D SSP.≋ D′) (m : unitᴵ 𝒲�
       let j , h = above D′ m̂ n s (indᵇ b) (indᵇ-nn b) (step D′ (init D′) tt tt) s
       in suc j , ≤-trans (≤-reflexive (pr-ev D′ n s)) (≤-trans h (≤-reflexive (sym (mapₚ-cum j verd _ (indᵇ b)))))
 
-    slack : (n : ℕ) → cum n pt (λ _ → ε) ℚ.≤ ε
-    slack n = ≤-trans (≤-reflexive (cum-const n pt ε))
-              (≤-trans (*-monoʳ-≤-nonNeg ε ⦃ ℚ.nonNegative (<⇒≤ pos) ⦄ (mass-≤1 n pt)) (≤-reflexive (*-identityˡ ε)))
-
   dense≼ : Dom (indᵇ b) ε (Obsᵂ (⟦ D ⟧ᵂ 𝒲ᵂ.∘ m)) (Obsᵂ (⟦ D′ ⟧ᵂ 𝒲ᵂ.∘ m))
   dense≼ k =
     let k₁ , le₁ = proj₁ (obs-oracle D m) (indᵇ b) (indᵇ-nn b) k
@@ -365,7 +360,7 @@ module _ {D D′ : Protocol A Ωᴵ} (agree : D SSP.≋ D′) (m : unitᴵ 𝒲�
        (≤-trans (>>=ₚ-boundA k₁ pt (readᴰ D) (indᵇ b) (indᵇ-nn b))
        (≤-trans (cum-mono-P k₁ pt (λ s → cum k₁ (readᴰ D s) (indᵇ b)) (λ s → pr D′ k₁ s ℚ.+ ε) (below-slack k₁))
        (≤-trans (≤-reflexive (cum-add k₁ pt (pr D′ k₁) (λ _ → ε)))
-       (≤-trans (+-mono-≤ (cum-mono-Supp k₁ pt (pr D′ k₁) (λ s → cum J (readᴰ D′ s) (indᵇ b)) sp) (slack k₁))
+       (≤-trans (+-mono-≤ (cum-mono-Supp k₁ pt (pr D′ k₁) (λ s → cum J (readᴰ D′ s) (indᵇ b)) sp) (cum-const-≤ k₁ pt (<⇒≤ pos)))
                 (+-monoˡ-≤ ε (≤-trans (>>=ₚ-boundB k₁ J pt (readᴰ D′) (indᵇ b) (indᵇ-nn b)) le₂))))))
 
 games-dense : {D D′ : Protocol A Ωᴵ} → D SSP.≋ D′
