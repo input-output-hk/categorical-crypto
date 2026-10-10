@@ -159,7 +159,11 @@ module _ {B : Iface} {f g : Closed B} (sim : f S.≲ g) where
   run-sim : (d : Strat (Neg B) (Pos B)) → runᴹ f d ≈ₚ runᴹ g d
   run-sim d = runᴹ≈runˢ f d ⟨≈⟩ runˢ-sim sim (closeˢ d) ⟨≈⟩ ≈sym (runᴹ≈runˢ g d)
 
-runᴹ-resp-≈ᴹ : {B : Iface} {f g : Closed B} → f S.≈ᴹ g
-             → (d : Strat (Neg B) (Pos B)) → runᴹ f d ≈ₚ runᴹ g d
-runᴹ-resp-≈ᴹ {f = f} {g} e d =
-  runᴹ≈runˢ f d ⟨≈⟩ runˢ-resp-≈ᴹ e (closeˢ d) ⟨≈⟩ ≈sym (runᴹ≈runˢ g d)
+-- Opaque: it is the readouts' `cong` (`UC.Machine`, `UC.Model.Observation`),
+-- which importers' conversions unfold; transparent, `UC.Graded.≤UC[]ᵍ` ran past
+-- 30 min (RS plan §6, step 2).
+opaque
+  runᴹ-resp-≈ᴹ : {B : Iface} {f g : Closed B} → f S.≈ᴹ g
+               → (d : Strat (Neg B) (Pos B)) → runᴹ f d ≈ₚ runᴹ g d
+  runᴹ-resp-≈ᴹ {f = f} {g} e d =
+    runᴹ≈runˢ f d ⟨≈⟩ runˢ-resp-≈ᴹ e (closeˢ d) ⟨≈⟩ ≈sym (runᴹ≈runˢ g d)
