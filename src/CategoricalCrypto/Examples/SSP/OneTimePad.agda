@@ -13,8 +13,12 @@
 -- syntax, and the key is drawn at Alice's send where a simulator can draw only
 -- at Eve's poll.  The two packages agree at every distinguisher by a deferred
 -- sampling (`fresh`, `pending`, `revealed`, with the pad's bijection
--- `uniform-flip` at Eve's poll), which `≈ᵍ⇒≈ᵁ` reads as ≈ᵁ.  See
--- `docs/examples-ssp-otp.md`.
+-- `uniform-flip` at Eve's poll), which `≈ᵍ⇒≈ᵁ` reads as ≈ᵁ.
+--
+-- Not here: the transport to protocol-model's well-bracketed quotient,
+-- `Fᵂ otp ≤UC Fᵂ ideal` from `otp≤ideal` along `SSP→PM[wb]`, and its
+-- random-systems image, which needs the statement in PM itself since
+-- `rewrite⇒RS` starts there.  See `docs/examples-ssp-otp.md`.
 
 module CategoricalCrypto.Examples.SSP.OneTimePad where
 
