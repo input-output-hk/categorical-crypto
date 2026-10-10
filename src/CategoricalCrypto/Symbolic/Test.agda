@@ -1,8 +1,8 @@
-{-# OPTIONS --safe --without-K #-}
+{-# OPTIONS --safe --without-K --guardedness #-}
 
 -- Checks of the symbolic layers over `comonlundhcortier2008`'s Σ₀: normal
 -- forms, the decided theory, deducibility both ways, the alphabets as the
--- interfaces the semantics reads, and one role run.
+-- interfaces the semantics reads, one role run, and E in the kernel of `Sym`.
 
 module CategoricalCrypto.Symbolic.Test where
 
@@ -24,7 +24,9 @@ open import CategoricalCrypto.Symbolic.Term
 open import CategoricalCrypto.Symbolic.Term.PairEnc
 
 import CategoricalCrypto.Symbolic.Deduction as Deduction
+import CategoricalCrypto.Symbolic.Fine Σ₀ as Fine
 import CategoricalCrypto.Symbolic.Role as Role
+import CategoricalCrypto.Symbolic.Setup Σ₀ E₀ as Setup
 
 open Deduction Σ₀ E₀
 open EqTheory E₀
@@ -92,3 +94,21 @@ private
 
   _ : Known (m ∷ [] , Own 7) (proj₂ (step 7 encrypter (init encrypter) (here refl ↦ m)))
   _ = emits⊢ 7 encrypter [] (here refl ↦ m)
+
+  echo : Role (Var void) wire
+  echo = record
+    { n = 1 ; Γ = λ _ → [] ; start = zero ; fresh = refl
+    ; react = λ where
+        zero (here refl) _ → emit zero [] (here refl) (var (here refl))
+        zero (there ())  _
+    }
+
+  echo-π₁ : Reactions echo
+  echo-π₁ zero (here refl) _ = emit zero [] (here refl) (π₁ ⟪ var (here refl) , var (here refl) ⟫)
+  echo-π₁ zero (there ())  _
+
+  -- Answering `π₁ ⟪ x , x ⟫` is answering `x`, up to the kernel.
+  _ : Fine.var (tt , tt , echo) Setup.Sym.≈ℰ Fine.var (tt , tt , record echo { react = echo-π₁ })
+  _ = Setup.emit-≈E echo λ where
+        zero (here refl) _ → emit (λ _ → []) (λ _ → refl)
+        zero (there ())  _

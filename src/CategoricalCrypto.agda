@@ -22,7 +22,7 @@
 -- (Blum coin-tossing over it, both corruptions, to an ideal coin —
 -- `docs/coin-toss.md`).  Tests:
 -- `GamePlaying.Test`, `Protocol.Machine.Pin`, `SFunM.Test.Possibility`,
--- `UC.Machine.MonitorTests`, `UC.Machine.StateEvent.HitTests`.
+-- `Symbolic.Test`, `UC.Machine.MonitorTests`, `UC.Machine.StateEvent.HitTests`.
 -- Outside, checked per file through their leaves: `Examples.ChimericLedger`
 -- (`Transfer`, `Serialize`), `Examples.MerkleDamgard` (`Pin`, `QueryBound`,
 -- which imports the protocol and so cannot be wired into it) and the
@@ -79,6 +79,7 @@ import CategoricalCrypto.SSP.Dist.Setup
 import CategoricalCrypto.SSP.Pin
 import CategoricalCrypto.SSP.Reduction
 import CategoricalCrypto.SSP.Setup
+import CategoricalCrypto.Symbolic.Test
 open import CategoricalCrypto.UC.Approximate.LocalTests
 open import CategoricalCrypto.UC.Family.Negligible.Quantitative
 open import CategoricalCrypto.UC.Family.Quantitative

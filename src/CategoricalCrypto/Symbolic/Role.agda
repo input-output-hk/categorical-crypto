@@ -7,7 +7,8 @@
 -- — guards modulo E, fresh names, then one emission and a jump — and names
 -- enter a role only through `new`.  `Run.emits⊢`: whatever a role emits is
 -- deducible from what it received and its own names, so roles are DY deducers.
--- See docs/uc-setup-symbolic.md §3.3.
+-- What a role emits and stores is canonical, so programs equal modulo E run
+-- alike (`Run.exec-≈E`).  See docs/uc-setup-symbolic.md §3.3.
 
 open import CategoricalCrypto.Symbolic.Term
 
@@ -277,7 +278,6 @@ module Run (E : EqTheory 𝔖) where
     Γ : Fin n → List Sort
     O : List Kind
 
-  -- What a role emits and stores is canonical (`EqTheory.canon`).
   canonᵛ : ∀ {k} → Value k → Value k
   canonᵛ {msg _} t = canon t
   canonᵛ {flag}  b = b
@@ -355,7 +355,6 @@ module Run (E : EqTheory 𝔖) where
            → Known (received (inp ∷ hist) , Own κ) (proj₂ (step κ p (after hist) inp))
     emits⊢ hist (i ↦ v) = proj₂ (step⊢ κ p i v (after⊢ hist))
 
-  -- Values equal modulo E.
   _≈ᵛ_ : ∀ {k} → Value k → Value k → Set
   _≈ᵛ_ {msg _} = _≈E_
   _≈ᵛ_ {flag}  = _≡_
@@ -381,7 +380,6 @@ module Run (E : EqTheory 𝔖) where
     canonᵛ-cong {flag}  e = e
     canonᵛ-cong {tick}  _ = refl
 
-  -- E-equal programs run alike: what they emit and store is canonical.
   exec-≈E : ∀ {κ} {t t′ : React n Γ O Δ} → ReactE t t′ → ∀ φ j → exec κ t φ j ≡ exec κ t′ φ j
   exec-≈E (test {ζ₁ = ζ₁} {ζ₁′} {ζ₂} {ζ₂′} e₁ e₂ rt re) φ j with ζ₁ ⟨ φ ⟩ ≟E ζ₁′ ⟨ φ ⟩ | ζ₂ ⟨ φ ⟩ ≟E ζ₂′ ⟨ φ ⟩
   ... | yes _ | yes _ = exec-≈E rt φ j
