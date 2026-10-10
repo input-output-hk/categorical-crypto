@@ -20,11 +20,14 @@ of one standard setup along a functor of grades, and A → B is the inclusion.
    for every ι; otherwise the U-kernels differ (the unit at PM, `Examples/RegradeUnit.agda`) and ≤UC is
    not preserved [INFERENCE, §1.3(e)].  ι full ⇒ reflected, with no other hypothesis.  The dual of
    `Abstract2/WideSubcategory.agda`; causal boxes' `regrade` is its `inclusion`.
-2. **ND_B** (§2) = Std(𝕄)|ι_B over designated grades X ⊗ C_{S₁} ⊗ … ⊗ C_{Sₙ}, n ≥ 0, built by the
-   existing `Construction/Transport`; ι_B is full and essentially surjective, so ND_B has Std(𝕄)'s ≤UC.
-3. **ND_A** (§3) = ND_B|incl, incl the wide inclusion of the grade morphisms u ⊗ ⌈ρ⌉, ρ a relabelling.
-4. **A → B** (§4) is `inclusion` at incl: it preserves ≤UC for all f, g (one U-kernel) and does not
-   reflect it.  Undesignation B → A is a section; nothing inverts the inclusion on designated grades.
+2. **ND_B** (§2, built: `ND/Grade.agda`, at SSP `ND/SSP/Setup.agda`) = Std(𝕄)|ι_B over designated grades
+   X ⊗ C_{S₁} ⊗ … ⊗ C_{Sₙ}, n ≥ 0, built by `Construction/Transport`; ι_B is full and essentially
+   surjective, so ND_B has Std(𝕄)'s ≤UC (`≤UC-B⇔≤UC`).
+3. **ND_A** (§3, built: `ND/A.agda`) = ND_B|incl, incl the wide inclusion of the grade morphisms
+   u ⊗ ⌈ρ⌉, ρ a relabelling (`Transport.weaken`).
+4. **A → B** (§4) is `inclusion` at incl: it preserves ≤UC for all f, g (one U-kernel; built, `A⇒B`) and
+   does not reflect it [INFERENCE].  Undesignation B → A is a section; nothing inverts the inclusion on
+   designated grades.
 
 **Findings against uc-models §4.**  (a) *SSP cannot raise the request* (§2.4): its grade is called,
 never calling, and a step cannot suspend.  SSP compiles `choose` *pick-ahead* — picks pushed on
@@ -218,7 +221,7 @@ module Between (ι′ : MonoidalFunctor 𝒥′ ℐ) (j : MonoidalFunctor 𝒥 �
 Objects (X, S⃗) ∈ Ob 𝕄 × List Set, ⌊X, S⃗⌋ := X ⊗ C⟦S⃗⟧ with C⟦[]⟧ = I and C⟦S ∷ S⃗⟧ = C_S ⊗ C⟦S⃗⟧;
 (X, S⃗) ⊕ (Y, T⃗) := (X ⊗ Y, S⃗ ++ T⃗), unit (I, []).  𝒢_B has all 𝕄-morphisms between the images.  The
 tree already builds such a category: `Categories/Category/Monoidal/Construction/Transport.agda`,
-`Restriction.transport` at R = ⊤ (`:183-211`), with ι_B = `transportF` (`:213`, strong, ⊗-homo φ),
+`Restriction.transport` at R = ⊤ (`ND/Grade.agda`'s `closedB`), with ι_B = `transportF` (strong, ⊗-homo φ),
 given isos
 
   φ : ⌊X,S⃗⌋ ⊗ ⌊Y,T⃗⌋ ≅ ⌊X ⊗ Y, S⃗ ++ T⃗⌋   (associators, one braiding component σ_{C⟦S⃗⟧,Y}, then
@@ -227,7 +230,8 @@ given isos
 **ND_B := Std(𝕄, ℰ)|ι_B** = `regraded (StdUC.StdSetup 𝕄 ℰ) ι_B`.  ι_B is full (R = ⊤), essentially
 surjective ((X, []) ↦ X ⊗ I ≅ X) and strong, so by §1.3 (b), (c), (f) ≤UC in ND_B *is* ≤UC in Std(𝕄)
 on choice-graded protocols: uc-models' "ND_B is Std(𝕄) itself, with choice factors named", as an
-instance of the theorem.  The designation matters only to ND_A (§3).
+instance of the theorem.  The designation matters only to ND_A (§3).  **Built**: `ND/Grade.agda`
+(`𝒢B`, `ιB`, `NDB`, `≤UC-B⇔≤UC`), at SSP `ND/SSP/Setup.agda` (`NDB`, `≤UC-B⇔≤UC`).
 
 ### 2.3 Where the braiding is needed
 
@@ -236,8 +240,13 @@ instance of the theorem.  The designation matters only to ND_A (§3).
   associators only, and B ≃ Std(𝕄) anyway.
 - **A: naturality and the hexagon.**  𝒢_A's closure under ⊗ᵗ is
   (u ⊗ ⌈ρ⌉) ⊗ᵗ (u′ ⊗ ⌈ρ′⌉) ≈ (u ⊗ u′) ⊗ ⌈ρ ++ ρ′⌉, naturality of σ against an arbitrary u′ and a
-  relabelling; the transported associator being α ⊗ (identity relabelling) is the hexagon.  Without a
-  braiding an adversary of a composite could not act on X and Y jointly across C⟦S⃗⟧.
+  relabelling; the transported structure maps are 𝕄's tensored with a regrouping of C⟦_⟧, by the
+  interchange's unit and associativity laws (the hexagon): λᵗ = λ ⊗ id, ρᵗ = ρ ⊗ `unit++` and
+  αᵗ = α ⊗ `assoc++`, where `unit++`, `assoc++` regroup along S⃗ ++ [] = S⃗ and (S⃗ ++ T⃗) ++ U⃗ =
+  S⃗ ++ (T⃗ ++ U⃗), which hold only propositionally.  *Correction:* the plan had αᵗ = α ⊗ (identity
+  relabelling); it is the reassociating relabelling, a bijective wire (`Relabel.wireʳ`), so
+  `ND.A.Relabelling` asks for relabellings realising both regroupings.  Without a braiding an
+  adversary of a composite could not act on X and Y jointly across C⟦S⃗⟧.
 - **SSP has it**: `Protˢ` (`SSP/Protocol/Monoidal.agda:277`), braiding `⌜ swapᴵ ⌝`, naturality
   `⌜⌝-natσ` (`:222`, brzuska2018 Lemma 3).
 - **PM does not.**  `Machines/Base.agda` exports symmetry only on the Mealy base (`𝒱ₚ` `:77`, `ℳₚ`
@@ -373,7 +382,8 @@ answers.  `⌈−⌉ʳ : Functor (Category.op Alph) Prot` (`⌈⌉ʳ-id`, `⌈�
 𝒢_A := `Restriction.transport` at R f := Σ (u , ρ). f ≈ u ⊗ ⌈ρ⌉, u : X → Y arbitrary: wide in 𝒢_B,
 and on the choice part the image of 𝕄 × Alphᵒᵖ (uc-models' 𝓘 × Alphᵒᵖ).  Obligations: R-id, R-∘
 (⌈−⌉ functorial), R-⊗ and R-α/λ/ρ (§2.3).  incl : 𝒢_A → 𝒢_B is the identity on objects and strict:
-`Restriction.weaken` (R ⊆ R′ ⇒ strict inclusion), a new lemma in `Transport.agda`.
+`weaken` (R ⊆ R′ ⇒ strict inclusion), top level in `Transport.agda`.  **Built**: `ND/A.agda` (`closedA`,
+`𝒢A`, `incl`, `NDA`), at SSP `ND/SSP/Setup.agda`.
 
 **ND_A := ND_B|incl** = `regraded ND_B incl`; `pullback-∘-*` relate it to Std(𝕄)|(ι_B ∘ incl) if a
 direct form is wanted.
@@ -391,29 +401,36 @@ in advance.  An unanswered request blocks one side only, so sites must match thr
 
 ### 3.4 Order independence
 
-For one site and π : S ≃ S, ⌈⟨k ∘ π⟩⌉ ≈ᵖ sub_{id ⊗ ⌈π⌉} ∘ ⌈⟨k⟩⌉: the simulation maps the queue by π
-[INFERENCE].  This is a hom-equality after a relabelling.  At π = swap, ⟨[t_AB, t_BA]⟩ and
-⟨[t_BA, t_AB]⟩ ("A then B" against "B then A") emulate each other in A, with the swap of the two picks
-as simulator (uc-models §4); hence in B (§4) and, by `UC-compose`, in every context.  "The order does not
+For one site and π : S → S, ⌈⟨k ∘ π⟩⌉ ≈ᵖ sub_{⌈π⌉} ∘ ⌈⟨k⟩⌉: the simulation maps the queue by π (built,
+`Laws.permute`, any π, not only bijections; read at grade (I, S⃗) the simulator is id ⊗ ⌈π⌉, `at-sub`).
+This is a hom-equality after a relabelling.  At π = swap, ⟨[t_AB, t_BA]⟩ and ⟨[t_BA, t_AB]⟩ ("A then B"
+against "B then A") are equal after swapping the picks (built, `Laws.Swap.swap-ᵖ`), so they emulate each
+other in A with the swap as simulator (uc-models §4; `relabel-≤UC` gives it, not landed for its
+elaboration cost, §6 L1); hence in B (§4) and, by `UC-compose`, in every context.  "The order does not
 matter" is the stronger, grade-preserving ⌈⟨k⟩⌉ ≈ᵖ ⌈⟨const k₀⟩⌉.  As in the old plan's `OrderSpec`, it
 is a statement about the composite with the actual callee, since calls on different channels do not
-commute for an order-sensitive importer.  It is proved per reachable state (ssp.md §4.3's technique).
+commute for an order-sensitive importer: built for two counters (`Laws.Callee.either-order`), in general
+per reachable state (ssp.md §4.3's technique) [INFERENCE].
 
 ## 4. The morphism A → B, and the way back
 
 **A → B is §1's `inclusion`** for 𝕊 = ND_B and ι = incl: (Id, incl, id, `idᵛ`).  incl is bijective on
 objects and strict, so §1.3(b) holds with φ = id: ≈ᵁ_A is literally ≈ᵁ_B (the same grade objects, hence
 the same ancillas, prefix contexts and tests — uc-models' proof idea).  By (c), **f ≤UC_A g ⇒ f ≤UC_B g
-for all f, g graded in 𝒢_A**, with the same dummy simulator u ⊗ ⌈ρ⌉; composed with B → Std(𝕄)
-(`composeᵁ`) it reaches Std(𝕄).  Every A-proof — order independence, refinements by relabelling — is a
-B-proof with the same simulator, and this one edge is what relates the two models.  §1.3(d) is neither
-needed nor available (PM is not grade-stable; SSP is not known to be).
+for all f, g graded in 𝒢_A**, with the same dummy simulator u ⊗ ⌈ρ⌉ (built: `ND.A.A⇒B`, `Preserves.
+unrestrict-≤UC` at r = id; at SSP `ND.SSP.Setup.A⇒B`, and `A⇒SSP` composes it with `≤UC-B⇔≤UC` down to
+SSP's ≤UC).  Every A-proof — order independence, refinements by relabelling — is a B-proof with the same
+simulator, and this one edge is what relates the two models.  §1.3(d) is neither needed nor available
+(PM is not grade-stable; SSP is not known to be).
 
 **It does not reflect** (incl is not full, §1.3(g)).  Witnesses: (i) *flattening*: ⟨λ i → choose 0 (k i)⟩,
 two picks from one site per activation, against the one-site protocol on S × S stepping by the pair.
 They are B-equivalent through a simulator that buffers two real picks and passes the pair (or splits
 one), and not A-related, since a relabelling forwards one pick per pick, statelessly [INFERENCE; PM and
-SSP alike].  (ii) In PM, ⟨t₀⟩ ≤UC_B ⟨[t₀, t₁]⟩ (§2.5) while ⟨t₀⟩ ≰UC_A ⟨[t₀, t₁]⟩ (§3.3).
+SSP alike].  (ii) In PM, ⟨t₀⟩ ≤UC_B ⟨[t₀, t₁]⟩ (§2.5) while ⟨t₀⟩ ≰UC_A ⟨[t₀, t₁]⟩ (§3.3).  At SSP (ii) is
+unavailable — SSP-B cannot feed the ideal queue (§2.5's caveat) — and (i) is the candidate: its B-half is
+one simulation (buffer one pick), its A-half a case split over ρ : [S] ⇝ [S × S] with a computed
+distinguishing run.  Not built [INFERENCE].
 
 **The way back.**
 
@@ -452,13 +469,16 @@ about ⌈−⌉.
 - Row 2 is new.  Under the old global demon `coin-unit` and choose/coin commutation were non-laws (a
   demon saw the toss: CE0, CE1); under pick-ahead `choose` reads the queue, which no coin or reply
   feeds.  With a pick queued the two trees are ≈ᶜ; with none, one dies after the coin or call and the
-  other before it: `coin-drop` (the coin half is built, `coin-choose-ᵈ`, §5.3), and a "`dead` absorbs
-  a call" square [INFERENCE].  In PM a request's position within an activation is observable, so the
+  other before it: `coin-drop` (built, `coin-choose-ᵈ`, §5.3), and "`dead` absorbs a call" (built,
+  `call-dead`; so `call-choose-ᵈ`).  In PM a request's position within an activation is observable, so the
   row holds there only for requests raised on every branch [INFERENCE].
 - Idempotence: in A an unanswered site hangs one side only; in PM-B the simulator answers the ideal's
   request invisibly (⟨t⟩ ≤ ⟨const t⟩) but cannot raise the real one's; in SSP-B the simulator is never
   activated, and the real side dies on an empty queue.  Flattening's B rows and both idempotence
   verdicts are [INFERENCE].
+- Built at SSP (`ND/SSP/Laws.agda`, `Choice/Dist.agda`): row 1 `congruence`; row 2 `coin-choose-ᵈ`,
+  `call-choose-ᵈ`; row 3 `permute`, `Swap.swap-ᵖ` (the A-mutual emulation from it is not landed, §6 L1);
+  row 4 `collapse`, against a callee `Callee.either-order`.  Rows 5–6 are not built.
 
 ### 5.2 `P ∥ Q` (kept)
 
@@ -495,13 +515,13 @@ integrator's.  Paths are under `src/`.
 | # | module | delivers | acceptance |
 |---|---|---|---|
 | G1 | `CategoricalCrypto/Abstract2/Regrade.agda` | §1.5: `regraded`, `inclusion`, `≈ᵁ⇒≈ᵁ\|ι`, `restrict-≤UC`, `Preserves`, `regraded-gs`, `unrestrict-≤UC-gs`, `Between` | **built** (`62661834`): at ι = `idF-Monoidal ℐ`, `inclusion`'s `F`, `Φ`, `κ`, `ν.η` are `idᵁ 𝕊`'s by `refl` (`Abstract2/Regrade/Pin.agda`); `Trivial.to`/`from` |
-| G2 | `Categories/Category/Monoidal/Construction/Transport.agda` | `Restriction.weaken` | **not built** — §1 does not need it; build it with A2.  `module Restriction R …` cannot name its own instance at R′, so: pack the ten closure proofs as `record Closed R` (`R-id` … `R-α⇐`), take `module Restriction (R) (c : Closed R)`, and add top-level `weaken : Closed R → Closed R′ → (∀ {a b} {f : U a ⇒ U b} → R f → R′ f) → StrongMonoidalFunctor (Restriction.transport R c) (Restriction.transport R′ c′)`, identity on objects with identity comparisons (laws by `⊗ᵗ-identity`).  This changes the call at `UC/Bracket/Monoidal.agda:305`; re-check `UC/Bracket/*` and `SSP/Semantics` on |
+| G2 | `Categories/Category/Monoidal/Construction/Transport.agda` | `Closed`, `Restriction`, `weaken` | **built** (`fac92543`): the nine closure proofs packed as `record Closed R` (`R-id` … `R-α⇐`), `module Restriction (R) (c : Closed R)`, top-level `weaken : Closed R → Closed R′ → (R f → R′ f) → StrongMonoidalFunctor (transport R c) (transport R′ c′)`, identity on objects with identity comparisons (laws by `⊗ᵗ-identity`).  The call at `UC/Bracket/Monoidal.agda:305` passes a `Closed` record (still three lines, so `uc-models.typ`'s line links hold); `UC/Bracket/*`, `SSP/Semantics`, `SSP/Dense`, `SSP/Dense/Tests`, `Examples/SSP/OneTimePad/WB` re-checked |
 | G3 (opt.) | `CategoricalCrypto/Examples/RegradeUnit.agda`, `Abstract2/Regrade/Unit.agda`, `Graded.Trivial.unitᴹ` | §1.3(e) at PM | **partial** (`07cac1f6`): `reveal-≤UC|𝟙` (r_true ≤UC\|ι r_false) and `reveal-≉ᵁ` (¬ r_true ≈ᵁ r_false) built; ¬ (r_true ≤UC r_false) needs a scalar's run (§1.3(e)) |
-| B1 | `CategoricalCrypto/ND/Grade.agda` | over a `SymmetricMonoidalCategory` and `C : Set → Obj`: `Grade`, `⌊_⌋`, φ, υ, `𝒢B`, `ιB`, `NDB`, ≤UC_B ⇔ ≤UC (G1) | instantiated at `Protˢ`, `Cᴵ` |
+| B1 | `CategoricalCrypto/ND/Grade.agda` | over a `SymmetricMonoidalCategory` and `C : Set → Obj`: `Grade`, `⌊_⌋`, φ, υ, `𝒢B`, `ιB`, `NDB`, ≤UC_B ⇔ ≤UC (G1) | **built** (`42a76270`): `C⟦_⟧` (a `foldr`, as `Choice.Cᴵ⟦_⟧` now is, so the two agree at (Protˢ, Cᴵ)), `C++` : C⟦S⃗⟧ ⊗ C⟦T⃗⟧ ≅ C⟦S⃗ ++ T⃗⟧, φ = (id ⊗ `C++`) ∘ agda-categories' `swapInner` (its one braiding component is σ_{C⟦S⃗⟧,Y}), υ = λ⁻¹, `closedB`, `𝒢B`, `ιB`, `ιB-full`, `ιB-surj`, `NDB`, `≤UC-B⇔≤UC` (`Preserves.unrestrict-≤UC` at r = φ⁻¹, and `restrict-≤UC`).  At (Protˢ, Cᴵ): `ND/SSP/Setup.agda` (`NDB`, `≤UC-B⇔≤UC`: B-emulation is SSP's ≤UC) |
 | B2 | `CategoricalCrypto/ND/SSP/Choice.agda` | §2.4: `Calls⁺`, `Protocol⁺`, the `choose` clauses, `_∘⁺_`, `Queues`, `resolve`, `⌈_⌉`, `⌈⌉-resp`, `⌈⌉-plain`, `⌈⌉-∘`, `⌈⌉-⊗` | a two-site composite pinned by `refl` — **built**: `ND/SSP/Choice.agda` (syntax, `⌈_⌉`, `⌈⌉-resp`, `⌈⌉-plain`), `Choice/Compose.agda` (`⌈⌉-∘`, `⌈⌉-⊗` with φ⁻¹ on the left; `split∘join`, then `⌈⌉-∘-split`, `⌈⌉-⊗-split` in §2.4's form), `Choice/Pin.agda` (`veto ∘⁺ pick`: site order, FIFO, an empty queue `dead`; the concrete forms are `_∙_` and `sub` by `refl`), `Choice/Dist.agda` (§5.3, optional), `SSP/Protocol/Wire.agda` (`⌜⌝-∘`, `⌜⌝-⊗`, `interchangeᴵ`) |
 | A1 | `CategoricalCrypto/ND/Relabel.agda` | §3.1: `Alph`, `++`, the SSP wires `⌈ρ⌉` (`⌜ m ⌝`, `ack`) | `⌈_⌉` a functor Alphᵒᵖ → `Prot` up to ≈ᵖ — **built**: `_⇝_`, `Alph`, `_++ʳ_`, the wires `⌈_⌉ʳ` with `⌈⌉ʳ-factor`, `⌈−⌉ʳ : Functor (Category.op Alph) Prot`, `⌈⌉ʳ-++` (§3.1) |
-| A2 | `CategoricalCrypto/ND/A.agda` | §3.2: the class R and its closure, `𝒢A`, `incl`, `NDA`, `A⇒B` (G1's `unrestrict-≤UC` at `incl`) | `A⇒B : f ≤UC_A g → f ≤UC_B g`, all f, g |
-| L1 | `CategoricalCrypto/ND/SSP/Laws.agda` | §5.1 at SSP; §3.4's swap; `collapse` against a callee | the swap instance as `≈ᵖ` |
+| A2 | `CategoricalCrypto/ND/A.agda` | §3.2: the class R and its closure, `𝒢A`, `incl`, `NDA`, `A⇒B` (G1's `unrestrict-≤UC` at `incl`) | **built** (`817e515d`): `Relabelling` (⌈−⌉ on C⟦_⟧ functorial, monoidal through `C++`, and relabellings realising the regroupings `unit++`, `assoc++`, §2.3), `Relabels`, `closedA`, `𝒢A`, `incl = weaken closedA closedB _`, `NDA`, `A⇒B : f ≤UC_A g → f ≤UC_B g` for all f, g (`Preserves.unrestrict-≤UC` at r = id), `relabel-≤UC`.  At SSP (`ND/SSP/Setup.agda`): `relabelling` (`C++` is ⌜split⌝/⌜join⌝ up to ≈ᵖ, `C++≈split`/`C++≈join`; regroupings by `Relabel.wireʳ`), `NDA`, `A⇒B`, `A⇒SSP`, `relabel-≤UC`.  Non-reflection at SSP not built (§4) |
+| L1 | `CategoricalCrypto/ND/SSP/Laws.agda` | §5.1 at SSP; §3.4's swap; `collapse` against a callee | **built** (`3ca93786`): `congruence` (row 1), `collapse` and `Callee.either-order` (row 4, against two counters), `permute` (row 3, any π : S → S), `Swap.swap-ᵖ` (the swap instance as ≈ᵖ), `at`/`at-sub`; row 2 in `Choice/Dist.agda` (`call-dead`, `call-choose`, `call-choose-ᵈ` beside the coin half).  **Not landed:** order independence as mutual ≤UC_A (`relabel-≤UC` at `at … ⌈⟨ba⟩⌉`, `at … ⌈⟨ab⟩⌉` with the swap wire): it checks, but the application alone takes ~100 s warm (whole module 129–333 s against 7 s without it), over budget; the cost sits in elaborating the application at concrete compiled protocols, not in its arguments |
 | L2 (opt.) | `CategoricalCrypto/ND/Undesignate.agda` | §4: Φᵤ, B → A by `Between`, the retract | — |
 | L3 (opt.) | `CategoricalCrypto/ND/SSP/Shuffle.agda` | §5.2: `_∥ᶜ_`, commutativity by relabelling | — |
 | P1 | `CategoricalCrypto/UC/Model/Symmetric.agda` | §2.3: `𝔾ᵒ`'s braiding σᴳ, naturality, hexagon | a `SymmetricMonoidalCategory` over `∣𝔾ᵒ∣` |
@@ -511,7 +531,11 @@ Order: G1 (built), then B1–B2, A1–A2 (A2 with G2's `weaken`), L1 over SSP; P
 A at PM, is wanted.  Traps: the `refl`s of §1.5 against `FromMonad`'s triple (pinned, they hold); one
 spelling of 𝒥's levels, ascribed, so that records are not eta-compared; ν is `idᵛ`, so no `pullbackᵛ`;
 `𝔾ᵒ` is `opaque`, so P1 works on `𝒢ₚᴹ` and is sealed with it; applying a `Regrade`-based module at PM's
-concrete setup by `module X = M 𝕊ᵒ` copies `Regrade`'s and `AbstractUC`'s names (51.6 s against 13.5 s, §1.5).
+concrete setup by `module X = M 𝕊ᵒ` copies `Regrade`'s and `AbstractUC`'s names (51.6 s against 13.5 s, §1.5);
+generalized `variable`s over the dependent `Protocol A (⌊ a ⌋ ⊗ᴵ B)` crash Agda 2.8.0 (`EtaContract`
+`__IMPOSSIBLE__`), so `ND/SSP/Setup` binds its telescope; interfaces under `⊗ᴵ` and grades under `⌊_⌋`/`C⟦_⟧`
+are not inferable (η-expanded metas), so they are passed.  Warm at `-M3G`: `Transport` 5 s, `Grade` 9 s,
+`A` 13 s, `SSP/Setup` 19 s, `Laws` 7 s, `Choice/Dist` 10 s.
 
 ## 7. Sources
 

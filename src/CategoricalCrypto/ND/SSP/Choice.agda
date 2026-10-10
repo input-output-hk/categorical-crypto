@@ -23,7 +23,7 @@
 
 open import Class.DecEq
 open import Data.Bool.Base using (Bool)
-open import Data.List.Base using (List; []; _∷_; _++_; _∷ʳ_)
+open import Data.List.Base using (List; []; _∷_; _++_; _∷ʳ_; foldr)
 open import Data.Maybe.Base as Maybe using (Maybe; just; nothing; maybe′)
 open import Data.Product.Base
 open import Data.Sum.Base as Sum using (inj₁; inj₂)
@@ -56,9 +56,9 @@ private variable
 Cᴵ : Set → Iface
 Cᴵ S = record { Ch = ⊤ ; Q = const S ; R = const ⊤ ; Ch-dec = DecEq-⊤ }
 
+-- A `foldr`, as `ND.Grade`'s `C⟦_⟧` is: at (Protˢ, Cᴵ) the two agree definitionally.
 Cᴵ⟦_⟧ : List Set → Iface
-Cᴵ⟦ [] ⟧    = unitᴵ
-Cᴵ⟦ S ∷ S⃗ ⟧ = Cᴵ S ⊗ᴵ Cᴵ⟦ S⃗ ⟧
+Cᴵ⟦_⟧ = foldr (λ S → Cᴵ S ⊗ᴵ_) unitᴵ
 
 flat-Cᴵ : (Flat.Pos (flat (Cᴵ S)) ↔ ⊤) × (Flat.Neg (flat (Cᴵ S)) ↔ S)
 flat-Cᴵ = mk↔ₛ′ proj₂ (tt ,_) (λ _ → refl) (λ _ → refl) , mk↔ₛ′ proj₂ (tt ,_) (λ _ → refl) (λ _ → refl)

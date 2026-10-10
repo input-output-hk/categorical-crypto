@@ -4,10 +4,11 @@
 -- §5.3).  `t ≈ᵏ⁺ t′` is `_≈ᵏ_` after resolving against every queue state, so a
 -- law under a `choose` is the law at each pick (`choose-cong`), and
 -- `stepwise⁺` lifts step-wise `≈ᵏ⁺` through `⌈_⌉` to `≈ᵈ`.  Pick-ahead lets a
--- choice pass a coin (`coin-choose`, compiled `coin-choose-ᵈ`): the pick is
--- read from a queue that no coin feeds, and with the queue empty one side dies
--- before the coin and the other after it, which `coin-drop` equates.  Under a
--- demon that saw the toss this was no law (the leak of the superseded design).
+-- choice pass a coin or a call (`coin-choose`, `call-choose`, compiled
+-- `coin-choose-ᵈ`, `call-choose-ᵈ`): the pick is read from a queue that no coin
+-- or reply feeds, and with the queue empty one side dies before the coin or
+-- call and the other after it, which `coin-drop` and `call-dead` equate.  Under
+-- a demon that saw the toss this was no law (the leak of the superseded design).
 
 open import Data.Bool.Base using (Bool)
 open import Data.List.Base using (List)
@@ -17,7 +18,9 @@ open import Data.Sum.Base using (inj₁; inj₂)
 open import Function.Base using (id)
 open import Relation.Binary.PropositionalEquality
 
-open import ProbabilisticLogic.Distribution.RationalDist using (Dist-ℚ)
+open import ProbabilisticLogic.Distribution.RationalDist using (Dist-ℚ; return-ℚ)
+open import ProbabilisticLogic.Distribution.RationalDist.Partial using (kmaybe; >>=ᴹ-const)
+open import ProbabilisticLogic.Distribution.RationalDist.Setoid using (>>=ᴹ-congˡ)
 
 open import CategoricalCrypto.ND.SSP.Choice
 open import CategoricalCrypto.SSP.Dist
@@ -58,6 +61,23 @@ coin-choose {S⃗ = S⃗} μ i k = mk≈ᵏ⁺ go
   ... | nothing = coin-drop μ dead
   ... | just _  = ≈ᵏ-refl
 
+-- A call whose every reply dies is dead: no oracle answer is observed.
+call-dead : (c : Ch A) (q : Q A c) → _≈ᵏ_ {A = A} {X = X} (call c q λ _ → dead) dead
+call-dead c q = mk≈ᵏ λ O s ξ → trans
+  (>>=ᴹ-congˡ (O s c q) (kmaybe λ _ → return-ℚ nothing) (λ _ → return-ℚ nothing) (λ where
+    (just _) _ → refl
+    nothing  _ → refl) ξ)
+  (>>=ᴹ-const (O s c q) (return-ℚ nothing) ξ)
+
+call-choose : (c : Ch A) (q : Q A c) (i : Ch Cᴵ⟦ S⃗ ⟧) (k : R A c → Q Cᴵ⟦ S⃗ ⟧ i → Calls⁺ A S⃗ (X × Y))
+            → call c q (λ r → choose i (k r)) ≈ᵏ⁺ choose i (λ p → call c q λ r → k r p)
+call-choose {S⃗ = S⃗} c q i k = mk≈ᵏ⁺ go
+  where
+  go : ∀ qs → resolve qs (call c q λ r → choose i (k r)) ≈ᵏ resolve qs (choose i λ p → call c q λ r → k r p)
+  go qs with pop S⃗ i qs
+  ... | nothing = call-dead c q
+  ... | just _  = ≈ᵏ-refl
+
 stepwise⁺ : {P P′ : Protocol⁺ S⃗ A B} (θ : St P → St P′) → θ (init P) ≡ init P′
           → (∀ s c q → mapᶜ⁺ (map₁ θ) (step P s c q) ≈ᵏ⁺ step P′ (θ s) c q) → ⌈ P ⌉ ≈ᵈ ⌈ P′ ⌉
 stepwise⁺ {S⃗ = S⃗} {P = P} θ e h = stepwise (map₁ θ) (cong (_, empty S⃗) e) λ where
@@ -77,3 +97,17 @@ module _ {St₀ : Set} (s₀ : St₀) (μ : Dist-ℚ Bool) (i : Ch Cᴵ⟦ S⃗ 
     (s , qs) (inj₁ _) _ → ≈ᵏ-refl
     (s , qs) (inj₂ c) q →
       ≈ᵏ-trans (≈ᶜ⇒≈ᵏ (mapᶜ-id (λ _ → refl) _)) (resolve≈ᵏ (coin-choose μ i (k s c q)) qs)
+
+module _ {St₀ : Set} (s₀ : St₀) (i : Ch Cᴵ⟦ S⃗ ⟧) (a : St₀ → (c : Ch B) → Q B c → Ch A)
+         (qa : ∀ s c q → Q A (a s c q))
+         (k : ∀ s c q → R A (a s c q) → Q Cᴵ⟦ S⃗ ⟧ i → Calls⁺ A S⃗ (St₀ × R B c)) where
+
+  call-first choose-first : Protocol⁺ S⃗ A B
+  call-first   = record { St = St₀ ; init = s₀ ; step = λ s c q → call (a s c q) (qa s c q) λ r → choose i (k s c q r) }
+  choose-first = record { St = St₀ ; init = s₀ ; step = λ s c q → choose i λ p → call (a s c q) (qa s c q) λ r → k s c q r p }
+
+  call-choose-ᵈ : ⌈ call-first ⌉ ≈ᵈ ⌈ choose-first ⌉
+  call-choose-ᵈ = stepwise id refl λ where
+    (s , qs) (inj₁ _) _ → ≈ᵏ-refl
+    (s , qs) (inj₂ c) q →
+      ≈ᵏ-trans (≈ᶜ⇒≈ᵏ (mapᶜ-id (λ _ → refl) _)) (resolve≈ᵏ (call-choose (a s c q) (qa s c q) i (k s c q)) qs)
