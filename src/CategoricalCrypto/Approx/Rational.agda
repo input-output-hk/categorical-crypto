@@ -33,6 +33,10 @@ private
   open CommSemigroup (CommutativeMonoid.commutativeSemigroup +-0-commutativeMonoid)
   variable o ℓa : Level
 
+-- The ε/2 split of one slack between two bounds.
+½-split : (ε ε′ δ : ℚ) → (ε ℚ.+ ½ ℚ.* δ) ℚ.+ (ε′ ℚ.+ ½ ℚ.* δ) ≡ (ε ℚ.+ ε′) ℚ.+ δ
+½-split ε ε′ δ = trans (interchange ε (½ ℚ.* δ) ε′ (½ ℚ.* δ)) (cong ((ε ℚ.+ ε′) ℚ.+_) (½*+½* δ))
+
 ------------------------------------------------------------------------
 -- The slack closure
 
@@ -60,8 +64,7 @@ module Closure {Obs : Set o} (A : Approximation Obs ℚ-ordered ℓa) where
 
   ≈̄-trans : x ≈̄[ ε ] y → y ≈̄[ ε′ ] z → x ≈̄[ ε ℚ.+ ε′ ] z
   ≈̄-trans {ε = ε} {ε′ = ε′} h k = slack λ δ pos →
-    ≈[]-mono (≤-reflexive (trans (interchange ε (½ ℚ.* δ) ε′ (½ ℚ.* δ))
-                                 (cong ((ε ℚ.+ ε′) ℚ.+_) (½*+½* δ))))
+    ≈[]-mono (≤-reflexive (½-split ε ε′ δ))
              (≈[]-trans (≈̄⇒≈ h (½ ℚ.* δ) (0<½* pos)) (≈̄⇒≈ k (½ ℚ.* δ) (0<½* pos)))
 
   closure : Approximation Obs ℚ-ordered ℓa
