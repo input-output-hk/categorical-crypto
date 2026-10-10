@@ -23,6 +23,7 @@ open import Categories.Functor.Presheaf
 open import Categories.Functor.Presheaf.Morphism
 open import Categories.NaturalTransformation using (ntHelper)
 open import Data.Bool.Base
+open import Data.List.Membership.Propositional
 open import Data.Product
 open import Function.Bundles
 open import Function.Properties.Equivalence using (⇔-isEquivalence)
@@ -46,9 +47,10 @@ private
   module ⇔ {ℓ} = IsEquivalence (⇔-isEquivalence {ℓ})
 
   variable
-    A B C Y Z : ObjTerm
+    A B C Y Z x y : ObjTerm
 
 open Category.HomReasoning FreeMonoidal
+open Run E
 
 ------------------------------------------------------------------------
 -- Tests, compared by their verdicts
@@ -129,16 +131,22 @@ grade-stable Z {h} {h′} e = Sym.KE.mk∼ λ { {lift (Y , T)} → lift (same λ
 
 -- Leaves that run alike at every name supply are kernel-equal: occurrences are
 -- counted by shape, so one naming serves both circuits.
-leaf-≈ℰ : {x y : ObjTerm} {p q : UnitFree x × UnitFree y × Role x y}
+leaf-≈ℰ : {p q : UnitFree x × UnitFree y × Role x y}
         → (∀ κ → leafᵒ p κ G.≈ leafᵒ q κ) → var p Sym.≈ℰ var q
 leaf-≈ℰ h = Sym.KE.mk∼ λ { {lift (_ , T)} → lift (same λ m b →
   mk⇔ (across h) (across λ κ → G.Equiv.sym (h κ))) }
   where
-  across : {x y : ObjTerm} {p q : UnitFree x × UnitFree y × Role x y}
+  across : {p q : UnitFree x × UnitFree y × Role x y}
          {T : HomTerm (Y ⊗₀ y) (Var verdict)} {m : Closure (Y ⊗₀ x)} {b : Bool}
        → (∀ κ → leafᵒ p κ G.≈ leafᵒ q κ) → eval ((T ∘ id ⊗₁ var p) ∘ m) b → eval ((T ∘ id ⊗₁ var q) ∘ m) b
   across h (named ι inj o) =
     named ι inj (obs-resp (G.∘-resp-≈ˡ (G.∘-resp-≈ʳ (G.⊗.F-resp-≈ (G.Equiv.refl , G.Equiv.sym (h _))))) ⟨≈⟩ o)
+
+-- E lives in the kernel: programs equal modulo E are kernel-equal.
+emit-≈E : {ux : UnitFree x} {uy : UnitFree y} (p : Role x y) {r : Reactions p}
+        → (∀ c {k} (i : k ∈ Ins x y) b → ReactE (Role.react p c i b) (r c i b))
+        → var (ux , uy , p) Sym.≈ℰ var (ux , uy , record p { react = r })
+emit-≈E {ux = ux} {uy} p e = leaf-≈ℰ λ κ → treeᵒ-resp ux uy (runᴿ-≈E κ p e)
 
 ------------------------------------------------------------------------
 -- From `Sym≅`

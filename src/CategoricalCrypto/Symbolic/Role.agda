@@ -207,6 +207,11 @@ record Role (x y : ObjTerm) : Set where
     fresh : Γ start ≡ []
     react : (c : Fin n) {k : Kind} → k ∈ Ins x y → Branch k → React n Γ (Outs x y) (carried k ++ Γ c)
 
+-- The reaction tables of the roles shaped like `p`.
+Reactions : Role x y → Set
+Reactions {x} {y} p =
+  (c : Fin (Role.n p)) {k : Kind} → k ∈ Ins x y → Branch k → React (Role.n p) (Role.Γ p) (Outs x y) (carried k ++ Role.Γ p c)
+
 -- `comonlundhcortier2008` §3.3: a failed guard emits a fixed message and the
 -- process stops.  Here the message is a ground payload and stopping is a jump
 -- to a control point that answers every activation in the same way.  CLC's
@@ -272,11 +277,21 @@ module Run (E : EqTheory 𝔖) where
     Γ : Fin n → List Sort
     O : List Kind
 
+  -- What a role emits and stores is canonical (`EqTheory.canon`).
+  canonᵛ : ∀ {k} → Value k → Value k
+  canonᵛ {msg _} t = canon t
+  canonᵛ {flag}  b = b
+  canonᵛ {tick}  _ = tt
+
+  canon* : Frame Δ → Frame Δ
+  canon* []      = []
+  canon* (t ∷ φ) = canon t ∷ canon* φ
+
   -- Occurrence `κ` draws its `j`-th fresh name as `(κ , j)`.
   exec : (κ : ℕ) → React n Γ O Δ → Frame Δ → ℕ → Config n Γ × Emission O
   exec κ (test ζ ζ′ t e) φ j = if does (ζ ⟨ φ ⟩ ≟E ζ′ ⟨ φ ⟩) then exec κ t φ j else exec κ e φ j
   exec κ (new _ t)       φ j = exec κ t (name (κ , j) ∷ φ) (suc j)
-  exec κ (emit c ρs o π) φ j = config c (ρs ⟨ φ ⟩*) j , o ↦ payload _ π φ
+  exec κ (emit c ρs o π) φ j = config c (canon* (ρs ⟨ φ ⟩*)) j , o ↦ canonᵛ (payload _ π φ)
 
   step : (κ : ℕ) (p : Role x y) → Config (Role.n p) (Role.Γ p) → Input x y
        → Config (Role.n p) (Role.Γ p) × Emission (Outs x y)
@@ -299,12 +314,12 @@ module Run (E : EqTheory 𝔖) where
   exec⊢ h (new _ t) ds = exec⊢ h t (⊢-owned (h refl) ∷ ds)
   exec⊢ {K = K} h (emit _ ρs o π) {φ} ds = regs⊢ ρs , known⊢ _ π
     where
-    rcp⊢ : (ρ : Rcp _ s) → K ⊢ ρ ⟨ φ ⟩
-    rcp⊢ ρ = ⊢-cut ds (λ ()) (ρ , ≈E.refl)
-    regs⊢ : (ρs : All (Rcp _) ss) → Each (K ⊢_) (ρs ⟨ φ ⟩*)
+    rcp⊢ : (ρ : Rcp _ s) → K ⊢ canon (ρ ⟨ φ ⟩)
+    rcp⊢ ρ = ⊢-cut ds (λ ()) (ρ , ≈E.sym (canon-≈E _))
+    regs⊢ : (ρs : All (Rcp _) ss) → Each (K ⊢_) (canon* (ρs ⟨ φ ⟩*))
     regs⊢ []       = []
     regs⊢ (ρ ∷ ρs) = rcp⊢ ρ ∷ regs⊢ ρs
-    known⊢ : ∀ k {o : k ∈ _} (π : Payload _ k) → Known K (o ↦ payload k π φ)
+    known⊢ : ∀ k {o : k ∈ _} (π : Payload _ k) → Known K (o ↦ canonᵛ (payload k π φ))
     known⊢ (msg _) ρ = rcp⊢ ρ
     known⊢ flag    _ = tt
     known⊢ tick    _ = tt
@@ -339,3 +354,45 @@ module Run (E : EqTheory 𝔖) where
     emits⊢ : (hist : List (Input x y)) (inp : Input x y)
            → Known (received (inp ∷ hist) , Own κ) (proj₂ (step κ p (after hist) inp))
     emits⊢ hist (i ↦ v) = proj₂ (step⊢ κ p i v (after⊢ hist))
+
+  -- Values equal modulo E.
+  _≈ᵛ_ : ∀ {k} → Value k → Value k → Set
+  _≈ᵛ_ {msg _} = _≈E_
+  _≈ᵛ_ {flag}  = _≡_
+  _≈ᵛ_ {tick}  = _≡_
+
+  -- Two programs of one shape whose recipes agree modulo E on every frame.
+  data ReactE {n} {Γ : Fin n → List Sort} {O : List Kind} : ∀ {Δ} → React n Γ O Δ → React n Γ O Δ → Set where
+    test : {ζ₁ ζ₁′ ζ₂ ζ₂′ : Rcp Δ s} {t t′ e e′ : React n Γ O Δ}
+         → (∀ φ → ζ₁ ⟨ φ ⟩ ≈E ζ₂ ⟨ φ ⟩) → (∀ φ → ζ₁′ ⟨ φ ⟩ ≈E ζ₂′ ⟨ φ ⟩)
+         → ReactE t t′ → ReactE e e′ → ReactE (test ζ₁ ζ₁′ t e) (test ζ₂ ζ₂′ t′ e′)
+    new  : {t t′ : React n Γ O (s ∷ Δ)} → ReactE t t′ → ReactE (new s t) (new s t′)
+    emit : {c : Fin n} {ρs ρs′ : All (Rcp Δ) (Γ c)} {o : k ∈ O} {π π′ : Payload Δ k}
+         → (∀ φ → All₂ _≈E_ (ρs ⟨ φ ⟩*) (ρs′ ⟨ φ ⟩*)) → (∀ φ → payload k π φ ≈ᵛ payload k π′ φ)
+         → ReactE (emit c ρs o π) (emit c ρs′ o π′)
+
+  private
+    canon*-cong : {φ ψ : Frame Δ} → All₂ _≈E_ φ ψ → canon* φ ≡ canon* ψ
+    canon*-cong []       = refl
+    canon*-cong (e ∷ es) = cong₂ _∷_ (≈E⇒canon e) (canon*-cong es)
+
+    canonᵛ-cong : ∀ {k} {v v′ : Value k} → v ≈ᵛ v′ → canonᵛ v ≡ canonᵛ v′
+    canonᵛ-cong {msg _} e = ≈E⇒canon e
+    canonᵛ-cong {flag}  e = e
+    canonᵛ-cong {tick}  _ = refl
+
+  -- E-equal programs run alike: what they emit and store is canonical.
+  exec-≈E : ∀ {κ} {t t′ : React n Γ O Δ} → ReactE t t′ → ∀ φ j → exec κ t φ j ≡ exec κ t′ φ j
+  exec-≈E (test {ζ₁ = ζ₁} {ζ₁′} {ζ₂} {ζ₂′} e₁ e₂ rt re) φ j with ζ₁ ⟨ φ ⟩ ≟E ζ₁′ ⟨ φ ⟩ | ζ₂ ⟨ φ ⟩ ≟E ζ₂′ ⟨ φ ⟩
+  ... | yes _ | yes _ = exec-≈E rt φ j
+  ... | no _  | no _  = exec-≈E re φ j
+  ... | yes a | no ¬b = ⊥-elim (¬b (≈E.trans (≈E.sym (e₁ φ)) (≈E.trans a (e₂ φ))))
+  ... | no ¬a | yes b = ⊥-elim (¬a (≈E.trans (e₁ φ) (≈E.trans b (≈E.sym (e₂ φ)))))
+  exec-≈E {κ = κ} (new rt) φ j = exec-≈E rt (name (κ , j) ∷ φ) (suc j)
+  exec-≈E (emit {c = c} {o = o} es ev) φ j =
+    cong₂ _,_ (cong (λ ψ → config c ψ j) (canon*-cong (es φ))) (cong {B = Emission _} (o ↦_) (canonᵛ-cong (ev φ)))
+
+  step-≈E : ∀ κ (p : Role x y) {r : Reactions p}
+          → (∀ c {k} (i : k ∈ Ins x y) b → ReactE (Role.react p c i b) (r c i b))
+          → ∀ cfg inp → step κ p cfg inp ≡ step κ (record p { react = r }) cfg inp
+  step-≈E κ p e (config c φ j) (i ↦ v) = exec-≈E (e c i (branch v)) (++⁺ (carry v) φ) j

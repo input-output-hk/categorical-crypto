@@ -289,6 +289,9 @@ E₀ = record
       trans (nf-ren ρ t) (trans (cong (nf ∘ ren ρ) e) (sym (nf-ren ρ u)))
   ; _≟E_       = λ t u → nf t ≟ᵗ nf u
   ; nontrivial = λ _ → name (0 , 0) , name (0 , 1) , λ ()
+  ; canon      = nf
+  ; canon-≈E   = λ t → sym (⟶*-nf (nf-reduces t))
+  ; ≈E⇒canon   = λ e → e
   }
 
 ≈E⇔⟷* : nf t ≡ nf u ⇔ EqClosure _⟶_ t u
