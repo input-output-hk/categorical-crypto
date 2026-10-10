@@ -252,15 +252,24 @@ module _ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Set} where
                               (Col.W.α {A⁻} {B⁺} {B⁻} {C⁺} MC.∘ᴹ (K x MC.∘ᴹ Col.W.γ {A⁺} {B⁺} {B⁻} {C⁻})))
     around 𝔸 = absorbs-∘ traceᴹ-absorb (absorbs-∘ (∘ᴹ-absorbʳ Col.W.α) (absorbs-∘ (∘ᴹ-absorbˡ Col.W.γ) 𝔸))
 
+  ∘ᴳ-absorbˡ : (g : MC.Machine (A⁺ ⊎ B⁻) (A⁻ ⊎ B⁺))
+             → Absorbs {B⁺ ⊎ C⁻} {B⁻ ⊎ C⁺} {A⁺ ⊎ C⁻} {A⁻ ⊎ C⁺}
+                       (λ x → 𝔾._∘_ {A⁺ , A⁻} {B⁺ , B⁻} {C⁺ , C⁻} x g)
+  ∘ᴳ-absorbˡ g =
+    absorbs-≈ᴹ (λ x → Col.compose-raw≈∘ᴳ {A⁺} {A⁻} {B⁺} {B⁻} {C⁺} {C⁻} x g) (around (⊗ᵉ-absorbˡ g))
+
+  ∘ᴳ-absorbʳ : (f : MC.Machine (B⁺ ⊎ C⁻) (B⁻ ⊎ C⁺))
+             → Absorbs {A⁺ ⊎ B⁻} {A⁻ ⊎ B⁺} {A⁺ ⊎ C⁻} {A⁻ ⊎ C⁺}
+                       (λ x → 𝔾._∘_ {A⁺ , A⁻} {B⁺ , B⁻} {C⁺ , C⁻} f x)
+  ∘ᴳ-absorbʳ f =
+    absorbs-≈ᴹ (Col.compose-raw≈∘ᴳ {A⁺} {A⁻} {B⁺} {B⁻} {C⁺} {C⁻} f) (around (⊗ᵉ-absorbʳ f))
+
   composeᴳ-resp-≈ᴿ : {f h : MC.Machine (B⁺ ⊎ C⁻) (B⁻ ⊎ C⁺)} {g i : MC.Machine (A⁺ ⊎ B⁻) (A⁻ ⊎ B⁺)}
                    → f ≈ᴿ h → g ≈ᴿ i
                    → _≈ᴿ_ {A⁺ ⊎ C⁻} {A⁻ ⊎ C⁺} (𝔾._∘_ {A⁺ , A⁻} {B⁺ , B⁻} {C⁺ , C⁻} f g)
                                               (𝔾._∘_ {A⁺ , A⁻} {B⁺ , B⁻} {C⁺ , C⁻} h i)
   composeᴳ-resp-≈ᴿ {f} {h} {g} {i} f∼h g∼i =
-    ≈ᴿ.trans (absorbs⇒resp (absorbs-≈ᴹ (λ x → Col.compose-raw≈∘ᴳ {A⁺} {A⁻} {B⁺} {B⁻} {C⁺} {C⁻} x g)
-                                       (around (⊗ᵉ-absorbˡ g))) f∼h)
-             (absorbs⇒resp (absorbs-≈ᴹ (Col.compose-raw≈∘ᴳ {A⁺} {A⁻} {B⁺} {B⁻} {C⁺} {C⁻} h)
-                                       (around (⊗ᵉ-absorbʳ h))) g∼i)
+    ≈ᴿ.trans (absorbs⇒resp (∘ᴳ-absorbˡ g) f∼h) (absorbs⇒resp (∘ᴳ-absorbʳ h) g∼i)
     where module ≈ᴿ = Structures.IsEquivalence (≈ᴿ-isEquivalence {A⁺ ⊎ C⁻} {A⁻ ⊎ C⁺})
 
 opaque
@@ -280,14 +289,23 @@ module _ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ D⁺ D⁻ : Set} where
          → Absorbs (λ x → midᴹ {A⁻} {B⁺} {C⁻} {D⁺} MC.∘ᴹ (K x MC.∘ᴹ midᴹ {A⁺} {C⁺} {B⁻} {D⁻}))
     conj 𝔸 = absorbs-∘ (∘ᴹ-absorbʳ midᴹ) (absorbs-∘ (∘ᴹ-absorbˡ midᴹ) 𝔸)
 
+  ⊗₁ᴳ-absorbˡ : (g : MC.Machine (C⁺ ⊎ D⁻) (C⁻ ⊎ D⁺))
+              → Absorbs {A⁺ ⊎ B⁻} {A⁻ ⊎ B⁺} {(A⁺ ⊎ C⁺) ⊎ (B⁻ ⊎ D⁻)} {(A⁻ ⊎ C⁻) ⊎ (B⁺ ⊎ D⁺)}
+                        (λ x → 𝔾._⊗₁_ {A⁺ , A⁻} {B⁺ , B⁻} {C⁺ , C⁻} {D⁺ , D⁻} x g)
+  ⊗₁ᴳ-absorbˡ g = absorbs-≈ᴹ (λ x → ⊗₁ᴳ-raw x g) (conj (⊗ᵉ-absorbˡ g))
+
+  ⊗₁ᴳ-absorbʳ : (f : MC.Machine (A⁺ ⊎ B⁻) (A⁻ ⊎ B⁺))
+              → Absorbs {C⁺ ⊎ D⁻} {C⁻ ⊎ D⁺} {(A⁺ ⊎ C⁺) ⊎ (B⁻ ⊎ D⁻)} {(A⁻ ⊎ C⁻) ⊎ (B⁺ ⊎ D⁺)}
+                        (λ x → 𝔾._⊗₁_ {A⁺ , A⁻} {B⁺ , B⁻} {C⁺ , C⁻} {D⁺ , D⁻} f x)
+  ⊗₁ᴳ-absorbʳ f = absorbs-≈ᴹ (⊗₁ᴳ-raw f) (conj (⊗ᵉ-absorbʳ f))
+
   ⊗₁ᴳ-resp-≈ᴿ : {f h : MC.Machine (A⁺ ⊎ B⁻) (A⁻ ⊎ B⁺)} {g i : MC.Machine (C⁺ ⊎ D⁻) (C⁻ ⊎ D⁺)}
               → f ≈ᴿ h → g ≈ᴿ i
               → _≈ᴿ_ {(A⁺ ⊎ C⁺) ⊎ (B⁻ ⊎ D⁻)} {(A⁻ ⊎ C⁻) ⊎ (B⁺ ⊎ D⁺)}
                      (𝔾._⊗₁_ {A⁺ , A⁻} {B⁺ , B⁻} {C⁺ , C⁻} {D⁺ , D⁻} f g)
                      (𝔾._⊗₁_ {A⁺ , A⁻} {B⁺ , B⁻} {C⁺ , C⁻} {D⁺ , D⁻} h i)
   ⊗₁ᴳ-resp-≈ᴿ {f} {h} {g} {i} f∼h g∼i =
-    ≈ᴿ.trans (absorbs⇒resp (absorbs-≈ᴹ (λ x → ⊗₁ᴳ-raw x g) (conj (⊗ᵉ-absorbˡ g))) f∼h)
-             (absorbs⇒resp (absorbs-≈ᴹ (⊗₁ᴳ-raw h) (conj (⊗ᵉ-absorbʳ h))) g∼i)
+    ≈ᴿ.trans (absorbs⇒resp (⊗₁ᴳ-absorbˡ g) f∼h) (absorbs⇒resp (⊗₁ᴳ-absorbʳ h) g∼i)
     where
     module ≈ᴿ = Structures.IsEquivalence
                   (≈ᴿ-isEquivalence {(A⁺ ⊎ C⁺) ⊎ (B⁻ ⊎ D⁻)} {(A⁻ ⊎ C⁻) ⊎ (B⁺ ⊎ D⁺)})

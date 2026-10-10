@@ -1,11 +1,12 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- A context a distinguisher can simulate preserves Δ = 0: maurer2002 Lemma
--- 5(ii), maurer2011cc Lemma 1, constructively.  `Strat` is well-founded while a
--- context may loop or diverge, so the simulating strategy is cut off at a
--- budget with the verdict `not b`, which the `b`-mass does not see: the cut-off
--- runs approximate the context's run from below (`Approx`), the situation
--- `Dp.Dominate` was written for.  See docs/uc-setup-random-systems.md §3.3.
+-- A context a distinguisher can simulate does not increase Δ (`absorbs-dom`; at
+-- Δ = 0, `absorbs⇒resp`): maurer2002 Lemma 5(ii), maurer2011cc Lemma 1,
+-- constructively.  `Strat` is well-founded while a context may loop or
+-- diverge, so the simulating strategy is cut off at a budget with the verdict
+-- `not b`, which the `b`-mass does not see: the cut-off runs approximate the
+-- context's run from below (`Approx`), the situation `Dp.Dominate` was written
+-- for.  See docs/uc-setup-random-systems.md §3.3.
 
 open import Data.Bool.Base
 open import Data.List.Base using ([]; _∷_)
@@ -34,7 +35,6 @@ open import CategoricalCrypto.UC.Machine.Run
 
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
-import Relation.Binary.Structures as Structures
 
 module CategoricalCrypto.UC.Machine.Behaviour.Absorb where
 
@@ -252,21 +252,26 @@ record Absorbs {X Y X′ Y′ : Set} (C : MC.Machine X Y → MC.Machine X′ Y�
     upper : (f : MC.Machine X Y) (d : Strat X′ Y′) (b : Bool) (i : Ix)
           → Cofinal (indᵇ b) (indᵇ b) (runˢ f (♯ d b i)) (runˢ (C f) d)
 
--- per verdict b:  cum j (C f) ≤ cum m (f , ♯ d b i)        lower
---   ≤ cum m′ (f′ , ♯ d b i) + ε   (the hypothesis at ♯ d b i)  ≤ cum m″ (C f′) + ε   upper
+-- maurer2002 Lemma 5(ii) at one verdict b and any slack ε:
+--   cum j (C f) ≤ cum m (f , ♯ d b i)                              lower
+--     ≤ cum m′ (f′ , ♯ d b i) + ε   (the hypothesis at ♯ d b i)  ≤ cum m″ (C f′) + ε   upper
+absorbs-dom : {C : MC.Machine X Y → MC.Machine X′ Y′} (𝔸 : Absorbs C) {f f′ : MC.Machine X Y}
+              (d : Strat X′ Y′) (b : Bool) {ε : ℚ}
+            → ((i : Absorbs.Ix 𝔸) → Dom (indᵇ b) ε (runˢ f (Absorbs.♯ 𝔸 d b i)) (runˢ f′ (Absorbs.♯ 𝔸 d b i)))
+            → Dom (indᵇ b) ε (runˢ (C f) d) (runˢ (C f′) d)
+absorbs-dom 𝔸 {f} {f′} d b {ε} h j =
+  let i , m , le₁ = lower f d b j
+      m′ , le₂    = h i m
+      m″ , le₃    = upper f′ d b i m′
+  in m″ , ≤-trans le₁ (≤-trans le₂ (+-monoˡ-≤ ε le₃))
+  where open Absorbs 𝔸
+
 absorbs⇒resp : {C : MC.Machine X Y → MC.Machine X′ Y′} → Absorbs C
              → {f f′ : MC.Machine X Y} → f ≈ᴿ f′ → C f ≈ᴿ C f′
-absorbs⇒resp {X = X} {Y} {C = C} 𝔸 {f} {f′} e d ε pos = side f f′ e , side f′ f (≈ᴿ.sym e)
-  where
-  open Absorbs 𝔸
-  module ≈ᴿ = Structures.IsEquivalence (≈ᴿ-isEquivalence {X} {Y})
-
-  side : (g g′ : MC.Machine X Y) → g ≈ᴿ g′ → runˢ (C g) d ≼ₚ[ ε ] runˢ (C g′) d
-  side g g′ e b j =
-    let i , m , le₁ = lower g d b j
-        m′ , le₂    = proj₁ (e (♯ d b i) ε pos) b m
-        m″ , le₃    = upper g′ d b i m′
-    in m″ , ≤-trans le₁ (≤-trans le₂ (+-monoˡ-≤ ε le₃))
+absorbs⇒resp 𝔸 {f} {f′} e d ε pos =
+    (λ b → absorbs-dom 𝔸 {f} {f′} d b λ i → proj₁ (e (♯ d b i) ε pos) b)
+  , (λ b → absorbs-dom 𝔸 {f′} {f} d b λ i → proj₂ (e (♯ d b i) ε pos) b)
+  where open Absorbs 𝔸
 
 absorbs-∘ : {C : MC.Machine X′ Y′ → MC.Machine X″ Y″} {C′ : MC.Machine X Y → MC.Machine X′ Y′}
           → Absorbs C → Absorbs C′ → Absorbs (λ f → C (C′ f))
