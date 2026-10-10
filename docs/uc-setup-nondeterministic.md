@@ -421,4 +421,38 @@ monoidal structure: one small lemma.
 
 ## 6. Work breakdown
 
+Every module is `--safe --without-K` and checked alone by `pagda` (house rules: `timeout`, `-M3G`, empty
+warning gate, escape-hatch baseline unchanged, a commit per green step); the root closure is the
+integrator's.  Paths are under `src/`.
+
+| # | module | delivers | acceptance |
+|---|---|---|---|
+| G1 | `CategoricalCrypto/Abstract2/Regrade.agda` | §1.5: `regraded`, `inclusion`, `≈ᵁ⇒≈ᵁ\|ι`, `restrict-≤UC`, `Preserves`, `regraded-gs`, `unrestrict-≤UC-gs`, `Between` | at ι = `idF-Monoidal ℐ`, `inclusion`'s `F`, `Φ`, `κ`, `ν.η` are `idᵁ 𝕊`'s by `refl` (`Abstract2/Regrade/Pin.agda`); `Trivial.to`/`from` |
+| G2 | `Categories/Category/Monoidal/Construction/Transport.agda` | `Restriction.weaken` | importers (`UC/Bracket/*`) re-checked |
+| G3 (opt.) | `CategoricalCrypto/Examples/RegradeUnit.agda` | §1.3(e) at PM | `r_true` ≤UC\|ι `r_false`, `¬ (r_true ≤UC r_false)` |
+| B1 | `CategoricalCrypto/ND/Grade.agda` | over a `SymmetricMonoidalCategory` and `C : Set → Obj`: `Grade`, `⌊_⌋`, φ, υ, `𝒢B`, `ιB`, `NDB`, ≤UC_B ⇔ ≤UC (G1) | instantiated at `Protˢ`, `Cᴵ` |
+| B2 | `CategoricalCrypto/ND/SSP/Choice.agda` | §2.4: `Calls⁺`, `Protocol⁺`, the `choose` clauses, `_∘⁺_`, `Queues`, `resolve`, `⌈_⌉`, `⌈⌉-resp`, `⌈⌉-plain`, `⌈⌉-∘`, `⌈⌉-⊗` | a two-site composite pinned by `refl` |
+| A1 | `CategoricalCrypto/ND/Relabel.agda` | §3.1: `Alph`, `++`, the SSP wires `⌈ρ⌉` (`⌜ m ⌝`, `ack`) | `⌈_⌉` a functor Alphᵒᵖ → `Prot` up to ≈ᵖ |
+| A2 | `CategoricalCrypto/ND/A.agda` | §3.2: the class R and its closure, `𝒢A`, `incl`, `NDA`, `A⇒B` (G1's `unrestrict-≤UC` at `incl`) | `A⇒B : f ≤UC_A g → f ≤UC_B g`, all f, g |
+| L1 | `CategoricalCrypto/ND/SSP/Laws.agda` | §5.1 at SSP; §3.4's swap; `collapse` against a callee | the swap instance as `≈ᵖ` |
+| L2 (opt.) | `CategoricalCrypto/ND/Undesignate.agda` | §4: Φᵤ, B → A by `Between`, the retract | — |
+| L3 (opt.) | `CategoricalCrypto/ND/SSP/Shuffle.agda` | §5.2: `_∥ᶜ_`, commutativity by relabelling | — |
+| P1 | `CategoricalCrypto/UC/Model/Symmetric.agda` | §2.3: `𝔾ᵒ`'s braiding σᴳ, naturality, hexagon | a `SymmetricMonoidalCategory` over `∣𝔾ᵒ∣` |
+| P2 | B1, A1, A2 at PM | choice factors ⊤ ⇿ S in `𝔾ᵒ`; PM's online B | — |
+
+Order: G1 with G2 first (independent of ND; the causal-boxes plan's step 9 then imports G1), then B1–B2,
+A1–A2, L1 over SSP; P1–P2 when PM's online B, or A at PM, is wanted.  Traps: the `refl`s of §1.5 against
+`FromMonad`'s triple; one spelling of 𝒥's levels, ascribed, so that records are not eta-compared; ν is
+`idᵛ`, so no `pullbackᵛ`; `𝔾ᵒ` is `opaque`, so P1 works on `𝒢ₚᴹ` and is sealed with it.
+
 ## 7. Sources
+
+**Reused, archived** (`docs/kb/sources/papers/`, each with an `INDEX.md` line and a `refs.bib` entry):
+**segala1995** (§5.2, §5.6: perfect-information schedulers, adversary schemas), **canetti2006taskpioa**
+(abstract, §1: perfect information is too strong for security; task schedules for inessential choices),
+**varacca2006** (§1), **zwart2019nogo** (§1, §3.1, Thms 3.5, 3.12), **bonchi2022** (§4.1–4.2, §5),
+**canetti2015suc** (§1.3, §2.2: the router; delivery when the adversary instructs), **backes2007rsim**
+(abstract, §1.3), **brzuska2018** (Lemma 3), **fujii2016** (graded monads as lax monoidal functors, so a
+restriction of grades is a precomposition).  **In `refs.bib` only**: jsv1996 (the Int construction, as
+`docs/uc-models.typ` cites it), canetti2020uc (UC's full version; blocked).  **Blocked**
+(`docs/kb/sources/litreview/BLOCKED-URLS.md`): goy2020.  **Newly archived:** none.
