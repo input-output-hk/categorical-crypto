@@ -39,6 +39,9 @@ module Transfer {𝕊 : UCSetup o₁ ℓ₁ e₁ o₁′ ℓ₁′ e₁′ cs �
   Preserves-≈ℰ = ∀ {A B} {f g : A S.𝒞.⇒ B} → f S.≈ℰ g → F.₁ f S′.≈ℰ F.₁ g
   Reflects-≈ℰ  = ∀ {A B} {f g : A S.𝒞.⇒ B} → F.₁ f S′.≈ℰ F.₁ g → f S.≈ℰ g
 
+  Preserves-≈ᵁ : Set (o₁ ⊔ o₁′ ⊔ ℓ₁′ ⊔ o₂ ⊔ cs ⊔ ℓs)
+  Preserves-≈ᵁ = ∀ {A B X} {f g : A S.𝒞.⇒ S.T₀ X B} → f S.≈ᵁ g → G f S′.≈ᵁ G g
+
   Preserves-≤UC Reflects-≤UC : Set (o₁ ⊔ ℓ₁ ⊔ o₁′ ⊔ ℓ₁′ ⊔ o₂ ⊔ ℓ₂ ⊔ cs ⊔ ℓs)
   Preserves-≤UC = ∀ {A B X Y} {f : A S.𝒞.⇒ S.T₀ X B} {g : A S.𝒞.⇒ S.T₀ Y B}
                 → f S.≤UC g → G f S′.≤UC G g
@@ -51,21 +54,26 @@ module Transfer {𝕊 : UCSetup o₁ ℓ₁ e₁ o₁′ ℓ₁′ e₁′ cs �
   mono⇒reflects-≈ℰ : ν.Mono → Reflects-≈ℰ
   mono⇒reflects-≈ℰ = mono⇒reflects ν
 
+  -- `GradeStable` lets the target's ancillas in: one outside `Φ`'s image can
+  -- tell `≈ℰ`-equal images apart (`docs/uc-setup-ssp.md` §6).
+  preserves-≈ᵁ : Preserves-≈ℰ → S′.GradeStable → Preserves-≈ᵁ
+  preserves-≈ᵁ pres gs′ e = S′.bridge gs′ (S′.≈ℰ-cong-post κ (pres (S.≈ᵁ⇒≈ℰ e)))
+
+  transfer⁺ : Preserves-≈ᵁ → Preserves-≤UC
+  transfer⁺ pres {f = f} {g} f≤g =
+    S′.dummy-complete (Φ.₁ s₀ , S′.≈ᵁ-trans (pres dummy) (S′.≈C⇒≈ᵁ strict))
+    where
+      s₀    = proj₁ (S.≤UC⇒dummy f≤g)
+      dummy = proj₂ (S.≤UC⇒dummy f≤g)
+
+      strict : κ S′.𝒞.∘ F.₁ (S.sub s₀ S.𝒞.∘ g) S′.𝒞.≈ S′.sub (Φ.₁ s₀) S′.𝒞.∘ G g
+      strict = let open S′.𝒞 in
+        (refl⟩∘⟨ F.homomorphism) ○ sym-assoc ○ (κ-sub s₀ ⟩∘⟨refl) ○ assoc
+
   module _ (epi : ν.Epi) (gs′ : S′.GradeStable) where
 
     transfer : Preserves-≤UC
-    transfer {f = f} {g} f≤g = S′.dummy-complete (Φ.₁ s₀ , S′.bridge gs′ key)
-      where
-        s₀    = proj₁ (S.≤UC⇒dummy f≤g)
-        dummy = proj₂ (S.≤UC⇒dummy f≤g)
-
-        strict : κ S′.𝒞.∘ F.₁ (S.sub s₀ S.𝒞.∘ g) S′.𝒞.≈ S′.sub (Φ.₁ s₀) S′.𝒞.∘ G g
-        strict = let open S′.𝒞 in
-          (refl⟩∘⟨ F.homomorphism) ○ sym-assoc ○ (κ-sub s₀ ⟩∘⟨refl) ○ assoc
-
-        key : G f S′.≈ℰ S′.sub (Φ.₁ s₀) S′.𝒞.∘ G g
-        key = S′.≈ℰ-trans (S′.≈ℰ-cong-post κ (epi⇒preserves-≈ℰ epi (S.≈ᵁ⇒≈ℰ dummy)))
-                          (S′.≈C⇒≈ℰ strict)
+    transfer = transfer⁺ (preserves-≈ᵁ (epi⇒preserves-≈ℰ epi) gs′)
 
     -- The contrapositive: an impossibility proved downstream is an impossibility upstream
     transfer-impossible : ∀ {A B X Y} {f : A S.𝒞.⇒ S.T₀ X B} {g : A S.𝒞.⇒ S.T₀ Y B}
