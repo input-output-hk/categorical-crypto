@@ -290,8 +290,52 @@ serves no channel, the ideal queue stays empty, its `choose` is `dead` [INFERENC
 model restricted to adversaries that schedule ahead; for more, export a scheduling oracle (ssp.md §5.2,
 the old `Schedᴵ` router) or do B in PM (P1–P2, §6).
 
-
 ## 3. Model A: relabellings only
+
+### 3.1 Relabellings
+
+A relabelling ρ : S⃗ ⇝ T⃗ is a partial injection τ from the real sites S⃗ to the ideal sites T⃗ with
+pick maps r_j : S_j → T_{τ j}.  As a grade morphism ⌈ρ⌉ : C⟦T⃗⟧ → C⟦S⃗⟧ (ideal to real, a simulator's
+direction) it is the wire that forwards a pick on a real site j ∈ dom τ to τ j along r_j, absorbs picks
+on the other real sites and, in PM, forwards each request of an ideal site i ∈ im τ to τ⁻¹ i.  It never
+originates a pick and never answers a request.  Injectivity is what makes PM's routing stateless (one way
+back per pick); SSP would accept any partial map, and one class serves both.  In SSP, ⌈ρ⌉ is ⌜ m ⌝ with
+m : Cᴵ⟦dom τ⟧ ⇒ᴵ Cᴵ⟦T⃗⟧ (`ch` = τ, `qu` = r), tensored with `ack : Protocol unitᴵ (Cᴵ S)` (state ⊤,
+replies tt) on the absorbed sites, up to reordering wires.  Relabellings form a category Alph (lists of
+sets; partial injections with fibre maps), monoidal under ++.  uc-models' "a stateless wire that forwards
+each request and pulls the pick back along a function S′_j → S_i" is this, made partial.
+
+### 3.2 The grades 𝒢_A and the setup ND_A
+
+𝒢_A := `Restriction.transport` at R f := Σ (u , ρ). f ≈ u ⊗ ⌈ρ⌉, u : X → Y arbitrary: wide in 𝒢_B,
+and on the choice part the image of 𝕄 × Alphᵒᵖ (uc-models' 𝓘 × Alphᵒᵖ).  Obligations: R-id, R-∘
+(⌈−⌉ functorial), R-⊗ and R-α/λ/ρ (§2.3).  incl : 𝒢_A → 𝒢_B is the identity on objects and strict:
+`Restriction.weaken` (R ⊆ R′ ⇒ strict inclusion), a new lemma in `Transport.agda`.
+
+**ND_A := ND_B|incl** = `regraded ND_B incl`; `pullback-∘-*` relate it to Std(𝕄)|(ι_B ∘ incl) if a
+direct form is wanted.
+
+### 3.3 What ≤UC in A says
+
+f ≤UC_A g iff f ≈ᵁ sub_{u ⊗ ⌈ρ⌉} ∘ g for some u : Y → X and relabelling ρ (`dummy-complete`).  No 𝒢_A
+morphism answers a request or originates a pick, so every request of both worlds is answered by the
+environment, on the real grade.  The simulator renames sites, absorbs real sites the ideal lacks, and
+leaves ideal sites outside im τ unanswered.  This is environment resolution: the reading for
+specifications ("send to A, B, C in any order"), and task-PIOA's inessential choices
+(canetti2006taskpioa §1) resolved by the universally quantified environment instead of a schedule fixed
+in advance.  An unanswered request blocks one side only, so sites must match through τ:
+⟨t⟩ ≰UC_A ⟨[t, t]⟩ (the ideal site is never answered), and A has no idempotence (§5.1).
+
+### 3.4 Order independence
+
+For one site and π : S ≃ S, ⌈⟨k ∘ π⟩⌉ ≈ᵖ sub_{id ⊗ ⌈π⌉} ∘ ⌈⟨k⟩⌉: the simulation maps the queue by π
+[INFERENCE].  This is a hom-equality after a relabelling.  At π = swap, ⟨[t_AB, t_BA]⟩ and
+⟨[t_BA, t_AB]⟩ ("A then B" against "B then A") emulate each other in A, with the swap of the two picks
+as simulator (uc-models §4); hence in B (§4) and, by `UC-compose`, in every context.  "The order does not
+matter" is the stronger, grade-preserving ⌈⟨k⟩⌉ ≈ᵖ ⌈⟨const k₀⟩⌉.  As in the old plan's `OrderSpec`, it
+is a statement about the composite with the actual callee, since calls on different channels do not
+commute for an order-sensitive importer.  It is proved per reachable state (ssp.md §4.3's technique).
+
 
 ## 4. The morphism A → B, and the way back
 
