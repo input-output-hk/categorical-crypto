@@ -336,10 +336,88 @@ matter" is the stronger, grade-preserving ⌈⟨k⟩⌉ ≈ᵖ ⌈⟨const k₀�
 is a statement about the composite with the actual callee, since calls on different channels do not
 commute for an order-sensitive importer.  It is proved per reachable state (ssp.md §4.3's technique).
 
-
 ## 4. The morphism A → B, and the way back
 
+**A → B is §1's `inclusion`** for 𝕊 = ND_B and ι = incl: (Id, incl, id, `idᵛ`).  incl is bijective on
+objects and strict, so §1.3(b) holds with φ = id: ≈ᵁ_A is literally ≈ᵁ_B (the same grade objects, hence
+the same ancillas, prefix contexts and tests — uc-models' proof idea).  By (c), **f ≤UC_A g ⇒ f ≤UC_B g
+for all f, g graded in 𝒢_A**, with the same dummy simulator u ⊗ ⌈ρ⌉; composed with B → Std(𝕄)
+(`composeᵁ`) it reaches Std(𝕄).  Every A-proof — order independence, refinements by relabelling — is a
+B-proof with the same simulator, and this one edge is what relates the two models.  §1.3(d) is neither
+needed nor available (PM is not grade-stable; SSP is not known to be).
+
+**It does not reflect** (incl is not full, §1.3(g)).  Witnesses: (i) *flattening*: ⟨λ i → choose 0 (k i)⟩,
+two picks from one site per activation, against the one-site protocol on S × S stepping by the pair.
+They are B-equivalent through a simulator that buffers two real picks and passes the pair (or splits
+one), and not A-related, since a relabelling forwards one pick per pick, statelessly [INFERENCE; PM and
+SSP alike].  (ii) In PM, ⟨t₀⟩ ≤UC_B ⟨[t₀, t₁]⟩ (§2.5) while ⟨t₀⟩ ≰UC_A ⟨[t₀, t₁]⟩ (§3.3).
+
+**The way back.**
+
+- **Nothing inverts the inclusion on designated grades.**  A morphism B → A fixing them would carry
+  B-simulators to A-simulators (κ-sub), and witness (i)'s simulator is no relabelling [INFERENCE].
+- **Undesignation is a morphism B → A.**  Φ_u : 𝒢_B → 𝒢_A, (X, S⃗) ↦ (⌊X,S⃗⌋, []), is the identity on
+  morphisms (between site-free grades every morphism is in R, with ρ = id_[]) and strong (comparison φ).
+  `between Φ_u θ` (§1.4), θ the unitor ⌊⌊X,S⃗⌋, []⌋ = ⌊X,S⃗⌋ ⊗ I ≅ ⌊X,S⃗⌋.  ι_A ∘ Φ_u and ι_B have the
+  same essential image (all of 𝕄) and Φ_u is full, so it preserves and reflects ≤UC.  B embeds into A as
+  A's site-free part: B → A → B ≅ id, while A → B → A forgets the designation, sending A-emulation to
+  B-emulation inside A.  B is a retract of A, not conversely.
+- **Choice-free specifications.**  On grades with S⃗ = [], 𝒢_A and 𝒢_B have the same homs
+  (u ⊗ ⌈id_[]⌉ = u up to ρ), so A-, B- and Std(𝕄)-emulation coincide between site-free protocols; the
+  models differ as soon as either side has a site.
+- **`Factorization`** (`UCSetup/Morphism.agda:101`) adds nothing: both morphisms have ν = `idᵛ`, Epi
+  and Mono, so the image setup is the source itself.
+
 ## 5. Laws of `choose`, `P ∥ Q`, SSPᵈ
+
+### 5.1 Hom-equalities and emulations
+
+A law relates two compiled protocols.  It is a hom-equality only when the sites agree, an A-emulation
+when a relabelling relates them, and a B-emulation otherwise.  The old plan's five law constructors of
+`≈ᶜ` are gone: `Calls⁺` carries SSP's `≈ᶜ` with a congruence clause for `choose`, and laws are theorems
+about ⌈−⌉.
+
+| law | after ⌈−⌉ | A | B, PM | B, SSP |
+|---|---|---|---|---|
+| congruence: `k i ≈ᶜ k′ i` ⇒ `choose i k ≈ᶜ choose i k′` | ≈ᵖ (`resolve` pointwise) | ✓ | ✓ | ✓ |
+| `choose` past `coin` or `call` in one step | ≈ᶜ: the pick precedes the activation | ✓ | no syntax | ✓ |
+| permutation `k ∘ π`; commutativity `[t₀,t₁] ~ [t₁,t₀]` | ≈ᵖ after the relabelling ⌈π⌉ | mutual | mutual | mutual |
+| collapse: ∀ i. k i ≈ k₀ ⇒ ⟨k⟩ ~ ⟨const k₀⟩ (same site) | ≈ᵖ | ✓ | ✓ | ✓ |
+| idempotence ⟨const t⟩ ~ ⟨t⟩ (one site against none) | grades differ | ✗ both ways | ⟨t⟩ ≤ ⟨const t⟩ only | ✗ |
+| flattening: two picks against one pair-pick | grades differ | ✗ | mutual | mutual |
+
+- Row 2 is new.  Under the old global demon `coin-unit` and choose/coin commutation were non-laws (a
+  demon saw the toss: CE0, CE1); under pick-ahead `choose` reads the queue, which no coin or reply
+  feeds.  In PM a request's position within an activation is observable, so the row holds there only for
+  requests raised on every branch [INFERENCE].
+- Idempotence: in A an unanswered site hangs one side only; in PM-B the simulator answers the ideal's
+  request invisibly (⟨t⟩ ≤ ⟨const t⟩) but cannot raise the real one's; in SSP-B the simulator is never
+  activated, and the real side dies on an empty queue.  Flattening's B rows and both idempotence
+  verdicts are [INFERENCE].
+
+### 5.2 `P ∥ Q` (kept)
+
+`P ∥ Q` is not derivable from `choose` and `_⊗ᵖ_`.  (1) `(P ⊗ᵖ Q) ∘ᵖ ⌜ ∇ ⌝` is already caller-scheduled
+interleaving: each query is atomic, and no `choose` is involved.  (2) `_⊗ᵖ_` dispatches on the queried
+channel and has no fork, so interleaving inside one activation is no composite, and a `choose` over
+protocols picks one per activation.  (3) What is definable is the tree shuffle
+`_∥ᶜ_ : Calls⁺ A S⃗ X → Calls⁺ A S⃗ Y → Calls⁺ A (Bool ∷ S⃗) (X × Y)` (old plan §4.4, lexicographic
+termination), whose call/call clause is a `choose` on its own interleaving site.  Compiled, the
+adversary (B) or the environment (A) schedules the interleaving.  Commutativity up to `mapᶜ swap` is
+the relabelling `not` on that site, so it holds both ways in A.  Associativity re-encodes a three-way
+interleaving across two sites, which needs a buffering simulator: B only [INFERENCE].
+
+### 5.3 SSPᵈ
+
+Compiled protocols are SSP protocols, so `≈ᵈ` (`SSP/Dist.agda:37`), `congᵈ` (`:54`) and the laws of
+`SSP/Dist/Laws.agda` (`coins-comm`, `coin-drop`, `coin-flip`, `coin-xor`, `stepwise`, `defer`) apply to
+them unchanged; `Calls⁺` needs no `≈ᵈ` of its own.  The laws also survive `choose` in the source.
+`resolve qs` is pointwise in the continuation and turns `choose` into a read of the queue, which no coin
+feeds, so a law under `choose` is the law at each pick (a `≈ᵏ`-congruence of `resolve`, one induction
+like `≈ᵏ->>=ᶜ`).  `defer` moves a draw past a choice, since ρ acts on `St P` and the queues ride along
+[INFERENCE for both].  ND over SSPᵈ is `regraded (StdUC.StdSetup Protᵈ ℰᵈ) ι_B`.  Its braiding
+descends from `Protˢ` (⌜ swapᴵ ⌝'s laws are ≈ᵖ, hence ≈ᵈ), but `Construction/Quotient` exports only the
+monoidal structure: one small lemma.
 
 ## 6. Work breakdown
 
