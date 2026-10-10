@@ -156,8 +156,22 @@ module _ {X : Type ℓ} {Y : Type ℓ′} where
           inner (just a) = (λ P → refl)
           inner nothing  = (λ P → refl)
 
+-- A total distribution commutes with a partial one (the affine law at `nothing`).
+>>=ᴹ-comm⊥ : (μ : Dist-ℚ A) (ν : Dist⊥ B) (g : A → B → Dist⊥ C)
+           → (μ >>=ᴹ λ a → ν >>=⊥ g a) ≈Mℚ (ν >>=⊥ λ b → μ >>=ᴹ λ a → g a b)
+>>=ᴹ-comm⊥ μ ν g P = trans (>>=ᴹ-comm μ ν (λ a → kmaybe (g a)) P)
+  (>>=ᴹ-congˡ ν (λ mb → μ >>=ᴹ λ a → kmaybe (g a) mb) (kmaybe λ b → μ >>=ᴹ λ a → g a b) pt P)
+  where
+    pt : ∀ mb → (μ >>=ᴹ λ a → kmaybe (g a) mb) ≈Mℚ kmaybe (λ b → μ >>=ᴹ λ a → g a b) mb
+    pt (just b) = λ _ → refl
+    pt nothing  = >>=ᴹ-const μ (return-ℚ nothing)
+
 Dmap⊥ : (A → B) → Dist⊥ A → Dist⊥ B
 Dmap⊥ f μ = μ >>=⊥ (return⊥ ∘ f)
+
+Dmap⊥->>=⊥ : (f : A → B) (μ : Dist⊥ A) (g : B → Dist⊥ C) → (Dmap⊥ f μ >>=⊥ g) ≈Mℚ (μ >>=⊥ g ∘ f)
+Dmap⊥->>=⊥ f μ g P = trans (>>=⊥-assoc μ (return⊥ ∘ f) g P)
+  (>>=⊥-congˡ μ (λ a → return⊥ (f a) >>=⊥ g) (g ∘ f) (λ a → >>=⊥-identityˡ (f a) g) P)
 
 instance
   Functor-Dist⊥ : Functor Dist⊥
