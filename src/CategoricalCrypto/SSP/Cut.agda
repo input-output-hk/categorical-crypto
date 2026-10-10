@@ -6,10 +6,10 @@
 -- expectation against a test; it is read off a coin, a map and a served call
 -- (`ev-serve`: grafting a closed game is the game's tree, then the caller's).
 
-open import Data.Bool.Base using (Bool; true; false)
+open import Data.Bool.Base
 open import Data.List.Base using ([]; _∷_)
 open import Data.Maybe.Base using (nothing)
-open import Data.Nat.Base using (ℕ; zero; suc)
+open import Data.Nat.Base
 open import Data.Nat.Properties using (n≤1+n; ≤-trans)
 open import Data.Product.Base
 open import Data.Rational as ℚ using (ℚ; 0ℚ)

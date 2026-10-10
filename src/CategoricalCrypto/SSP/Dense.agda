@@ -23,25 +23,24 @@ open import Categories.Functor.Presheaf.Morphism
 open import Categories.NaturalTransformation using (ntHelper)
 
 open import Class.DecEq
-open import Data.Bool.Base using (Bool; true; false)
-open import Data.Empty using (⊥-elim)
+open import Data.Bool.Base
+open import Data.Empty
 open import Data.Nat.Base as ℕ using (ℕ; suc)
 open import Data.Nat.Properties using (m≤m⊔n; m≤n⊔m)
 open import Data.Product.Base
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Data.Rational.Properties hiding (_≟_)
-open import Data.Rational.Properties.Ext using (p≤∣p∣; −-+-cancel)
+open import Data.Rational.Properties.Ext
 open import Data.Sum.Base as Sum using (_⊎_; inj₁; inj₂)
-open import Data.Unit.Base using (⊤; tt)
+open import Data.Unit.Base
 open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)
 open import Level using (0ℓ)
 open import Relation.Binary.PropositionalEquality
-open import Relation.Nullary using (¬_)
-open import Relation.Nullary.Decidable.Core
+open import Relation.Nullary
 
 open import ProbabilisticLogic.Distribution.RationalDist.Advantage
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation
-open import ProbabilisticLogic.Distribution.Uniform using (indᵇ; indᵇ-nn)
+open import ProbabilisticLogic.Distribution.Uniform
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Coin
 open import ProbabilisticLogic.Dp.Mass using (cum-const-≤)

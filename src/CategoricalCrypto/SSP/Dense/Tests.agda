@@ -15,31 +15,28 @@
 -- well-bracketedness is spent: the distinguisher checks a reply's channel and
 -- the test need not, but a well-bracketed closure answers on the queried one.
 
-open import Data.Bool.Base using (Bool; true; false)
-open import Data.Empty using (⊥-elim)
+open import Categories.Category.Monoidal.Bundle
+
+open import Class.DecEq
+open import Data.Bool.Base
+open import Data.Empty
 open import Data.Nat.Base as ℕ using (ℕ; zero; suc; s≤s)
 open import Data.Product.Base
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Data.Rational.Properties hiding (_≟_)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
-open import Data.Unit.Base using (⊤; tt)
+open import Data.Unit.Base
 open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)
 open import Level using (0ℓ)
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary.Decidable.Core
 
-import Data.Nat.Properties as ℕP
-
-open import Categories.Category.Monoidal.Bundle
-
-open import Class.DecEq
-
-open import ProbabilisticLogic.Distribution.Uniform using (indᵇ; indᵇ-nn)
+open import ProbabilisticLogic.Distribution.Uniform
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Advantage
 open import ProbabilisticLogic.Dp.Coin
 open import ProbabilisticLogic.Dp.Iter hiding (flat)
-open import ProbabilisticLogic.Dp.Mass using (cum-const-≤)
+open import ProbabilisticLogic.Dp.Mass
 open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Abstract2.Morphism
@@ -66,6 +63,7 @@ import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Pointwise as Pw
 import CategoricalCrypto.Machines.Sim as Sim
 import CategoricalCrypto.SSP.Setup as SSP
+import Data.Nat.Properties as ℕP
 
 module CategoricalCrypto.SSP.Dense.Tests where
 

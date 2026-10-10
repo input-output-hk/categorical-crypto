@@ -16,7 +16,7 @@ open import Data.Empty
 open import Data.Product.Base
 open import Data.Sum.Base
 open import Level
-open import Relation.Nullary using (¬_)
+open import Relation.Nullary
 
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Coin
