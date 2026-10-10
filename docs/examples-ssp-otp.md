@@ -49,11 +49,11 @@ the simulator by `sub-commute′` (`Slide.slide`).  Hence `1 ≤ ½`.  `≈ᵁ�
 ## 4. Crossing to other setups: the next step (nothing has crossed yet)
 
 - **PM[wb]** (`docs/uc-setup-ssp.md` §4.2–4.3): `Fᵂ otp ≤UC Fᵂ ideal`, i.e. `morphism (toProtocol otp)
-  ≤UC morphism (toProtocol ideal)` against well-bracketed environments, from `otp≤ideal` by the
-  `≤UC` corollary of `SSP→PM[wb]` (C2–C6, on branch `ssp-bridge`, not landed).  That corollary is
-  itself open: `νᵂ` is not Epi (a W-test can carry an irrational verdict mass no SSP distinguisher
-  matches), so `Transfer.transfer` does not apply as is.  The module checks on top of the bridge's
-  `Ch-dec` change (`c9a4bf0e`), so the application will not need to touch it.
+  ≤UC morphism (toProtocol ideal)` against well-bracketed environments, from `otp≤ideal` by
+  `GamesDense.≤UC-transfer : Preserves-≈ℰ SSP→PM[wb] → Preserves-≤UC SSP→PM[wb]` (`SSP/Semantics`, from
+  branch `ssp-bridge2`), which needs no `ν.Epi`.  It is conditional on two open facts, the module
+  parameter `games-dense` and the hypothesis `Preserves-≈ℰ` (`docs/uc-setup-ssp.md` §6).  The module
+  checks on top of the bridge's `Ch-dec` change (`c9a4bf0e`), so the application will not need to touch it.
 - **𝔾ᴿ**: `rewrite⇒RS` starts at PM, not at PM[wb], so the bridge does not reach random systems.  The
   𝔾ᴿ statement needs the PM statement against all environments first, which needs an adequacy of
   `runᵖ` for compiled closed games that the tree does not have.
