@@ -1,10 +1,11 @@
 # Nondeterministic choice: the scheduler in the grade
 
 Plan, 2026-10-10; replaces the 2026-10-09 plan of the same name (image equality over `Sched → Dist⊥ Bool`,
-in git history at `7d722e1f`).  Nothing here is typechecked.  Every claim about a module that does not
-exist is a design claim; `[INFERENCE]` marks what was reasoned and not checked.  Line references are to
-`uc-setup-landscape` at `cf7c0db0`.  Names are those of `docs/uc-models.typ` (PM, SSP, PM[wb], 𝒲, SSPᵈ,
-ND_A, ND_B; §4 there, `sec:nd`, is the mathematical statement this plan implements).
+in git history at `7d722e1f`).  §1 is built (G1, G3 of §6); the rest is not typechecked.  Every claim
+about a module that does not exist is a design claim; `[INFERENCE]` marks what was reasoned and not
+checked.  Line references are to `uc-setup-landscape` at `cf7c0db0`.  Names are those of
+`docs/uc-models.typ` (PM, SSP, PM[wb], 𝒲, SSPᵈ, ND_A, ND_B; §4 there, `sec:nd`, is the mathematical
+statement this plan implements).
 
 ## 0. Summary
 
@@ -14,11 +15,12 @@ every grade morphism touch it — the adversary resolves real choices, the simul
 and model A only relabellings — the environment resolves both (specifications).  Both are restrictions
 of one standard setup along a functor of grades, and A → B is the inclusion.
 
-1. **The generic construction** (§1): 𝕊|ι for any setup 𝕊 and lax monoidal ι : 𝒥 → ℐ, with
-   `inclusion : 𝕊|ι → 𝕊` = (Id, ι, id, `idᵛ`).  ι essentially surjective with split comparisons ⇒ the same
-   U-kernel and ≤UC preserved, no `GradeStable`; 𝕊 grade-stable ⇒ preserved for every ι; otherwise not
-   (the unit at PM).  ι full ⇒ reflected, with no other hypothesis.  `Abstract2/Regrade.agda`, the dual
-   of `Abstract2/WideSubcategory.agda`; causal boxes' `regrade` is its `inclusion`.
+1. **The generic construction** (§1, built: `Abstract2/Regrade.agda`): 𝕊|ι for any setup 𝕊 and lax
+   monoidal ι : 𝒥 → ℐ, with `inclusion : 𝕊|ι → 𝕊` = (Id, ι, id, `idᵛ`).  ι essentially surjective with
+   split comparisons ⇒ the same U-kernel and ≤UC preserved, no `GradeStable`; 𝕊 grade-stable ⇒ preserved
+   for every ι; otherwise the U-kernels differ (the unit at PM, `Examples/RegradeUnit.agda`) and ≤UC is
+   not preserved [INFERENCE, §1.3(e)].  ι full ⇒ reflected, with no other hypothesis.  The dual of
+   `Abstract2/WideSubcategory.agda`; causal boxes' `regrade` is its `inclusion`.
 2. **ND_B** (§2) = Std(𝕄)|ι_B over designated grades X ⊗ C_{S₁} ⊗ … ⊗ C_{Sₙ}, n ≥ 0, built by the
    existing `Construction/Transport`; ι_B is full and essentially surjective, so ND_B has Std(𝕄)'s ≤UC.
 3. **ND_A** (§3) = ND_B|incl, incl the wide inclusion of the grade morphisms u ⊗ ⌈ρ⌉, ρ a relabelling.
@@ -41,8 +43,8 @@ and their repairs, the routings (2a)/(2b), and the edge SSP → ND with its refl
 site-free part, read by the same tests.
 
 **Decisions for the maintainer:** (1) pick-ahead SSP-B, or B in PM (P1–P2, §6); (2) relabellings as
-partial injections; (3) site-indexed `choose`; (4) G1 in `Abstract2/Regrade.agda`, not in
-`UCSetup/Morphism.agda` where the causal-boxes plan puts `regrade`.
+partial injections; (3) site-indexed `choose`.  (Settled: G1 lives in `Abstract2/Regrade.agda`, which the
+causal-boxes plan now imports instead of a `regrade` in `UCSetup/Morphism.agda`.)
 
 ## 1. The generic construction: restriction along a monoidal functor of grades
 
@@ -67,114 +69,111 @@ setup of §1.3(e)), or a functor that names structure on grades (ND_B's designat
 ### 1.2 The inclusion morphism
 
 `inclusion : UCSetupMorphism (𝕊|ι) 𝕊` is (F = Id, Φ = ι, κ = id, ν = `idᵛ ℰ`).  Its κ-laws are the
-pullback's defining equations: κ-sub and κ-return are `pullback-sub`/`pullback-return` (`refl`,
-`Pullback.agda:46-50`), κ-ext is `pullback-ext` (`:52`).  The action on protocols is G f = id ∘ f ≈ f, and
-ν is Epi and Mono (`Categories/Functor/Presheaf/Morphism.agda:155-159`).
+pullback's defining equations, read off `FromMonad (∘-Monoidal ℳ ι)` directly: R.return is
+sub_{ι_ε} ∘ return and R.ext X f is (sub_{ι₂} ∘ μ) ∘ T₁ f by `refl` (pinned in `Regrade/Pin.agda`), so
+κ-return is `identityˡ`, κ-sub `id-comm-sym` and κ-ext `identityˡ ○ assoc ○ ext-resp-≈`; `Pullback`'s
+round-trip lemmas are not used.  The action on protocols is G f = id ∘ f ≈ f, and ν is Epi and Mono
+(`Categories/Functor/Presheaf/Morphism.agda:155-159`).
 
 ### 1.3 Theorem: what the inclusion preserves and reflects
 
 Let f : A → T_{ιX} B and g : A → T_{ιY} B be protocols of 𝕊|ι; ≈ᵁ|ι and ≤UC|ι are 𝕊|ι's relations.
+Each clause names its proof in `Abstract2/Regrade.agda`; (a)–(d) and (f) hold as stated.
 
-- **(a) ≈ᵁ ⊆ ≈ᵁ|ι, always.**  𝕊|ι quantifies over the ancillas ιW only, and μ′ = sub_{ι₂} ∘ μ only
-  post-composes, which ≈ℰ respects (`≈ℰ-cong-post`).
-- **(b) ≈ᵁ|ι ⊆ ≈ᵁ when ι is essentially surjective with split comparisons** (every ι₂ has a retraction;
-  a strong ι supplies `⊗-homo.⇐`).  Cancel sub_{ι₂} by sub of the retraction, then move the ancilla
-  along φ : ιW′ ≅ W:  prefix_W f = sub_{φ ⊗ id} ∘ prefix_{ιW′} f ∘ sub_{φ⁻¹}, by `sub-commute′` and
-  `μ-sub-commute` (`FromMonad.agda:87-91`).  The curried-tensor instance of this conjugation is
-  `Standard2/Morphism.agda:82` `conj`, used by `surjective⇒preserves-≈ᵁ` (`:97`).  "W a retract of some
-  ιW′" suffices (the same computation with r ∘ s = id).  Under (b) the U-kernels coincide on 𝕊|ι's
+- **(a) ≈ᵁ ⊆ ≈ᵁ|ι, always** (`≈ᵁ⇒≈ᵁ|ι`).  𝕊|ι quantifies over the ancillas ιW only, and
+  μ′ = sub_{ι₂} ∘ μ only post-composes, which ≈ℰ respects (`≈ℰ-cong-post`).
+- **(b) ≈ᵁ|ι ⊆ ≈ᵁ when ι is essentially surjective with split comparisons** (`Preserves.≈ᵁ|ι⇒≈ᵁ`;
+  every ι₂ has a retraction r, which a strong ι supplies as `⊗-homo.⇐`).  Cancel sub_{ι₂} by sub_r,
+  then move the ancilla along u : ιW′ → W with u ∘ u⁻ = id:  prefix_W f = sub_{u ⊗ id} ∘ prefix_{ιW′} f
+  ∘ sub_{u⁻}, by `sub-commute₁` alone (ext_W f ∘ sub_u ≈ sub_{u ⊗ id} ∘ ext_{ιW′} f).  So "W a retract of
+  some ιW′" suffices, and that is the form proved (`Preserves.≈ᵁ|ι⇒≈ᵁ-at`).  The curried-tensor instance of
+  this conjugation is `Standard2/Morphism.agda:82` `conj`.  Under (b) the U-kernels coincide on 𝕊|ι's
   protocols; when ι is bijective on objects and strict (a wide monoidal subcategory) they are literally
   one relation, with no conjugation.
-- **(c) Preservation under (b).**  f ≤UC|ι g ⇒ f ≤UC g: the dummy simulator s₀ ∈ 𝒥(Y, X) of the
-  hypothesis gives f ≈ᵁ sub_{ιs₀} ∘ g by (b), and `dummy-complete` (`Abstract2.agda:156`) gives the
-  simulator a ∘ ιs₀ for each a : ιX → X″.  No `GradeStable`, no Epi.
-- **(d) Preservation for every ι when 𝕊 is grade-stable.**  f ≈ᵁ|ι g ⇒ f ≈ℰ g (`≈ᵁ⇒≈ℰ` in 𝕊|ι) ⇒
-  f ≈ᵁ g (`bridge`, `Abstract2.agda:124`); 𝕊|ι is grade-stable too (T′_Y = T_{ιY}).  This is
-  `Transfer.transfer inclusion idᵛ-epi gs` (`Abstract2/Morphism.agda:75`), the route the causal-boxes
-  sketch takes.
-- **(e) Without (b) or (d) preservation fails.**  Take ι : `Oneᴹ` → ℐ, the unit (`Oneᴹ` is
-  `Categories/Monad/Graded/Trivial.agda:24`).  𝕊|ι is the adversary-free setup: one ancilla and one
-  simulator, so for standard 𝕊 (T_I f is f conjugated by λ) ≈ᵁ|ι and ≤UC|ι are ≈ℰ on unit-graded
-  protocols.  At PM the reveal pair
-  r_true ≈ℰ r_false (`UC/RandomSystems/FullAbstraction.agda:186`) is ≤UC|ι, while r_true ≰UC r_false: a
-  simulator I → I has the empty interface, so sub_s ∘ r_false still never sends `true`, and ≈ᵁ ⇒ ≈ᴿ
-  separates the two [INFERENCE: that every s : I → I of 𝔾ᵒ is inert].
-- **(f) Reflection when ι is full.**  f ≤UC g ⇒ f ≤UC|ι g: take 𝕊's dummy simulator s₀ ∈ ℐ(ιY, ιX), a
-  preimage s₀′ with ιs₀′ ≈ s₀, and (a).  No grade stability, κ-mono or ν-mono:
+- **(c) Preservation under (b)** (`Preserves.unrestrict-≤UC`).  f ≤UC|ι g ⇒ f ≤UC g: the dummy simulator
+  s₀ ∈ 𝒥(Y, X) of the hypothesis gives f ≈ᵁ sub_{ιs₀} ∘ g by (b), and `dummy-complete`
+  (`Abstract2.agda:156`) gives the simulator a ∘ ιs₀ for each a : ιX → X″.  No `GradeStable`, no Epi.
+- **(d) Preservation for every ι when 𝕊 is grade-stable** (`regraded-gs`, `unrestrict-≤UC-gs`).
+  f ≈ᵁ|ι g ⇒ f ≈ℰ g (`≈ᵁ⇒≈ℰ` in 𝕊|ι) ⇒ f ≈ᵁ g (`bridge`, `Abstract2.agda:124`); 𝕊|ι is grade-stable too
+  (T′_Y = T_{ιY}).  The proof is `Transfer.transfer inclusion idᵛ-epi gs` (`Abstract2/Morphism.agda:75`),
+  read through `≤UC-resp-≈ identityˡ` since G f = id ∘ f.
+- **(e) Without (b) or (d) the U-kernels differ, and preservation fails [INFERENCE].**  Take ι : `Oneᴹ` →
+  ℐ, the unit (`Graded.Trivial.unitᴹ`).  𝕊|ι is the adversary-free setup: one ancilla and one simulator,
+  both the unit, and when `return` is split (standard 𝕊: λ⇐, split by λ⇒) its prefix context is the
+  protocol followed by the splitting, so ≈ᵁ|ι and ≤UC|ι are ≈ℰ on unit-graded protocols
+  (`Abstract2/Regrade/Unit.agda`, `≤UC|𝟙⇔≈ℰ`).  At PM the reveal pair r_b = λ⇐ ∘ revealᴹ b, ≈ℰ-equal
+  (`UC/RandomSystems/FullAbstraction.agda:186`), is therefore ≤UC|ι (`Examples/RegradeUnit.agda`,
+  `reveal-≤UC|𝟙`) and not ≈ᵁ-equal (`reveal-≉ᵁ`, by `≈ᵁ⇒≈ᴿ`): ≈ᵁ|ι ⊄ ≈ᵁ, so (b) needs its hypothesis.
+  r_true ≰UC r_false is not built.  *Correction:* the earlier argument assumed every s : I → I of 𝔾ᵒ
+  inert, which is false — a machine's initial state is a `Dₚ` point (`Machines/Core.agda:25`, "possibly
+  effectful"), so a scalar whose initial state diverges is ≉ᴿ id (against `out b` it never lands).  A
+  scalar has no ports, so what remains is that it only scales observations by its termination mass and
+  never makes sub_s ∘ r_false send `true` [INFERENCE]; a proof reads the scalar's run through the
+  absorption lemmas of `UC/Machine/Behaviour/Congruence.agda` (`∘ᴳ-absorbʳ`, `⊗₁ᴳ-absorbˡ`).
+- **(f) Reflection when ι is full** (`restrict-≤UC`).  f ≤UC g ⇒ f ≤UC|ι g: take 𝕊's dummy simulator
+  s₀ ∈ ℐ(ιY, ιX), a preimage s₀′ with ιs₀′ ≈ s₀, and (a).  No grade stability, κ-mono or ν-mono:
   `Abstract2/Morphism.agda:90` `reflects-≤UC` needs all three because it rebuilds the source U-kernel
   from a ≈ℰ; here (a) gives it directly.
 - **(g) Without fullness reflection fails**; ND_A → ND_B is the witness (§4).
 
 So a full, essentially surjective, strong ι changes nothing about ≤UC (ND_B, §2.2); a wide strict non-full
 ι preserves and does not reflect (ND_A ⊆ ND_B; efficient simulators); a non-essentially-surjective ι
-coarsens ≈ᵁ, and preservation then needs grade stability.
+coarsens ≈ᵁ, and preservation then rests on grade stability.
 
 ### 1.4 Between two restrictions
 
-For a second ι′ : 𝒥′ → ℐ, a monoidal j : 𝒥 → 𝒥′ and a monoidal natural iso θ : ι′ ∘ j ≅ ι
-(`Categories.NaturalTransformation.NaturalIsomorphism.Monoidal`), `between j θ : 𝕊|ι → 𝕊|ι′` is
-(Id, j, sub_{θ⁻¹}, `idᵛ ℰ`); its κ-laws are `pullback-∘-return`/`pullback-∘-ext` (`Pullback.agda:90-99`)
-plus θ's monoidality.  The theorem carries over with "essential image of ι" in place of "all of ℐ":
-the U-kernels agree when ι and ι′ have the same essential image on objects (split comparisons), and
-full j reflects.  §4 needs it once, for the way back B → A.
+For a second ι′ : 𝒥′ → ℐ, a monoidal j : 𝒥 → 𝒥′ and a lax monoidal natural iso θ : ι′ ∘ j ≅ ι
+(`Categories.NaturalTransformation.NaturalIsomorphism.Monoidal`), `Between.between : 𝕊|ι → 𝕊|ι′` is
+(Id, j, sub_{θ⁻¹}, `idᵛ ℰ`), built.  Its κ-laws come straight from θ⁻¹'s `ε-compat`, `⊗-homo-compat` and
+naturality with `sub-commute`; `pullback-∘-*` are not needed.  The theorem carries over, sharpened:
+`reflects-≈ᵁ` (G f ≈ᵁ|ι′ G g ⇒ f ≈ᵁ|ι g, always: 𝕊|ι's ancillas are, up to θ, among 𝕊|ι′'s),
+`reflects-≤UC` for full j, and `preserves-≈ᵁ`/`preserves-≤UC` when ι's comparisons split and every ι′W′
+is iso to some ιW — ι′'s essential image inside ι's, which "the same essential image" more than covers.
+§4 needs it once, for the way back B → A.
 
 ### 1.5 The module
 
 `src/CategoricalCrypto/Abstract2/Regrade.agda`, beside its dual `Abstract2/WideSubcategory.agda`.  It is
 generic in the `UCSetup`, not in `Standard2`: ND_A restricts the non-standard ND_B, and the curried
 tensor buys nothing (b) needs.  No `Standard2/Regrade.agda`: `Std(𝕄,ℰ)|ι` is the instance
-`regraded (StdUC.StdSetup 𝕄 ℰ) ι`.
+`regraded (StdUC.StdSetup 𝕄 ℰ) ι`.  Built (G1, G3), with f, g implicit throughout:
 
 ```agda
-{-# OPTIONS --safe --without-K #-}
 module CategoricalCrypto.Abstract2.Regrade
   {o ℓ e o′ ℓ′ e′ cs ℓs oⱼ ℓⱼ eⱼ : Level} (𝕊 : UCSetup o ℓ e o′ ℓ′ e′ cs ℓs)
   {𝒥 : MonoidalCategory oⱼ ℓⱼ eⱼ} (ι : MonoidalFunctor 𝒥 (UCSetup.ℐ 𝕊)) where
-open AbstractUC 𝕊
-ι₂ : (W X : 𝒥.Obj) → ι.₀ W ⊗₀ ι.₀ X ℐ.⇒ ι.₀ (W 𝒥.⊗₀ X) ;  ι₂ W X = ι.⊗-homo.η (W , X)
-
-regraded : UCSetup oⱼ ℓⱼ eⱼ o′ ℓ′ e′ cs ℓs                                 -- 𝕊|ι
-regraded = record { 𝒞 = 𝒞 ; ℐ = 𝒥 ; ℳ = pullbackM ι ℳ ; ℰ = ℰ }
-module R = AbstractUC regraded       -- R.T₀ X = T₀ (ι.₀ X), R.sub c = sub (ι.₁ c): refl
-
-inclusion : UCSetupMorphism regraded 𝕊
-inclusion = record { ν = idᵛ ℰ ; effect = record { F = idF ; Φ = ι ; κ = 𝒞.id
-  ; isGradedKleisliMorphism = record { κ-return = 𝒞.identityˡ ; κ-sub = λ _ → id-comm-sym
-                                     ; κ-ext = λ f → 𝒞.identityˡ ○ ext-pullback f ○ … } } }
-
-≈ᵁ⇒≈ᵁ|ι : {f g : A 𝒞.⇒ T₀ (ι.₀ X) B} → f ≈ᵁ g → f R.≈ᵁ g                       -- (a)
-≈ᵁ⇒≈ᵁ|ι e W = ≈ℰ-cong-post (sub (ι₂ W _)) (e (ι.₀ W))                            -- up to R.μ's spelling
-
-restrict-≤UC : Full ι.F → f ≤UC g → f R.≤UC g                                    -- (f)
-restrict-≤UC full f≤g = let s₀ , e = ≤UC⇒dummy f≤g ; s₀′ , s≈ = full s₀
-                        in R.dummy-complete (s₀′ , ≈ᵁ⇒≈ᵁ|ι (≈ᵁ-trans e (≈C⇒≈ᵁ (sub-resp-≈ (ℐ.Equiv.sym s≈) ⟩∘⟨refl))))
-
-module Preserves (r : ∀ {W X} → ι.₀ (W 𝒥.⊗₀ X) ℐ.⇒ ι.₀ W ⊗₀ ι.₀ X) (r∘ι₂ : ∀ {W X} → r ℐ.∘ ι₂ W X ℐ.≈ ℐ.id)
-                 (surj : EssentiallySurjective ι.F) where                         -- (b), (c)
-  ≈ᵁ|ι⇒≈ᵁ : f R.≈ᵁ g → f ≈ᵁ g
-  ≈ᵁ|ι⇒≈ᵁ e W = let W′ , φ = surj W in conjugate φ (cancel r∘ι₂ (e W′))
-  unrestrict-≤UC : f R.≤UC g → f ≤UC g
-  unrestrict-≤UC le = let s₀ , e = R.≤UC⇒dummy le in dummy-complete (ι.₁ s₀ , ≈ᵁ|ι⇒≈ᵁ e)
-
-regraded-gs : GradeStable → R.GradeStable                                       -- (d)
-regraded-gs gs Y = gs (ι.₀ Y)
-unrestrict-≤UC-gs : GradeStable → f R.≤UC g → f ≤UC g                           -- Transfer.transfer, G f = 𝒞.id ∘ f
-
+ι₂ : (W X : 𝒥.Obj) → ι.₀ W ⊗₀ ι.₀ X ℐ.⇒ ι.₀ (W 𝒥.⊗₀ X)
+regraded : UCSetup oⱼ ℓⱼ eⱼ o′ ℓ′ e′ cs ℓs     -- record { 𝒞 = 𝒞 ; ℐ = 𝒥 ; ℳ = ∘-Monoidal ℳ ι ; ℰ = ℰ }
+module R = AbstractUC regraded
+inclusion : UCSetupMorphism regraded 𝕊           -- (idF, ι, 𝒞.id, idᵛ ℰ)
+≈ᵁ⇒≈ᵁ|ι : f ≈ᵁ g → f R.≈ᵁ g                                                         -- (a)
+restrict-≤UC : Full ι.F → f ≤UC g → f R.≤UC g                                       -- (f)
+module Preserves (r : ∀ {W X} → ι.₀ (W 𝒥.⊗₀ X) ℐ.⇒ ι.₀ W ⊗₀ ι.₀ X)
+                 (r∘ι₂ : ∀ {W X} → r ℐ.∘ ι₂ W X ℐ.≈ ℐ.id) where
+  ≈ᵁ|ι⇒≈ᵁ-at : f R.≈ᵁ g → u ℐ.∘ u⁻ ℐ.≈ ℐ.id → μ W _ 𝒞.∘ T₁ W f ≈ℰ μ W _ 𝒞.∘ T₁ W g  -- u : ι.₀ W′ ⇒ W
+  ≈ᵁ|ι⇒≈ᵁ : EssentiallySurjective ι.F → f R.≈ᵁ g → f ≈ᵁ g                          -- (b)
+  unrestrict-≤UC : EssentiallySurjective ι.F → f R.≤UC g → f ≤UC g                -- (c)
+regraded-gs : GradeStable → R.GradeStable                                          -- (d)
+unrestrict-≤UC-gs : GradeStable → f R.≤UC g → f ≤UC g
 module Between (ι′ : MonoidalFunctor 𝒥′ ℐ) (j : MonoidalFunctor 𝒥 𝒥′)
-               (θ : MonoidalNaturalIsomorphism (∘-Monoidal ι′ j) ι) where      -- §1.4
-  between : UCSetupMorphism regraded (Regrade.regraded 𝕊 ι′)                    -- κ = sub (θ.⇐.η _)
-
-module Trivial where                                                             -- acceptance, §6
-  open Preserves ℐ.id ℐ.identity² (λ W → W , ≅.refl)    -- at ι = idF-Monoidal ℐ
-  to = restrict-≤UC (λ s → s , ℐ.Equiv.refl) ; from = unrestrict-≤UC
+               (θ : Lax.MonoidalNaturalIsomorphism (∘-Monoidal ι′ j) ι) where      -- §1.4
+  regraded′ : UCSetup …  ;  between : UCSetupMorphism regraded regraded′  ;  module T = Transfer between
+  reflects-≈ᵁ : T.G f R′.≈ᵁ T.G g → f R.≈ᵁ g  ;  reflects-≤UC : Full j.F → T.Reflects-≤UC
+  preserves-≈ᵁ : … → T.Preserves-≈ᵁ  ;  preserves-≤UC : … → T.Preserves-≤UC  -- given r, r∘ι₂ and
+                                      -- img : (W′ : 𝒥′.Obj) → Σ[ W ∈ 𝒥.Obj ] ℐ.U [ ι.₀ W ≅ ι′.₀ W′ ]
 ```
 
-`cancel` (post-compose sub r, `sub-homomorphism`, `sub-identity`), `conjugate` (the identity of (b)) and
-`ext-pullback` (R.ext W f ≈ sub (ι₂ W _) ∘ ext (ι.₀ W) f) are private.  `Pullback.agda`'s lemmas are
-stated for `pullback ι triple`, which round-trips ℳ through `GradedKleisliTriple⇒GradedMonad`;
-`regraded`'s triple is `FromMonad (pullbackM ι ℳ)` without the round trip.  So `R.T₀`, `R.sub` and
-`R.return` should hold by `refl` directly (`F₀`/`F₁` of `∘-Monoidal`), and `pullback-ext`'s proof is
-replayed as `ext-pullback` — the causal-boxes plan's "else one round-trip lemma" [INFERENCE].
+- `Regrade/Pin.agda`: R.T₀, R.sub, R.return and R.μ are 𝕊's at ι by `refl`; at ι = `idF-Monoidal ℐ`,
+  `inclusion`'s F, Φ, κ and ν.η are `idᵁ 𝕊`'s by `refl`; `Trivial.to`/`from` cross ≤UC both ways.
+- `Regrade/Unit.agda`: along `Graded.Trivial.unitᴹ`, `≈ℰ⇒≈ᵁ|𝟙` and `≤UC|𝟙⇔≈ℰ` given a splitting of
+  `return`; `Examples/RegradeUnit.agda` is §1.3(e) at PM.
+- Against the sketch: `pullbackM` carries `Pullback`'s unused triple parameter, so `regraded` writes its
+  body, `∘-Monoidal ℳ ι`; `surj` is an argument of `Preserves`' last two lemmas, since the retract form
+  needs only r; κ-ext needs no `ext-pullback` (§1.2); `Trivial` sits in the pin, which instantiates
+  ι = id; `Between` spells out its target `regraded′`, since a module cannot name its own instance.
+- Warm at `-M3G`: `Regrade` 15.8 s (220 lines), `Pin` 11.5 s, `Unit` 12.3 s, `Examples/RegradeUnit`
+  13.3 s.  The example applies `Unit` by qualified name: as `module PM = Unit Sᵒ.StdSetup` it took 51.6 s
+  and 2.7 GB residency.
 
 ### 1.6 Relation to `WideSubcategory`, causal boxes' `regrade`, `Oneᴹ`
 
@@ -182,21 +181,22 @@ replayed as `ext-pullback` — the causal-boxes plan's "else one round-trip lemm
 |---|---|---|
 | restricts | computations, to a wide 𝒲 ⊆ 𝒞 closed under `return`, `μ`, `T₁`, `sub` | grades, along any monoidal ι : 𝒥 → ℐ |
 | keeps | ℐ; ℳ restricted; tests ℰ′ presented by ν : ℰ′ ⇒ ℰ ∘ ιᵒᵖ | 𝒞 and ℰ; ℳ pulled back |
-| inclusion | (ι, Id, id, ν) (`:118`) | (Id, ι, id, `idᵛ`) |
+| inclusion | (ι, Id, id, ν) (`:119`) | (Id, ι, id, `idᵛ`) |
 | has fewer | protocols | adversaries, simulators, ancillas |
-| ≤UC preserved | `Preserves-≈ℰ` (`unrestrict-≤UC`, `:172`) | ι essentially surjective with split comparisons, or 𝕊 grade-stable |
-| ≤UC reflected | `Reflects-≈ℰ` (`restrict-≤UC`, `:158`; free for `fine`) | ι full |
-| trivial instance | `Trivial.everything` (`:192`) | ι = `idF-Monoidal ℐ` |
+| ≤UC preserved | `Preserves-≈ℰ` (`unrestrict-≤UC`, `:173`) | `Preserves.unrestrict-≤UC` (ι essentially surjective, split comparisons) or `unrestrict-≤UC-gs` (𝕊 grade-stable) |
+| ≤UC reflected | `Reflects-≈ℰ` (`restrict-≤UC`, `:159`; free for `fine`) | `restrict-≤UC` (ι full) |
+| trivial instance | `Trivial.everything` (`:193`) | ι = `idF-Monoidal ℐ` (`Regrade/Pin.Trivial`) |
 
-- **Causal boxes** (`docs/uc-setup-causal-boxes.md:417-433`): its `regrade`, planned in
-  `UCSetup/Morphism.agda`, is `inclusion`; its "`Transfer.transfer` given target `GradeStable`" is
-  (d), and (c) drops the hypothesis whenever ι is essentially surjective — its efficient-simulator
-  grading keeps all grades, so (c) applies.  Its step 9 becomes an import of this module.
+- **Causal boxes** (`docs/uc-setup-causal-boxes.md` §4.4(a), updated): its `regrade` is `inclusion`; its
+  "`Transfer.transfer` given target `GradeStable`" is (d), and (c) drops the hypothesis whenever ι is
+  essentially surjective — its efficient-simulator grading keeps all grades, so (c) applies.  Its step 9
+  is an import of this module.
 - **Regrade, then restrict computations.**  `WideSubcategory` over 𝕊|ι asks `W-sub` only at
   `sub (ι.₁ c)`.  The landscape's §3 correction (`W-sub` at every ambient adversary sinks "feasible
   machines") is lifted by first regrading to feasible adversaries.
 - **`Oneᴹ`**: `Graded/Trivial.ungraded` reads a Kleisli triple as graded over `Oneᴹ`; restriction along
-  the unit `Oneᴹ → ℐ` is (e)'s adversary-free setup, where UC emulation collapses to ≈ℰ.
+  the unit `Graded/Trivial.unitᴹ : Oneᴹ → ℐ` is (e)'s adversary-free setup, where UC emulation collapses
+  to ≈ℰ when `return` is split (`Regrade/Unit`).
 - Only (b) and (c) use more than laxness of ι; the construction, (a), (d) and (f) are lax.
 
 ## 2. Choice factors and model B
@@ -468,9 +468,9 @@ integrator's.  Paths are under `src/`.
 
 | # | module | delivers | acceptance |
 |---|---|---|---|
-| G1 | `CategoricalCrypto/Abstract2/Regrade.agda` | §1.5: `regraded`, `inclusion`, `≈ᵁ⇒≈ᵁ\|ι`, `restrict-≤UC`, `Preserves`, `regraded-gs`, `unrestrict-≤UC-gs`, `Between` | at ι = `idF-Monoidal ℐ`, `inclusion`'s `F`, `Φ`, `κ`, `ν.η` are `idᵁ 𝕊`'s by `refl` (`Abstract2/Regrade/Pin.agda`); `Trivial.to`/`from` |
-| G2 | `Categories/Category/Monoidal/Construction/Transport.agda` | `Restriction.weaken` | importers (`UC/Bracket/*`) re-checked |
-| G3 (opt.) | `CategoricalCrypto/Examples/RegradeUnit.agda` | §1.3(e) at PM | `r_true` ≤UC\|ι `r_false`, `¬ (r_true ≤UC r_false)` |
+| G1 | `CategoricalCrypto/Abstract2/Regrade.agda` | §1.5: `regraded`, `inclusion`, `≈ᵁ⇒≈ᵁ\|ι`, `restrict-≤UC`, `Preserves`, `regraded-gs`, `unrestrict-≤UC-gs`, `Between` | **built** (`62661834`): at ι = `idF-Monoidal ℐ`, `inclusion`'s `F`, `Φ`, `κ`, `ν.η` are `idᵁ 𝕊`'s by `refl` (`Abstract2/Regrade/Pin.agda`); `Trivial.to`/`from` |
+| G2 | `Categories/Category/Monoidal/Construction/Transport.agda` | `Restriction.weaken` | **not built** — §1 does not need it; build it with A2.  `module Restriction R …` cannot name its own instance at R′, so: pack the ten closure proofs as `record Closed R` (`R-id` … `R-α⇐`), take `module Restriction (R) (c : Closed R)`, and add top-level `weaken : Closed R → Closed R′ → (∀ {a b} {f : U a ⇒ U b} → R f → R′ f) → StrongMonoidalFunctor (Restriction.transport R c) (Restriction.transport R′ c′)`, identity on objects with identity comparisons (laws by `⊗ᵗ-identity`).  This changes the call at `UC/Bracket/Monoidal.agda:305`; re-check `UC/Bracket/*` and `SSP/Semantics` on |
+| G3 (opt.) | `CategoricalCrypto/Examples/RegradeUnit.agda`, `Abstract2/Regrade/Unit.agda`, `Graded.Trivial.unitᴹ` | §1.3(e) at PM | **partial** (`07cac1f6`): `reveal-≤UC|𝟙` (r_true ≤UC\|ι r_false) and `reveal-≉ᵁ` (¬ r_true ≈ᵁ r_false) built; ¬ (r_true ≤UC r_false) needs a scalar's run (§1.3(e)) |
 | B1 | `CategoricalCrypto/ND/Grade.agda` | over a `SymmetricMonoidalCategory` and `C : Set → Obj`: `Grade`, `⌊_⌋`, φ, υ, `𝒢B`, `ιB`, `NDB`, ≤UC_B ⇔ ≤UC (G1) | instantiated at `Protˢ`, `Cᴵ` |
 | B2 | `CategoricalCrypto/ND/SSP/Choice.agda` | §2.4: `Calls⁺`, `Protocol⁺`, the `choose` clauses, `_∘⁺_`, `Queues`, `resolve`, `⌈_⌉`, `⌈⌉-resp`, `⌈⌉-plain`, `⌈⌉-∘`, `⌈⌉-⊗` | a two-site composite pinned by `refl` |
 | A1 | `CategoricalCrypto/ND/Relabel.agda` | §3.1: `Alph`, `++`, the SSP wires `⌈ρ⌉` (`⌜ m ⌝`, `ack`) | `⌈_⌉` a functor Alphᵒᵖ → `Prot` up to ≈ᵖ |
@@ -481,10 +481,11 @@ integrator's.  Paths are under `src/`.
 | P1 | `CategoricalCrypto/UC/Model/Symmetric.agda` | §2.3: `𝔾ᵒ`'s braiding σᴳ, naturality, hexagon | a `SymmetricMonoidalCategory` over `∣𝔾ᵒ∣` |
 | P2 | B1, A1, A2 at PM | choice factors ⊤ ⇿ S in `𝔾ᵒ`; PM's online B | — |
 
-Order: G1 with G2 first (independent of ND; the causal-boxes plan's step 9 then imports G1), then B1–B2,
-A1–A2, L1 over SSP; P1–P2 when PM's online B, or A at PM, is wanted.  Traps: the `refl`s of §1.5 against
-`FromMonad`'s triple; one spelling of 𝒥's levels, ascribed, so that records are not eta-compared; ν is
-`idᵛ`, so no `pullbackᵛ`; `𝔾ᵒ` is `opaque`, so P1 works on `𝒢ₚᴹ` and is sealed with it.
+Order: G1 (built), then B1–B2, A1–A2 (A2 with G2's `weaken`), L1 over SSP; P1–P2 when PM's online B, or
+A at PM, is wanted.  Traps: the `refl`s of §1.5 against `FromMonad`'s triple (pinned, they hold); one
+spelling of 𝒥's levels, ascribed, so that records are not eta-compared; ν is `idᵛ`, so no `pullbackᵛ`;
+`𝔾ᵒ` is `opaque`, so P1 works on `𝒢ₚᴹ` and is sealed with it; applying a `Regrade`-based module at PM's
+concrete setup by `module X = M 𝕊ᵒ` copies `Regrade`'s and `AbstractUC`'s names (51.6 s against 13.5 s, §1.5).
 
 ## 7. Sources
 

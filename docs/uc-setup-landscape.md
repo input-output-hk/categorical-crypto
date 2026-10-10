@@ -53,16 +53,18 @@ escape-hatch baseline unchanged):
 4. **IPDL and causal boxes are islands** for `UCSetupMorphism` (design-level proofs in
    their plans); **symbolic** reaches only the negligible tier; the first-draft edges
    `SSP → 𝔾ᵒ`, `IPDL → RS`, `RS → causal boxes` are withdrawn.
-5. **Nondeterminism** [design; plan [uc-setup-nondeterministic.md](uc-setup-nondeterministic.md),
-   rewritten 2026-10-10]: the scheduler is a choice factor of the *grade*, not an effect.
-   Model B (adversary-resolved, Canetti) is `Std(𝕄)` with the `choose` constructor
-   compiled to a request on that factor; model A (environment-resolved, "order does not
-   matter") is the grade-side restriction of B to relabellings — an instance of the generic
-   *restriction of a setup along a monoidal functor of grades* (planned
-   `Abstract2/Regrade`: `Graded/Pullback` and the inclusion (Id, ι, id, `idᵛ`)), the dual of
-   `WideSubcategory`, which preserves `≤UC` when ι is essentially surjective and reflects
-   it when ι is full.  A-emulation ⇒ B-emulation for all `f, g` by dummy completeness; not
-   conversely.  In SSP the request cannot be raised inside a step, so `choose` compiles
+5. **Nondeterminism** [design, its generic step built; plan
+   [uc-setup-nondeterministic.md](uc-setup-nondeterministic.md), rewritten 2026-10-10]: the
+   scheduler is a choice factor of the *grade*, not an effect.  Model B (adversary-resolved,
+   Canetti) is `Std(𝕄)` with the `choose` constructor compiled to a request on that factor;
+   model A (environment-resolved, "order does not matter") is the grade-side restriction of B to
+   relabellings — an instance of the generic *restriction of a setup along a monoidal functor of
+   grades*, **built** as `Abstract2/Regrade` (`regraded`, the inclusion (Id, ι, id, `idᵛ`), the
+   dual of `WideSubcategory`): it preserves `≤UC` when ι is essentially surjective with split
+   comparisons (`Preserves.unrestrict-≤UC`) or the setup is grade-stable, and reflects it when ι
+   is full (`restrict-≤UC`); along the unit at PM the U-kernels differ
+   (`Examples/RegradeUnit`).  A-emulation ⇒ B-emulation for all `f, g` by dummy completeness;
+   not conversely.  In SSP the request cannot be raised inside a step, so `choose` compiles
    pick-ahead and SSP's B is weaker than PM's; A needs a braiding, which `𝔾ᵒ` lacks.  The
    mathematical statement is `docs/uc-models.typ` §4.
 6. **Robust compilation** holds: `≤UC⇔robustᵁ` (UC = RHP over `≈ᵁ`-respecting
@@ -105,7 +107,7 @@ escape-hatch baseline unchanged):
   (finding 3).  Which one do examples get written in?
 - **Nondeterminism**: the design is settled (finding 5) and planned
   ([uc-setup-nondeterministic.md](uc-setup-nondeterministic.md) §0): accept SSP's pick-ahead
-  `choose`, or do model B in PM (needs `𝔾ᵒ`'s braiding)?  `Abstract2/Regrade` comes first.
+  `choose`, or do model B in PM (needs `𝔾ᵒ`'s braiding)?  `Abstract2/Regrade` is built.
 - **Hom-equality for RS**: adaptive `≈ᴿ` (built) was chosen over Maurer's
   non-adaptive `≈ᴮ` because congruence under feedback needs decidable message
   equality; `≈ᴮ⇒≈ᴿ-fin` covers finite alphabets.  Accept, or require `≈ᴮ` generally?
@@ -319,10 +321,10 @@ possibilistic, so only the deterministic fragment maps into RS (`det-≈ᴮ⇒�
   `Abstract2/Morphism` (`Preserves-≈ᵁ`/`transfer⁺`, landing with the SSP bridge) since
   `ℰᵒ` is not `GradeStable`.
 - **Nondeterministic choice** (plan: [uc-setup-nondeterministic.md](uc-setup-nondeterministic.md),
-  rewritten 2026-10-10 around finding 5 and `docs/uc-models.typ` §4).  Its generic piece is
-  `Abstract2/Regrade`: a setup restricted along a monoidal functor of grades, with its
-  inclusion, `≤UC` preserved (ι essentially surjective with split comparisons, or the ambient
-  setup grade-stable) and reflected (ι full); causal boxes' `regrade` is the same morphism.
+  rewritten 2026-10-10 around finding 5 and `docs/uc-models.typ` §4).  Its generic piece is built:
+  `Abstract2/Regrade`, a setup restricted along a monoidal functor of grades, with its inclusion,
+  `≤UC` preserved (ι essentially surjective with split comparisons, or the ambient setup
+  grade-stable) and reflected (ι full); causal boxes' `regrade` is the same morphism.
   ND_B is `Std(𝕄)` over designated grades X ⊗ C_{S₁} ⊗ … ⊗ C_{Sₙ} (via
   `Construction/Transport`), ND_A its restriction to relabellings; A → B preserves `≤UC`
   and does not reflect it, and undesignation B → A is a section.  `choose` is site-indexed;
@@ -389,9 +391,9 @@ each linked to its Agda identifier: [uc-models.typ](uc-models.typ).
 
 Shared infrastructure the plans agree on: `Categories.Category.Monoidal.Construction.Quotient`
 (RS, SSP), `freeStrongMonoidal` in `Categories/FreeMonoidal.agda` (ITM, symbolic),
-`Preserves-≈ᵁ`/`transfer⁺` in `Abstract2/Morphism.agda` (symbolic, SSP bridge), the
-generic grade-side restriction (nondeterminism, causal boxes' `regrade`), and the `GradeStable`
-counterexample for `ℰᵒ` (RS §5.3), which every plan relying on `bridge` must route around.
+`Preserves-≈ᵁ`/`transfer⁺` in `Abstract2/Morphism.agda` (symbolic, SSP bridge), the generic
+grade-side restriction `Abstract2/Regrade` (built; nondeterminism, causal boxes' `regrade`), and the
+`GradeStable` counterexample for `ℰᵒ` (RS §5.3), which every plan relying on `bridge` must route around.
 
 ## 8. Recommended order of construction
 
