@@ -49,6 +49,13 @@ wire∘wire up down up′ down′ = wire-∘ᴹ up down (wireᴹ up′ down′) 
   (s , inj₁ p) → >>=ₚ-identityˡ (s , inj₂ (up′ p)) _
   (s , inj₂ n) → >>=ₚ-identityˡ (s , inj₁ (down′ (down n))) _)
 
+-- A composite of maps equal to wires is the wire of the composed relabellings.
+∘-wire : {A B C : Iface} {x : Proc B C} {y : Proc A B}
+         {up : Pos B → Pos C} {down : Neg C → Neg B} {up′ : Pos A → Pos B} {down′ : Neg B → Neg A}
+       → 𝒫._≈_ {B} {C} x (wireᴹ up down) → 𝒫._≈_ {A} {B} y (wireᴹ up′ down′)
+       → 𝒫._≈_ {A} {C} (𝒫._∘_ {A} {B} {C} x y) (wireᴹ (λ p → up (up′ p)) (λ n → down′ (down n)))
+∘-wire {A} {B} {C} ex ey = 𝒫.∘-resp-≈ {A} {B} {C} ex ey S.○ᴹ wire∘wire _ _ _ _
+
 sub-wire : (up : Pos X → Pos Y) (down : Neg Y → Neg X)
          → 𝒫._≈_ {X ⊗ᴵ A} {Y ⊗ᴵ A} (subᴵ {A = A} (wireᴹ up down)) (wireᴹ (Sum.map up (λ a → a)) (Sum.map down (λ a → a)))
 sub-wire up down = S.≲⇒≈ᴹ (S.mk-cong λ where

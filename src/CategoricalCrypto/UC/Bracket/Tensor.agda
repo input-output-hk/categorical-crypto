@@ -2,8 +2,8 @@
 
 -- The tensor of well-bracketed machines (`docs/uc-setup-ssp.md` §4.2).  The
 -- flattening of a tensor is not `𝒢ₚ`'s tensor of the flattenings but a
--- relabelling of it (`ρʷ`), so the tensor `𝒲` inherits is `𝒢ₚ`'s conjugated
--- by `ρʷ`.  `_⊗ʷ_` is that conjugate as one machine (`conj≈⊗ʷ`): its step hands
+-- relabelling of it (`φʷ`), so the tensor `𝒲` inherits is `𝒢ₚ`'s conjugated
+-- by `φʷ`.  `_⊗ʷ_` is that conjugate as one machine (`conj≈⊗ʷ`): its step hands
 -- a message to the factor owning the channel, and it is well-bracketed because
 -- a legal environment has one open query at a time (`⊗ʷ-W`).
 --
@@ -58,11 +58,11 @@ splitΣ : {F : X → Set} {G : Y → Set} → Σ (X ⊎ Y) [ F , G ]′ → Σ X
 splitΣ (inj₁ x , u) = inj₁ (x , u)
 splitΣ (inj₂ y , v) = inj₂ (y , v)
 
-ρʷ : Proc (flat A Flat.⊗ᴵ flat C) (flat (A ⊗ᴵ C))
-ρʷ = wireᴹ joinΣ splitΣ
+φʷ : Proc (flat A Flat.⊗ᴵ flat C) (flat (A ⊗ᴵ C))
+φʷ = wireᴹ joinΣ splitΣ
 
-ρʷ⁻¹ : Proc (flat (A ⊗ᴵ C)) (flat A Flat.⊗ᴵ flat C)
-ρʷ⁻¹ = wireᴹ splitΣ joinΣ
+φʷ⁻¹ : Proc (flat (A ⊗ᴵ C)) (flat A Flat.⊗ᴵ flat C)
+φʷ⁻¹ = wireᴹ splitΣ joinΣ
 
 ------------------------------------------------------------------------
 -- The direct tensor
@@ -196,14 +196,14 @@ module _ (f : Proc (flat A) (flat B)) (g : Proc (flat C) (flat D)) where
       where d = MC.step g (t , z)
 
   conj≈⊗ʷ : 𝒫._≈_ {flat (A ⊗ᴵ C)} {flat (B ⊗ᴵ D)}
-              (𝒫._∘_ {flat (A ⊗ᴵ C)} {flat B Flat.⊗ᴵ flat D} {flat (B ⊗ᴵ D)} (ρʷ {B} {D})
+              (𝒫._∘_ {flat (A ⊗ᴵ C)} {flat B Flat.⊗ᴵ flat D} {flat (B ⊗ᴵ D)} (φʷ {B} {D})
                 (𝒫._∘_ {flat (A ⊗ᴵ C)} {flat A Flat.⊗ᴵ flat C} {flat B Flat.⊗ᴵ flat D}
-                  (𝔾._⊗₁_ {⟦ flat A ⟧ᴵ} {⟦ flat B ⟧ᴵ} {⟦ flat C ⟧ᴵ} {⟦ flat D ⟧ᴵ} f g) (ρʷ⁻¹ {A} {C})))
+                  (𝔾._⊗₁_ {⟦ flat A ⟧ᴵ} {⟦ flat B ⟧ᴵ} {⟦ flat C ⟧ᴵ} {⟦ flat D ⟧ᴵ} f g) (φʷ⁻¹ {A} {C})))
               (_⊗ʷ_ {A} {B} {C} {D} f g)
   conj≈⊗ʷ =
-         𝒫.∘-resp-≈ {flat (A ⊗ᴵ C)} {flat B Flat.⊗ᴵ flat D} {flat (B ⊗ᴵ D)} (S.reflᴹ {f = ρʷ {B} {D}})
+         𝒫.∘-resp-≈ {flat (A ⊗ᴵ C)} {flat B Flat.⊗ᴵ flat D} {flat (B ⊗ᴵ D)} (S.reflᴹ {f = φʷ {B} {D}})
            ( 𝒫.∘-resp-≈ {flat (A ⊗ᴵ C)} {flat A Flat.⊗ᴵ flat C} {flat B Flat.⊗ᴵ flat D}
-               collapse-⊗ (S.reflᴹ {f = ρʷ⁻¹ {A} {C}})
+               collapse-⊗ (S.reflᴹ {f = φʷ⁻¹ {A} {C}})
            S.○ᴹ ∘-wireᴹ splitΣ joinΣ ⊗ᴳ-flat)
     S.○ᴹ wire-∘ᴹ joinΣ splitΣ (sandwichᴹ ⊗ᴳ-flat (Sum.map splitΣ (λ a → a)) (Sum.map joinΣ (λ a → a)))
     S.○ᴹ sandwich-∘ ⊗ᴳ-flat (Sum.map splitΣ (λ a → a)) (Sum.map joinΣ (λ a → a))
