@@ -47,7 +47,6 @@ open FreeMonoidal symData public
 Test : ObjTerm → Set
 Test A = Σ[ Y ∈ ObjTerm ] HomTerm (Y ⊗₀ A) (Var verdict)
 
--- Precomposition with `id ⊗₁ f`: a test on `A` read on `B`.
 pullᵗ : {A B : ObjTerm} → HomTerm B A → Test A → Test B
 pullᵗ f (Y , T) = Y , T ∘ (id ⊗₁ f)
 

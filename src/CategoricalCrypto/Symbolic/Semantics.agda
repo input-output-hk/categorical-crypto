@@ -184,8 +184,8 @@ private
 
     module P = Plug.Plugged ⟦ wire ⟧ᴵ K u
 
-    -- After the tick: the tester has sent its first name, canonical; the echo
-    -- is untouched.
+    -- The loop passes are given their states and messages: unification cannot
+    -- invert `kᴳ` at a meta.  After the tick the tester has sent its first name.
     sent : MC.obj P.Sᴷ
     sent = config zero [] 1 , config zero [] 0
 

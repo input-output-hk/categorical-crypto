@@ -66,7 +66,7 @@ data SameObs {A} : Test A → Test A → Set where
 
 -- `same` inverts by UIP on the ancilla, which `≟ObjTerm` decides.
 same⁻¹ : {T T′ : HomTerm (Y ⊗₀ A) (Var verdict)} → SameObs (Y , T) (Y , T′) → Agree T T′
-same⁻¹ {Y} {A} {T} {T′} s =
+same⁻¹ {Y = Y} {A = A} {T} {T′} s =
   let p , h = unsame s in subst (λ p → Agree T (subst Hole (sym p) T′)) (UIPᵒ p refl) h
   where
   Hole : ObjTerm → Set
