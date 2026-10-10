@@ -161,8 +161,135 @@ what `UCSetup.triple` is (`FromMonad.agda:36-37`).
   the unit `Oneᴹ → ℐ` is (e)'s adversary-free setup, where UC emulation collapses to ≈ℰ.
 - Only (b) and (c) use more than laxness of ι; the construction, (a), (d) and (f) are lax.
 
-
 ## 2. Choice factors and model B
+
+### 2.1 Choice factors, and why a grade carries a list of them
+
+- **PM.**  C_S := (1, S), the flat `⊤ ⇿ S` (`Iface.agda:13`): `Pos` = the request, up to the caller;
+  `Neg` = the pick, down into the protocol.
+- **SSP.**  `Cᴵ S := record { Ch = ⊤ ; Q = const S ; R = const ⊤ ; Ch-dec = DecEq-⊤ }`, whose
+  `flat (Cᴵ S) = (⊤ × ⊤) ⇿ (⊤ × S) ≅ ⊤ ⇿ S` (`SSP/Iface.agda:112`): the same PM interface read
+  call/return — the pick is the query, ⊤ the reply.
+- **n ≥ 0 factors.**  A grade is X ⊗ C_{S₁} ⊗ … ⊗ C_{Sₙ}, one factor per *site*, because
+  (⊤⇿S) ⊗ᴵ (⊤⇿S′) = (⊤⊎⊤) ⇿ (S⊎S′) ≇ ⊤ ⇿ (S⊎S′): a merged factor's request does not say which site
+  asks, and it lets the environment answer one site with the other's pick (in SSP, `Cᴵ S ⊗ᴵ Cᴵ S′` has
+  two channels, `Cᴵ (S ⊎ S′)` one).  A serial composite h ∙ f has grade X ⊗ Y, so site lists
+  concatenate; n = 0 is every ordinary grade.
+
+### 2.2 The grades 𝒢_B and the setup ND_B
+
+Objects (X, S⃗) ∈ Ob 𝕄 × List Set, ⌊X, S⃗⌋ := X ⊗ C⟦S⃗⟧ with C⟦[]⟧ = I and C⟦S ∷ S⃗⟧ = C_S ⊗ C⟦S⃗⟧;
+(X, S⃗) ⊕ (Y, T⃗) := (X ⊗ Y, S⃗ ++ T⃗), unit (I, []).  𝒢_B has all 𝕄-morphisms between the images.  The
+tree already builds such a category: `Categories/Category/Monoidal/Construction/Transport.agda`,
+`Restriction.transport` at R = ⊤ (`:183-211`), with ι_B = `transportF` (`:213`, strong, ⊗-homo φ),
+given isos
+
+  φ : ⌊X,S⃗⌋ ⊗ ⌊Y,T⃗⌋ ≅ ⌊X ⊗ Y, S⃗ ++ T⃗⌋   (associators, one braiding component σ_{C⟦S⃗⟧,Y}, then
+                                             C⟦S⃗⟧ ⊗ C⟦T⃗⟧ ≅ C⟦S⃗ ++ T⃗⟧ by induction on S⃗),   υ : I ≅ I ⊗ I.
+
+**ND_B := Std(𝕄, ℰ)|ι_B** = `regraded (StdUC.StdSetup 𝕄 ℰ) ι_B`.  ι_B is full (R = ⊤), essentially
+surjective ((X, []) ↦ X ⊗ I ≅ X) and strong, so by §1.3 (b), (c), (f) ≤UC in ND_B *is* ≤UC in Std(𝕄)
+on choice-graded protocols: uc-models' "ND_B is Std(𝕄) itself, with choice factors named", as an
+instance of the theorem.  The designation matters only to ND_A (§3).
+
+### 2.3 Where the braiding is needed
+
+- **B: only the components** σ_{C⟦S⃗⟧,Y}, to define φ; `Transport` makes ⊗ᵗ natural by conjugation.  B
+  can do without them: with word-shaped grades (lists of ordinary and choice blocks, ⊕ = ++) φ is
+  associators only, and B ≃ Std(𝕄) anyway.
+- **A: naturality and the hexagon.**  𝒢_A's closure under ⊗ᵗ is
+  (u ⊗ ⌈ρ⌉) ⊗ᵗ (u′ ⊗ ⌈ρ′⌉) ≈ (u ⊗ u′) ⊗ ⌈ρ ++ ρ′⌉, naturality of σ against an arbitrary u′ and a
+  relabelling; the transported associator being α ⊗ (identity relabelling) is the hexagon.  Without a
+  braiding an adversary of a composite could not act on X and Y jointly across C⟦S⃗⟧.
+- **SSP has it**: `Protˢ` (`SSP/Protocol/Monoidal.agda:277`), braiding `⌜ swapᴵ ⌝`, naturality
+  `⌜⌝-natσ` (`:222`, brzuska2018 Lemma 3).
+- **PM does not.**  `Machines/Base.agda` exports symmetry only on the Mealy base (`𝒱ₚ` `:77`, `ℳₚ`
+  `:269` via `Bundle.Mealy-Symmetric`); `𝒢ₚᴹ` (`:282`) is `GConstructionMonoidalCategory`
+  (`Categories/GConstructionMonoidal.agda:253`), a plain `MonoidalCategory`, and `𝔾ᵒ` seals it
+  (`opaque`, `UC/Model/Seal.agda:43`).  `Reverse` (agda-categories 0.3.0,
+  `Categories.Category.Monoidal.Construction.Reverse`) only transports a braiding (`Reverse-Braided`
+  `:73`, `Reverse-Symmetric` `:92`); the tree applies it to machine-iso's `machine-monoidal-category`
+  (`Machine/UC.agda:110`), dropping that category's `machine-symmetric` (`Machine/MonoidalCategory.agda:83`),
+  and never to `𝔾ᵒ`.  The G-construction of a traced symmetric category is symmetric (jsv1996), so this is
+  a formalisation gap: σᴳ is the embedded base swap, a relabelling wire (`UC/Machine/Wire.agda`), and
+  `GConstructionEmbedding`'s `absorbˡ`/`absorbʳ` reduce its naturality to `σᴹ`'s plus a routing
+  coherence, built under the seal [INFERENCE: cost unknown; `homomorphismᴳ`'s loop coherence needed a
+  split solver, `Categories/GConstructionHomCoherence.agda`].
+
+### 2.4 `choose` and its compilation
+
+**Why a grade and not an effect** (kept): there is no distributive law combining probability and
+nondeterminism (varacca2006 §1; zwart2019nogo §1, §3.1, Thms 3.5, 3.12), and the convex powerset monad
+(bonchi2022 §4.1–4.2, §5) is not needed: the scheduler is a factor of the grade, `Dist⊥`/`Dₚ` stay the
+only effects, and a closed system — no factor left — is read by the ordinary tests with ν = `idᵛ`.  The
+leak of the 2026-10-09 design (CE1: a demon in one component saw another's coins, canetti2006taskpioa
+abstract, §1) does not arise.
+
+**Syntax, SSP side.**  Kept: the `choose` constructor and its `graft`/`serve`/`mapᶜ`/`reindex` clauses,
+shaped like `coin`'s.  New: a site index, since each node compiles to a request on *its* factor.
+
+```agda
+-- CategoricalCrypto/ND/SSP/Choice.agda
+data Calls⁺ (A : Iface) (S⃗ : List Set) (X : Set) : Set where
+  ret ; call ; coin ; dead                                    -- SSP's four (`SSP/Protocol.agda:37-41`)
+  choose : (i : Fin (length S⃗)) → (lookup S⃗ i → Calls⁺ A S⃗ X) → Calls⁺ A S⃗ X
+record Protocol⁺ (S⃗ : List Set) (A B : Iface) : Set₁        -- `Protocol` with `Calls⁺` steps
+-- the old `choose : (n : ℕ) → (Fin (suc n) → Calls A X) → Calls A X` is one site, S = Fin (suc n)
+```
+
+Notation: for a family k : S → (step trees over one state), ⟨k⟩ is the one-site protocol stepping by
+`choose 0 (λ i → k i …)`, ⟨t⟩ the site-free one stepping by t, and [t₀, t₁] the family on `Fin 2`.
+
+**Compilation, SSP side: pick-ahead.**
+
+```agda
+Cᴵ⟦_⟧ : List Set → Iface                        -- unitᴵ ; Cᴵ S ⊗ᴵ Cᴵ⟦ S⃗ ⟧
+resolve : Queues S⃗ → Calls⁺ A S⃗ Z → Calls A (Z × Queues S⃗)     -- one FIFO List (lookup S⃗ i) per site
+resolve qs (choose i k) with pop i qs
+... | just (p , qs′) = resolve qs′ (k p)
+... | nothing        = dead                     -- an unanswered request
+-- ret, call, coin, dead: structural, threading qs
+⌈_⌉ : Protocol⁺ S⃗ A B → A ⇒ T₀ Cᴵ⟦ S⃗ ⟧ B      -- = Protocol A (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ B)
+⌈ P ⌉ = record { St = St P × Queues S⃗ ; init = init P , empty ; step = λ where
+  (s , qs) (inj₁ i) p → ret ((s , push i p qs) , tt)                 -- a pick arrives on site i
+  (s , qs) (inj₂ c) q → mapᶜ regroup (resolve qs (step P s c q)) }
+```
+
+- **Why pick-ahead.**  In SSP the grade is exported (T₀ X B = X ⊗ᴵ B: the adversary calls the
+  protocol), and a step can neither call its exported side nor suspend (`docs/uc-setup-ssp.md:483-496`,
+  pollable state).  So uc-models §4's request cannot be raised inside a step, and the pick must arrive
+  before the activation that consumes it.  The same holds in every well-bracketed setup (𝒲, PM[wb]): on
+  `flat (Cᴵ S)` the pick is the query.  Only PM proper raises the request online: a machine at grade
+  X ⊗ C_S emits ⋆ on C_S⁺ mid-activation and resumes on the pick, the suspended step in its state.  PM
+  has no call-tree syntax for that; there, protocols with choices are machines at choice grades.
+- **Who sees what.**  The old global demon saw every coin ⊐ PM online sees that and when a site asks
+  (the header view of canetti2015suc's router, backes2007rsim's "realistic information"), not the coins
+  ⊐ SSP pick-ahead sees activation boundaries only (oblivious within an activation) ⊐ a task schedule
+  fixed in advance (canetti2006taskpioa).
+- **Not a `StdUCMorphism`.**  ⌈−⌉ changes the grade, so it is no functor Prot⁺ → Prot; it maps into
+  graded hom-sets, the Kleisli-valued shape the old plan rejected as its (2b).  None is needed: ND_B has
+  no category of its own, protocols with choices are its morphisms at choice grades, `Protocol⁺` is
+  syntax and ⌈−⌉ its meaning.  What must hold instead, by structural induction [INFERENCE]: `⌈⌉-resp`
+  (step-wise ≈ᶜ ⇒ ≈ᵖ); `⌈⌉-∘`: ⌈g ∘⁺ f⌉ ≈ᵖ sub φ ∘ (⌈g⌉ ∙ ⌈f⌉), for `_∘⁺_` concatenating site lists
+  (per-site queues make the two schedules agree); `⌈⌉-⊗` likewise; `⌈⌉-plain`: at S⃗ = [],
+  ⌈P⌉ ≈ᵖ λ⇐ ∘ P.  These make `choose` compositional.
+
+### 2.5 What ≤UC in B says
+
+By `dummy-complete`, f ≤UC_B g iff some s₀ : ⌊Y,T⃗⌋ → ⌊X,S⃗⌋ — any morphism — has f ≈ᵁ sub_{s₀} ∘ g.
+Real choices (S⃗) are resolved by whoever holds the real grade: the adversary a, answering from its own
+state and what it learned on X.  Ideal ones (T⃗) are resolved by the simulator, from what it learns from
+a; the environment plays the dummy adversary.  This is UC with adversarial scheduling (canetti2015suc
+§2.2: the router delivers a message when the adversary says so).  Refining a choice is emulation: in PM
+⟨t₀⟩ ≤UC_B ⟨[t₀, t₁]⟩, s₀ answering every ideal request with 0, invisibly to the environment.
+
+**SSP caveat.**  A call/return simulator runs only when the environment calls the real grade; the ideal
+protocol cannot activate it.  So SSP-B resolves ideal choices only on the environment's schedule, and
+⟨t₀⟩ ≤UC_B ⟨[t₀, t₁]⟩ fails when ⟨t₀⟩ exports no adversary oracle: s₀ : `Protocol (Cᴵ (Fin 2)) unitᴵ`
+serves no channel, the ideal queue stays empty, its `choose` is `dead` [INFERENCE].  SSP-B is Canetti's
+model restricted to adversaries that schedule ahead; for more, export a scheduling oracle (ssp.md §5.2,
+the old `Schedᴵ` router) or do B in PM (P1–P2, §6).
+
 
 ## 3. Model A: relabellings only
 
