@@ -129,21 +129,21 @@ dec′ c@(enc⟨ x , k′ , _ ⟩) k with k ≟ᵗ k′
 ... | no _  = dec⟨ c , k ⟩
 dec′ c k = dec⟨ c , k ⟩
 
--- the head step on normal arguments
-step : (f : Op) → All Tm (arity f) → Msg
-step fst (t ∷ [])     = π₁′ t
-step snd (t ∷ [])     = π₂′ t
-step dec (c ∷ k ∷ []) = dec′ c k
-step f   ts           = app f ts
+-- application to normal arguments: a destructor meeting its constructor contracts
+app↓ : (f : Op) → All Tm (arity f) → Msg
+app↓ fst (t ∷ [])     = π₁′ t
+app↓ snd (t ∷ [])     = π₂′ t
+app↓ dec (c ∷ k ∷ []) = dec′ c k
+app↓ f   ts           = app f ts
 
 nf  : Msg → Msg
 nf* : All Tm ss → All Tm ss
 nf (name n)   = name n
-nf (app f ts) = step f (nf* ts)
+nf (app f ts) = app↓ f (nf* ts)
 nf* []       = []
 nf* (t ∷ ts) = nf t ∷ nf* ts
 
--- `step` contracts a root redex, or there is none.
+-- `app↓` contracts a root redex, or there is none.
 data Head (f : Op) (us : All Tm (arity f)) : Msg → Set where
   contract : app f us ⟶ʳ u → Head f us u
   stuck    : (∀ {u} → ¬ app f us ⟶ʳ u) → Head f us (app f us)
@@ -152,33 +152,33 @@ private
   dec-stuck : ¬ k ≡ k′ → ¬ dec⟨ enc⟨ x , k′ , r ⟩ , k ⟩ ⟶ʳ u
   dec-stuck k≢k′ dec-enc = k≢k′ refl
 
-head : ∀ f us → Head f us (step f us)
-head pair    _                         = stuck λ ()
-head enc     _                         = stuck λ ()
-head (cst _) _                         = stuck λ ()
-head fst     (⟪ _ , _ ⟫ ∷ [])          = contract π₁⟨,⟩
-head fst     (name _ ∷ [])             = stuck λ ()
-head fst     (π₁ _ ∷ [])               = stuck λ ()
-head fst     (π₂ _ ∷ [])               = stuck λ ()
-head fst     (enc⟨ _ , _ , _ ⟩ ∷ [])   = stuck λ ()
-head fst     (dec⟨ _ , _ ⟩ ∷ [])       = stuck λ ()
-head fst     (app (cst _) [] ∷ [])     = stuck λ ()
-head snd     (⟪ _ , _ ⟫ ∷ [])          = contract π₂⟨,⟩
-head snd     (name _ ∷ [])             = stuck λ ()
-head snd     (π₁ _ ∷ [])               = stuck λ ()
-head snd     (π₂ _ ∷ [])               = stuck λ ()
-head snd     (enc⟨ _ , _ , _ ⟩ ∷ [])   = stuck λ ()
-head snd     (dec⟨ _ , _ ⟩ ∷ [])       = stuck λ ()
-head snd     (app (cst _) [] ∷ [])     = stuck λ ()
-head dec     (enc⟨ _ , k′ , _ ⟩ ∷ k ∷ []) with k ≟ᵗ k′
+app↓-view : ∀ f us → Head f us (app↓ f us)
+app↓-view pair    _                         = stuck λ ()
+app↓-view enc     _                         = stuck λ ()
+app↓-view (cst _) _                         = stuck λ ()
+app↓-view fst     (⟪ _ , _ ⟫ ∷ [])          = contract π₁⟨,⟩
+app↓-view fst     (name _ ∷ [])             = stuck λ ()
+app↓-view fst     (π₁ _ ∷ [])               = stuck λ ()
+app↓-view fst     (π₂ _ ∷ [])               = stuck λ ()
+app↓-view fst     (enc⟨ _ , _ , _ ⟩ ∷ [])   = stuck λ ()
+app↓-view fst     (dec⟨ _ , _ ⟩ ∷ [])       = stuck λ ()
+app↓-view fst     (app (cst _) [] ∷ [])     = stuck λ ()
+app↓-view snd     (⟪ _ , _ ⟫ ∷ [])          = contract π₂⟨,⟩
+app↓-view snd     (name _ ∷ [])             = stuck λ ()
+app↓-view snd     (π₁ _ ∷ [])               = stuck λ ()
+app↓-view snd     (π₂ _ ∷ [])               = stuck λ ()
+app↓-view snd     (enc⟨ _ , _ , _ ⟩ ∷ [])   = stuck λ ()
+app↓-view snd     (dec⟨ _ , _ ⟩ ∷ [])       = stuck λ ()
+app↓-view snd     (app (cst _) [] ∷ [])     = stuck λ ()
+app↓-view dec     (enc⟨ _ , k′ , _ ⟩ ∷ k ∷ []) with k ≟ᵗ k′
 ... | yes refl = contract dec-enc
 ... | no k≢k′  = stuck (dec-stuck k≢k′)
-head dec     (name _ ∷ _ ∷ [])         = stuck λ ()
-head dec     (⟪ _ , _ ⟫ ∷ _ ∷ [])      = stuck λ ()
-head dec     (π₁ _ ∷ _ ∷ [])           = stuck λ ()
-head dec     (π₂ _ ∷ _ ∷ [])           = stuck λ ()
-head dec     (dec⟨ _ , _ ⟩ ∷ _ ∷ [])   = stuck λ ()
-head dec     (app (cst _) [] ∷ _ ∷ []) = stuck λ ()
+app↓-view dec     (name _ ∷ _ ∷ [])         = stuck λ ()
+app↓-view dec     (⟪ _ , _ ⟫ ∷ _ ∷ [])      = stuck λ ()
+app↓-view dec     (π₁ _ ∷ _ ∷ [])           = stuck λ ()
+app↓-view dec     (π₂ _ ∷ _ ∷ [])           = stuck λ ()
+app↓-view dec     (dec⟨ _ , _ ⟩ ∷ _ ∷ [])   = stuck λ ()
+app↓-view dec     (app (cst _) [] ∷ _ ∷ []) = stuck λ ()
 
 private
   ∷-cong : {t u : Msg} {ts us : All Tm ss} → t ≡ u → ts ≡ us → (All Tm (tt ∷ ss) ∋ t ∷ ts) ≡ u ∷ us
@@ -196,7 +196,7 @@ private
 nf-normal  : (t : Msg) → Normal (nf t)
 nf-normal* : (ts : All Tm ss) → Each Normal (nf* ts)
 nf-normal (name _) (root ())
-nf-normal (app f ts) with step f (nf* ts) | head f (nf* ts)
+nf-normal (app f ts) with app↓ f (nf* ts) | app↓-view f (nf* ts)
 ... | _ | contract r = ⟶ʳ-normal (nf-normal* ts) r
 ... | _ | stuck ¬r   = λ { (root r) → ¬r r ; (arg a) → normal-args (nf-normal* ts) a }
 nf-normal* []       = []
@@ -207,8 +207,8 @@ nf-reduces* : (ts : All Tm ss) → Star _⟶ᵃ_ ts (nf* ts)
 nf-reduces (name _)   = ε
 nf-reduces (app f ts) = gmap (app f) arg (nf-reduces* ts) ◅◅ contract* f (nf* ts)
   where
-  contract* : ∀ f us → app f us ⟶* step f us
-  contract* f us with step f us | head f us
+  contract* : ∀ f us → app f us ⟶* app↓ f us
+  contract* f us with app↓ f us | app↓-view f us
   ... | _ | contract r = root r ◅ ε
   ... | _ | stuck _    = ε
 nf-reduces* []       = ε
@@ -221,7 +221,7 @@ nf-reduces* (t ∷ ts) = gmap (_∷ ts) here (nf-reduces t) ◅◅ gmap (nf t �
 ⟶-nf (root (dec-enc {k = k})) with nf k ≟ᵗ nf k
 ... | yes _  = refl
 ... | no k≢k = ⊥-elim (k≢k refl)
-⟶-nf (arg {f = f} a) = cong (step f) (⟶ᵃ-nf a)
+⟶-nf (arg {f = f} a) = cong (app↓ f) (⟶ᵃ-nf a)
 ⟶ᵃ-nf (here s)  = ∷-cong (⟶-nf s) refl
 ⟶ᵃ-nf (there a) = ∷-cong refl (⟶ᵃ-nf a)
 
@@ -284,7 +284,7 @@ E₀ : EqTheory Σ₀
 E₀ = record
   { _≈E_       = λ t u → nf t ≡ nf u
   ; isEquiv    = record { refl = refl ; sym = sym ; trans = trans }
-  ; app-cong   = λ f es → cong (step f) (All₂-nf es)
+  ; app-cong   = λ f es → cong (app↓ f) (All₂-nf es)
   ; ren-cong   = λ ρ {_} {t} {u} e →
       trans (nf-ren ρ t) (trans (cong (nf ∘ ren ρ) e) (sym (nf-ren ρ u)))
   ; _≟E_       = λ t u → nf t ≟ᵗ nf u

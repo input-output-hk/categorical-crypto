@@ -89,6 +89,10 @@ module Terms (𝔖 : Signature) where
   lookupᴱ (p ∷ _)  (here refl) = p
   lookupᴱ (_ ∷ ps) (there i)   = lookupᴱ ps i
 
+  mapᴱ : {P Q : ∀ {s} → Tm s → Set} {ts : All Tm ss} → (∀ {s} {t : Tm s} → P t → Q t) → Each P ts → Each Q ts
+  mapᴱ f []       = []
+  mapᴱ f (p ∷ ps) = f p ∷ mapᴱ f ps
+
   ------------------------------------------------------------------------
   -- Syntactic equality, decided in `Σ Sort Tm` and read back at one sort by
   -- UIP: `app f ts ≡ app f us` cannot be split, since its index `cod f` is not
