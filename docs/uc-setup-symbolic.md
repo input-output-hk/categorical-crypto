@@ -97,7 +97,9 @@ strategies realize every trace) and `∃` over fresh names.
 ### 3.2 Signature, terms, equational theory, deducibility
 
 Built: `Symbolic/Term.agda`, `Symbolic/Term/PairEnc.agda`, `Symbolic/Deduction.agda`, all
-`--safe --without-K`, each about 4 s warm; `Symbolic/Test.agda` exercises them.
+`--safe --without-K`, each about 4 s warm; `Symbolic/Test.agda` exercises them. Freshness uses
+located names, as §5 risk 1 recommends: the occurrence bijections cost 24 cases in `Decorated`
+(§3.5).
 
 ```agda
 -- CategoricalCrypto.Symbolic.Term
