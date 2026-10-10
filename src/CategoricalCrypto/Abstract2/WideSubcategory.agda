@@ -8,7 +8,8 @@
 -- `SetupSubcategory` is the closure data that makes 𝒲 carry the graded monad
 -- again; a `Restriction` is the observational kernel, supplied
 -- independently as a test presheaf ℰ′ on 𝒲 together with ν, the presentation
--- of ℰ′'s tests as ambient ones.
+-- of ℰ′'s tests as ambient ones.  The dual, restricting the grades along a
+-- monoidal ι : 𝒥 → ℐ instead, is `Abstract2.Regrade`.
 
 open import Level
 

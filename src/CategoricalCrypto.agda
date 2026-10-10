@@ -15,12 +15,13 @@
 --
 -- Example leaves: `Examples.HashForward.Audit` (the nontrivial-grade toy),
 -- `Examples.RelSetup` (`Abstract2` at relations; it reaches
--- `UC.Robust.Compilation`), `Examples.ROCommitment.*` (a commitment that
+-- `UC.Robust.Compilation`), `Examples.RegradeUnit` (a setup restricted along
+-- the unit, at PM), `Examples.ROCommitment.*` (a commitment that
 -- carries an error: UC images, extraction and hiding games, transport, and
 -- the resource-installed realization — `docs/fcom-extraction.md`,
 -- `docs/fcom-hiding.md`, `docs/rcom-icom-b1.md`) and `Examples.CoinToss.*`
 -- (Blum coin-tossing over it, both corruptions, to an ideal coin —
--- `docs/coin-toss.md`).  Tests:
+-- `docs/coin-toss.md`).  Tests: `Abstract2.Regrade.Pin`,
 -- `GamePlaying.Test`, `Protocol.Machine.Pin`, `SFunM.Test.Possibility`,
 -- `UC.Machine.MonitorTests`, `UC.Machine.StateEvent.HitTests`.
 -- Outside, checked per file through their leaves: `Examples.ChimericLedger`
@@ -73,6 +74,7 @@ open import CategoricalCrypto.Approx.Separating
 open import CategoricalCrypto.Approx.Small.Controlled
 open import CategoricalCrypto.ITM.Relational
 open import CategoricalCrypto.ITM.Setup
+import CategoricalCrypto.Abstract2.Regrade.Pin
 import CategoricalCrypto.SSP.Compile
 import CategoricalCrypto.SSP.Dense.Tests
 import CategoricalCrypto.SSP.Dist.Setup
@@ -106,6 +108,7 @@ import CategoricalCrypto.Examples.SSP.OneTimePad.Dist
 import CategoricalCrypto.Examples.SSP.OneTimePad.WB
 open import CategoricalCrypto.Examples.HashForward.Audit
 open import CategoricalCrypto.Examples.RelSetup
+import CategoricalCrypto.Examples.RegradeUnit
 open import CategoricalCrypto.Examples.CoinToss.Compose
 open import CategoricalCrypto.Examples.CoinToss.Ideal.Compose
 open import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver.Compose

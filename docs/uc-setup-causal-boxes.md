@@ -14,7 +14,8 @@ closest setup is the random-systems plan (𝔾ᴿ): same object shape and adapti
 **No `UCSetupMorphism` connects causal boxes to 𝔾ᵒ, 𝔾ᴿ, machine-iso, SSP, IPDL or ITM** (§4.1–4.3):
 internal rounds are free there and cost a position here (time), and their ⊗ never acts on two
 factors at once while Def. 6.1 does (concurrency).  What exists is internal (§4.4): `regrade`
-(new, generic), change of distribution monad, distinguisher-class `changeKernel`s.
+(generic, built as `Abstract2.Regrade.inclusion`), change of distribution monad, distinguisher-class
+`changeKernel`s.
 
 ## 2. The source model
 
@@ -330,7 +331,8 @@ grades would be wrong: timeouts and relativistic attacks are time-dependent (§1
 must reproduce real-world timing.  `WideSubcategory` is the wrong tool besides: it restricts 𝒞,
 not ℐ, and `W-sub : (c : X ℐ.⇒ Y) → W (sub c)` forces closure under `c ⊗ᵇ id` for every grade c,
 which time-invariance fails (strict boxes fail `W-id`); it fits feasibility (`maurer2011` Def. 17).
-A restricted grading, e.g. efficient simulators, is a pullback along ι : 𝒥 → 𝕃ᶜᵇ (`regrade`, §4.4).
+A restricted grading, e.g. efficient simulators, is a pullback along ι : 𝒥 → 𝕃ᶜᵇ
+(`Abstract2.Regrade`, §4.4).
 
 ## 4. Morphisms
 
@@ -414,23 +416,15 @@ simultaneous deliveries are one product letter.
 
 ### 4.4 Morphisms that exist (all inside causal boxes)
 
-**(a) `regrade` (new, generic, `UCSetup/Morphism.agda`).**  For a setup and a lax monoidal
-ι : 𝒥 → ℐ:
-
-```agda
-regrade : UCSetupMorphism (record { 𝒞 = 𝒞 ; ℐ = 𝒥 ; ℳ = pullbackM ι ℳ ; ℰ = ℰ }) (record { 𝒞 = 𝒞 ; ℐ = ℐ ; ℳ = ℳ ; ℰ = ℰ })
-regrade = record
-  { effect = record { F = idF ; Φ = ι ; κ = 𝒞.id ; isGradedKleisliMorphism = record
-      { κ-return = 𝒞.identityˡ                                -- `pullback-return` is refl
-      ; κ-ext    = λ f → 𝒞.identityˡ ○ pullback-ext ι _ f
-                         ○ ⟺ (refl⟩∘⟨ (ext-resp-≈ 𝒞.identityˡ ⟩∘⟨refl ○ 𝒞.identityʳ))
-      ; κ-sub    = λ c → 𝒞.identityˡ ○ ⟺ 𝒞.identityʳ } }       -- `pullback-sub` is refl
-  ; ν = idᵛ ℰ }
-```
-
-Reused: `Categories.Monad.Graded.Pullback` (`pullbackM`, `pullback-return/-sub/-ext`), `idᵛ`; to
-check that those refl's survive `FromMonad`'s triple (else one round-trip lemma).  `Transfer.transfer`
-(`idᵛ-epi`) then carries a restricted-grade `≤UC` into the full one, given target `GradeStable`.
+**(a) `regrade` (generic; built: `Abstract2/Regrade.agda`).**  For a setup 𝕊 and a lax monoidal
+ι : 𝒥 → ℐ, `Regrade.regraded 𝕊 ι` = (𝒞, 𝒥, `∘-Monoidal ℳ ι` — `Graded.Pullback.pullbackM`, ℰ), and
+`regrade` is `Regrade.inclusion` = (Id, ι, id, `idᵛ ℰ`).  The pullback's refl's survive `FromMonad`'s
+triple (`R.T₀`, `R.sub`, `R.return`, `R.μ`, pinned in `Abstract2/Regrade/Pin.agda`); κ-ext is
+`identityˡ`, `assoc` and `ext-resp-≈`, no round-trip lemma.  A restricted-grade `≤UC` crosses into
+the full one by `unrestrict-≤UC-gs` (target `GradeStable`, `Transfer.transfer` with `idᵛ-epi`), or
+with no `GradeStable` by `Preserves.unrestrict-≤UC` when ι is essentially surjective with split
+comparisons — the efficient-simulator grading keeps all grades, so this one applies; full ι reflects
+it (`restrict-≤UC`).  `docs/uc-setup-nondeterministic.md` §1 has the theorem.
 
 **(b) Change of distribution monad (`CausalBox/Morphism.agda`, the `SFunM.Morphism` pattern).**
 For θ : Mo ⇒ No with `θ-cong`/`θ-return`/`θ-bind`, `mapᵇ θ` post-composes `up`/`down` with θ,
@@ -484,7 +478,7 @@ Check each module with `pagda --useUntracked false check src/CategoricalCrypto/<
    **acceptance of the setup**.
 8. `CausalBox/Portmann.agda`: exports `Resource`, `⟦_⟧≤`, `consistent`, `loop-formula`,
    `ℰ-full-on-resources`.
-9. `UCSetup/Morphism.agda`: `regrade`; re-check importers (`Standard2/Morphism`, `Abstract2/*`).
+9. `regrade`: import `Abstract2/Regrade.agda` (built), no change to `UCSetup/Morphism.agda`.
 10. Optional `CausalBox/Morphism.agda`: `mapᵇ`, `θ-run`, the supp⊥ `StdUCMorphism`.
 11. Closure check (`CategoricalCrypto`, `*Tests`); add the causal-box node, with no edges to the
     reactive world, to `docs/uc-setup-landscape.md` §5.

@@ -1093,7 +1093,7 @@ Both are grade-side restrictions: the computations, the tests and $cal(M)$ restr
 inclusion (a graded monad pulls back along a lax monoidal functor) are those of $Std(𝕄)$, and
 $ NDA arrow.r.hook NDB arrow.r.hook Std(𝕄) $
 are setup morphisms $("Id", mincl, opid, opid)$.
-#srcs(ag("Categories/Monad/Graded/Pullback.agda", 35, "pullback"))
+#srcs(ag("Categories/Monad/Graded/Pullback.agda", 35, "pullback"), cc("Abstract2/Regrade.agda", 55, "regraded"), cc("Abstract2/Regrade.agda", 62, "inclusion"), cc("Abstract2/Regrade.agda", 97, "Preserves"))
 ] <def:nd>
 
 *Who resolves.* In #NDB an adversary $a$ is any morphism of grades, so it may answer a real choice
