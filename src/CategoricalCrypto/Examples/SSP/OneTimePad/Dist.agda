@@ -5,15 +5,16 @@
 -- distinguisher's tree (`fresh`, `pending`, `revealed`).  `lazy` is the
 -- simulated world on its reachable states, `draw` samples the real world's
 -- ciphertext and key from each, and `defer` checks one square of call trees
--- per activation: six by computation, two pad cancellations (`xor-cancel`)
+-- per activation: six by computation, two pad cancellations (`xor-cancelˡ`)
 -- and the pad's bijection at Alice's send (`coin-xor`).  The core, `Phase` to
--- `lazy≲simulated`, is 55 lines of code against the run-level 53 (`play` to
+-- `lazy≲simulated`, is 51 lines of code against the run-level 53 (`play` to
 -- `perfect`): what it buys is locality, not length.
 
 module CategoricalCrypto.Examples.SSP.OneTimePad.Dist where
 
 open import Data.Bool.Base
-open import Data.Bool.Properties using (xor-comm)
+open import Data.Bool.Properties
+open import Data.Bool.Properties.Ext
 open import Data.Maybe.Base
 open import Data.Product.Base
 open import Data.Sum.Base
@@ -61,11 +62,6 @@ draw idle         = done (nothing , nothing)
 draw (sent m)     = toss uniform-Bool λ c → done (just c , just (c xor m))
 draw (polled c m) = done (just c , just (c xor m))
 
-xor-cancel : ∀ c m → c xor (c xor m) ≡ m
-xor-cancel false m     = refl
-xor-cancel true  false = refl
-xor-cancel true  true  = refl
-
 lazy≈real : lazy ≈ᵈ real
 lazy≈real = defer draw (λ _ → refl) λ where
   idle         (inj₁ _)        _ → ≈ᵏ-refl
@@ -73,14 +69,14 @@ lazy≈real = defer draw (λ _ → refl) λ where
   (polled _ _) (inj₁ _)        _ → ≈ᵏ-refl
   idle         (inj₂ (inj₁ _)) m → ≈ᵏ-trans
     (≈ᶜ⇒≈ᵏ (coin λ k → ret (cong (λ x → (just (m xor k) , just x) , tt)
-                                 (sym (trans (xor-comm (m xor k) m) (xor-cancel m k))))))
+                                 (sym (trans (xor-comm (m xor k) m) (xor-cancelˡ m k))))))
     (coin-xor m λ c → ret ((just c , just (c xor m)) , tt))
   (sent _)     (inj₂ (inj₁ _)) _ → ≈ᵏ-refl
   (polled _ _) (inj₂ (inj₁ _)) _ → ≈ᵏ-refl
   idle         (inj₂ (inj₂ _)) _ → ≈ᵏ-refl
   (sent m)     (inj₂ (inj₂ _)) _ →
-    ≈ᶜ⇒≈ᵏ (coin λ c → ret (cong (λ x → (just c , just (c xor m)) , just x) (xor-cancel c m)))
-  (polled c m) (inj₂ (inj₂ _)) _ → ≈ᶜ⇒≈ᵏ (ret (cong (λ x → (just c , just (c xor m)) , just x) (xor-cancel c m)))
+    ≈ᶜ⇒≈ᵏ (coin λ c → ret (cong (λ x → (just c , just (c xor m)) , just x) (xor-cancelˡ c m)))
+  (polled c m) (inj₂ (inj₂ _)) _ → ≈ᶜ⇒≈ᵏ (ret (cong (λ x → (just c , just (c xor m)) , just x) (xor-cancelˡ c m)))
 
 lazy≲simulated : lazy ≲ᵖ simulated
 lazy≲simulated = record

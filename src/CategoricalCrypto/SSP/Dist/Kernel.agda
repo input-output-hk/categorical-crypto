@@ -18,15 +18,13 @@
 module CategoricalCrypto.SSP.Dist.Kernel where
 
 open import Data.Bool.Base using (Bool)
-open import Data.Maybe.Base using (just; nothing)
+open import Data.Maybe.Base
 open import Data.Product.Base
 open import Data.Sum.Base using (inj₁; inj₂)
 open import Data.Unit.Base
-open import Function.Base using (_∘_)
-open import Level
-open import Relation.Binary.Core using (Rel)
+open import Function.Base
 open import Relation.Binary.PropositionalEquality
-open import Relation.Binary.Structures using (IsEquivalence)
+open import Relation.Binary.Structures
 
 open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Partial
@@ -274,7 +272,6 @@ sample-⟦⟧ {S = S} {T = T} {X = X} {ρ = ρ} {O₁ = O₁} {O₂ = O₂} h (c
 sample-⟦⟧ {ρ = ρ} h dead s ξ = trans (>>=ᴹ-const (ρ s) (return-ℚ nothing) ξ)
   (sym (>>=ᴹ-identityˡ nothing (kmaybe λ p → ρ (proj₂ p) >>=ᴹ λ u → return⊥ (proj₁ p , u)) ξ))
 
--- Sampling the first component.
 first : (S → Dist-ℚ T) → S × U → Dist-ℚ (T × U)
 first ρ (s , u) = ρ s >>=ᴹ λ t → return-ℚ (t , u)
 
@@ -282,13 +279,8 @@ first-init : (ρ : S → Dist-ℚ T) {s : S} {t : T} → ρ s ≈Mℚ return-ℚ
 first-init ρ {s} {t} e u ξ = trans (>>=ᴹ-congʳ (λ t′ → return-ℚ (t′ , u)) (ρ s) (return-ℚ t) e ξ)
   (>>=ᴹ-identityˡ t (λ t′ → return-ℚ (t′ , u)) ξ)
 
--- Sampling the second component.
 second : (S → Dist-ℚ T) → U × S → Dist-ℚ (U × T)
 second ρ (u , s) = ρ s >>=ᴹ λ t → return-ℚ (u , t)
-
-second-init : (ρ : S → Dist-ℚ T) {s : S} {t : T} → ρ s ≈Mℚ return-ℚ t → (u : U) → second ρ (u , s) ≈Mℚ return-ℚ (u , t)
-second-init ρ {s} {t} e u ξ = trans (>>=ᴹ-congʳ (λ t′ → return-ℚ (u , t′)) (ρ s) (return-ℚ t) e ξ)
-  (>>=ᴹ-identityˡ t (λ t′ → return-ℚ (u , t′)) ξ)
 
 infix 4 _⊑_
 record _⊑_ (P P′ : Protocol A B) : Set₁ where
@@ -297,7 +289,6 @@ record _⊑_ (P P′ : Protocol A B) : Set₁ where
         ρ-step : ∀ {S} (O : Oracle A S) → Samples {A = B} (first ρ) (P · O) (P′ · O)
 open _⊑_ public
 
--- From per-activation squares of call trees, `ρ` a coin tree.
 sampling : {P P′ : Protocol A B} (ρ : St P → Coins (St P′)) → sample (ρ (init P)) ≈Mℚ return-ℚ (init P′)
          → (∀ s c q → (coins (ρ s) >>=ᶜ λ s′ → step P′ s′ c q)
                       ≈ᵏ (step P s c q >>=ᶜ λ z → coins (ρ (proj₁ z)) >>=ᶜ λ s′ → ret (s′ , proj₂ z)))
@@ -399,7 +390,9 @@ sampling {A = A} {B = B} {P = P} {P′ = P′} ρ e h = record { ρ = sample ∘
 
 ⊑-⊗ʳ : {P P′ : Protocol A B} (N : Protocol C D) → P ⊑ P′ → N ⊗ᵖ P ⊑ N ⊗ᵖ P′
 ⊑-⊗ʳ {A = A} {B = B} {C = C} {D = D} {P = P} {P′ = P′} N e = record
-  { ρ = second (ρ e) ; ρ-init = second-init (ρ e) (ρ-init e) (init N) ; ρ-step = go }
+  { ρ = second (ρ e) ; ρ-step = go
+  ; ρ-init = λ ξ → trans (>>=ᴹ-congʳ (λ t → return-ℚ (init N , t)) (ρ e (init P)) (return-ℚ (init P′)) (ρ-init e) ξ)
+                         (>>=ᴹ-identityˡ (init P′) (λ t → return-ℚ (init N , t)) ξ) }
   where
   G′ : ∀ {S Y} → ((St N × St P) × S) × Y → Dist⊥ (((St N × St P′) × S) × Y)
   G′ z = first (second (ρ e)) (proj₁ z) >>=ᴹ λ t → return⊥ (t , proj₂ z)
@@ -470,7 +463,6 @@ run-read D P G ξ = trans
   u₂ = graft (D ∘ᵖ P) G u₁ (init G)
   μ = ⟦ u₀ ⟧ (P · (G · none)) (init P , init G , tt)
 
--- A sampling simulation leaves the readout of every closed composite unchanged.
 ⊑-run : {P P′ : Protocol A B} → P ⊑ P′ → (D : Protocol B Ωᴵ) (G : Protocol unitᴵ A)
       → runᵖ ((D ∘ᵖ P) ∘ᵖ G) ≈Mℚ runᵖ ((D ∘ᵖ P′) ∘ᵖ G)
 ⊑-run {P = P} {P′ = P′} e D G ξ = trans (run-read D P G ξ) (trans

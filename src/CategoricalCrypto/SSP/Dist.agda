@@ -14,10 +14,11 @@ open import Categories.Category
 open import Categories.Category.Instance.Setoids
 open import Categories.Category.Monoidal.Construction.Quotient
 open import Categories.Functor
+
 open import Level
 open import Relation.Binary.Structures
 
-open import CategoricalCrypto.Approx.Error using (module AllPositive; ℚ-refinement)
+open import CategoricalCrypto.Approx.Error
 open import CategoricalCrypto.SSP.Dist.Kernel
 open import CategoricalCrypto.SSP.Iface
 open import CategoricalCrypto.SSP.Observation
@@ -69,4 +70,4 @@ congᵈ = record
   zero⇒positive {runᵖ ((t ∘ᵖ (wireᵖ {Y} ⊗ᵖ P) ⊗ᵖ wireᵖ {Z}) ∘ᵖ m)} {runᵖ ((t ∘ᵖ (wireᵖ {Y} ⊗ᵖ P′) ⊗ᵖ wireᵖ {Z}) ∘ᵖ m)}
     (≈Mℚ⇒≈[0] {runᵖ ((t ∘ᵖ (wireᵖ {Y} ⊗ᵖ P) ⊗ᵖ wireᵖ {Z}) ∘ᵖ m)} {runᵖ ((t ∘ᵖ (wireᵖ {Y} ⊗ᵖ P′) ⊗ᵖ wireᵖ {Z}) ∘ᵖ m)}
               (⊑-run (⊑-⊗ˡ (wireᵖ {Z}) (⊑-⊗ʳ (wireᵖ {Y}) e)) t m))
-  where open AllPositive ℚ-refinement Approximation⊥ using (zero⇒positive)
+  where open AllPositive ℚ-refinement Approximation⊥

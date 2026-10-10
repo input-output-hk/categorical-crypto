@@ -1,6 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
--- `Data.Bool.Properties` has no `_≤_`-monotonicity lemmas, nor `∨-idemˡ`.
+-- `Data.Bool.Properties` has no `_≤_`-monotonicity lemmas, nor `∨-idemˡ` or
+-- `xor-cancelˡ`.
 
 open import Data.Bool.Base
 open import Data.Bool.Properties
@@ -23,3 +24,8 @@ a≤b⇒a≤b∨c (b≤b {false}) = ≤-minimum _
 ∨-idemˡ : (a b : Bool) → a ∨ (a ∨ b) ≡ a ∨ b
 ∨-idemˡ false _ = refl
 ∨-idemˡ true  _ = refl
+
+xor-cancelˡ : (a b : Bool) → a xor (a xor b) ≡ b
+xor-cancelˡ false _     = refl
+xor-cancelˡ true  false = refl
+xor-cancelˡ true  true  = refl
