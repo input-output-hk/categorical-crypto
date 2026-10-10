@@ -44,15 +44,33 @@ escape-hatch baseline unchanged):
    `SSP → 𝔾ᵒ`, `IPDL → RS`, `RS → causal boxes` are withdrawn.
 5. **Nondeterminism**: `SSP → ND` with constant tests is not a presheaf morphism (a
    demonic closure sees a toss); only a one-way `≤UC` reflection exists.  [plan only]
-6. **Robust compilation** holds as `UC = RHP` over `≈ᵁ`-respecting predicates on
-   attacked programs; the outcome-only version is false (`leaky-not-secure`).  [plan;
-   lemma in progress]
-7. **Performance**: `UC.Graded` regressed from 73 s to >30 min after the merges
-   (suspect: the new `unitᵒ` export in the opaque seal); the root closure does not
-   currently complete within the 1800 s ceiling.  Under investigation; until fixed the
-   branch is green per module, not as a closure.  ITM needed an abstract-target trick
-   (`⊗-step`) because unfolding `⟦A ⊗ B⟧` at the transparent machine category is
-   pathological; `pullbackᵛ` against a named presheaf costs 35 s+ (hand-written `ν`).
+6. **Robust compilation** holds: `≤UC⇔robustᵁ` (UC = RHP over `≈ᵁ`-respecting
+   predicates on attacked programs; `UC/Robust/Compilation.agda`), its trace form, and
+   the two-setup version along a `UCSetupMorphism` (`robustᵁ-transfer` needs `ν.Epi` +
+   target `GradeStable`; `robustᵁ-reflect` needs `ν.Mono` + full `Φ`); the
+   outcome-only version is refuted (`Examples/RelSetup.agda:blind-incomplete`).
+7. **`≤UC` is constructive cryptography's construction notion at ε = 0**
+   (`UC/RandomSystems/Construction.agda:≤UC⇔Constructs₀`), and the ε-version matches
+   `UC/Quantitative/Observed`'s `≈ᵁ[ε]` up to every positive slack.  The random-systems
+   toolkit exists: advantage `Δ` with triangle inequality (`Advantage.agda`), Maurer's
+   composition theorem at slack ε and the hybrid lemma (`Composition.agda`,
+   `Approx/Rational.agda:hybrid`).  Amplification (`maurer2007`) is out of reach: `Dₚ`
+   masses are lower reals, no conditional probabilities.
+8. **The one-time pad is proven in SSP** (`Examples/SSP/OneTimePad.agda:otp≤ideal`, and
+   `leaky-not-secure` refuted via `≈ᵁ`), but **not by call-tree simulation**:
+   `no-tree-simulation` shows syntactic `≈ᵖ` cannot move the key draw from `send` to
+   `poll` (deferred sampling), so the core is a run-level induction.  The call/return
+   discipline buys clean composition, not clean probabilistic reasoning — a
+   distributional equivalence on call trees is the next design lever.  Transport to
+   `𝔾ᵒ` waits on the bridge; `νᵂ` is not `Epi` (well-bracketed tests can carry an
+   irrational verdict mass), so the transfer corollary will be conditional.
+9. **Performance** (resolved): the `UC.Graded` hang after the merges came from
+   `UC/Machine/Run.agda:runᴹ-resp-≈ᴹ` being re-derived transparently; made `opaque`
+   (>1800 s → 24 s).  Every new module is within budget at `-M3G` (worst 24.8 s);
+   invalidated rebuild 997 s, root closure 517 s.  `UC.Model.Family` needs 5.4 GiB and
+   is checked alone first — pre-existing, now in its header.  Known traps: unfolding
+   `⟦A ⊗ B⟧` at the transparent machine category (ITM's `⊗-step` abstract target) and
+   `pullbackᵛ` against a named presheaf (35 s+; write `ν` by hand).
 
 **Decisions pending from the maintainer:**
 
