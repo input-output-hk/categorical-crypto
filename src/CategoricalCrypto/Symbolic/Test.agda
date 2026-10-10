@@ -1,7 +1,8 @@
 {-# OPTIONS --safe --without-K #-}
 
 -- Checks of the symbolic layers over `comonlundhcortier2008`'s Σ₀: normal
--- forms, the decided theory, deducibility both ways, and one role run.
+-- forms, the decided theory, deducibility both ways, the alphabets as the
+-- interfaces the semantics reads, and one role run.
 
 module CategoricalCrypto.Symbolic.Test where
 
@@ -18,6 +19,7 @@ open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
 open import Relation.Unary using (∅)
 
+open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Symbolic.Term
 open import CategoricalCrypto.Symbolic.Term.PairEnc
 
@@ -57,6 +59,18 @@ private
 
   _ : (c ∷ k ∷ [] , ∅) ⊢ᵢ m
   _ = Equivalence.to ⊢⇔⊢ᵢ opened
+
+  ⟦_⟧ᴵ : ObjTerm → Iface
+  ⟦ x ⟧ᴵ = Alphabet pos x ⇿ Alphabet neg x
+
+  _ : ∀ {A B} → ⟦ A ⊗₀ B ⟧ᴵ ≡ ⟦ A ⟧ᴵ ⊗ᴵ ⟦ B ⟧ᴵ
+  _ = refl
+
+  _ : ⟦ unit ⟧ᴵ ≡ unitᴵ
+  _ = refl
+
+  _ : ⟦ Var verdict ⟧ᴵ ≡ (Bool ⇿ ⊤)
+  _ = refl
 
   wire : ObjTerm
   wire = Var (port tt tt)

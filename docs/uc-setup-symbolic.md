@@ -1,7 +1,8 @@
 # The symbolic (Dolev–Yao) UC setup — plan
 
-Plan of 2026-10-09; nothing is typechecked, and statements about unwritten modules are design
-claims. `[INFERENCE]` marks reasoning backed by neither a read source nor the tree. Citations are
+Plan of 2026-10-09. Steps 1–5 of §6 are built (2026-10-10); §3.2, §3.3 and the `Decorated` block of
+§3.5 give their real signatures. Statements about unwritten modules are design claims.
+`[INFERENCE]` marks reasoning backed by neither a read source nor the tree. Citations are
 `bibkey §/Def/p.` with printed pages (`docs/kb/sources/papers/INDEX.md`). Short names: CLC =
 `comonlundhcortier2008`, CH = `canettiherzog2006`, BPW = `backes2003library`, AR = `abadirogaway2002`.
 
@@ -95,88 +96,165 @@ strategies realize every trace) and `∃` over fresh names.
 
 ### 3.2 Signature, terms, equational theory, deducibility
 
+Built: `Symbolic/Term.agda`, `Symbolic/Term/PairEnc.agda`, `Symbolic/Deduction.agda`, all
+`--safe --without-K`, each about 4 s warm; `Symbolic/Test.agda` exercises them.
+
 ```agda
-{-# OPTIONS --safe --without-K #-}
-module CategoricalCrypto.Symbolic.Term where
+-- CategoricalCrypto.Symbolic.Term
 record Signature : Set₁ where
-  field Sort Sym : Set ; dom : Sym → List Sort ; cod : Sym → Sort ; _≟_ : DecidableEquality Sort
-module _ (𝔖 : Signature) where
-  open Signature 𝔖
-  Name : Set
-  Name = ℕ × ℕ                                   -- (occurrence code, counter); §3.5
+  field Sort Sym : Set ; dom : Sym → List Sort ; cod : Sym → Sort
+        _≟ˢ_ : DecidableEquality Sort ; _≟ᶠ_ : DecidableEquality Sym
+Name = ℕ × ℕ                                    -- (occurrence code, counter); §3.5
+_≟ₙ_ : DecidableEquality Name
+module Terms (𝔖 : Signature) where              -- downstream: `open Terms 𝔖`
   data Tm : Sort → Set where
-    name : ∀ {s} → Name → Tm s
+    name : Name → Tm s
     app  : (f : Sym) → All Tm (dom f) → Tm (cod f)
-  ren : (Name → Name) → ∀ {s} → Tm s → Tm s
+  Frame = All Tm                                 -- every name of a frame is restricted
+  ren : (Name → Name) → Tm s → Tm s ; names : Tm s → List Name   -- and ren*, names* on tuples
+  data Each (P : ∀ {s} → Tm s → Set) : All Tm ss → Set            -- lookupᴱ, mapᴱ
+  data All₂ (R : ∀ {s} → Tm s → Tm s → Set) : All Tm ss → All Tm ss → Set
+  _≟ᵗ_ : DecidableEquality (Tm s)               -- decided in Σ Sort Tm, read back by UIP
+  data Recipe (Δ : List Sort) (own : Name → Set) : Sort → Set where
+    var  : s ∈ Δ → Recipe Δ own s
+    mine : (n : Name) → own n → Recipe Δ own s
+    app  : (f : Sym) → All (Recipe Δ own) (dom f) → Recipe Δ own (cod f)
+  _⟨_⟩ : Recipe Δ own s → Frame Δ → Tm s       -- and _⟨_⟩* on tuples
+  bind : (∀ {s} → s ∈ Δ → Recipe Δ′ own′ s) → own ⊆ own′ → Recipe Δ own s → Recipe Δ′ own′ s
+  Ground : Recipe Δ own s → Set                 -- no `var`
+record EqTheory (𝔖 : Signature) : Set₁ where   -- abadi2018applied §2.2 p. 6
+  field _≈E_       : ∀ {s} → Tm s → Tm s → Set
+        isEquiv    : ∀ {s} → IsEquivalence (_≈E_ {s})
+        app-cong   : ∀ f {ts us} → All₂ _≈E_ ts us → app f ts ≈E app f us
+        ren-cong   : ∀ ρ {s} {t u : Tm s} → t ≈E u → ren ρ t ≈E ren ρ u
+        _≟E_       : ∀ {s} → Decidable (_≈E_ {s})  -- guards are computed (§3.5)
+        nontrivial : ∀ s → ∃₂ λ (t u : Tm s) → ¬ t ≈E u
+  module ≈E {s} = IsEquivalence (isEquiv {s}) ; Tm-setoid : Sort → Setoid 0ℓ 0ℓ
 
-  record EqTheory : Set₁ where                   -- abadi2018applied §2.2 p. 6
-    field
-      _≈E_       : ∀ {s} → Tm s → Tm s → Set
-      isEquiv    : ∀ {s} → IsEquivalence (_≈E_ {s})
-      app-cong   : ∀ f {ts us} → All₂ _≈E_ ts us → app f ts ≈E app f us
-      ren-cong   : ∀ ρ {s} {t u : Tm s} → t ≈E u → ren ρ t ≈E ren ρ u
-      _≟E_       : ∀ {s} → Decidable (_≈E_ {s})  -- guards are computed (§3.5)
-      nontrivial : ∀ s → ∃₂ λ (t u : Tm s) → ¬ t ≈E u
-    Tm-setoid : Sort → Setoid 0ℓ 0ℓ
-    Tm-setoid s = record { Carrier = Tm s ; _≈_ = _≈E_ ; isEquivalence = isEquiv }
+-- CategoricalCrypto.Symbolic.Term.PairEnc: CLC Examples 3.1 and 3.3 (pp. 9–10)
+data Op : Set where pair fst snd enc dec : Op ; cst : ℕ → Op   -- enc: plaintext, key, coins
+Σ₀ : Signature                                  -- one sort, ⊤; Msg = Tm tt
+data _⟶ʳ_ : Msg → Msg → Set where              -- E₀ oriented
+  π₁⟨,⟩ : π₁ ⟪ x , y ⟫ ⟶ʳ x ; π₂⟨,⟩ : π₂ ⟪ x , y ⟫ ⟶ʳ y ; dec-enc : dec⟨ enc⟨ x , k , r ⟩ , k ⟩ ⟶ʳ x
+data _⟶_ : Msg → Msg → Set                     -- root, arg: one step anywhere
+nf : Msg → Msg ; app↓ : (f : Op) → All Tm (arity f) → Msg       -- nf (app f ts) = app↓ f (nf* ts)
+nf-normal : (t : Msg) → Normal (nf t) ; nf-reduces : (t : Msg) → t ⟶* nf t
+⟶-nf : t ⟶ u → nf t ≡ nf u ; terminating : WellFounded (flip _⟶_)
+confluent : t ⟶* u → t ⟶* v → ∃[ w ] u ⟶* w × v ⟶* w
+E₀ : EqTheory Σ₀                                -- t ≈E u = nf t ≡ nf u
+≈E⇔⟷* : nf t ≡ nf u ⇔ EqClosure _⟶_ t u         -- the theory the three rules generate
 
--- CategoricalCrypto.Symbolic.Deduction (𝔖 : Signature) (E : EqTheory 𝔖), same options
-Frame : List Sort → Set
-Frame = All Tm
-data Recipe (Δ : List Sort) (own : Name → Set) : Sort → Set where    -- public symbols
-  var  : ∀ {s} → s ∈ Δ → Recipe Δ own s
-  mine : ∀ {s} n → own n → Recipe Δ own s
-  app  : (f : Sym) → All (Recipe Δ own) (dom f) → Recipe Δ own (cod f)
-_⊢_ : Frame Δ × (Name → Set) → Tm s → Set      -- abadicortier2006 Prop 1, as definition
-(φ , own) ⊢ M = Σ[ ζ ∈ Recipe Δ own _ ] ζ ⟨ φ ⟩ ≈E M
-data _⊢ᵢ_ (K : Frame Δ × (Name → Set)) : Tm s → Set where   -- the rules of §2.3 p. 6
-  entry : (i : s ∈ Δ) → K ⊢ᵢ lookup (proj₁ K) i
-  owned : proj₂ K n → K ⊢ᵢ name n
-  apply : All (K ⊢ᵢ_) ts → K ⊢ᵢ app f ts
-  conv  : K ⊢ᵢ M → M ≈E M′ → K ⊢ᵢ M′
+-- CategoricalCrypto.Symbolic.Deduction (𝔖 : Signature) (E : EqTheory 𝔖)
+Knowledge Δ = Frame Δ × (Name → Set)            -- exposed frame, names the deducer may use
+_⊢_ : Knowledge Δ → Tm s → Set                  -- abadicortier2006 Prop 1, as definition
+K ⊢ M = Σ[ ζ ∈ Recipe _ (proj₂ K) _ ] ζ ⟨ proj₁ K ⟩ ≈E M
+data _⊢ᵢ_ (K : Knowledge Δ) : Tm s → Set where  -- the rules of §2.3 p. 6
+  entry : (i : s ∈ Δ) → K ⊢ᵢ lookup (proj₁ K) i ; owned : proj₂ K n → K ⊢ᵢ name n
+  apply : Each (K ⊢ᵢ_) ts → K ⊢ᵢ app f ts       ; conv  : K ⊢ᵢ M → M ≈E M′ → K ⊢ᵢ M′
 ⊢⇔⊢ᵢ : K ⊢ M ⇔ K ⊢ᵢ M
+⊢-cut : Each (K ⊢_) φ → own ⊆ proj₂ K → (φ , own) ⊢ M → K ⊢ M   -- with ⊢-conv, ⊢-entry,
+⊢-wk  : (φ , own) ⊢ M → (t ∷ φ , own) ⊢ M                      --   ⊢-owned, ⊢-own, bind-⟨⟩
+Foreign φ ψ n = n ∉ names* φ × n ∉ names* ψ
 _≈ₛ_ : Frame Δ → Frame Δ → Set                 -- Def 2 p. 7; abadi2018applied Def 4.3
-φ ≈ₛ ψ = ∀ {s} (ζ ζ′ : Recipe Δ (Foreign φ ψ) s) → (ζ ⟨ φ ⟩ ≈E ζ′ ⟨ φ ⟩) ⇔ (ζ ⟨ ψ ⟩ ≈E ζ′ ⟨ ψ ⟩)
+φ ≈ₛ ψ = ∀ {s} (ζ ζ′ : Recipe _ (Foreign φ ψ) s) → (ζ ⟨ φ ⟩ ≈E ζ′ ⟨ φ ⟩) ⇔ (ζ ⟨ ψ ⟩ ≈E ζ′ ⟨ ψ ⟩)
 ```
+
+Departures from the first draft, all forced:
+- `Signature` gains `_≟ᶠ_`: syntactic term equality, hence a decidable E, needs it. The sort
+  decision is `_≟ˢ_`, since `_≟_` clashes on opening.
+- `app f ts ≡ app f us` cannot be split without K, because the index `cod f` is not a pattern.
+  `_≟ᵗ_` therefore decides equality in `Σ Sort Tm` and reads it back with `Decidable⇒UIP`. Σ₀
+  has the single sort `⊤`, so `cod f` reduces and its rules can match terms with known heads.
+- The term layer is a named module `Terms 𝔖`; an anonymous one cannot be opened at 𝔖.
+- Recipes, `bind` and `Ground` live in `Term`, not `Deduction`, because roles need them without
+  E. A role recipe is `Recipe Δ ∅`.
+- `Sym` clashes with `Relation.Binary.Definitions.Sym`, and `_⊢_`, `_∈_` clash with
+  `Relation.Unary`; import those with `using`.
 
 ### 3.3 Dolev–Yao roles: the generators
 
-Atoms are ports. `port s t` carries sort `s` on `Pos` and sort `t` on `Neg` (𝔾ᵒ polarity,
-`Iface.agda:3-5`). `verdict` is `Ωᴵ = Bool ⇿ ⊤`, and `void` is the closure source `𝟘ᵒ` on which
-`Obs` is typed. On each input a role runs a decision tree — guards, fresh names, then one
-emission and a jump.
+Built: `Symbolic/Role.agda` (5.7 s warm). Atoms are ports. `port s t` carries sort `s` on `Pos`
+and sort `t` on `Neg` (`Iface.agda:3-5`). `verdict` is `Ωᴵ = Bool ⇿ ⊤`, and `void` is the empty
+interface. On each activation a role runs a decision tree: guards, fresh names, then one emission
+and a jump.
 
 ```agda
-{-# OPTIONS --safe --without-K #-}
-module CategoricalCrypto.Symbolic.Role (𝔖 : Signature) where
-data Atom : Set where
-  port : (pos neg : Sort) → Atom ; verdict void : Atom
-open FreeMonoidalHelper Mon Atom using (ObjTerm; flatten)
-data Rcp (Δ : List Sort) : Sort → Set where            -- frame only: no built-in names
-  var : ∀ {s} → s ∈ Δ → Rcp Δ s
-  app : (f : Sym) → All (Rcp Δ) (dom f) → Rcp Δ (cod f)
+-- CategoricalCrypto.Symbolic.Role (𝔖 : Signature)
+data Atom : Set where port : (pos neg : Sort) → Atom ; verdict void : Atom
+_≟ᴬ_ : DecidableEquality Atom
+open FreeMonoidalHelper Mon Atom                       -- ObjTerm
+data Dir : Set where pos neg : Dir                     -- rightwards, leftwards
+data Kind : Set where msg : Sort → Kind ; flag tick : Kind
+Value : Kind → Set                                     -- Tm s, Bool, ⊤
+kinds : Dir → Atom → List Kind ; Kinds : Dir → ObjTerm → List Kind        -- `++` at ⊗₀
+alphabet : Dir → Atom → Set ; Alphabet : Dir → ObjTerm → Set              -- `⊎` at ⊗₀, ⊥ at unit
+read  : ∀ d x → Alphabet d x → Σ[ k ∈ Kind ] k ∈ Kinds d x × Value k
+write : ∀ d x {k} → k ∈ Kinds d x → Value k → Alphabet d x
+Ins Outs : ObjTerm → ObjTerm → List Kind               -- Ins x y = Kinds pos x ++ Kinds neg y
+data Input (x y : ObjTerm) : Set where _↦_ : k ∈ Ins x y → Value k → Input x y
+data Emission (O : List Kind) : Set where _↦_ : k ∈ O → Value k → Emission O
+decode : ∀ x y → Alphabet pos x ⊎ Alphabet neg y → Input x y
+encode : ∀ x y → Emission (Outs x y) → Alphabet neg x ⊎ Alphabet pos y
+Branch : Kind → Set                                    -- Bool on `flag`, ⊤ otherwise
+carried : Kind → List Sort ; branch : Value k → Branch k ; carry : Value k → Frame (carried k)
+Rcp Δ = Recipe Δ ∅                                     -- a role holds no name it did not draw
+Payload : List Sort → Kind → Set                       -- Rcp Δ s, Bool, ⊤
 data React (n : ℕ) (Γ : Fin n → List Sort) (O : List Kind) : List Sort → Set where
-  test : ∀ {Δ s} → Rcp Δ s → Rcp Δ s → React n Γ O Δ → React n Γ O Δ → React n Γ O Δ
-  new  : ∀ {Δ} s → React n Γ O (s ∷ Δ) → React n Γ O Δ
-  emit : ∀ {Δ} (c : Fin n) → All (Rcp Δ) (Γ c) → (o : Out O) → Payload Δ o → React n Γ O Δ
-record Role (x y : ObjTerm) : Set where              -- CLC basic processes, general `else`
-  field
-    n     : ℕ
-    Γ     : Fin n → List Sort                        -- frame kept at each control point
-    start : Fin n
-    fresh : Γ start ≡ []                             -- secrets arise only through `new`
-    react : (c : Fin n) (i : In x y) → React n Γ (Outs x y) (Γ c ++ carried i)
-Simple : Role x y → Set                              -- CLC §3.3: `else` emits ⊥ and stops
--- a role is a DY deducer: every emitted term is deducible from what it received plus its own
--- fresh names (abadicortier2006 Prop 1; the recipe is the emitting branch's `Rcp`)
-emits⊢ : Emits p c i m → (received c i , ownNames κ) ⊢ m
+  test : Rcp Δ s → Rcp Δ s → React n Γ O Δ → React n Γ O Δ → React n Γ O Δ
+  new  : ∀ s → React n Γ O (s ∷ Δ) → React n Γ O Δ
+  emit : (c : Fin n) → All (Rcp Δ) (Γ c) → k ∈ O → Payload Δ k → React n Γ O Δ
+record Role (x y : ObjTerm) : Set where
+  field n : ℕ ; Γ : Fin n → List Sort ; start : Fin n ; fresh : Γ start ≡ []
+        react : (c : Fin n) {k : Kind} → k ∈ Ins x y → Branch k
+              → React n Γ (Outs x y) (carried k ++ Γ c)
+data Halts (h : Fin n) : React n Γ O Δ → Set   -- `emit h _ _ π` with a ground payload
+data Guarded (h : Fin n) : React n Γ O Δ → Set -- every failed `test` halts at h
+record Simple (p : Role x y) : Set where       -- CLC §3.3 basic processes
+  field halt : Fin (Role.n p)
+        halted  : ∀ {k} (i : k ∈ Ins x y) b → Halts halt (Role.react p halt i b)
+        guarded : ∀ c {k} (i : k ∈ Ins x y) b → Guarded halt (Role.react p c i b)
+record Config (n : ℕ) (Γ : Fin n → List Sort) : Set where
+  constructor config ; field control : Fin n ; registers : Frame (Γ control) ; counter : ℕ
+init : (p : Role x y) → Config (Role.n p) (Role.Γ p)
+received : (hist : List (Input x y)) → Frame (Received hist)   -- newest first
+Own : ℕ → Name → Set ; Own κ (κ′ , _) = κ′ ≡ κ
+module Run (E : EqTheory 𝔖) where
+  exec : (κ : ℕ) → React n Γ O Δ → Frame Δ → ℕ → Config n Γ × Emission O   -- names (κ , j)
+  step : (κ : ℕ) (p : Role x y) → Config (Role.n p) (Role.Γ p) → Input x y
+       → Config (Role.n p) (Role.Γ p) × Emission (Outs x y)
+  Known : Knowledge Δ → Emission O → Set               -- an emitted term is deducible
+  exec⊢ : Own κ ⊆ proj₂ K → (t : React n Γ O Δ) → Each (K ⊢_) φ → Deduced K (exec κ t φ j)
+  after : (κ : ℕ) (p : Role x y) → List (Input x y) → Config (Role.n p) (Role.Γ p)
+  emits⊢ : ∀ κ p (hist : List (Input x y)) (inp : Input x y)
+         → Known (received (inp ∷ hist) , Own κ) (proj₂ (step κ p (after κ p hist) inp))
 ```
 
-`In x y` lists the `Pos`-ports of `flatten x` together with the `Neg`-ports of `flatten y`;
-`Outs x y` lists the converse. A `Payload` is a recipe, or a `Bool` on `verdict`. Everything is
-first-order data in `Set`, as `FreeMonoidalData.mor` requires. Unbounded sessions are a single
-role that dispatches on session tags. This is `bohlunruh2013`'s `!!` (Def 5.11 p. 42), the only
-replication their composition theorem covers.
+A role's frame grows at the front: a received term and a `new` name are pushed. `emits⊢` says
+roles are DY deducers: what occurrence κ emits is deducible from every term it has received,
+its trigger included, together with its own names `(κ , _)`. The recipe is the emitting branch's
+`Rcp`, with each `new` turned into `mine` (`exec⊢`, `⊢-cut`). Ports are kinds listed in tensor
+order. A role branches on a received bit, so a verdict in its domain can be read, and it pushes
+a received term on its frame. `Simple` keeps CLC's shape: a failed guard emits a ground payload
+(CLC's `⊥`) and jumps to a halting point that answers every activation that way. CLC's
+well-formedness guard `M` is not an equation, so it needs check symbols in the signature
+(step 13). Everything is first-order data in `Set`, as `FreeMonoidalData.mor` requires. Unbounded
+sessions are a single role that dispatches on session tags. This is `bohlunruh2013`'s `!!`
+(Def 5.11 p. 42), the only replication their composition theorem covers.
+
+**What steps 6–7 consume.** `symData`, `atomᴵ` and `runᴿ` are theirs to write. `Symbolic/Test.agda`
+checks that `⟦_⟧ᴵ` below is the `_⊗ᴵ_`-tree on the nose, with `unitᴵ` at `unit` and
+`Bool ⇿ ⊤` (`Ωᴵ`) at `verdict`, and it runs `step` on a concrete role:
+
+```agda
+symData = record { v = Mon ; X = Atom ; mor = λ x y → UnitFree x × UnitFree y × Role x y }
+atomᴵ a = alphabet pos a ⇿ alphabet neg a    -- Tm s ⇿ Tm t ; Ωᴵ ; unitᴵ, on the nose
+⟦ x ⟧ᴵ  = Alphabet pos x ⇿ Alphabet neg x    -- definitionally the _⊗ᴵ_-tree of atomᴵ
+runᴿ : ℕ → Role x y → Proc ⟦ x ⟧ᴵ ⟦ y ⟧ᴵ      -- = Machine (Alphabet pos x ⊎ Alphabet neg y) …
+runᴿ κ p = state Config (Role.n p) (Role.Γ p), point init p,
+           step λ (cfg , m) → returnₚ (map₂ (encode x y) (Run.step E κ p cfg (decode x y m)))
+```
+
+`≟ObjTerm _≟ᴬ_` decides boundaries for `SameObs` (§3.6).
 
 ### 3.4 The category and its hom-setoid
 
@@ -206,23 +284,24 @@ facts, and `≈ℰ = ≈ᵁ` (§3.6). The alternatives gain nothing:
 ### 3.5 Observation with located names
 
 ```agda
-{-# OPTIONS --safe --without-K #-}
-module Categories.FreeMonoidal.Decorated      -- new, general: one datum per generator occurrence
-  (d : FreeMonoidalData) (⟦v⟧ : ⟦ v ⟧ᵥ) (⟦_⟧ᵖ₀ : X → C.Obj) (D : Set)
-  (⟦_⟧ᵈ : ∀ {x y} → mor x y → D → ⟦ x ⟧₀ C.⇒ ⟦ y ⟧₀) where
+-- Categories.FreeMonoidal.Decorated (built; 151 lines, 4 s warm)
+module Categories.FreeMonoidal.Decorated
+  {ℓ′ o ℓ e d} (dat : FreeMonoidalData {ℓ′}) (⟦v⟧ : ⟦ v ⟧ᵥ {o} {ℓ} {e}) (⟦_⟧ᵖ₀ : X → C.Obj)
+  (D : Set d) (⟦_⟧ᵈ : ∀ {x y} → mor x y → D → ⟦ x ⟧₀ C.⇒ ⟦ y ⟧₀) where
 Occ : HomTerm A B → Set
 Occ (var _) = ⊤ ; Occ (g ∘ f) = Occ g ⊎ Occ f ; Occ (f ⊗₁ g) = Occ f ⊎ Occ g ; Occ _ = ⊥
 ⟦_⟧[_] : (f : HomTerm A B) → (Occ f → D) → ⟦ A ⟧₀ C.⇒ ⟦ B ⟧₀
 ⟦ var p ⟧[ ι ]  = ⟦ p ⟧ᵈ (ι tt)
-⟦ g ∘ f ⟧[ ι ]  = ⟦ g ⟧[ ι ∘ inj₁ ] C.∘ ⟦ f ⟧[ ι ∘ inj₂ ]
-⟦ f ⊗₁ g ⟧[ ι ] = ⟦ f ⟧[ ι ∘ inj₁ ] C.⊗₁ ⟦ g ⟧[ ι ∘ inj₂ ]   -- structural: as FreeFunctor
-⟦⟧[]-resp-≈ : f ≈Term g → Σ[ π ∈ Occ f ↔ Occ g ] (∀ ι → ⟦ f ⟧[ ι ∘ Inverse.to π ] C.≈ ⟦ g ⟧[ ι ])
+⟦ g ∘ f ⟧[ ι ]  = ⟦ g ⟧[ ι ∘′ inj₁ ] C.∘ ⟦ f ⟧[ ι ∘′ inj₂ ]
+⟦ f ⊗₁ g ⟧[ ι ] = ⟦ f ⟧[ ι ∘′ inj₁ ] C.⊗₁ ⟦ g ⟧[ ι ∘′ inj₂ ]   -- structural: as FreeFunctor
+⟦⟧[]-cong : (f : HomTerm A B) → (∀ x → ι x ≡ ι′ x) → ⟦ f ⟧[ ι ] ≡ ⟦ f ⟧[ ι′ ]
+⟦⟧[]-resp-≈ : f ≈Term g → Σ[ π ∈ Occ f ↔ Occ g ] (∀ ι → ⟦ f ⟧[ ι ∘′ Inverse.to π ] C.≈ ⟦ g ⟧[ ι ])
 
 {-# OPTIONS --safe --without-K --guardedness #-}
 module CategoricalCrypto.Symbolic.Semantics (𝔖 : Signature) (E : EqTheory 𝔖) where
-atomᴵ : Atom → Iface
+atomᴵ : Atom → Iface                        -- §3.3: alphabet pos a ⇿ alphabet neg a
 atomᴵ (port s t) = Tm s ⇿ Tm t ; atomᴵ verdict = Ωᴵ ; atomᴵ void = unitᴵ
-runᴿ : ℕ → Role x y → Proc ⟦ x ⟧ᴵ ⟦ y ⟧ᴵ   -- (control, frame, counter); names (κ , i); returnₚ
+runᴿ : ℕ → Role x y → Proc ⟦ x ⟧ᴵ ⟦ y ⟧ᴵ   -- Run.step E κ, through decode/encode; returnₚ
 open Decorated symData (fromMC 𝔾ᵒ noSymmetric) (ifaceᵒ ∘ atomᴵ) ℕ
   (λ (ux , uy , p) κ → treeᵒ ux uy (procᵒ (runᴿ κ p)))
 eval : HomTerm (Var void) (Var verdict) → Bool → Set      -- possible under fresh naming
@@ -233,8 +312,11 @@ eval-cong : c ≈Term c′ → ∀ b → eval c b ⇔ eval c′ b       -- ⟦�
 `treeᵒ` coerces along `⊗ᵒ` (`Seal.agda:86-87`). Generator boundaries are unit-free because
 `G.unit ≠ ifaceᵒ unitᴵ` (`Observation.agda:15-22`). Each occurrence gets its own name supply,
 attackers included, so an attacker holds a protocol name only once it has been sent one. The
-`∃ι` absorbs re-bracketing, so no equivariance lemma is needed here. Equivariance (`ren-cong`,
-guards modulo E) makes the verdict independent of `ι`; only the soundness proof uses it.
+`∃ι` absorbs re-bracketing, so no equivariance lemma is needed here. A naming `ι′` of `c′` gives
+`c` the naming `ι′ ∘ to π` directly. A naming `ι` of `c` gives `c′` the naming `ι ∘ from π`, and
+`⟦⟧[]-cong` closes the gap, because `from ∘ to` is the identity only pointwise. Equivariance
+(`ren-cong`, guards modulo E) makes the verdict independent of `ι`; only the soundness proof
+uses it.
 
 ### 3.6 The DY-environment presheaf and the setup
 
@@ -274,8 +356,8 @@ does not arise: `≤UC-refl` takes `s = a`.
 matches machine-iso, ℰᵒ, ℰᴿ and `ucSetupᴺ` (`Enrichment.agda:46`). So
 `Sym : UCSetup 0ℓ 0ℓ 0ℓ 0ℓ 0ℓ 0ℓ (suc 0ℓ) (suc 0ℓ)`. Everything is `--safe --without-K`, with
 two exceptions: `--guardedness` from `Semantics` on, and K in `Symbolic/Machine.agda`. The modules
-under `Symbolic/` are `Term`, `Deduction`, `Role`, `Fine`, `Semantics`, `Setup`, `Static`,
-`Machine`, `Computational`, `Soundness` and `Example/SecureChannel`. General additions:
+under `Symbolic/` are `Term`, `Term/PairEnc`, `Deduction`, `Role`, `Test`, `Fine`, `Semantics`,
+`Setup`, `Static`, `Machine`, `Computational`, `Soundness` and `Example/SecureChannel`. General additions:
 `freeStrongMonoidal`, `Categories/FreeMonoidal/Decorated.agda`, and `transfer⁺` in
 `Abstract2/Morphism.agda`.
 
@@ -456,10 +538,12 @@ of scope.
 
 1. **Freshness.** Located names cost an occurrence bijection per `≈Term` constructor, about 25
    cases. The alternative is nominal sets with equivariance on every morphism. §4.2
-   over-approximates freshness and transfers nothing.
+   over-approximates freshness and transfers nothing. *Settled: located names.* The bijections
+   are 24 cases in `Categories/FreeMonoidal/Decorated.agda`, 4 s warm. Coherence-only cases are
+   isos of empty types. The rest are `⊎-assoc`, `⊎-cong` and seven small sum isos.
 2. **No quotients.** Terms stay raw: `Tm-setoid` appears only in guards and deducibility, and
    `emit-≈E` carries E. Guards are computed, so E must be decidable (convergent theories;
-   `abadicortier2006` Props 3–4).
+   `abadicortier2006` Props 3–4). `Term/PairEnc.E₀` decides by normal forms.
 3. **K and the seal.** K appears only in `Symbolic/Machine.agda`, as coinfectivity forces;
    `SameObs` inverts through `Decidable⇒UIP`. Generators go through `procᵒ`/`treeᵒ`. Never
    `unfolding 𝔾ᵒ` beside `StdUC` (12 GiB, `Enrichment.agda:12-13`); `Sym`'s `StdUC` is over 𝔻𝕐.
@@ -486,10 +570,11 @@ listed exports.
 
 1. `Abstract2/Morphism.agda`: `transfer⁺`, with `transfer` re-derived and its type unchanged.
 2. `Categories/FreeMonoidal.agda`: `freeStrongMonoidal`, reused by the ITM plan.
-3. `Categories/FreeMonoidal/Decorated.agda`: `⟦⟧[]-resp-≈`, generic in `⟦v⟧`.
-4. `Symbolic/{Term,Deduction}.agda`: `⊢⇔⊢ᵢ`, plus a convergent pairing/encryption theory.
+3. `Categories/FreeMonoidal/Decorated.agda`: `⟦⟧[]-resp-≈`, generic in `⟦v⟧`. **Built.**
+4. `Symbolic/{Term,Deduction}.agda`: `⊢⇔⊢ᵢ`, plus a convergent pairing/encryption theory. **Built**,
+   with the theory in `Symbolic/Term/PairEnc.agda` (§3.2).
 5. `Symbolic/Role.agda`: `Role`, `Simple`, a decidable `Atom`, and `emits⊢`, which shows that roles
-   are DY deducers.
+   are DY deducers. **Built** (§3.3); `Symbolic/Test.agda` runs a role.
 6. `Symbolic/Fine.agda`: `Sym≅`, with `Sym≅.UC-compose` instantiated.
 7. `Symbolic/Semantics.agda`: `eval-cong`, plus a two-role example that evaluates to `true`.
 8. `Symbolic/Setup.agda`: hypothesis-free `grade-stable`, `≈ᵁ⇔≈ℰ`, `emit-≈E`, `fine→sym`.
