@@ -479,10 +479,12 @@ single-module wall clock at `+RTS -M3G -H1G`, of which about 9 s is startup and 
 
    Both `ITM.Setup` and `ITM.Relational` are imported by the root `CategoricalCrypto`. Importers of
    steps 1–2: the 51 importers of `Seal` and `FreeMonoidal` that do not reach `UC.Model.Family`
-   check green at `-M6G`. `UC.Model.Family` needs more than 6 GiB (`docs/quantitative-family.md`
-   §8 runs it at `-M20G`); it, `UC.Model.Family.Ingest`, `Examples.CoinToss.Ideal.Compose`,
-   `Examples.CoinToss.Ideal.Receiver.Compose`, `Examples.ChimericLedger.Transfer` and the root
-   are left to step 12's closure check.
+   check green at `-M6G`. The rest of the cone is green once `UC.Graded` no longer hangs
+   (`06b7daef`, RS plan §6 step 2), and its cost predates the merges: `UC.Model.Family` needs
+   `-M6G` and is checked alone first (its header), 30.6 s at a 5.4 GiB peak against 27.6 s and
+   5.4 GiB at `7d722e1f`, where a root check re-elaborating it exhausts `-M6G` the same way; the
+   eight modules above it, `Examples.ChimericLedger.Transfer` and the root take 15–24 s under
+   2.8 GiB, within 2 s and 0.2 GiB of `7d722e1f`.
 8. *(optional; the one hard proof)* `ITM/Flatten.agda`: `flatten : HomTerm A B → Gen A B` with
    `⟦ var (flatten t) ⟧₁ G.≈ ⟦ t ⟧₁`. The `∘` case follows `Protocol/Machine/Compose.agda`
    (reachable-configuration machine, two simulations, `Col.collapseᵀ`), plus `iterₚ-codiagonal`

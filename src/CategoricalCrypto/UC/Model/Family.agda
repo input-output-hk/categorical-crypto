@@ -5,6 +5,11 @@
 -- `UC.Family.Vanishing` on the same ingredients supplying `Canonical^ω`, the
 -- INHERITED order, where `UC-compose` is, and `UC.Family.Negligible{,.Setup}`
 -- the negligible tier's readout and emulation order.
+--
+-- Exhausts `-M3G`: warm at `-M6G -H1G` it takes ~30 s at a 5.4 GiB peak, two
+-- thirds of that residency the two `Std2.StdUC` applications at the family
+-- bundle `Famᴹ` (`Canonical^ω`, `Canonicalᴺ`).  A root check that re-elaborates
+-- it exhausts `-M6G`, so check it alone first.
 
 open import Data.Nat.Base
 open import Data.Nat.Properties
