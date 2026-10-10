@@ -37,9 +37,6 @@ private
 ½-split : (ε ε′ δ : ℚ) → (ε ℚ.+ ½ ℚ.* δ) ℚ.+ (ε′ ℚ.+ ½ ℚ.* δ) ≡ (ε ℚ.+ ε′) ℚ.+ δ
 ½-split ε ε′ δ = trans (interchange ε (½ ℚ.* δ) ε′ (½ ℚ.* δ)) (cong ((ε ℚ.+ ε′) ℚ.+_) (½*+½* δ))
 
-------------------------------------------------------------------------
--- The slack closure
-
 module Closure {Obs : Set o} (A : Approximation Obs ℚ-ordered ℓa) where
 
   open Approximation A
@@ -90,11 +87,7 @@ module Closure {Obs : Set o} (A : Approximation Obs ℚ-ordered ℓa) where
     Approximation.≈[]-mono closure (≤-reflexive (trans (+-identityʳ (0ℚ ℚ.+ ε)) (+-identityˡ ε)))
       (≈̄-trans (≈̄-trans (Equivalence.from ≈̄[0]⇔∼ᵃ l) h) (Equivalence.from ≈̄[0]⇔∼ᵃ r))
 
-------------------------------------------------------------------------
--- The hybrid lemma
-
--- maurer2002 Lemma 5(i) along a chain of hybrids: the end points are within
--- the sum of the steps.
+-- maurer2002 Lemma 5(i) along a chain of hybrids.
 module _ {Obs : Set o} (A : Approximation Obs ℚ-ordered ℓa) where
 
   open Approximation A

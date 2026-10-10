@@ -2,8 +2,9 @@
 
 Plan, 2026-10-09.  §3–§5 are the design; steps 1–9 of §6 are implemented on branch
 `rs-quotient`, and §6 records what landed, under which names, and where it departs from the
-design.  It refines `docs/uc-setup-landscape.md` §4 (random systems) and corrects its
-full-abstraction remark (§5.3).
+design; §4.4's toolkit (Δ, composition, hybrids, the construction notion) is on `rs-toolkit`.
+It refines `docs/uc-setup-landscape.md` §4 (random systems) and corrects its full-abstraction
+remark (§5.3).
 
 ## 1. Summary
 
@@ -33,7 +34,7 @@ CryptHOL's sub-probabilistic resources (lochbihler2019cc fn. 1).
 **Composition, tensor.** Cascade `FG` (maurer2002 Def 8) and invocation `C(·)`, which calls `F`
 zero, one or several times per input (§3.3, Fig. 4); in constructive cryptography a cryptographic
 algebra ⟨Φ, Σ⟩: resources with parallel composition `||`, converters attached at an interface
-(`αⁱR`), converter composition `αβ` (maurer2011cc §4.3 Def 1).  Here both are G-composition,
+(`αⁱR`), converter composition `αβ` (maurer2011cc §4.4 Def 1).  Here both are G-composition,
 `composeᴳ f g = trace (α ∘ f ⊗ g ∘ γ)` (`GConstruction.agda:55-56`): an invocation whose
 ping-pong is an unguarded Elgot loop inside one activation (`Machines/Trace.agda:74-75`,
 `Dp/Iter.agda:iterₚ`).  `R₁ || R₂` routes queries by tag (lochbihler2019cc Def 2): `_⊗ᵉ_`
@@ -430,6 +431,113 @@ hypothesis-free, and ν (`t ↦ (unit , t)`) stays `Mono` but stops being `Epi`.
 - **SSP** (`docs/uc-setup-ssp.md`): none.  `morphism wireᵖ` is not the G-identity under any
   distinguisher equality — a `Strat` may send an unsolicited answer (`Protocol/Machine.agda:14-19`).
 
+### 4.4 Toolkit: Δ, the composition theorem, hybrids, the construction notion
+
+Branch `rs-toolkit`; all proved, `--safe`, no postulates.  New modules
+`Approx/Rational.agda` (generic), `UC/RandomSystems/{Advantage,Composition,Construction}.agda`;
+`Behaviour/Absorb.agda` gains `absorbs-dom` and `Behaviour/Congruence.agda` exports its G-level
+`Absorbs` instances, the old lemmas re-derived from them with their statements unchanged.
+
+**Δ** (maurer2002 Def 10, maurer2011cc §4.5).  A verdict mass is a lower real, never a number
+(`Dp/Advantage.agda`), so Δ is a relation in a rational slack, and the slack is *closed*:
+
+```agda
+-- Approx/Rational.agda, for any approximation A with rational errors (module Closure A)
+record _≈̄[_]_ (x : Obs) (ε : ℚ) (y : Obs) : Set ℓa where
+  constructor slack
+  field ≈̄⇒≈ : (δ : ℚ) → 0ℚ ℚ.< δ → x ≈[ ε ℚ.+ δ ] y
+-- UC/RandomSystems/Advantage.agda; Verdict = Closure Approximationᴹ, the closure of _≈ₚ[_]_
+Δ[ d ]⟨ f , g ⟩≤ ε = runˢ f d Verdict.≈̄[ ε ] runˢ g d
+f ≈ᴿ[ ε ] g        = (d : Strat X Y) → Δ[ d ]⟨ f , g ⟩≤ ε     -- Δ^𝒟, 𝒟 = every Strat
+```
+
+Open, Δ ≤ 0 would be `≈ₚ[ 0ℚ ]`, strictly finer than `≈ᴿ` (rejection sampling, §3.1), and a
+bound would not survive a `≈ᴿ`-change of a machine.  Closed, `≈ᴿ` is the limit both at zero and
+from above, and Δ is a distance on 𝔾ᴿ's homs.  The closure is a record so that ε is recoverable
+by unification (`ε + δ` alone is not).
+
+| statement | name |
+|---|---|
+| compatible with `_≈ₚ[_]_`: `runˢ f d ≈ₚ[ ε ] runˢ g d → Δ[ d ]⟨ f , g ⟩≤ ε`, and back at `ε + δ` for every δ > 0 | `Verdict.≈⇒≈̄`, the field `Verdict.≈̄⇒≈` |
+| triangle inequality (maurer2002 Lemma 5(i)) | `Verdict.≈̄-trans` (per distinguisher), `≈ᴿ[]-trans` |
+| approximations of machines: per distinguisher, uniform | `advantage d`, `approxᴿ` |
+| `≈ᴿ` at zero: `(f ≈ᴿ g) ⇔ (f ≈ᴿ[ 0ℚ ] g)` | `≈ᴿ⇔≈ᴿ[0]` |
+| `≈ᴿ` from above: `(f ≈ᴿ g) ⇔ (∀ ε → 0ℚ < ε → f ≈ᴿ[ ε ] g)` | `≈ᴿ⇔≈ᴿ[+]` |
+| Δ descends to 𝔾ᴿ: `f′ ≈ᴿ f → g ≈ᴿ g′ → f ≈ᴿ[ ε ] g → f′ ≈ᴿ[ ε ] g′` | `≈ᴿ[]-resp` |
+| generic: the closure is closed, its zero error is `∼ᵃ`, a bound respects `∼ᵃ` | `≈̄-closed`, `≈̄[0]⇔∼ᵃ`, `≈̄-resp-∼ᵃ` |
+
+**The composition theorem** (maurer2002 Lemma 5(ii)–(iii); maurer2011cc Def 2, Lemma 1).  `Absorbs`
+(§3.3) is the simulation of a context 𝒞 by a distinguisher; `♯ d b i` is d∘𝒞 cut off at budget
+`i` with verdict `not b`.  A context may loop while `Strat` is well-founded, so d∘𝒞 is the family
+of cut-offs and Δ^{d∘𝒞}(f, g) ≤ ε means every member is within ε:
+
+```agda
+absorbs-dom  : (𝔸 : Absorbs C) (d : Strat X′ Y′) (b : Bool)                   -- Absorb.agda
+             → ((i : Ix) → Dom (indᵇ b) ε (runˢ f (♯ d b i)) (runˢ f′ (♯ d b i)))
+             → Dom (indᵇ b) ε (runˢ (C f) d) (runˢ (C f′) d)
+absorbs-Δ    : (𝔸 : Absorbs C) (d : Strat X′ Y′)                              -- Composition.agda
+             → ((b : Bool) (i : Ix) → Δ[ ♯ d b i ]⟨ f , g ⟩≤ ε) → Δ[ d ]⟨ C f , C g ⟩≤ ε
+absorbs-≈ᴿ[] : Absorbs C → f ≈ᴿ[ ε ] g → C f ≈ᴿ[ ε ] C g
+```
+
+`absorbs⇒resp` (§3.3) is `absorbs-dom` at every positive slack.  The instances are the five raw
+ones and, exported from `Behaviour/Congruence.agda`, G-composition with the hole on either side
+and the G-tensor (`∘ᴳ-absorbˡ`, `∘ᴳ-absorbʳ`, `⊗₁ᴳ-absorbˡ`, `⊗₁ᴳ-absorbʳ`):
+
+| context | statement | raw `𝒢ₚᴹ` | sealed 𝔾ᵒ |
+|---|---|---|---|
+| cascade (Lemma 5(iii)) | `f ≈ᴿ[ ε ] h → g ≈ᴿ[ δ ] i → f ∘ g ≈ᴿ[ ε + δ ] h ∘ i` | `composeᴳ-≈ᴿ[]` | `∘-resp-∼ᴿ[]` |
+| tensor (Def 2 (3)) | `… → f ⊗₁ g ≈ᴿ[ ε + δ ] h ⊗₁ i` | `⊗₁ᴳ-≈ᴿ[]` | `⊗-resp-∼ᴿ[]` |
+| hom equality, closed homs, a closing context | `f G.≈ g → f ∼ᴿ[ 0ℚ ] g`; `u ∼ᴿ[ ε ] v → Obs u ≈̄[ ε ] Obs v`; `f ∼ᴿ[ ε ] g → Obs ((t ∘ (id ⊗₁ f)) ∘ m) ≈̄[ ε ] Obs ((t ∘ (id ⊗₁ g)) ∘ m)` | | `≈⇒∼ᴿ[0]`, `obs-∼ᴿ[]`, `close-∼ᴿ[]` |
+
+On 𝔾ᵒ, `f ∼ᴿ[ ε ] g = unhomᵒ f ≈ᴿ[ ε ] unhomᵒ g` (`FullAbstraction.unhomᵒ`), with `approxᵒ` and
+`∼ᴿ⇔∼ᴿ[0] : (f Q.∼ g) ⇔ (f ∼ᴿ[ 0ℚ ] g)`; one `opaque unfolding unhomᵒ` block proves the sealed
+rows from the raw ones.  Not tracked: Maurer's budget k′ = m_𝒞(k).  Δ ranges over all strategies,
+and the ask bounds (`asks≤`) of `♯ d b i` are not computed, which a query-bounded Δₖ would need.
+
+**Hybrids.**  `Approx.Rational.hybrid`, at any approximation with rational errors:
+
+```agda
+hybrid : (H : Fin (suc n) → Obs) (ε : Fin n → ℚ) → ((i : Fin n) → H (inject₁ i) ≈[ ε i ] H (suc i))
+       → H zero ≈[ ∑[ i < n ] ε i ] H (fromℕ n)
+```
+
+At `advantage d`, `approxᴿ` and `approxᵒ` it is Δ(H₀, Hₙ) ≤ Σ Δ(Hᵢ, Hᵢ₊₁) per distinguisher,
+uniformly, and on 𝔾ᵒ.  The hybrid argument proper, one replacement per step, is
+`hybrid-absorbs`: if hybrid i is ≈ᴿ-equal to `C i f` and hybrid i+1 to `C i g`, each `C i`
+absorbable, then `f ≈ᴿ[ ε ] g` gives `H zero ≈ᴿ[ ∑[ i < n ] ε ] H (fromℕ n)`.
+
+**The construction notion** (maurer2011cc §5.1 Def 3; Def 2 is the compatibility of §4.4 there).
+The security condition with d = Δ over every `Strat` (`Construction.agda`):
+
+```agda
+Constructs ε f g = Σ[ s ∈ Y ℐ.⇒ X ] f ∼ᴿ[ ε ] (sub s ∘ g)     -- f = π R, g = S, s = σ
+```
+
+| statement | name |
+|---|---|
+| at ε = 0 it is UC-emulation over 𝔾ᵒ: `(f Sᵒ.≤UC g) ⇔ Constructs 0ℚ f g` | `≤UC⇔Constructs₀` |
+| … and over 𝔾ᴿ along `rewrite⇒RS`: `(Transfer.G rewrite⇒RS f Sᴿ.≤UC Transfer.G rewrite⇒RS g) ⇔ Constructs 0ℚ f g` | `≤UCᴿ⇔Constructs₀` (via `≈ᵁᴿ⇒∼ᴿ`) |
+| Δ against `UC.Quantitative.Observed`'s `≈ᵁ[ε]` at 𝔾ᵒ (`UC.Model.Quantitative.QUCᵒ`): `(f ∼ᴿ[ ε ] g) ⇔ (∀ δ → 0ℚ < δ → f QUCᵒ.≈ᵁ[ ε + δ ] g)` | `≈ᵁ[]⇒∼ᴿ[]` (the cup, `play-cup`), `∼ᴿ[]⇒≈ᵁ[]` (`close-∼ᴿ[]`), `∼ᴿ[]⇔≈ᵁ[]` |
+| the ε-version: `Constructs ε f g ⇔ Witness⁺ ε f g`, `Witness⁺ ε f g = Σ[ s ] (∀ δ → 0ℚ < δ → QUCᵒ.At s (ε + δ) f g)`; `QUCᵒ.Witness ε f g → Constructs ε f g` | `Constructs⇔Witness⁺`, `Witness⇒Constructs` |
+| Thm 1: (iii); (i), simulators composed in fn. 15's order, error ε + ε′; serial composition (`UC-compose`), simulator `(id ⊗ t) ∘ (s ⊗ id)`, error ε′ + ε | `constructs-refl`, `constructs-trans`, `constructs-∙` |
+
+The levels permit the ε-version: `QUCᵒ.≈ᵁ[ε]` is `Set₁` (it quantifies over ancillas), Δ is
+`Set`, and the `⇔`s straddle them.  It holds up to every positive slack, not at ε itself, because
+Observed's readout space at 𝔾ᵒ is `spaceᴹ`, the open `_≈ₚ[_]_`; the simulator is fixed before
+the slack, `Witness₊`'s discipline (`UC/Quantitative/Bridge.agda`).  An exact match needs Observed
+instantiated at 𝔾ᴿ with the closed readout `Verdict.closure`, a `QEvaluation` over 𝔾ᴿ that the
+open space cannot give (§3.1); not built.  Not covered: Def 3's availability condition
+d(π⊥R, ⊥S) ≤ ε, a separate statement since `≤UC` never fixes the simulator of the silent adversary;
+and Thm 1 (ii), parallel composition, whose graded tensor of two emulations needs the interchange
+`(X ⊗ B) ⊗ (X′ ⊗ B′) ≅ (X ⊗ X′) ⊗ (B ⊗ B′)`, a braiding 𝔾ᵒ does not export (§5.1).
+
+**Amplification** (maurer2007 Thm 1, the product theorem): not attempted.  Its proof rests on
+Lemma 5 there, systems with a monotone binary output whose conditionals are
+`min(p^S_{Yⁱ|Xⁱ}, p^T_{Yⁱ|Xⁱ})` and differences of such, and on Δ being the statistical distance of
+transcripts (Def 12 there): conditionals, minima and differences of masses, which `Dₚ`'s lower
+reals do not form — the wall that rules out Lochbihler's `trace` (§3.1 (1)).
+
 ## 5. Hard parts and risks
 
 ### 5.1 The absorption proofs
@@ -484,22 +592,24 @@ under Seal.agda's four disciplines; (ii) `congᴿ`'s body is checked with 𝔾�
 
 ## 6. Work breakdown
 
-Status 2026-10-09.  "Warm" is a single-module check (`+RTS -M3G -H1G -RTS`, one `Checking`
-line) on a ≈12 s startup floor; `UC.Model.Setup` itself measures 13.7 s.  Every landed row is
-green with an empty warning gate.
+Status 2026-10-09; row 11 2026-10-10.  "Warm" is a single-module check (`+RTS -M3G -H1G -RTS`,
+one `Checking` line) on a ≈12 s startup floor; `UC.Model.Setup` itself measures 13.7 s.  Every
+landed row is green with an empty warning gate.  Row 11's times were taken beside one to three
+other agda runs on the shared box.
 
 | # | module(s) | landed (exports) | warm |
 |---|---|---|---|
 | 1 | `Categories/Category/Monoidal/Construction/Quotient.agda` | `MonoidalCongruence` (with `module ∼`), `quotient`, `quotientF : StrongMonoidalFunctor 𝕄 (quotient 𝕄 Q)`, `descend`, `descendᵛ`, `descendᵛ-mono`, `descendᵛ-epi` | 4.4 s |
 | 2 | `UC/Machine/Run.agda`; `UC/Machine/Behaviour.agda` | Run: `resumeˢ`, `runFromˢ`, `runˢ`, `runFromˢ-ϕ`, `closeˢ`, `runᴹFrom≈runFromˢ`, `runᴹ≈runˢ`, `runˢ-sim`, `runˢ-resp-≈ᴹ`; `runFrom-ϕ`, `run-sim`, `runᴹ-resp-≈ᴹ` re-derived with their statements unchanged.  Behaviour: `_≈ᴿ_`, `≈ᴿ-isEquivalence`, `≈ᴹ⇒≈ᴿ`, and with step 9 `runᴸFrom`, `runᴸ`, `_≈ᴮ_` | 12.8 s; 12.4 s |
-| 3 | `UC/Machine/Behaviour/Absorb.agda` | `wtᴰ`, `unfoldˢ`, `module Approximation` (`Approx`, `approx-ret`, `approx-≈`, `bind-cofinal`, `approx-bind`, `approx-unfold`), `Absorbs`, `absorbs⇒resp`, `absorbs-∘`, `absorbs-resp`, `absorbs-≈ᴹ`, `approx⇒absorbs` | 12.7 s |
-| 4 | `…/Behaviour/Trace.agda`; `…/Behaviour/Congruence.agda` | Trace: `loop`, `traceˢ`, `trace-step`, `trace-run`, `loop-approx`, `trace-approx`, `traceᴹ-absorb`.  Congruence: `⊗ᵉ-absorbˡ`, `⊗ᵉ-absorbʳ`, `∘ᴹ-absorbˡ`, `∘ᴹ-absorbʳ` (from `besideˡ`, `besideʳ`, `after`, `before` and their `-approx`), `composeᴳ-resp-≈ᴿ`, `⊗₁ᴳ-raw`, `⊗₁ᴳ-resp-≈ᴿ` | 12.6 s; 21.7 s |
+| 3 | `UC/Machine/Behaviour/Absorb.agda` | `wtᴰ`, `unfoldˢ`, `module Approximation` (`Approx`, `approx-ret`, `approx-≈`, `bind-cofinal`, `approx-bind`, `approx-unfold`), `Absorbs`, `absorbs-dom` (row 11), `absorbs⇒resp` (derived from it), `absorbs-∘`, `absorbs-resp`, `absorbs-≈ᴹ`, `approx⇒absorbs` | 12.7 s; 12.8 s with `absorbs-dom` |
+| 4 | `…/Behaviour/Trace.agda`; `…/Behaviour/Congruence.agda` | Trace: `loop`, `traceˢ`, `trace-step`, `trace-run`, `loop-approx`, `trace-approx`, `traceᴹ-absorb`.  Congruence: `⊗ᵉ-absorbˡ`, `⊗ᵉ-absorbʳ`, `∘ᴹ-absorbˡ`, `∘ᴹ-absorbʳ` (from `besideˡ`, `besideʳ`, `after`, `before` and their `-approx`), `∘ᴳ-absorbˡ`, `∘ᴳ-absorbʳ`, `⊗₁ᴳ-absorbˡ`, `⊗₁ᴳ-absorbʳ` (row 11), `composeᴳ-resp-≈ᴿ`, `⊗₁ᴳ-raw`, `⊗₁ᴳ-resp-≈ᴿ` (both resp lemmas derived from the G-level instances) | 12.6 s; 21.7 s, 21.0 s with the instances exported |
 | 5 | `UC/RandomSystems/Seal.agda` | `congᴿ`, `∼ᴿ⇒Obs`, `≈ᴿ⇒∼ᴿ`, `∼ᴿ⇒≈ᴿ` | 12.8 s |
 | 6 | `UC/RandomSystems/Setup.agda` | `𝔾ᴿ`, `∼ᴿ⇒≋`, `ℰᴿ`, `open StdUC 𝔾ᴿ ℰᴿ public` | 13.8 s |
 | 7 | `UC/RandomSystems/Morphism.agda` | `rewrite⇒RS : UCSetupMorphism Sᵒ.StdSetup Sᴿ.StdSetup`, `≈ᴿ⇒≈ᵁ`, `≤UC-resp-≈ᴿ` | 13.7 s |
 | 8 | `UC/Machine/Cup.agda`; `UC/RandomSystems/FullAbstraction.agda` | Cup: `dualᴵ`, `cupᴵ`, `bendᴹ`, `bend-run`, `cup-≈`, `cup-run`.  FullAbstraction: `≈ᵁ⇒≈ᴿ`, `T₁-≈ℰ⇒∼ᴿ`, `play-cup`, `¬gradeStableᵒ`, `reveal-≈ℰ`; the counterexample `Aʳ`, `Bʳ`, `revealᴹ`, `reveal-∘`, `reveal-≉ᴿ`; seal coercions `dualᵒ`, `unhomᵒ`, `∼ᴿ-intro`, `playᵒ`, `cupᵒ`, `reveal-∘≈`, `reveal-≁ᴿ` | 12.2 s; 13.1 s |
 | 9 | `UC/Machine/Behaviour/Finite.agda` | `≈ᴮ⇒≈ᴿ-fin : DecidableEquality X → (enum : List X) → (∀ x → x ∈ enum) → f ≈ᴮ g → f ≈ᴿ g`; its steps `Below`, `FirstAsksIn`, `play`, `answer`, `cut`, `keep`, `drop`, `only`, `without`, `next`, the `asks-`/`first-` bounds, `bind-split`, `feed`, `Ψ`, `feed-cong`, `feed-snoc`, `feed-runᴸ`, `feed-cofinal`, `feed-split`, `play-run`, `cut-approx`, `run-split`, `asked`, `only-step`, `Ψ-split`, `Ψ-only`, `Ψ-askfree`, `Ψ-bounded` | 13.1 s |
 | 10 | `src/CategoricalCrypto.agda`; `docs/uc-setup-landscape.md` §4 | entry point; correct the `Mono` remark | not started |
+| 11 | `Approx/Rational.agda`; `UC/RandomSystems/Advantage.agda`; `…/Composition.agda`; `…/Construction.agda` (§4.4) | Rational: `½-split`, `module Closure` (`_≈̄[_]_` with `slack`/`≈̄⇒≈`, `≈⇒≈̄`, `≈̄-trans`, `closure`, `≈̄-closed`, `≈̄[0]⇔∼ᵃ`, `≈̄-resp-∼ᵃ`), `hybrid`.  Advantage: `Verdict`, `Δ[_]⟨_,_⟩≤_`, `_≈ᴿ[_]_`, `≈ᴿ[]-trans`, `≈ᴿ[]-mono`, `advantage`, `approxᴿ`, `≈ᴿ⇔≈ᴿ[0]`, `≈ᴿ⇔≈ᴿ[+]`, `≈ᴿ[]-resp`.  Composition: `absorbs-Δ`, `absorbs-≈ᴿ[]`, `hybrid-absorbs`, `composeᴳ-≈ᴿ[]`, `⊗₁ᴳ-≈ᴿ[]`, `_∼ᴿ[_]_`, `approxᵒ`, `∘-resp-∼ᴿ[]`, `⊗-resp-∼ᴿ[]`, `≈⇒∼ᴿ[0]`, `∼ᴿ⇔∼ᴿ[0]`, `obs-∼ᴿ[]`, `close-∼ᴿ[]`.  Construction: `≈ᵁ[]⇒∼ᴿ[]`, `∼ᴿ[]⇒≈ᵁ[]`, `∼ᴿ[]⇔≈ᵁ[]`, `Constructs`, `≤UC⇒Constructs₀`, `Constructs₀⇒≤UC`, `≤UC⇔Constructs₀`, `≈ᵁᴿ⇒∼ᴿ`, `≤UCᴿ⇒Constructs₀`, `Constructs₀⇒≤UCᴿ`, `≤UCᴿ⇔Constructs₀`, `Witness⁺`, `Constructs⇒Witness⁺`, `Witness⁺⇒Constructs`, `Constructs⇔Witness⁺`, `Witness⇒Constructs`, `constructs-refl`, `constructs-trans`, `constructs-∙` | 6.1 s; 13.0 s; 13.7 s; 15.9 s |
 
 Departures from §3–§5:
 
@@ -535,12 +645,20 @@ Departures from §3–§5:
   `[0,1]`-valued test of the prefix's outputs, read at depth `j` as `cum j`, which is what
   `_≈ᴮ_` compares (`Ψ-askfree`); an unbounded strategy is the limit of its cut-offs
   (`cut-approx`).  Only the query alphabet is finite; the answer alphabet is arbitrary.
+- **Row 11.**  `Construction.agda` passes the morphisms of `_≤UC_`, `_≈ᵁ_` and `At` explicitly:
+  left to inference they are solved by unfolding those relations at the concrete 𝔾ᵒ, and
+  `≤UC⇔Constructs₀` alone exhausted a 4 GiB heap in 98 s; explicit, the module is at 15.9 s.
+  Measured with `runᴹ-resp-≈ᴹ` opaque (step 2); the inferring version ran past 15 min before that
+  change and exhausted 6 GiB in 244 s after it.  `UC.RandomSystems.Construction` is a new leaf,
+  not yet in the root (row 10).
 
-Order: 1 ∥ 2; 2 → 3 → … → 8; 9 after 2.  Steps 1–7 give setup and morphism, 8–9 the characterisation.
+Order: 1 ∥ 2; 2 → 3 → … → 8; 9 after 2; 11 after 8.  Steps 1–7 give setup and morphism, 8–9 the
+characterisation, 11 the toolkit.
 
 ## 7. Sources
 
-`maurer2002` (Defs 2, 3, 8–10; §3.3; Lemmas 4, 5), `maurer2011cc` (§4.3 Defs 1–2, §4.5 Lemma 1),
-`maurer2011` (cryptographic algebra, background), `maurerrenner2016` (Def 2), `lochbihler2019cc`
-(§IV, Def 2, §V Defs 4–5, Thm 1, Cor 1, Fig. 6, §VI Def 6, Thm 2), `bonchidilavore2025` (§3.1,
-Def 3.6, Thm 7.19); `portmann2017`, `gancher2023ipdl` only for §4.3.  All already archived.
+`maurer2002` (Defs 2, 3, 8–10; §3.3; Lemmas 4, 5), `maurer2011cc` (§4.4 Defs 1–2, §4.5 Lemma 1,
+§5.1 Def 3, §5.2 Thm 1), `maurer2011` (cryptographic algebra, background), `maurerrenner2016`
+(Def 2), `lochbihler2019cc` (§IV, Def 2, §V Defs 4–5, Thm 1, Cor 1, Fig. 6, §VI Def 6, Thm 2),
+`bonchidilavore2025` (§3.1, Def 3.6, Thm 7.19); `maurer2007` (Thm 1, Lemma 5, Def 12) only for
+§4.4; `portmann2017`, `gancher2023ipdl` only for §4.3.  All already archived.
