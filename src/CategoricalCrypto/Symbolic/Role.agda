@@ -145,7 +145,6 @@ Ins Outs : ObjTerm → ObjTerm → List Kind
 Ins  x y = Kinds pos x ++ Kinds neg y
 Outs x y = Kinds neg x ++ Kinds pos y
 
--- A value received on a port, and one emitted.
 data Input (x y : ObjTerm) : Set where
   _↦_ : ∀ {k} → k ∈ Ins x y → Value k → Input x y
 
@@ -236,7 +235,6 @@ record Simple (p : Role x y) : Set where
 ------------------------------------------------------------------------
 -- Running a role, and the Dolev–Yao property
 
--- A control point, the frame it keeps, and how many names have been drawn.
 record Config (n : ℕ) (Γ : Fin n → List Sort) : Set where
   constructor config
   field
@@ -262,7 +260,6 @@ received : (hist : List (Input x y)) → Frame (Received hist)
 received []               = []
 received ((_ ↦ v) ∷ hist) = ++⁺ (carry v) (received hist)
 
--- The names occurrence `κ` draws.
 Own : ℕ → Name → Set
 Own κ (κ′ , _) = κ′ ≡ κ
 

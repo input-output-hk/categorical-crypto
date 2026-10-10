@@ -82,7 +82,6 @@ private
 ⊢-owned : proj₂ K n → K ⊢ name {s} n
 ⊢-owned p = mine _ p , ≈E.refl
 
--- Evaluation commutes with substitution, up to E.
 bind-⟨⟩  : (σ : ∀ {s} → s ∈ Δ → Recipe Δ′ own′ s) (h : own ⊆ own′)
          → (∀ {s} (i : s ∈ Δ) → σ i ⟨ ψ ⟩ ≈E lookup φ i)
          → (ζ : Recipe Δ own s) → bind σ h ζ ⟨ ψ ⟩ ≈E ζ ⟨ φ ⟩
@@ -95,7 +94,6 @@ bind-⟨⟩ σ h e (app f ζs) = app-cong f (bind-⟨⟩* σ h e ζs)
 bind-⟨⟩* σ h e []       = []
 bind-⟨⟩* σ h e (ζ ∷ ζs) = bind-⟨⟩ σ h e ζ ∷ bind-⟨⟩* σ h e ζs
 
--- Deduction composes: what is deducible from deducible entries is deducible.
 ⊢-cut : Each (K ⊢_) φ → own ⊆ proj₂ K → (φ , own) ⊢ M → K ⊢ M
 ⊢-cut ds h (ζ , e) =
   bind (λ i → proj₁ (lookupᴱ ds i)) h ζ , ≈E.trans (bind-⟨⟩ _ h (λ i → proj₂ (lookupᴱ ds i)) ζ) e

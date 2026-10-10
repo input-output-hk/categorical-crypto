@@ -157,7 +157,6 @@ module Terms (𝔖 : Signature) where
   []       ⟨ φ ⟩* = []
   (ζ ∷ ζs) ⟨ φ ⟩* = ζ ⟨ φ ⟩ ∷ ζs ⟨ φ ⟩*
 
-  -- Simultaneous substitution for frame variables, relabelling owned names.
   bind  : (∀ {s} → s ∈ Δ → Recipe Δ′ own′ s) → own ⊆ own′ → Recipe Δ own s → Recipe Δ′ own′ s
   bind* : (∀ {s} → s ∈ Δ → Recipe Δ′ own′ s) → own ⊆ own′ → All (Recipe Δ own) ss → All (Recipe Δ′ own′) ss
   bind σ h (var i)    = σ i
@@ -166,7 +165,6 @@ module Terms (𝔖 : Signature) where
   bind* σ h []       = []
   bind* σ h (ζ ∷ ζs) = bind σ h ζ ∷ bind* σ h ζs
 
-  -- reads nothing from the frame
   Ground  : Recipe Δ own s → Set
   Ground* : All (Recipe Δ own) ss → Set
   Ground (var _)    = ⊥
