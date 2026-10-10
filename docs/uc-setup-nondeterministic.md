@@ -1,10 +1,10 @@
 # Nondeterministic choice: the scheduler in the grade
 
 Plan, 2026-10-10; replaces the 2026-10-09 plan of the same name (image equality over `Sched → Dist⊥ Bool`,
-in git history at `7d722e1f`).  Nothing here is typechecked.  Every claim about a module that does not
-exist is a design claim; `[INFERENCE]` marks what was reasoned and not checked.  Line references are to
-`uc-setup-landscape` at `cf7c0db0`.  Names are those of `docs/uc-models.typ` (PM, SSP, PM[wb], 𝒲, SSPᵈ,
-ND_A, ND_B; §4 there, `sec:nd`, is the mathematical statement this plan implements).
+in git history at `7d722e1f`).  Only the modules §6 marks **built** are typechecked.  Every claim about a
+module that does not exist is a design claim; `[INFERENCE]` marks what was reasoned and not checked.
+Line references are to `uc-setup-landscape` at `cf7c0db0`.  Names are those of `docs/uc-models.typ` (PM,
+SSP, PM[wb], 𝒲, SSPᵈ, ND_A, ND_B; §4 there, `sec:nd`, is the mathematical statement this plan implements).
 
 ## 0. Summary
 
@@ -263,36 +263,46 @@ only effects, and a closed system — no factor left — is read by the ordinary
 leak of the 2026-10-09 design (CE1: a demon in one component saw another's coins, canetti2006taskpioa
 abstract, §1) does not arise.
 
-**Syntax, SSP side.**  Kept: the `choose` constructor and its `graft`/`serve`/`mapᶜ`/`reindex` clauses,
-shaped like `coin`'s.  New: a site index, since each node compiles to a request on *its* factor.
+**Syntax, SSP side** (built, `ND/SSP/Choice.agda`).  Kept: the `choose` constructor and its
+`graft`/`serve`/`mapᶜ`/`reindex` clauses, shaped like `coin`'s.  New: a site index, since each node
+compiles to a request on *its* factor.
 
 ```agda
 -- CategoricalCrypto/ND/SSP/Choice.agda
+Cᴵ⟦_⟧ : List Set → Iface                        -- unitᴵ ; Cᴵ S ⊗ᴵ Cᴵ⟦ S⃗ ⟧: one factor per site
 data Calls⁺ (A : Iface) (S⃗ : List Set) (X : Set) : Set where
   ret ; call ; coin ; dead                                    -- SSP's four (`SSP/Protocol.agda:37-41`)
-  choose : (i : Fin (length S⃗)) → (lookup S⃗ i → Calls⁺ A S⃗ X) → Calls⁺ A S⃗ X
+  choose : (i : Ch Cᴵ⟦ S⃗ ⟧) → (Q Cᴵ⟦ S⃗ ⟧ i → Calls⁺ A S⃗ X) → Calls⁺ A S⃗ X
 record Protocol⁺ (S⃗ : List Set) (A B : Iface) : Set₁        -- `Protocol` with `Calls⁺` steps
+_∘⁺_ : Protocol⁺ T⃗ B C → Protocol⁺ S⃗ A B → Protocol⁺ (S⃗ ++ T⃗) A C       -- the lower factor's sites first
+_⊗⁺_ : Protocol⁺ S⃗ A B → Protocol⁺ T⃗ C D → Protocol⁺ (S⃗ ++ T⃗) (A ⊗ᴵ C) (B ⊗ᴵ D)
 -- the old `choose : (n : ℕ) → (Fin (suc n) → Calls A X) → Calls A X` is one site, S = Fin (suc n)
 ```
+
+Against the pseudocode this section carried before the build: a site is a channel of `Cᴵ⟦ S⃗ ⟧` and its pick a
+query there, not `Fin (length S⃗)` with `lookup S⃗ i`, so compiling converts nothing; `_∘⁺_`'s
+`graft⁺`/`serve⁺` move each factor's sites into `S⃗ ++ T⃗` along `join` (below), `_⊗⁺_` by `relocate`;
+and site lists are explicit arguments of the helpers (`push S⃗`, `pop S⃗`, `join S⃗ T⃗`), since neither
+`Cᴵ⟦_⟧` nor `Queues` is injective and Agda cannot infer them.
 
 Notation: for a family k : S → (step trees over one state), ⟨k⟩ is the one-site protocol stepping by
 `choose 0 (λ i → k i …)`, ⟨t⟩ the site-free one stepping by t, and [t₀, t₁] the family on `Fin 2`; in PM
 the same names denote the machines that request a pick and run accordingly.
 
-**Compilation, SSP side: pick-ahead.**
+**Compilation, SSP side: pick-ahead** (built).
 
 ```agda
-Cᴵ⟦_⟧ : List Set → Iface                        -- unitᴵ ; Cᴵ S ⊗ᴵ Cᴵ⟦ S⃗ ⟧
-resolve : Queues S⃗ → Calls⁺ A S⃗ Z → Calls A (Z × Queues S⃗)     -- one FIFO List (lookup S⃗ i) per site
-resolve qs (choose i k) with pop i qs
-... | just (p , qs′) = resolve qs′ (k p)
-... | nothing        = dead                     -- an unanswered request
--- ret, call, coin, dead: structural, threading qs
-⌈_⌉ : Protocol⁺ S⃗ A B → A ⇒ T₀ Cᴵ⟦ S⃗ ⟧ B      -- = Protocol A (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ B); for B = X ⊗ᴵ B′ a wire regrades to (X, S⃗)
-⌈ P ⌉ = record { St = St P × Queues S⃗ ; init = init P , empty ; step = λ where
-  (s , qs) (inj₁ i) p → ret ((s , push i p qs) , tt)                 -- a pick arrives on site i
-  (s , qs) (inj₂ c) q → mapᶜ regroup (resolve qs (step P s c q)) }
+resolve : Queues S⃗ → Calls⁺ A S⃗ (X × Y) → Calls A ((X × Queues S⃗) × Y)    -- one FIFO List S per site
+resolve qs (choose i k) = maybe′ (λ pq → resolve (proj₂ pq) (k (proj₁ pq))) dead (pop S⃗ i qs)
+-- ret, call, coin, dead: structural, threading qs into the state; `nothing` is an unanswered request
+⌈_⌉ : Protocol⁺ S⃗ A B → Protocol A (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ B)   -- = A ⇒ T₀ Cᴵ⟦ S⃗ ⟧ B; for B = X ⊗ᴵ B′ a wire regrades to (X, S⃗)
+⌈ P ⌉ = record { St = St P × Queues S⃗ ; init = init P , empty S⃗ ; step = λ where
+  (s , qs) (inj₁ i) p → ret ((s , push S⃗ i p qs) , tt⟦ S⃗ ⟧ i)        -- a pick arrives on site i
+  (s , qs) (inj₂ c) q → resolve qs (step P s c q) }
 ```
+
+`resolve` returns the queues inside the state rather than beside the result, so `⌈_⌉` needs no
+`regroup`; `tt⟦ S⃗ ⟧ i` is the reply at site i, ⊤ only up to recursion on `S⃗`.
 
 - **Why pick-ahead.**  In SSP the grade is exported (T₀ X B = X ⊗ᴵ B: the adversary calls the
   protocol), and a step can neither call its exported side nor suspend (`docs/uc-setup-ssp.md:483-496`,
@@ -308,10 +318,15 @@ resolve qs (choose i k) with pop i qs
 - **Not a `StdUCMorphism`.**  ⌈−⌉ changes the grade, so it is no functor Prot⁺ → Prot; it maps into
   graded hom-sets, the Kleisli-valued shape the old plan rejected as its (2b).  None is needed: ND_B has
   no category of its own, protocols with choices are its morphisms at choice grades, `Protocol⁺` is
-  syntax and ⌈−⌉ its meaning.  What must hold instead, by structural induction [INFERENCE]: `⌈⌉-resp`
-  (step-wise ≈ᶜ ⇒ ≈ᵖ); `⌈⌉-∘`: ⌈g ∘⁺ f⌉ ≈ᵖ sub φ ∘ (⌈g⌉ ∙ ⌈f⌉), for `_∘⁺_` concatenating site lists
-  (per-site queues make the two schedules agree); `⌈⌉-⊗` likewise; `⌈⌉-plain`: at S⃗ = [],
-  ⌈P⌉ ≈ᵖ λ⇐ ∘ P.  These make `choose` compositional.
+  syntax and ⌈−⌉ its meaning.  What holds instead, each by one simulation (built, `ND/SSP/Choice.agda`
+  and `Choice/Compose.agda`): `⌈⌉-resp` (P ≈⁺ P′ ⇒ ⌈P⌉ ≈ᵖ ⌈P′⌉, ≈⁺ the simulations whose step trees
+  agree up to ≈ᶜ⁺, SSP's ≈ᶜ with a `choose` clause); `⌈⌉-plain`: at S⃗ = [], ⌈P⌉ ≈ᵖ λ⇐ ∘ P; `⌈⌉-∘`:
+  sub φ⁻¹ ∘ ⌈g ∘⁺ f⌉ ≈ᵖ ⌈g⌉ ∙ ⌈f⌉, with φ = ⌜ `split S⃗ T⃗` ⌝ and φ⁻¹ = ⌜ `join S⃗ T⃗` ⌝ the regrouping
+  built from the unitor and associator — φ⁻¹ meets the picks before the queues, which `splitQ` splits
+  (per-site queues make the two schedules agree); `⌈⌉-⊗`: sub φ⁻¹ ∘ ⌈P ⊗⁺ P′⌉ ≈ᵖ ⌜ `interchangeᴵ` ⌝ ∘
+  (⌈P⌉ ⊗ ⌈P′⌉).  With `split∘join` (φ invertible, through `SSP/Protocol/Wire.agda`'s `⌜⌝-∘`, `⌜⌝-⊗`)
+  they take this plan's form, `⌈⌉-∘-split`: ⌈g ∘⁺ f⌉ ≈ᵖ sub φ ∘ (⌈g⌉ ∙ ⌈f⌉), and `⌈⌉-⊗-split`.
+  `Choice/Pin.agda` checks by `refl` that these concrete forms are `SSP.Setup`'s `_∙_` and `sub`.
 
 ### 2.5 What ≤UC in B says
 
@@ -343,6 +358,16 @@ m : Cᴵ⟦dom τ⟧ ⇒ᴵ Cᴵ⟦T⃗⟧ (`ch` = τ, `qu` = r), tensored with 
 replies tt) on the absorbed sites, up to reordering wires.  Relabellings form a category Alph (lists of
 sets; partial injections with fibre maps), monoidal under ++.  uc-models' "a stateless wire that forwards
 each request and pulls the pick back along a function S′_j → S_i" is this, made partial.
+
+**Built** (`ND/Relabel.agda`).  `record _⇝_` holds τ and r in one field,
+`route : (i : Ch Cᴵ⟦ S⃗ ⟧) → Maybe (Σ[ k ∈ Ch Cᴵ⟦ T⃗ ⟧ ] (Q Cᴵ⟦ S⃗ ⟧ i → Q Cᴵ⟦ T⃗ ⟧ k))`, beside
+`injective`; `Alph : Category` compares routes pointwise, fibre maps extensionally (`_≈ʳ_`); `_++ʳ_` routes
+a site by the side `split` puts it on and is injective through `split`/`join`.  The wire is `⌈_⌉ʳ` (the
+compile keeps `⌈_⌉`), defined directly: forward along the route, or answer `tt`.  Instead of `⌜ m ⌝` over
+`Cᴵ⟦dom τ⟧` with reordering wires, `⌈⌉ʳ-factor` shows ⌈ρ⌉ʳ ≈ᵖ ⌜ `relabelᴵ ρ` ⌝ ∘ (wire ⊗ `ack`) ∘ ρ⇐,
+where `relabelᴵ ρ : Cᴵ⟦ S⃗ ⟧ ⇒ᴵ Cᴵ⟦ T⃗ ⟧ ⊗ᴵ Cᴵ ⊤` sends every absorbed site to one channel `ack`
+answers.  `⌈−⌉ʳ : Functor (Category.op Alph) Prot` (`⌈⌉ʳ-id`, `⌈⌉ʳ-∘`, `⌈⌉ʳ-resp`), and `⌈⌉ʳ-++`:
+⌈ρ ++ʳ ρ′⌉ʳ ≈ᵖ φ ∘ (⌈ρ⌉ʳ ⊗ ⌈ρ′⌉ʳ) ∘ φ⁻¹, the monoidality R-⊗ of §3.2 needs.
 
 ### 3.2 The grades 𝒢_A and the setup ND_A
 
@@ -428,9 +453,9 @@ about ⌈−⌉.
 - Row 2 is new.  Under the old global demon `coin-unit` and choose/coin commutation were non-laws (a
   demon saw the toss: CE0, CE1); under pick-ahead `choose` reads the queue, which no coin or reply
   feeds.  With a pick queued the two trees are ≈ᶜ; with none, one dies after the coin or call and the
-  other before it: `coin-drop`, and a "`dead` absorbs a call" square [INFERENCE].  In PM a request's
-  position within an activation is observable, so the row holds there only for requests raised on
-  every branch [INFERENCE].
+  other before it: `coin-drop` (the coin half is built, `coin-choose-ᵈ`, §5.3), and a "`dead` absorbs
+  a call" square [INFERENCE].  In PM a request's position within an activation is observable, so the
+  row holds there only for requests raised on every branch [INFERENCE].
 - Idempotence: in A an unanswered site hangs one side only; in PM-B the simulator answers the ideal's
   request invisibly (⟨t⟩ ≤ ⟨const t⟩) but cannot raise the real one's; in SSP-B the simulator is never
   activated, and the real side dies on an empty queue.  Flattening's B rows and both idempotence
@@ -454,11 +479,13 @@ Compiled protocols are SSP protocols, so `≈ᵈ` (`SSP/Dist.agda:37`), `congᵈ
 `SSP/Dist/Laws.agda` (`coins-comm`, `coin-drop`, `coin-flip`, `coin-xor`, `stepwise`, `defer`) apply to
 them unchanged; `Calls⁺` needs no `≈ᵈ` of its own.  The laws also survive `choose` in the source.
 `resolve qs` is pointwise in the continuation and turns `choose` into a read of the queue, which no coin
-feeds, so a law under `choose` is the law at each pick (a `≈ᵏ`-congruence of `resolve`, one induction
-like `≈ᵏ->>=ᶜ`).  `defer` moves a draw past a choice, since ρ acts on `St P` and the queues ride along
-[INFERENCE for both].  ND over SSPᵈ is `regraded (StdUC.StdSetup Protᵈ ℰᵈ) ι_B`.  Its braiding
-descends from `Protˢ` (⌜ swapᴵ ⌝'s laws are ≈ᵖ, hence ≈ᵈ), but `Construction/Quotient` exports only the
-monoidal structure: one small lemma.
+feeds, so a law under `choose` is the law at each pick.  Built (`ND/SSP/Choice/Dist.agda`): t ≈ᵏ⁺ t′ is
+`resolve qs t ≈ᵏ resolve qs t′` at every queue state, `choose-cong` the law at each pick, `stepwise⁺`
+lifts step-wise ≈ᵏ⁺ through ⌈−⌉ to ≈ᵈ, and `coin-choose`/`coin-choose-ᵈ` is §5.1's row 2 for coins.
+`defer` moves a draw past a choice, since ρ acts on `St P` and the queues ride along [INFERENCE].  ND
+over SSPᵈ is `regraded (StdUC.StdSetup Protᵈ ℰᵈ) ι_B`.  Its braiding descends from `Protˢ` (⌜ swapᴵ ⌝'s
+laws are ≈ᵖ, hence ≈ᵈ), but `Construction/Quotient` exports only the monoidal structure: one small
+lemma.
 
 ## 6. Work breakdown
 
@@ -472,8 +499,8 @@ integrator's.  Paths are under `src/`.
 | G2 | `Categories/Category/Monoidal/Construction/Transport.agda` | `Restriction.weaken` | importers (`UC/Bracket/*`) re-checked |
 | G3 (opt.) | `CategoricalCrypto/Examples/RegradeUnit.agda` | §1.3(e) at PM | `r_true` ≤UC\|ι `r_false`, `¬ (r_true ≤UC r_false)` |
 | B1 | `CategoricalCrypto/ND/Grade.agda` | over a `SymmetricMonoidalCategory` and `C : Set → Obj`: `Grade`, `⌊_⌋`, φ, υ, `𝒢B`, `ιB`, `NDB`, ≤UC_B ⇔ ≤UC (G1) | instantiated at `Protˢ`, `Cᴵ` |
-| B2 | `CategoricalCrypto/ND/SSP/Choice.agda` | §2.4: `Calls⁺`, `Protocol⁺`, the `choose` clauses, `_∘⁺_`, `Queues`, `resolve`, `⌈_⌉`, `⌈⌉-resp`, `⌈⌉-plain`, `⌈⌉-∘`, `⌈⌉-⊗` | a two-site composite pinned by `refl` |
-| A1 | `CategoricalCrypto/ND/Relabel.agda` | §3.1: `Alph`, `++`, the SSP wires `⌈ρ⌉` (`⌜ m ⌝`, `ack`) | `⌈_⌉` a functor Alphᵒᵖ → `Prot` up to ≈ᵖ |
+| B2 | `CategoricalCrypto/ND/SSP/Choice.agda` | §2.4: `Calls⁺`, `Protocol⁺`, the `choose` clauses, `_∘⁺_`, `Queues`, `resolve`, `⌈_⌉`, `⌈⌉-resp`, `⌈⌉-plain`, `⌈⌉-∘`, `⌈⌉-⊗` | a two-site composite pinned by `refl` — **built**: `ND/SSP/Choice.agda` (syntax, `⌈_⌉`, `⌈⌉-resp`, `⌈⌉-plain`), `Choice/Compose.agda` (`⌈⌉-∘`, `⌈⌉-⊗` with φ⁻¹ on the left; `split∘join`, then `⌈⌉-∘-split`, `⌈⌉-⊗-split` in §2.4's form), `Choice/Pin.agda` (`veto ∘⁺ pick`: site order, FIFO, an empty queue `dead`; the concrete forms are `_∙_` and `sub` by `refl`), `Choice/Dist.agda` (§5.3, optional), `SSP/Protocol/Wire.agda` (`⌜⌝-∘`, `⌜⌝-⊗`, `interchangeᴵ`) |
+| A1 | `CategoricalCrypto/ND/Relabel.agda` | §3.1: `Alph`, `++`, the SSP wires `⌈ρ⌉` (`⌜ m ⌝`, `ack`) | `⌈_⌉` a functor Alphᵒᵖ → `Prot` up to ≈ᵖ — **built**: `_⇝_`, `Alph`, `_++ʳ_`, the wires `⌈_⌉ʳ` with `⌈⌉ʳ-factor`, `⌈−⌉ʳ : Functor (Category.op Alph) Prot`, `⌈⌉ʳ-++` (§3.1) |
 | A2 | `CategoricalCrypto/ND/A.agda` | §3.2: the class R and its closure, `𝒢A`, `incl`, `NDA`, `A⇒B` (G1's `unrestrict-≤UC` at `incl`) | `A⇒B : f ≤UC_A g → f ≤UC_B g`, all f, g |
 | L1 | `CategoricalCrypto/ND/SSP/Laws.agda` | §5.1 at SSP; §3.4's swap; `collapse` against a callee | the swap instance as `≈ᵖ` |
 | L2 (opt.) | `CategoricalCrypto/ND/Undesignate.agda` | §4: Φᵤ, B → A by `Between`, the retract | — |
