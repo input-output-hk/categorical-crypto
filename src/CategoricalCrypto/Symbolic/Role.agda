@@ -236,6 +236,36 @@ record Simple (p : Role x y) : Set where
 ------------------------------------------------------------------------
 -- Running a role, and the Dolev–Yao property
 
+-- A control point, the frame it keeps, and how many names have been drawn.
+record Config (n : ℕ) (Γ : Fin n → List Sort) : Set where
+  constructor config
+  field
+    control   : Fin n
+    registers : Frame (Γ control)
+    counter   : ℕ
+open Config public
+
+init : (p : Role x y) → Config (Role.n p) (Role.Γ p)
+init p = config (Role.start p) (subst Frame (sym (Role.fresh p)) []) 0
+
+payload : ∀ k → Payload Δ k → Frame Δ → Value k
+payload (msg _) ζ φ = ζ ⟨ φ ⟩
+payload flag    b _ = b
+payload tick    _ _ = tt
+
+-- The terms received over a history of inputs, newest first.
+Received : List (Input x y) → List Sort
+Received []                   = []
+Received (_↦_ {k} _ _ ∷ hist) = carried k ++ Received hist
+
+received : (hist : List (Input x y)) → Frame (Received hist)
+received []               = []
+received ((_ ↦ v) ∷ hist) = ++⁺ (carry v) (received hist)
+
+-- The names occurrence `κ` draws.
+Own : ℕ → Name → Set
+Own κ (κ′ , _) = κ′ ≡ κ
+
 module Run (E : EqTheory 𝔖) where
   open EqTheory E
   open Deduction 𝔖 E
@@ -244,23 +274,6 @@ module Run (E : EqTheory 𝔖) where
     n : ℕ
     Γ : Fin n → List Sort
     O : List Kind
-
-  -- A control point, the frame it keeps, and how many names have been drawn.
-  record Config (n : ℕ) (Γ : Fin n → List Sort) : Set where
-    constructor config
-    field
-      control   : Fin n
-      registers : Frame (Γ control)
-      counter   : ℕ
-  open Config public
-
-  init : (p : Role x y) → Config (Role.n p) (Role.Γ p)
-  init p = config (Role.start p) (subst Frame (sym (Role.fresh p)) []) 0
-
-  payload : ∀ k → Payload Δ k → Frame Δ → Value k
-  payload (msg _) ζ φ = ζ ⟨ φ ⟩
-  payload flag    b _ = b
-  payload tick    _ _ = tt
 
   -- Occurrence `κ` draws its `j`-th fresh name as `(κ , j)`.
   exec : (κ : ℕ) → React n Γ O Δ → Frame Δ → ℕ → Config n Γ × Emission O
@@ -271,19 +284,6 @@ module Run (E : EqTheory 𝔖) where
   step : (κ : ℕ) (p : Role x y) → Config (Role.n p) (Role.Γ p) → Input x y
        → Config (Role.n p) (Role.Γ p) × Emission (Outs x y)
   step κ p (config c φ j) (i ↦ v) = exec κ (Role.react p c i (branch v)) (++⁺ (carry v) φ) j
-
-  -- The terms received over a history of inputs, newest first.
-  Received : List (Input x y) → List Sort
-  Received []                    = []
-  Received (_↦_ {k} _ _ ∷ inp) = carried k ++ Received inp
-
-  received : (inp : List (Input x y)) → Frame (Received inp)
-  received []            = []
-  received ((_ ↦ v) ∷ inp) = ++⁺ (carry v) (received inp)
-
-  -- The names occurrence `κ` draws.
-  Own : ℕ → Name → Set
-  Own κ (κ′ , _) = κ′ ≡ κ
 
   -- An emitted term is deducible; a bit or a tick carries no term.
   Known : Knowledge Δ → Emission O → Set
@@ -322,8 +322,8 @@ module Run (E : EqTheory 𝔖) where
     cleared : ∀ {P : ∀ {s} → Tm s → Set} {ss} (e : [] ≡ ss) → Each P (subst Frame e [])
     cleared refl = []
 
-  step⊢ : ∀ κ (p : Role x y) {Ψ : Frame ss} {cfg : Config (Role.n p) (Role.Γ p)} (i : k ∈ Ins x y) (v : Value k)
-        → Each ((Ψ , Own κ) ⊢_) (registers cfg)
+  step⊢ : ∀ κ (p : Role x y) {Ψ : Frame ss} {cfg : Config (Role.n p) (Role.Γ p)}
+          (i : k ∈ Ins x y) (v : Value k) → Each ((Ψ , Own κ) ⊢_) (registers cfg)
         → Deduced (++⁺ (carry v) Ψ , Own κ) (step κ p cfg (i ↦ v))
   step⊢ κ p {cfg = config c _ _} i v ds = exec⊢ (λ e → e) (Role.react p c i (branch v)) (carry⊢ v ds)
 
