@@ -8,7 +8,41 @@ ND_A, ND_B; §4 there, `sec:nd`, is the mathematical statement this plan impleme
 
 ## 0. Summary
 
-(outline; filled below)
+The scheduler of a nondeterministic protocol is a factor of its *grade*, not an effect (landscape
+finding 5): each `choose` site is a choice factor C_S = (1, S) of the adversary interface.  Model B lets
+every grade morphism touch it — the adversary resolves real choices, the simulator ideal ones (Canetti) —
+and model A only relabellings — the environment resolves both (specifications).  Both are restrictions
+of one standard setup along a functor of grades, and A → B is the inclusion.
+
+1. **The generic construction** (§1): 𝕊|ι for any setup 𝕊 and lax monoidal ι : 𝒥 → ℐ, with
+   `inclusion : 𝕊|ι → 𝕊` = (Id, ι, id, `idᵛ`).  ι essentially surjective with split comparisons ⇒ the same
+   U-kernel and ≤UC preserved, no `GradeStable`; 𝕊 grade-stable ⇒ preserved for every ι; otherwise not
+   (the unit at PM).  ι full ⇒ reflected, with no other hypothesis.  `Abstract2/Regrade.agda`, the dual
+   of `Abstract2/WideSubcategory.agda`; causal boxes' `regrade` is its `inclusion`.
+2. **ND_B** (§2) = Std(𝕄)|ι_B over designated grades X ⊗ C_{S₁} ⊗ … ⊗ C_{Sₙ}, n ≥ 0, built by the
+   existing `Construction/Transport`; ι_B is full and essentially surjective, so ND_B has Std(𝕄)'s ≤UC.
+3. **ND_A** (§3) = ND_B|incl, incl the wide inclusion of the grade morphisms u ⊗ ⌈ρ⌉, ρ a relabelling.
+4. **A → B** (§4) is `inclusion` at incl: it preserves ≤UC for all f, g (one U-kernel) and does not
+   reflect it.  Undesignation B → A is a section; nothing inverts the inclusion on designated grades.
+
+**Findings against uc-models §4.**  (a) *SSP cannot raise the request* (§2.4): its grade is called,
+never calling, and a step cannot suspend.  SSP compiles `choose` *pick-ahead* — picks pushed on
+`Cᴵ S`, queued, popped, an empty queue `dead` — and only PM raises the request online, so SSP-B's
+simulator resolves ideal choices only when the environment activates it.  (b) *The braiding* (§2.3): B
+needs its components at most, A its naturality and hexagon; SSP has one (`Protˢ`), `𝔾ᵒ` exports none,
+and neither `Machines/Base` (symmetric only on the Mealy base) nor `Reverse` (it transports, never
+creates) supplies one.  (c) *Relabellings are partial injections* (§3.1), for stateless pick routing in
+PM.  (d) Under pick-ahead `choose` commutes with coins and calls, and SSPᵈ's laws survive it (§5).
+
+**Kept from the 2026-10-09 plan:** the `choose` constructor (now site-indexed) with its `graft`, `serve`,
+`mapᶜ`, `reindex` clauses; the no-go literature (§2.4); `P ∥ Q`'s non-derivability (§5.2).
+**Dropped:** `Sched`, `run⁺`, image equality and its Hausdorff version, the five law constructors, CE0/CE1
+and their repairs, the routings (2a)/(2b), and the edge SSP → ND with its reflection (R): SSP is ND_B's
+site-free part, read by the same tests.
+
+**Decisions for the maintainer:** (1) pick-ahead SSP-B, or B in PM (P1–P2, §6); (2) relabellings as
+partial injections; (3) site-indexed `choose`; (4) G1 in `Abstract2/Regrade.agda`, not in
+`UCSetup/Morphism.agda` where the causal-boxes plan puts `regrade`.
 
 ## 1. The generic construction: restriction along a monoidal functor of grades
 
