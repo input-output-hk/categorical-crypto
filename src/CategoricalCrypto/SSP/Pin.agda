@@ -6,6 +6,7 @@
 -- verdicts are pinned, since only the `false` mass tells answering `false`
 -- from aborting.
 
+open import Class.DecEq
 open import Data.Bool.Base
 open import Data.Product.Base using (_,_)
 open import Data.Rational using (0ℚ; 1ℚ; ½)
@@ -28,7 +29,7 @@ open Evaluation evaluationᵖ using (observe)
 
 -- One oracle answering a bit.
 Bitᴵ : Iface
-Bitᴵ = record { Ch = ⊤ ; Q = const ⊤ ; R = const Bool }
+Bitᴵ = record { Ch = ⊤ ; Q = const ⊤ ; R = const Bool ; Ch-dec = DecEq-⊤ }
 
 flip nay stuck : Protocol unitᴵ Bitᴵ
 flip  = record { St = ⊤ ; init = tt ; step = λ _ _ _ → coin uniform-Bool λ b → ret (tt , b) }
