@@ -505,7 +505,10 @@ Departures from §3–§5:
 
 - **Step 2.**  The strategy runs live in `UC/Machine/Run.agda`, where `runFrom-ϕ` is re-derived
   from them, not in `Behaviour.agda`.  `runᴸ` and `_≈ᴮ_` landed with step 9; `≈ᴿ⇒≈ᴮ` and
-  `det-≈ᴮ⇒≈ᴿ` did not land.
+  `det-≈ᴮ⇒≈ᴿ` did not land.  `runᴹ-resp-≈ᴹ`, re-derived through `runˢ`, is `opaque`: it is the
+  readouts' `cong`, and transparent it took the merged tree's `UC.Graded` past the 1800 s
+  closure ceiling, all in `≤UC[]ᵍ` (warm at `-M3G -H1G`: 74.5 s before the merge, of which
+  `≤UC[]ᵍ` 61.5 s; 24.1 s opaque, of which 9.9 s).
 - **Step 3.**  `Absorbs` carries an abstract budget type `Ix` and existential depths
   (`lower : … → Σ[ i ∈ Ix ] Σ[ m ∈ ℕ ] cum j (runˢ (C f) d) (indᵇ b) ℚ.≤ cum m (runˢ f (♯ d b i)) (indᵇ b)`)
   instead of `♯ d k v` with a `depth` function; `Approximation b` packages the cut-off calculus.
