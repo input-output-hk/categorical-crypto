@@ -1,16 +1,21 @@
 {-# OPTIONS --safe --without-K #-}
 
 -- Compilation commutes with composition and tensor up to regrouping the choice
--- factors (`docs/uc-setup-nondeterministic.md` §2.4).  With `join` the inverse
--- of ND_B's comparison φ, and `_∙_`, `sub` those of `SSP.Setup` (at the curried
--- tensor `g ∙ f = α⇐ ∘ (id ⊗ g) ∘ f` and `sub u = u ⊗ id`):
+-- factors (`docs/uc-setup-nondeterministic.md` §2.4).  With `split` ND_B's
+-- comparison φ and `join` its inverse (`split∘join`), and `_∙_`, `sub` those of
+-- `SSP.Setup` at the curried tensor (`g ∙ f = α⇐ ∘ (id ⊗ g) ∘ f`,
+-- `sub u = u ⊗ id`, pinned in `Choice.Pin`):
 --
 --     sub join ∘ ⌈ g ∘⁺ f ⌉  ≈  ⌈ g ⌉ ∙ ⌈ f ⌉                       (`⌈⌉-∘`)
 --     sub join ∘ ⌈ P ⊗⁺ P′ ⌉  ≈  interchange ∘ (⌈ P ⌉ ⊗ ⌈ P′ ⌉)      (`⌈⌉-⊗`)
 --
--- Each is one simulation that splits the composite's queues (`splitQ`): a pick
--- reaches its own factor's queue, and a `choose` pops the same pick on both
--- sides — per-site queues keep the two factors' schedules apart.
+-- and so ⌈ g ∘⁺ f ⌉ ≈ sub split ∘ (⌈ g ⌉ ∙ ⌈ f ⌉) (`⌈⌉-∘-split`, `⌈⌉-⊗-split`).
+-- `⌈⌉-∘` and `⌈⌉-⊗` are one simulation each, splitting the composite's queues
+-- (`splitQ`): a pick reaches its own factor's queue, and a `choose` pops the
+-- same pick on both sides — per-site queues keep the factors' schedules apart.
+
+open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
+import Categories.Morphism.Reasoning as MR
 
 open import Data.List.Base using (List; []; _∷_; _++_)
 open import Data.Maybe.Base using (Maybe; just; nothing)
@@ -23,6 +28,9 @@ open import Relation.Binary.PropositionalEquality
 open import CategoricalCrypto.ND.SSP.Choice
 open import CategoricalCrypto.SSP.Iface
 open import CategoricalCrypto.SSP.Protocol
+open import CategoricalCrypto.SSP.Protocol.Category using (∘ᵖ-assoc; wireᵖ-identityˡ)
+open import CategoricalCrypto.SSP.Protocol.Monoidal using (Protᴹ; ⊗ᵖ-homomorphism; ⊗ᵖ-identity; ⊗ᵖ-resp-≈ᵖ)
+open import CategoricalCrypto.SSP.Protocol.Wire
 
 module CategoricalCrypto.ND.SSP.Choice.Compose where
 
@@ -81,6 +89,50 @@ private
     with pop (S⃗ ++ T⃗) (ch (join S⃗ T⃗) (inj₂ j)) qs | pop T⃗ j (proj₂ (splitQ S⃗ T⃗ qs)) | popʳ S⃗ T⃗ j {qs} refl
   ... | _ | _ | nothing = nothing
   ... | _ | _ | just e  = just (cong (map₁ (q ,_)) e)
+
+------------------------------------------------------------------------
+-- The regrouping is invertible
+
+split∘join : (S⃗ T⃗ : List Set) → ⌜ split S⃗ T⃗ ⌝ ∘ᵖ ⌜ join S⃗ T⃗ ⌝ ≈ᵖ wireᵖ
+split∘join []      T⃗ = ≲⇒≈ᵖ (≲ᵖ-const λ _ _ _ → ≈ᶜ-refl)
+split∘join (S ∷ S⃗) T⃗ = begin
+  ⌜ split (S ∷ S⃗) T⃗ ⌝ ∘ᵖ ⌜ join (S ∷ S⃗) T⃗ ⌝
+    ≈⟨ ⟺ (⌜⌝-∘ α⁻ s) ⟩∘⟨ ⟺ (⌜⌝-∘ j α) ⟩
+  (⌜ s ⌝ ∘ᵖ ⌜ α⁻ ⌝) ∘ᵖ (⌜ α ⌝ ∘ᵖ ⌜ j ⌝)
+    ≈⟨ ≲⇒≈ᵖ (∘ᵖ-assoc ⌜ s ⌝ ⌜ α⁻ ⌝ (⌜ α ⌝ ∘ᵖ ⌜ j ⌝)) ⟩
+  ⌜ s ⌝ ∘ᵖ (⌜ α⁻ ⌝ ∘ᵖ (⌜ α ⌝ ∘ᵖ ⌜ j ⌝))
+    ≈⟨ refl⟩∘⟨_ {f = ⌜ s ⌝} (⟺ (≲⇒≈ᵖ (∘ᵖ-assoc ⌜ α⁻ ⌝ ⌜ α ⌝ ⌜ j ⌝))) ⟩
+  ⌜ s ⌝ ∘ᵖ ((⌜ α⁻ ⌝ ∘ᵖ ⌜ α ⌝) ∘ᵖ ⌜ j ⌝)
+    ≈⟨ refl⟩∘⟨_ {f = ⌜ s ⌝} (_⟩∘⟨refl {g = ⌜ j ⌝} (associator.isoʳ {Cᴵ S} {Cᴵ⟦ S⃗ ⟧} {Cᴵ⟦ T⃗ ⟧})) ⟩
+  ⌜ s ⌝ ∘ᵖ (wireᵖ ∘ᵖ ⌜ j ⌝)
+    ≈⟨ refl⟩∘⟨_ {f = ⌜ s ⌝} (≲⇒≈ᵖ (wireᵖ-identityˡ ⌜ j ⌝)) ⟩
+  ⌜ s ⌝ ∘ᵖ ⌜ j ⌝
+    ≈⟨ ⟺ (⌜⌝-⊗ idᴵ (split S⃗ T⃗)) ⟩∘⟨ ⟺ (⌜⌝-⊗ idᴵ (join S⃗ T⃗)) ⟩
+  wireᵖ ⊗ᵖ ⌜ split S⃗ T⃗ ⌝ ∘ᵖ wireᵖ ⊗ᵖ ⌜ join S⃗ T⃗ ⌝
+    ≈⟨ ⟺ (≲⇒≈ᵖ (⊗ᵖ-homomorphism wireᵖ wireᵖ ⌜ split S⃗ T⃗ ⌝ ⌜ join S⃗ T⃗ ⌝)) ⟩
+  (wireᵖ ∘ᵖ wireᵖ) ⊗ᵖ (⌜ split S⃗ T⃗ ⌝ ∘ᵖ ⌜ join S⃗ T⃗ ⌝)
+    ≈⟨ ⊗ᵖ-resp-≈ᵖ (≲⇒≈ᵖ (wireᵖ-identityˡ wireᵖ)) (split∘join S⃗ T⃗) ⟩
+  wireᵖ ⊗ᵖ wireᵖ
+    ≈⟨ ≲⇒≈ᵖ ⊗ᵖ-identity ⟩
+  wireᵖ ∎
+  where
+  α  = αᴵ {Cᴵ S} {Cᴵ⟦ S⃗ ⟧} {Cᴵ⟦ T⃗ ⟧}
+  α⁻ = αᴵ⁻¹ {Cᴵ S} {Cᴵ⟦ S⃗ ⟧} {Cᴵ⟦ T⃗ ⟧}
+  s  = idᴵ {Cᴵ S} ⊗ᴵᴵ split S⃗ T⃗
+  j  = idᴵ {Cᴵ S} ⊗ᴵᴵ join S⃗ T⃗
+  open MonoidalCategory Protᴹ using (module associator; module HomReasoning)
+  open HomReasoning
+
+unsplit : (S⃗ T⃗ : List Set) → ⌜ split S⃗ T⃗ ⌝ ⊗ᵖ wireᵖ {B} ∘ᵖ ⌜ join S⃗ T⃗ ⌝ ⊗ᵖ wireᵖ ≈ᵖ wireᵖ
+unsplit S⃗ T⃗ = begin
+  ⌜ split S⃗ T⃗ ⌝ ⊗ᵖ wireᵖ ∘ᵖ ⌜ join S⃗ T⃗ ⌝ ⊗ᵖ wireᵖ
+    ≈⟨ ⟺ (≲⇒≈ᵖ (⊗ᵖ-homomorphism ⌜ split S⃗ T⃗ ⌝ ⌜ join S⃗ T⃗ ⌝ wireᵖ wireᵖ)) ⟩
+  (⌜ split S⃗ T⃗ ⌝ ∘ᵖ ⌜ join S⃗ T⃗ ⌝) ⊗ᵖ (wireᵖ ∘ᵖ wireᵖ)
+    ≈⟨ ⊗ᵖ-resp-≈ᵖ (split∘join S⃗ T⃗) (≲⇒≈ᵖ (wireᵖ-identityˡ wireᵖ)) ⟩
+  wireᵖ ⊗ᵖ wireᵖ
+    ≈⟨ ≲⇒≈ᵖ ⊗ᵖ-identity ⟩
+  wireᵖ ∎
+  where open MonoidalCategory Protᴹ using (module HomReasoning); open HomReasoning
 
 ------------------------------------------------------------------------
 -- Composition
@@ -144,6 +196,15 @@ module _ (g : Protocol⁺ T⃗ B C) (f : Protocol⁺ S⃗ A B) where
                          (tt⟦⟧-unique T⃗ _))
         (_ , (sg , sf) , qs) (inj₂ c) q → graft-res (step g sg c q) sf qs refl }
 
+  ⌈⌉-∘-split : ⌈ g ∘⁺ f ⌉ ≈ᵖ ⌜ split S⃗ T⃗ ⌝ ⊗ᵖ wireᵖ ∘ᵖ (⌜ αᴵ ⌝ ∘ᵖ wireᵖ ⊗ᵖ ⌈ g ⌉ ∘ᵖ ⌈ f ⌉)
+  ⌈⌉-∘-split = begin
+    ⌈ g ∘⁺ f ⌉
+      ≈⟨ insertˡ {h = ⌜ split S⃗ T⃗ ⌝ ⊗ᵖ wireᵖ} {i = ⌜ join S⃗ T⃗ ⌝ ⊗ᵖ wireᵖ} (unsplit S⃗ T⃗) ⟩
+    ⌜ split S⃗ T⃗ ⌝ ⊗ᵖ wireᵖ ∘ᵖ (⌜ join S⃗ T⃗ ⌝ ⊗ᵖ wireᵖ ∘ᵖ ⌈ g ∘⁺ f ⌉)
+      ≈⟨ refl⟩∘⟨_ {f = ⌜ split S⃗ T⃗ ⌝ ⊗ᵖ wireᵖ} ⌈⌉-∘ ⟩
+    ⌜ split S⃗ T⃗ ⌝ ⊗ᵖ wireᵖ ∘ᵖ (⌜ αᴵ ⌝ ∘ᵖ wireᵖ ⊗ᵖ ⌈ g ⌉ ∘ᵖ ⌈ f ⌉) ∎
+    where open MonoidalCategory Protᴹ using (U; module HomReasoning); open HomReasoning; open MR U
+
 ------------------------------------------------------------------------
 -- Tensor
 
@@ -204,3 +265,12 @@ module _ (P : Protocol⁺ S⃗ A B) (P′ : Protocol⁺ T⃗ C D) where
                          (tt⟦⟧-unique T⃗ _))
         (_ , (s , t) , qs) (inj₂ (inj₁ b)) q → left (step P s b q) t qs refl
         (_ , (s , t) , qs) (inj₂ (inj₂ d)) q → right (step P′ t d q) s qs refl }
+
+  ⌈⌉-⊗-split : ⌈ P ⊗⁺ P′ ⌉ ≈ᵖ ⌜ split S⃗ T⃗ ⌝ ⊗ᵖ wireᵖ ∘ᵖ (⌜ interchangeᴵ ⌝ ∘ᵖ ⌈ P ⌉ ⊗ᵖ ⌈ P′ ⌉)
+  ⌈⌉-⊗-split = begin
+    ⌈ P ⊗⁺ P′ ⌉
+      ≈⟨ insertˡ {h = ⌜ split S⃗ T⃗ ⌝ ⊗ᵖ wireᵖ} {i = ⌜ join S⃗ T⃗ ⌝ ⊗ᵖ wireᵖ} (unsplit S⃗ T⃗) ⟩
+    ⌜ split S⃗ T⃗ ⌝ ⊗ᵖ wireᵖ ∘ᵖ (⌜ join S⃗ T⃗ ⌝ ⊗ᵖ wireᵖ ∘ᵖ ⌈ P ⊗⁺ P′ ⌉)
+      ≈⟨ refl⟩∘⟨_ {f = ⌜ split S⃗ T⃗ ⌝ ⊗ᵖ wireᵖ} ⌈⌉-⊗ ⟩
+    ⌜ split S⃗ T⃗ ⌝ ⊗ᵖ wireᵖ ∘ᵖ (⌜ interchangeᴵ ⌝ ∘ᵖ ⌈ P ⌉ ⊗ᵖ ⌈ P′ ⌉) ∎
+    where open MonoidalCategory Protᴹ using (U; module HomReasoning); open HomReasoning; open MR U
