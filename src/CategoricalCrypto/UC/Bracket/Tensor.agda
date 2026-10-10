@@ -58,6 +58,14 @@ splitΣ : {F : X → Set} {G : Y → Set} → Σ (X ⊎ Y) [ F , G ]′ → Σ X
 splitΣ (inj₁ x , u) = inj₁ (x , u)
 splitΣ (inj₂ y , v) = inj₂ (y , v)
 
+split-join : {F : X → Set} {G : Y → Set} (p : Σ X F ⊎ Σ Y G) → splitΣ (joinΣ p) ≡ p
+split-join (inj₁ _) = refl
+split-join (inj₂ _) = refl
+
+join-split : {F : X → Set} {G : Y → Set} (p : Σ (X ⊎ Y) [ F , G ]′) → joinΣ (splitΣ p) ≡ p
+join-split (inj₁ _ , _) = refl
+join-split (inj₂ _ , _) = refl
+
 φʷ : Proc (flat A Flat.⊗ᴵ flat C) (flat (A ⊗ᴵ C))
 φʷ = wireᴹ joinΣ splitΣ
 
