@@ -37,8 +37,14 @@ escape-hatch baseline unchanged):
    `Abstract2.bridge` is unusable at protocol-model; `≈ᴿ⇒≈ᵁ` replaces it.
 3. **No direct `SSP → 𝔾ᵒ` morphism**: `morphism wireᵖ ≉ᴹ 𝒢.id` and the G-tensor
    interleaves.  The call/return discipline reaches protocol-model only through the
-   well-bracketed quotient `PM[wb]` (§4); `W`, `𝒲`, `morphism-W` exist, the tensor on
-   `𝒲` and the two headline `≈ᵁ` lemmas are in progress.
+   well-bracketed quotient `PM[wb]` (§4).  Built: `W`, `𝒲ᴹ` with its tensor
+   (`UC/Bracket/{Tensor,Monoidal}`, generic `Construction/Transport`), `ιᴹ`,
+   `ι⇒prot : UCSetupMorphism` into protocol-model, `PM[wb]`'s setup
+   (`UC/Bracket/Setup`).  Open: the quotient morphism `q` (typechecker blowup: differing
+   level spellings make Agda eta-compare two `quotient` records — seal `𝒲ᴹ` or make
+   `quotient` opaque), C5 monitor lemmas, C6 (`wire≈σ`, `⊗≈⊗`, `SSP→PM[wb]`), and the
+   transfer corollary, whose `ν.Epi` is likely false (`Dₚ`-limit verdicts vs finite
+   rational ones) — a `Preserves-≈ℰ`-style transfer is the route.
 4. **IPDL and causal boxes are islands** for `UCSetupMorphism` (design-level proofs in
    their plans); **symbolic** reaches only the negligible tier; the first-draft edges
    `SSP → 𝔾ᵒ`, `IPDL → RS`, `RS → causal boxes` are withdrawn.
