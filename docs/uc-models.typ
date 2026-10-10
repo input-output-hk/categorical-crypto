@@ -475,7 +475,7 @@ tensor, morphisms with their hom-equality — and the test presheaf. #design row
     [#PM's morphisms; grade morphisms: all of them between such grades (#NDB), or $u ⊗ ρ$ with $ρ$ a relabelling of choice factors (#NDA)],
     [the ambient tests],
     [B: adversary-resolved scheduling @canetti2020uc; A: environment-resolved specifications],
-    [#design #plan("uc-setup-nondeterministic.md"), @sec:nd],
+    [#formal over any symmetric 𝕄, at #SSP: #cc("ND/SSP/Setup.agda", 198, "NDB"), #cc("ND/SSP/Setup.agda", 201, "NDA"); at #PM #design; @sec:nd],
   )
 }
 ]
@@ -1093,7 +1093,7 @@ Both are grade-side restrictions: the computations, the tests and $cal(M)$ restr
 inclusion (a graded monad pulls back along a lax monoidal functor) are those of $Std(𝕄)$, and
 $ NDA arrow.r.hook NDB arrow.r.hook Std(𝕄) $
 are setup morphisms $("Id", mincl, opid, opid)$.
-#srcs(ag("Categories/Monad/Graded/Pullback.agda", 35, "pullback"), cc("Abstract2/Regrade.agda", 55, "regraded"), cc("Abstract2/Regrade.agda", 62, "inclusion"), cc("Abstract2/Regrade.agda", 97, "Preserves"))
+#srcs(ag("Categories/Monad/Graded/Pullback.agda", 35, "pullback"), cc("Abstract2/Regrade.agda", 55, "regraded"), cc("Abstract2/Regrade.agda", 62, "inclusion"), cc("Abstract2/Regrade.agda", 97, "Preserves"), cc("ND/Grade.agda", 80, "𝒢B"), cc("ND/Grade.agda", 83, "ιB"), cc("ND/Grade.agda", 99, "NDB"), cc("ND/A.agda", 59, "Relabelling"), cc("ND/A.agda", 134, "closedA"), cc("ND/A.agda", 170, "𝒢A"), cc("ND/A.agda", 173, "incl"), cc("ND/A.agda", 179, "NDA"), ag("Categories/Category/Monoidal/Construction/Transport.agda", 229, "weaken"))
 ] <def:nd>
 
 *Who resolves.* In #NDB an adversary $a$ is any morphism of grades, so it may answer a real choice
@@ -1106,8 +1106,9 @@ sites. This is the reading wanted for _specifications_ ("send to $A$, $B$, $C$ i
 and $op("choose")[q, p]$ emulate each other in #NDA with the swap of the two picks as simulator.
 
 #proposition(name: [emulation in #NDA implies emulation in #NDB])[
-#design For protocols $f, g$ graded in $𝒢_A$: if $f leUC g$ in #NDA then $f leUC g$ in #NDB. The
-converse fails.
+#formal For protocols $f, g$ graded in $𝒢_A$: if $f leUC g$ in #NDA then $f leUC g$ in #NDB, and in #NDB
+$leUC$ is $Std(𝕄)$'s. The converse fails (argued, not built). Over any symmetric $𝕄$; instantiated at #SSP.
+#srcs(cc("ND/A.agda", 182, "A⇒B"), cc("ND/Grade.agda", 102, "≤UC-B⇔≤UC"), cc("ND/SSP/Setup.agda", 213, "A⇒B"), cc("ND/SSP/Setup.agda", 216, "A⇒SSP"))
 ] <prop:nd-incl>
 
 #proofidea[$𝒢_A$ is wide in $𝒢_B$, so the two setups have the same grade objects, hence the same
@@ -1167,7 +1168,7 @@ kernel relation on one computational structure (@thm:refine), not drawn.
     edge(<wio>, <pm>, "->", label: $miota$),
     edge(<ssp>, <pmwb>, "->", label: $mwb$, label-side: right),
     edge(<ww>, <pmwb>, "->", label: $mq$),
-    edge(<nda>, <ndb>, "-->", label: $mincl$, label-side: right),
+    edge(<nda>, <ndb>, "->", label: $mincl$, label-side: right),
     edge(<ndb>, <pm>, "-->", label: $≃$, label-side: right),
     edge(<tmx>, <rel>, "-->", label: $mgr$, label-side: right),
     edge(<ssp>, <pm>, "..>", stroke: red + 0.6pt, bend: 25deg, label: text(fill: red)[$mcomp$ ×]),
@@ -1251,7 +1252,7 @@ The quotient morphism of @prop:quotient(1) at $simW$, with the descended test ma
 
 Change of kernel $mck$ and the wide-subcategory inclusion $mincl$ (@sec:setup-morphisms) have one
 concrete use each: the refinements between each tier and its quantitative family
-(@thm:tiers(3), through @thm:refine) and #NDA $→$ #NDB (@prop:nd-incl, designed).
+(@thm:tiers(3), through @thm:refine) and #NDA $→$ #NDB (@prop:nd-incl, formal at #SSP).
 
 == Designed morphisms <sec:designed-morphisms>
 
