@@ -111,6 +111,20 @@ record Relay {X X′ : Iface} (H : Proc (flat X) (flat X′))
     back       : ∀ q (r : R X (proj₁ (dn q)))
                → MC.step H (held q , inj₁ (proj₁ (dn q) , r)) ≈ₚ returnₚ (rest , inj₂ (up (proj₁ (dn q) , r)))
 
+-- Relabellings that agree pointwise give the same relay, hence by `absorb` the
+-- same sandwich: a wire and a compiled relabelling need not agree definitionally.
+Relay-≗ : ∀ {H : Proc (flat A) (flat B)} {dn dn′ up up′} → (∀ q → dn q ≡ dn′ q) → (∀ r → up r ≡ up′ r)
+        → Relay {A} {B} H dn up → Relay {A} {B} H dn′ up′
+Relay-≗ {A} {H = H} {up = up} dn≗ up≗ h = record
+  { rest = rest ; rest-point = rest-point ; held = held
+  ; forward = λ q → forward q ⟨≈⟩ ret≡ (cong (λ z → held q , inj₁ z) (dn≗ q))
+  ; back = λ q r →
+      subst (λ x → ∀ (r : R A (proj₁ x)) → MC.step H (held q , inj₁ (proj₁ x , r))
+                                           ≈ₚ returnₚ (rest , inj₂ (up (proj₁ x , r))))
+            (dn≗ q) (back q) r
+      ⟨≈⟩ ret≡ (cong (λ z → rest , inj₂ z) (up≗ _)) }
+  where open Relay h
+
 id-Relay : Relay {A} {A} (𝒫.id {flat A}) (λ q → q) (λ r → r)
 id-Relay = record
   { rest = tt ; rest-point = ≈refl ; held = λ _ → tt
