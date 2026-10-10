@@ -221,39 +221,27 @@ module _ (D : Protocol A Ωᴵ) (m̂ : Proc (flat unitᴵ) (flat A)) (n : ℕ) (
     above-reply k (no _)     s′ r = 0 , ≤-reflexive (ev-dead (rest k))
 
 ------------------------------------------------------------------------
--- The readout of a compiled test over a closure
+-- Readouts
 
-module _ (D : Protocol A Ωᴵ) (m : unitᴵ 𝒲ᵂ.⇒ A) where
+-- One tick of a closed machine, its verdict.
+readoutᴹ : Proc (flat unitᴵ) (flat Ωᴵ) → Dₚ Bool
+readoutᴹ M = MC.point (MC.state M) ttᵛ >>=ₚ λ st → mapₚ verd (MC.step M (st , inj₂ (tt , tt)))
 
-  private
-    m̂ : Proc (flat unitᴵ) (flat A)
-    m̂ = proj₁ (proj₂ m)
-
-    P = toProtocol ⦃ Ch-dec A ⦄ D
-
-    O : Proc (flat unitᴵ) (flat Ωᴵ)
-    O = oracleᴹ e⁺ e⁻ P m̂
-
-  -- The test's call tree run against the closure's steps.
-  oracle-run : Dₚ Bool
-  oracle-run = MC.point (MC.state m̂) ttᵛ >>=ₚ λ s → mapₚ verd (orun e⁺ e⁻ P m̂ (compiled (step D (init D) tt tt)) s)
-
-  obs-oracle : Obsᵂ (⟦ D ⟧ᵂ 𝒲ᵂ.∘ m) ≈ₚ oracle-run
-  obs-oracle =
-        obs-resp chain
+-- A closed well-bracketed composite reads as any machine it equals.  Opaque
+-- here and below: a readout proof is only ever projected, and transparent its
+-- depth witnesses unfold through every step (`dense≼` exhausts 3 GiB).
+opaque
+  obs-proc : (t : unitᴵ 𝒲ᵂ.⇒ Ωᴵ) (M : Proc (flat unitᴵ) (flat Ωᴵ)) → proj₁ t G.≈ procᵒ M → Obsᵂ t ≈ₚ readoutᴹ M
+  obs-proc t M e =
+        obs-resp (refl⟩∘⟨ ((e ⟩∘⟨refl) ○ ⟺ (procᵒ-∘ {Flat.unitᴵ} {flat unitᴵ} {flat Ωᴵ} M υʷ)))
     ⟨≈⟩ runᴹ-resp-≈ᴹ (unprocᵒ-∘ {Flat.unitᴵ} {flat Ωᴵ} {Bool Flat.⇿ ⊤} ωʷ X) (ask tt out)
     ⟨≈⟩ runᴹ-resp-≈ᴹ wires (ask tt out)
-    ⟨≈⟩ readout
+    ⟨≈⟩ bindᶠ λ st → bind-map (MC.step M (st , inj₂ (tt , tt))) _ _ ⟨≈⟩ bindᶠ verdict
     where
-    X : Proc Flat.unitᴵ (flat Ωᴵ)
-    X = 𝒫._∘_ {Flat.unitᴵ} {flat unitᴵ} {flat Ωᴵ} O υʷ
+    open G.HomReasoning
 
-    chain : procᵒ ωʷ G.∘ proj₁ (⟦ D ⟧ᵂ 𝒲ᵂ.∘ m) G.∘ procᵒ υʷ G.≈ procᵒ ωʷ G.∘ procᵒ X
-    chain = refl⟩∘⟨ ( ( (refl⟩∘⟨ proj₂ (proj₂ (proj₂ m)))
-                      ○ ⟺ (procᵒ-∘ {flat unitᴵ} {flat A} {flat Ωᴵ} (protᴹ D) m̂)
-                      ○ ≈ᴹ⇒≈ᵒ {flat unitᴵ} {flat Ωᴵ} (S.⟺ᴹ (oracle≈∘ e⁺ e⁻ P m̂))) ⟩∘⟨refl
-                    ○ ⟺ (procᵒ-∘ {Flat.unitᴵ} {flat unitᴵ} {flat Ωᴵ} O υʷ))
-      where open G.HomReasoning
+    X : Proc Flat.unitᴵ (flat Ωᴵ)
+    X = 𝒫._∘_ {Flat.unitᴵ} {flat unitᴵ} {flat Ωᴵ} M υʷ
 
     υup : Flat.Pos Flat.unitᴵ → Σ (Ch unitᴵ) (R unitᴵ)
     υup ()
@@ -273,28 +261,52 @@ module _ (D : Protocol A Ωᴵ) (m : unitᴵ 𝒲ᵂ.⇒ A) where
     o : Σ (Ch unitᴵ) (Q unitᴵ) ⊎ Σ (Ch Ωᴵ) (R Ωᴵ) → Data.Empty.⊥ ⊎ Bool
     o y = Sum.map (λ a → a) proj₂ (Sum.map υdown (λ x → x) y)
 
-    wires : S._≈ᴹ_ (𝒫._∘_ {Flat.unitᴵ} {flat Ωᴵ} {Bool Flat.⇿ ⊤} ωʷ X) (sandwichᴹ O i o)
+    wires : S._≈ᴹ_ (𝒫._∘_ {Flat.unitᴵ} {flat Ωᴵ} {Bool Flat.⇿ ⊤} ωʷ X) (sandwichᴹ M i o)
     wires =
            𝒫.∘-resp-≈ʳ {Flat.unitᴵ} {flat Ωᴵ} {Bool Flat.⇿ ⊤} {g = ωʷ}
-             (𝒫.∘-resp-≈ʳ {Flat.unitᴵ} {flat unitᴵ} {flat Ωᴵ} {g = O} υ≈
-              S.○ᴹ ∘-wireᴹ {Flat.unitᴵ} {flat unitᴵ} {flat Ωᴵ} υup υdown O)
+             (𝒫.∘-resp-≈ʳ {Flat.unitᴵ} {flat unitᴵ} {flat Ωᴵ} {g = M} υ≈
+              S.○ᴹ ∘-wireᴹ {Flat.unitᴵ} {flat unitᴵ} {flat Ωᴵ} υup υdown M)
       S.○ᴹ wire-∘ᴹ {Flat.unitᴵ} {flat Ωᴵ} {Bool Flat.⇿ ⊤} proj₂ (λ _ → tt , tt)
-             (sandwichᴹ O (Sum.map υup (λ x → x)) (Sum.map υdown (λ x → x)))
-      S.○ᴹ sandwich-∘ O (Sum.map υup (λ x → x)) (Sum.map υdown (λ x → x))
+             (sandwichᴹ M (Sum.map υup (λ x → x)) (Sum.map υdown (λ x → x)))
+      S.○ᴹ sandwich-∘ M (Sum.map υup (λ x → x)) (Sum.map υdown (λ x → x))
              (Sum.map (λ a → a) (λ _ → tt , tt)) (Sum.map (λ a → a) proj₂)
 
-    verdict : (y : (MSt P × MC.St m̂) × (Σ (Ch unitᴵ) (Q unitᴵ) ⊎ Σ (Ch Ωᴵ) (R Ωᴵ)))
-            → resumeᴹ (sandwichᴹ O i o) (λ _ r → returnₚ r) (proj₁ y , o (proj₂ y)) ≈ₚ returnₚ (verd y)
+    verdict : (y : MC.St M × (Σ (Ch unitᴵ) (Q unitᴵ) ⊎ Σ (Ch Ωᴵ) (R Ωᴵ)))
+            → resumeᴹ (sandwichᴹ M i o) (λ _ r → returnₚ r) (proj₁ y , o (proj₂ y)) ≈ₚ returnₚ (verd y)
     verdict (_ , inj₁ x) = ⊥-elim (e⁻ x)
     verdict (_ , inj₂ _) = ≈refl
 
-    readout : runᴹ (sandwichᴹ O i o) (ask tt out) ≈ₚ oracle-run
-    readout =
-          bindˣ (Pw.point-⊛ (stateᴹ P) (MC.state m̂) ttᵛ ⟨≈⟩ >>=ₚ-identityˡ (idle (init D)) _)
-      ⟨≈⟩ >>=ₚ-assoc (MC.point (MC.state m̂) ttᵛ) _ _
-      ⟨≈⟩ bindᶠ λ s → >>=ₚ-identityˡ (idle (init D) , s) _
-                     ⟨≈⟩ bind-map (orun e⁺ e⁻ P m̂ (compiled (step D (init D) tt tt)) s) _ _
-                     ⟨≈⟩ bindᶠ verdict
+module _ (D : Protocol A Ωᴵ) (m : unitᴵ 𝒲ᵂ.⇒ A) where
+
+  private
+    m̂ : Proc (flat unitᴵ) (flat A)
+    m̂ = proj₁ (proj₂ m)
+
+    P = toProtocol ⦃ Ch-dec A ⦄ D
+
+  -- The test's call tree run against the closure's steps.
+  oracle-run : Dₚ Bool
+  oracle-run = MC.point (MC.state m̂) ttᵛ >>=ₚ λ s → mapₚ verd (orun e⁺ e⁻ P m̂ (compiled (step D (init D) tt tt)) s)
+
+  -- The continuations are pinned: left to inference they exhaust 3 GiB.
+  opaque
+    obs-oracle : Obsᵂ (⟦ D ⟧ᵂ 𝒲ᵂ.∘ m) ≈ₚ oracle-run
+    obs-oracle =
+          obs-proc (⟦ D ⟧ᵂ 𝒲ᵂ.∘ m) (oracleᴹ e⁺ e⁻ P m̂)
+            ( (refl⟩∘⟨ proj₂ (proj₂ (proj₂ m)))
+            ○ ⟺ (procᵒ-∘ {flat unitᴵ} {flat A} {flat Ωᴵ} (protᴹ D) m̂)
+            ○ ≈ᴹ⇒≈ᵒ {flat unitᴵ} {flat Ωᴵ} (S.⟺ᴹ (oracle≈∘ e⁺ e⁻ P m̂)))
+      ⟨≈⟩ bindˣ {k = k} (Pw.point-⊛ (stateᴹ P) (MC.state m̂) ttᵛ ⟨≈⟩ >>=ₚ-identityˡ (idle (init D)) λ a → pt >>=ₚ λ b → returnₚ (a , b))
+      ⟨≈⟩ >>=ₚ-assoc pt (λ b → returnₚ (idle (init D) , b)) k
+      ⟨≈⟩ bindᶠ (λ s → >>=ₚ-identityˡ (idle (init D) , s) k)
+      where
+      open G.HomReasoning
+
+      pt : Dₚ (MC.St m̂)
+      pt = MC.point (MC.state m̂) ttᵛ
+
+      k : MSt P × MC.St m̂ → Dₚ Bool
+      k st = mapₚ verd (stepᴼ e⁺ e⁻ P m̂ (st , inj₂ (tt , tt)))
 
 ------------------------------------------------------------------------
 -- Density

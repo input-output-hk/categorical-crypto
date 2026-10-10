@@ -30,7 +30,9 @@ open import CategoricalCrypto.SSP.Protocol
 
 module CategoricalCrypto.SSP.Cut where
 
-private variable X Y : Set
+private variable
+  A : Iface
+  X Y : Set
 
 ------------------------------------------------------------------------
 -- Closed trees against a test
@@ -79,11 +81,11 @@ nodeᴰ d = mk-Dist ((wt d true , true) NE.∷ (wt d false , false) ∷ [])
 
 -- Cut at depth `n`, the value reached handed to a continuation.
 mutual
-  cutᵏ : ℕ → Dₚ X → (X → Calls unitᴵ Y) → Calls unitᴵ Y
+  cutᵏ : ℕ → Dₚ X → (X → Calls A Y) → Calls A Y
   cutᵏ zero    d k = dead
   cutᵏ (suc n) d k = coin (nodeᴰ d) λ b → cutLᵏ n (br d b) k
 
-  cutLᵏ : ℕ → X ⊎ Dₚ X → (X → Calls unitᴵ Y) → Calls unitᴵ Y
+  cutLᵏ : ℕ → X ⊎ Dₚ X → (X → Calls A Y) → Calls A Y
   cutLᵏ n (inj₁ x)  k = k x
   cutLᵏ n (inj₂ d′) k = cutᵏ n d′ k
 
@@ -104,3 +106,12 @@ mutual
 -- A coin's depth-`n` mass is at most its expectation.
 coin-≤E : (μ : Dist-ℚ Bool) (n : ℕ) (F : Bool → ℚ) → NNF F → cum n (coinₚ μ) F ℚ.≤ E μ F
 coin-≤E μ n F nn = ≤ℚ-trans (cum-mono (≤-trans (n≤1+n n) (n≤1+n (suc n))) (coinₚ μ) F nn) (≤-reflexive (coinₚ-cum μ n F))
+
+-- …and so is a coin followed by anything, at every depth.
+coin-bind-≤E : (μ : Dist-ℚ Bool) (g : Bool → Dₚ X) (j : ℕ) (F : X → ℚ) → NNF F
+             → cum j (coinₚ μ >>=ₚ g) F ℚ.≤ E μ (λ b → cum j (g b) F)
+coin-bind-≤E μ g zero          F nn = E-nn μ _ λ b → cum-nn 0 (g b) F nn
+coin-bind-≤E μ g (suc zero)    F nn = ≤ℚ-trans (≤-reflexive (cum-1-bind (coinₚ μ) g F)) (E-nn μ _ λ b → cum-nn 1 (g b) F nn)
+coin-bind-≤E μ g (suc (suc j)) F nn =
+  ≤ℚ-trans (≤-reflexive (coin-bind-cum μ g j F))
+           (E-mono μ _ _ λ b → cum-mono (≤-trans (n≤1+n j) (n≤1+n (suc j))) (g b) F nn)
