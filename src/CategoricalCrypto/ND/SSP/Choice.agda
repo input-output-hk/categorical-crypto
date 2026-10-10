@@ -152,6 +152,13 @@ data _≈ᶜ⁺_ {A : Iface} {S⃗ : List Set} {X : Set} : Calls⁺ A S⃗ X →
   dead   : dead ≈ᶜ⁺ dead
   choose : ∀ {i k k′} → (∀ p → k p ≈ᶜ⁺ k′ p) → choose i k ≈ᶜ⁺ choose i k′
 
+≈ᶜ⁺-refl : {t : Calls⁺ A S⃗ X} → t ≈ᶜ⁺ t
+≈ᶜ⁺-refl {t = ret _}      = ret refl
+≈ᶜ⁺-refl {t = call _ _ _} = call λ _ → ≈ᶜ⁺-refl
+≈ᶜ⁺-refl {t = coin _ _}   = coin λ _ → ≈ᶜ⁺-refl
+≈ᶜ⁺-refl {t = dead}       = dead
+≈ᶜ⁺-refl {t = choose _ _} = choose λ _ → ≈ᶜ⁺-refl
+
 ------------------------------------------------------------------------
 -- Protocols with choices
 
