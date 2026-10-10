@@ -35,6 +35,8 @@ General lemmas added: `SSP.Reduction.≈ᵍ⇒≈ᵁ` (closed games no distingui
   one induction on `D`'s step tree per phase, `fresh` (nothing sent), `pending` (the real side
   averaged over the key, `D`'s own coins commuting by `>>=ᴹ-comm`), `revealed` (lockstep), with
   `uniform-flip` at Eve's poll; then `≈ᵍ⇒≈ᵁ`.
+- **Up to `≈ᵈ`** (`Examples/SSP/OneTimePad/Dist.agda:otp≤idealᵈ`): the same theorem, its core one `defer`
+  of nine per-activation squares; see `docs/uc-setup-ssp-dist.md` §5.
 
 ## 3. The negative result
 
