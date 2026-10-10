@@ -1,17 +1,16 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- The category `𝒲` of well-bracketed machines over channel-indexed interfaces
--- (`docs/uc-setup-ssp.md` §4.2), with its inclusion `ι` into `𝒫ᴵ`.
---
--- Well-bracketed machines compose: `g ⊙ f`, `𝒢ₚ`'s composite collapsed to one
--- traced machine (`Machines.Collapse.kᴳ`) and the same hom as `𝒫ᴵ`'s `g ∘ f`
--- (`⊙≈∘`), is well-bracketed (`⊙-W`).  Between activations its invariant is
--- `Σ b. I_g (calling c b) × I_f (calling b a)`; inside one, every letter on the
--- loop finds `g` calling on its channel and `f` idle, which is all a legal
--- environment's single open query leaves possible.
+-- Well-bracketed machines compose (`docs/uc-setup-ssp.md` §4.2): `g ⊙ f`,
+-- `𝒢ₚ`'s composite collapsed to one traced machine (`Machines.Collapse.kᴳ`)
+-- and the same hom as `𝒫ᴵ`'s `g ∘ f` (`⊙≈∘`), is well-bracketed (`⊙-W`).
+-- Between activations its invariant is `Σ b. I_g (calling c b) × I_f (calling
+-- b a)`; inside one, every letter on the loop finds `g` calling on its channel
+-- and `f` idle, which is all a legal environment's single open query leaves
+-- possible.  `W` reads the step term itself, which `⊙` and `𝒫ᴵ`'s composite do
+-- not share, so the category (`UC.Bracket.Monoidal.𝒲ᴹ`) takes its homs up to
+-- the hom equality.
 
 open import Categories.Category
-open import Categories.Functor
 
 open import Data.Empty
 open import Data.Product.Base
@@ -37,9 +36,6 @@ module CategoricalCrypto.UC.Bracket.Category where
 private
   module MC = Core (𝒱ₚ 0ℓ)
   module S  = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
-
-open import Categories.Category.SubCategory 𝒫ᴵ
-open import Categories.Functor.Construction.SubCategory 𝒫ᴵ
 
 private variable A B C : Iface
 
@@ -106,28 +102,3 @@ module _ {g : Proc (flat B) (flat C)} {f : Proc (flat A) (flat B)} (wg : W {B} {
 
   ⊙-W : W {A} {C} (_⊙_ {B = B} {C = C} {A = A} g f)
   ⊙-W = record { I = I ; I-init = I-init ; I-step = I-step }
-
-------------------------------------------------------------------------
--- The category
-
--- Well-bracketed up to the hom equality.  `W` reads the step term itself,
--- which `⊙` and `𝒫ᴵ`'s composite do not share; saturated, the class is closed
--- under `𝒫ᴵ`'s own identity and composite.
-W̃ : Proc (flat A) (flat B) → Set₁
-W̃ {A} {B} f = Σ[ f′ ∈ Proc (flat A) (flat B) ] W {A} {B} f′ × Category._≈_ 𝒫ᴵ {flat A} {flat B} f f′
-
-bracketed : SubCat Iface
-bracketed = record
-  { U    = flat
-  ; R    = W̃
-  ; Rid  = λ {A} → Category.id 𝒫ᴵ {flat A} , id-W , S.reflᴹ
-  ; _∘R_ = λ {A} {B} {C} (g′ , wg , eg) (f′ , wf , ef) →
-      _⊙_ {B = B} {C = C} {A = A} g′ f′ , ⊙-W {B = B} {C = C} {A = A} wg wf
-    , Category.∘-resp-≈ 𝒫ᴵ {flat A} {flat B} {flat C} eg ef S.○ᴹ S.⟺ᴹ (⊙≈∘ {B = B} {C = C} {A = A} g′ f′)
-  }
-
-𝒲 : Category (suc 0ℓ) (suc 0ℓ) (suc 0ℓ)
-𝒲 = SubCategory bracketed
-
-ι : Functor 𝒲 𝒫ᴵ
-ι = Sub bracketed

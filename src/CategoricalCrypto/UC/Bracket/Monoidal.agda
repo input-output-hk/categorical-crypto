@@ -45,6 +45,7 @@ open import CategoricalCrypto.UC.Model.Seal
 open import CategoricalCrypto.UC.Model.Setup using (ℰᵒ)
 open import CategoricalCrypto.UCSetup.Morphism
 
+import Categories.Category.Monoidal.Construction.Transport as Transport
 import Categories.Morphism as Mor
 import CategoricalCrypto.Iface as Flat
 import CategoricalCrypto.Machines.Sim as Sim
@@ -270,3 +271,36 @@ Wᵒ-⊗ {A} {B} {C} {D} (f′ , wf , ef) (g′ , wg , eg) =
     _⊗ʷ_ {A} {B} {C} {D} f′ g′
   , ⊗ʷ-W wf wg
   , G.Equiv.trans (G.∘-resp-≈ʳ (G.∘-resp-≈ˡ (G.⊗.F-resp-≈ (ef , eg)))) (⊗-conj f′ g′)
+
+private
+  module 𝕋 = Transport 𝔾ᵒ Uᵂ _⊗ᴵ_ unitᴵ (λ {a} {b} → φ {a} {b}) υ
+  module 𝕎 = 𝕋.Restriction (λ {a} {b} → Wᵒ {a} {b}) (λ {a} → Wᵒ-id {a}) Wᵒ-∘ Wᵒ-⊗
+    (λ {a} → λʷ {a} , λʷ-W , λ-wire) (λ {a} → λʷ⁻¹ {a} , λʷ⁻¹-W , λ⇐-wire)
+    (λ {a} → ρʷ {a} , ρʷ-W , ρ-wire) (λ {a} → ρʷ⁻¹ {a} , ρʷ⁻¹-W , ρ⇐-wire)
+    (λ {a} {b} {c} → αʷ {a} {b} {c} , αʷ-W , α-wire) (λ {a} {b} {c} → αʷ⁻¹ {a} {b} {c} , αʷ⁻¹-W , α⇐-wire)
+
+𝒲ᴹ : MonoidalCategory (suc 0ℓ) (suc 0ℓ) (suc 0ℓ)
+𝒲ᴹ = 𝕎.transport
+
+ιᴹ : StrongMonoidalFunctor 𝒲ᴹ 𝔾ᵒ
+ιᴹ = 𝕎.transportF
+
+------------------------------------------------------------------------
+-- The inclusion as a morphism of UC setups
+
+ι*ℰᵒ : Presheaf (MonoidalCategory.U 𝒲ᴹ) (Setoids (suc 0ℓ) (suc 0ℓ))
+ι*ℰᵒ = ℰᵒ ∘F Functor.op (StrongMonoidalFunctor.F ιᴹ)
+
+-- `pullbackᵛ`, written out, for `ITM.Setup.νᵀ`'s reason.
+νι : PresheafMorphism (StrongMonoidalFunctor.F ιᴹ) ι*ℰᵒ ℰᵒ
+νι = record { ν = ntHelper record
+  { η = λ _ → record { to = λ x → x ; cong = λ e → e } ; commute = λ _ → Setoid.refl (Functor.₀ ℰᵒ _) } }
+
+νι-epi : PresheafMorphism.Epi νι
+νι-epi y = y , Setoid.refl (Functor.₀ ℰᵒ _)
+
+νι-mono : PresheafMorphism.Mono νι
+νι-mono e = e
+
+ι⇒prot : UCSetupMorphism (StdUC.StdSetup 𝒲ᴹ ι*ℰᵒ) Prot.StdSetup
+ι⇒prot = StdUCMorphism 𝒲ᴹ 𝔾ᵒ ι*ℰᵒ ℰᵒ ιᴹ νι
