@@ -1,7 +1,9 @@
 {-# OPTIONS --safe --without-K #-}
 
--- Kleisli triples as graded ones over the terminal monoidal category `One`.
+-- Kleisli triples as graded ones over the terminal monoidal category `One`, and
+-- the unit of any ℐ as a grade functor `Oneᴹ → ℐ`.
 
+open import Data.Product.Base
 open import Data.Unit
 open import Level
 
@@ -9,13 +11,18 @@ open import Categories.Category
 open import Categories.Category.Instance.One
 open import Categories.Category.Monoidal
 open import Categories.Category.Monoidal.Instance.One
+import Categories.Category.Monoidal.Properties as MonoidalProperties
 open import Categories.Functor renaming (id to idF)
+open import Categories.Functor.Monoidal
 open import Categories.Functor.Monoidal.Properties
 open import Categories.Monad.Construction.Kleisli
 open import Categories.Monad.Construction.Kleisli.Ext
 open import Categories.Monad.Graded
 open import Categories.Monad.Graded.Morphism
 open import Categories.Monad.Relative using () renaming (Monad to RMonad)
+import Categories.Morphism as Mor
+import Categories.Morphism.Reasoning as MR
+open import Categories.NaturalTransformation.NaturalIsomorphism
 
 module Categories.Monad.Graded.Trivial where
 
@@ -23,6 +30,27 @@ private variable o ℓ e o′ ℓ′ e′ : Level
 
 Oneᴹ : MonoidalCategory o ℓ e
 Oneᴹ = record { U = One ; monoidal = One-Monoidal }
+
+-- A setup restricted along it (`CategoricalCrypto.Abstract2.Regrade`) keeps one
+-- ancilla and one simulator, both the unit.
+unitᴹ : (ℐ : MonoidalCategory o ℓ e) → StrongMonoidalFunctor (Oneᴹ {o′} {ℓ′} {e′}) ℐ
+unitᴹ ℐ = record
+  { F = record
+    { F₀ = λ _ → unit ; F₁ = λ _ → id ; identity = Equiv.refl ; homomorphism = ⟺ identity²
+    ; F-resp-≈ = λ _ → Equiv.refl }
+  ; isStrongMonoidal = record
+    { ε = Mor.≅.refl U
+    ; ⊗-homo = niHelper record
+      { η = λ _ → unitorˡ.from ; η⁻¹ = λ _ → unitorˡ.to
+      ; commute = λ _ → elimʳ ⊗.identity ○ ⟺ identityˡ ; iso = λ _ → unitorˡ.iso }
+    ; associativity = identityˡ ○ refl⟩∘⟨ ⊗.F-resp-≈ (coherence₃ , Equiv.refl) ○ ⟺ (refl⟩∘⟨ triangle)
+    ; unitaryˡ = identityˡ ○ elimʳ ⊗.identity
+    ; unitaryʳ = identityˡ ○ elimʳ ⊗.identity ○ coherence₃ } }
+  where
+    open MonoidalCategory ℐ
+    open HomReasoning
+    open MR U
+    open MonoidalProperties monoidal
 
 module _ {𝒞 : Category o′ ℓ′ e′} (K : KleisliTriple 𝒞) where
 
