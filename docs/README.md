@@ -22,7 +22,7 @@ stay in place so the citation keeps resolving. Classified at `fa45eaf5`.
 | [uc-setup-ipdl.md](uc-setup-ipdl.md) | current | plan: IPDL reaction networks as a setup; why it is an island |
 | [uc-setup-causal-boxes.md](uc-setup-causal-boxes.md) | current | plan: causal boxes as a setup; why no `UCSetupMorphism` reaches them |
 | [uc-setup-symbolic.md](uc-setup-symbolic.md) | current | plan: the Dolev–Yao setup and computational soundness as a morphism into the negligible tier |
-| [uc-setup-nondeterministic.md](uc-setup-nondeterministic.md) | current | plan: demonic nondeterministic choice over the call-return setup, schedulers resolved at observation |
+| [uc-setup-nondeterministic.md](uc-setup-nondeterministic.md) | current | plan: nondeterministic choice with the scheduler in the grade — the generic restriction of a setup along a monoidal functor of grades (`Abstract2/Regrade`), models A (environment-resolved) and B (adversary-resolved), and the morphism A → B |
 | [uc-robust-compilation.md](uc-robust-compilation.md) | current | plan: "UC is robust compilation" as a theorem about `≤UC` (UC = RHP over `≈ᵁ`-respecting predicates) and the RC criteria as a presheaf family |
 | [rcom-icom-b1.md](rcom-icom-b1.md) | current | specification of the `Rcom → Icom` boundary the coin-toss headlines still assume |
 | [event-bounds-in-setup.md](event-bounds-in-setup.md) | current | plan and audit record for event bounds in the setup's own vocabulary |

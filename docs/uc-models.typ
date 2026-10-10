@@ -475,7 +475,7 @@ tensor, morphisms with their hom-equality — and the test presheaf. #design row
     [#PM's morphisms; grade morphisms: all of them between such grades (#NDB), or $u ⊗ ρ$ with $ρ$ a relabelling of choice factors (#NDA)],
     [the ambient tests],
     [B: adversary-resolved scheduling @canetti2020uc; A: environment-resolved specifications],
-    [#design #plan("uc-setup-nondeterministic.md") (superseded design, @sec:nd)],
+    [#design #plan("uc-setup-nondeterministic.md"), @sec:nd],
   )
 }
 ]
@@ -1119,7 +1119,7 @@ relabelling does. The inclusion preserves $leUC$ and does not reflect it; @thm:t
 needed (and its hypotheses fail: #PM is not grade-stable, and $mincl$ is not full).]
 
 So a specification proved order-independent in #NDA is usable in the adversarially scheduled #NDB.
-The previous design of #plan("uc-setup-nondeterministic.md") — a $op("choose")$ constructor resolved only at
+The design that #plan("uc-setup-nondeterministic.md") replaced on 2026-10-10 — a $op("choose")$ constructor resolved only at
 observation, outcomes $sans("Sched") → sans("Dist")_⊥ sans("Bool")$ under image equality — is
 superseded: its obstruction (a demonic closure sees a test's coins, the leak of
 @canetti2006taskpioa) does not arise, because a closed system has no choice factor left and is

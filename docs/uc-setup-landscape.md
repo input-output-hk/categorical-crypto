@@ -50,15 +50,18 @@ escape-hatch baseline unchanged):
 4. **IPDL and causal boxes are islands** for `UCSetupMorphism` (design-level proofs in
    their plans); **symbolic** reaches only the negligible tier; the first-draft edges
    `SSP → 𝔾ᵒ`, `IPDL → RS`, `RS → causal boxes` are withdrawn.
-5. **Nondeterminism** [design]: the scheduler is a choice factor of the *grade*, not an
-   effect.  Model B (adversary-resolved, Canetti) is `Std(𝕄)` with the `choose`
-   constructor compiled to a request on that factor; model A (environment-resolved,
-   "order does not matter") is the grade-side restriction of B to relabellings — a
-   generic construction, *restriction of a standard setup along a wide monoidal
-   subcategory of grades* (`Graded/Pullback`), the dual of `WideSubcategory`.
-   A-emulation ⇒ B-emulation for all `f, g` by dummy completeness; not conversely.
-   This supersedes the image-equality design in `docs/uc-setup-nondeterministic.md`;
-   see `docs/uc-models.typ` §4.
+5. **Nondeterminism** [design; plan [uc-setup-nondeterministic.md](uc-setup-nondeterministic.md),
+   rewritten 2026-10-10]: the scheduler is a choice factor of the *grade*, not an effect.
+   Model B (adversary-resolved, Canetti) is `Std(𝕄)` with the `choose` constructor
+   compiled to a request on that factor; model A (environment-resolved, "order does not
+   matter") is the grade-side restriction of B to relabellings — an instance of the generic
+   *restriction of a setup along a monoidal functor of grades* (planned
+   `Abstract2/Regrade`: `Graded/Pullback` and the inclusion (Id, ι, id, `idᵛ`)), the dual of
+   `WideSubcategory`, which preserves `≤UC` when ι is essentially surjective and reflects
+   it when ι is full.  A-emulation ⇒ B-emulation for all `f, g` by dummy completeness; not
+   conversely.  In SSP the request cannot be raised inside a step, so `choose` compiles
+   pick-ahead and SSP's B is weaker than PM's; A needs a braiding, which `𝔾ᵒ` lacks.  The
+   mathematical statement is `docs/uc-models.typ` §4.
 6. **Robust compilation** holds: `≤UC⇔robustᵁ` (UC = RHP over `≈ᵁ`-respecting
    predicates on attacked programs; `UC/Robust/Compilation.agda`), its trace form, and
    the two-setup version along a `UCSetupMorphism` (`robustᵁ-transfer` needs `ν.Epi` +
@@ -97,8 +100,9 @@ escape-hatch baseline unchanged):
 - **Interaction discipline**: standalone SSP setup (built) vs the `W`-restricted
   `𝒲 ⊆ 𝔾ᵒ` (built) — both halves exist; the bridge between them is the missing piece.
   Which one do examples get written in?
-- **Nondeterminism**: the design is settled (finding 5); the pending item is to rewrite
-  `docs/uc-setup-nondeterministic.md` around the generic grade restriction and build it.
+- **Nondeterminism**: the design is settled (finding 5) and planned
+  ([uc-setup-nondeterministic.md](uc-setup-nondeterministic.md) §0): accept SSP's pick-ahead
+  `choose`, or do model B in PM (needs `𝔾ᵒ`'s braiding)?  `Abstract2/Regrade` comes first.
 - **Hom-equality for RS**: adaptive `≈ᴿ` (built) was chosen over Maurer's
   non-adaptive `≈ᴮ` because congruence under feedback needs decidable message
   equality; `≈ᴮ⇒≈ᴿ-fin` covers finite alphabets.  Accept, or require `≈ᴮ` generally?
@@ -312,15 +316,17 @@ possibilistic, so only the deterministic fragment maps into RS (`det-≈ᴮ⇒�
   `Abstract2/Morphism` (`Preserves-≈ᵁ`/`transfer⁺`, landing with the SSP bridge) since
   `ℰᵒ` is not `GradeStable`.
 - **Nondeterministic choice** (plan: [uc-setup-nondeterministic.md](uc-setup-nondeterministic.md),
-  **superseded** in its observation model; current design in `docs/uc-models.typ` §4
-  and finding 5).  Kept from the plan: the `choose : (Fin (suc n) → Calls A X) → Calls
-  A X` constructor on the SSP side and the structural extension of `graft`/`serve`;
-  the no-go for a probability×nondeterminism monad (`varacca2006`, `zwart2019nogo`;
-  convex powerset `bonchi2022` rejected); `P ∥ Q` is not derivable from `choose` and
-  `_⊗ᵖ_`.  Dropped: the `Sched → Dist⊥ Bool` outcome space and image equality, the
-  Kleisli-valued morphism, and the global-vs-site-local decision — all replaced by
-  "`choose` compiles to a request on a choice factor of the grade", with model A
-  (relabelling schedulers) as the grade-side restriction of model B (= `Std(𝕄)`).
+  rewritten 2026-10-10 around finding 5 and `docs/uc-models.typ` §4).  Its generic piece is
+  `Abstract2/Regrade`: a setup restricted along a monoidal functor of grades, with its
+  inclusion, `≤UC` preserved (ι essentially surjective with split comparisons, or the ambient
+  setup grade-stable) and reflected (ι full); causal boxes' `regrade` is the same morphism.
+  ND_B is `Std(𝕄)` over designated grades X ⊗ C_{S₁} ⊗ … ⊗ C_{Sₙ} (via
+  `Construction/Transport`), ND_A its restriction to relabellings; A → B preserves `≤UC`
+  and does not reflect it, and undesignation B → A is a section.  `choose` is site-indexed;
+  SSP compiles it pick-ahead (the request cannot be raised inside a step), PM online.  Kept
+  from the 2026-10-09 plan: the `choose` constructor with its `graft`/`serve` clauses, the
+  no-go for a probability×nondeterminism monad (`varacca2006`, `zwart2019nogo`; `bonchi2022`
+  not needed), and `P ∥ Q` not derivable from `choose` and `_⊗ᵖ_`.
 - **Robust compilation** (plan: [uc-robust-compilation.md](uc-robust-compilation.md)).  Not a
   setup: a theorem about the order.  `f ≤UC g ⇔ ∀ H : Predᵁ. Robustᵁ H g → Robustᵁ H f`
   over `≈ᵁ`-respecting predicates on *attacked* programs (UC = RHP; the converse by a
