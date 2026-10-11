@@ -97,7 +97,7 @@ opaque
   σ-wireᵒ = S.⟺ᴹ (wire-pure swap swap _ _ swapᵏ swapᵏ) ○ ⟺ trim
 
   -- The relays and reassociators past the comparisons, in the orientation a
-  -- flat reading (`ND.PM.Relabel.Reads`) consumes.
+  -- flat reading (`ND.PM.Read.Reads`) consumes.
   T₁ᵒ : (Y : Iface) (f : Proc A B)
       → _≅_.from (⊗ᵒ≅ Y B) G.∘ (G.id G.⊗₁ procᵒ f) G.≈ procᵒ (T₁ᴵ Y f) G.∘ _≅_.from (⊗ᵒ≅ Y A)
   T₁ᵒ {A} {B} Y f = G.identityˡ ○ S.⟺ᴹ (T₁-⊗₁ {Y} {A} {B} f) ○ ⟺ G.identityʳ

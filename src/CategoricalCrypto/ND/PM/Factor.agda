@@ -98,12 +98,13 @@ private
         → (∀ p → up p ≡ p) → (∀ n → down n ≡ n) → 𝒫._≈_ {A} {A} (wireᴹ up down) (𝒫.id {A})
   wire² eu ed = wire-cong eu ed S.○ᴹ wire-id
 
-  nil-isoˡ : 𝒫._≈_ {𝟭ᴵ} {𝟭ᴵ} (nilᶠ⁻¹ 𝒫.∘ nilᶠ) (𝒫.id {𝟭ᴵ})
-  nil-isoˡ = wire∘wire {B = Cᶠ []} {C = 𝟭ᴵ} {A = 𝟭ᴵ} _ _ _ _ S.○ᴹ wire² (λ p → P.⊥-elim p) (λ n → P.⊥-elim n)
+nil-isoˡ : 𝒫._≈_ {𝟭ᴵ} {𝟭ᴵ} (nilᶠ⁻¹ 𝒫.∘ nilᶠ) (𝒫.id {𝟭ᴵ})
+nil-isoˡ = wire∘wire {B = Cᶠ []} {C = 𝟭ᴵ} {A = 𝟭ᴵ} _ _ _ _ S.○ᴹ wire² (λ p → P.⊥-elim p) (λ n → P.⊥-elim n)
 
-  nil-isoʳ : 𝒫._≈_ {Cᶠ []} {Cᶠ []} (nilᶠ 𝒫.∘ nilᶠ⁻¹) (𝒫.id {Cᶠ []})
-  nil-isoʳ = wire∘wire {B = 𝟭ᴵ} {C = Cᶠ []} {A = Cᶠ []} _ _ _ _ S.○ᴹ wire² (λ ()) λ { (() , _) }
+nil-isoʳ : 𝒫._≈_ {Cᶠ []} {Cᶠ []} (nilᶠ 𝒫.∘ nilᶠ⁻¹) (𝒫.id {Cᶠ []})
+nil-isoʳ = wire∘wire {B = 𝟭ᴵ} {C = Cᶠ []} {A = Cᶠ []} _ _ _ _ S.○ᴹ wire² (λ ()) λ { (() , _) }
 
+private
   cons-isoˡ : (S : Set) (S⃗ : List Set)
             → 𝒫._≈_ {(⊤ ⇿ S) ⊗ᴵ Cᶠ S⃗} {(⊤ ⇿ S) ⊗ᴵ Cᶠ S⃗} (unconsᶠ S S⃗ 𝒫.∘ consᶠ S S⃗) 𝒫.id
   cons-isoˡ S S⃗ = wire∘wire {B = Cᶠ (S ∷ S⃗)} {C = (⊤ ⇿ S) ⊗ᴵ Cᶠ S⃗} {A = (⊤ ⇿ S) ⊗ᴵ Cᶠ S⃗} _ _ _ _

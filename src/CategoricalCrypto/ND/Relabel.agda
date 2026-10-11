@@ -32,6 +32,7 @@ open import Relation.Nullary using (Dec; yes; no)
 
 open import CategoricalCrypto.ND.SSP.Choice
 open import CategoricalCrypto.SSP.Iface
+import CategoricalCrypto.SSP.Iface.Payload as Payload
 open import CategoricalCrypto.SSP.Protocol
 open import CategoricalCrypto.SSP.Protocol.Category using (Prot)
 
@@ -273,18 +274,18 @@ routePick-resp {ρ = ρ} {ρ′} e (i , p) with route ρ i | route ρ′ i | poi
 ... | _ | _ | nothing        = refl
 ... | _ | _ | just (fibre h) = cong (λ q → just (_ , q)) (h p)
 
-private
-  Σ-⊎ : {A B : Set} {F : A → Set} {G : B → Set} → Σ (A ⊎ B) [ F , G ]′ → Σ A F ⊎ Σ B G
-  Σ-⊎ (inj₁ a , u) = inj₁ (a , u)
-  Σ-⊎ (inj₂ b , v) = inj₂ (b , v)
-
 -- A pick of a concatenation, on the side `split` puts its site, and back.
 splitPick : (S⃗ T⃗ : List Set) → Pick (S⃗ ++ T⃗) → Pick S⃗ ⊎ Pick T⃗
-splitPick S⃗ T⃗ (c , p) = Σ-⊎ (ch (split S⃗ T⃗) c , qu (split S⃗ T⃗) p)
+splitPick S⃗ T⃗ (c , p) = Payload.unpack {Cᴵ⟦ S⃗ ⟧} {Cᴵ⟦ T⃗ ⟧} (ch (split S⃗ T⃗) c , qu (split S⃗ T⃗) p)
 
 joinPick : (S⃗ T⃗ : List Set) → Pick S⃗ ⊎ Pick T⃗ → Pick (S⃗ ++ T⃗)
 joinPick S⃗ T⃗ (inj₁ (i , p)) = ch (join S⃗ T⃗) (inj₁ i) , qu (join S⃗ T⃗) p
 joinPick S⃗ T⃗ (inj₂ (j , p)) = ch (join S⃗ T⃗) (inj₂ j) , qu (join S⃗ T⃗) p
+
+joinPick-payload : (S⃗ T⃗ : List Set) (p : Pick S⃗ ⊎ Pick T⃗)
+                 → joinPick S⃗ T⃗ p ≡ Payload.mapᴾ (join S⃗ T⃗) (Payload.pack {Cᴵ⟦ S⃗ ⟧} {Cᴵ⟦ T⃗ ⟧} p)
+joinPick-payload _ _ (inj₁ _) = refl
+joinPick-payload _ _ (inj₂ _) = refl
 
 -- A pick past the first site of `S ∷ S⃗` is split as in `S⃗`: `split`'s routing
 -- of it is stuck until abstracted together with the pick.
@@ -293,8 +294,9 @@ splitPick-cons : (S : Set) (S⃗ T⃗ : List Set) (c : Ch Cᴵ⟦ S⃗ ++ T⃗ �
 splitPick-cons S S⃗ T⃗ c p = go (ch (split S⃗ T⃗) c) (qu (split S⃗ T⃗) p)
   where
   go : (x : Ch (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ T⃗ ⟧)) (q : Q (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ T⃗ ⟧) x)
-     → Σ-⊎ (ch (αᴵ⁻¹ {Cᴵ S} {Cᴵ⟦ S⃗ ⟧} {Cᴵ⟦ T⃗ ⟧}) (inj₂ x) , qu (αᴵ⁻¹ {Cᴵ S} {Cᴵ⟦ S⃗ ⟧} {Cᴵ⟦ T⃗ ⟧}) {inj₂ x} q)
-       ≡ Sum.map₁ (λ (i , q′) → inj₂ i , q′) (Σ-⊎ (x , q))
+     → Payload.unpack {Cᴵ S ⊗ᴵ Cᴵ⟦ S⃗ ⟧} {Cᴵ⟦ T⃗ ⟧}
+         (ch (αᴵ⁻¹ {Cᴵ S} {Cᴵ⟦ S⃗ ⟧} {Cᴵ⟦ T⃗ ⟧}) (inj₂ x) , qu (αᴵ⁻¹ {Cᴵ S} {Cᴵ⟦ S⃗ ⟧} {Cᴵ⟦ T⃗ ⟧}) {inj₂ x} q)
+       ≡ Sum.map₁ (λ (i , q′) → inj₂ i , q′) (Payload.unpack {Cᴵ⟦ S⃗ ⟧} {Cᴵ⟦ T⃗ ⟧} (x , q))
   go (inj₁ _) _ = refl
   go (inj₂ _) _ = refl
 
@@ -423,7 +425,9 @@ module _ {S⃗ T⃗ S⃗′ T⃗′ : List Set} (ρ : S⃗ ⇝ T⃗) (ρ′ : S�
     -- `split`'s routing of the site, abstracted together with the pick.
     go : (y : Ch (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧)) (q : Q (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧) y)
        → Maybe.map (λ (l , r) → l , r q) (route-++ y)
-         ≡ Maybe.map (joinPick T⃗ T⃗′) ([ Maybe.map inj₁ ∘ routePick ρ , Maybe.map inj₂ ∘ routePick ρ′ ]′ (Σ-⊎ (y , q)))
+         ≡ Maybe.map (joinPick T⃗ T⃗′)
+             ([ Maybe.map inj₁ ∘ routePick ρ , Maybe.map inj₂ ∘ routePick ρ′ ]′
+               (Payload.unpack {Cᴵ⟦ S⃗ ⟧} {Cᴵ⟦ S⃗′ ⟧} (y , q)))
     go (inj₁ i) q with route ρ i
     ... | nothing = refl
     ... | just _  = refl

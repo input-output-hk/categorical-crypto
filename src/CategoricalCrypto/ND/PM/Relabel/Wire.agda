@@ -22,8 +22,9 @@ open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.ND.PM.Factor
 open import CategoricalCrypto.ND.PM.Read using (tensorᴵ)
 open import CategoricalCrypto.ND.Relabel
-open import CategoricalCrypto.ND.SSP.Choice using (join; split)
-open import CategoricalCrypto.SSP.Iface using (Ch; ch)
+open import CategoricalCrypto.ND.SSP.Choice using (Cᴵ⟦_⟧; join; split)
+open import CategoricalCrypto.SSP.Iface as SSP using (Ch; ch)
+import CategoricalCrypto.SSP.Iface.Payload as Payload
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Wire.Kleisli
 
@@ -51,6 +52,13 @@ wireᴾ-∘ ρ′ ρ = kwire-cong
   (λ c → ≡⇒≈ₚ (cong detₚ (preimage-∘ ρ′ ρ c)) ⟨≈⟩ ≈sym (detₚ->>= (preimage ρ′ c) (preimage ρ)))
   (λ p → ≡⇒≈ₚ (cong detₚ (routePick-∘ ρ′ ρ p)) ⟨≈⟩ ≈sym (detₚ->>= (routePick ρ p) (routePick ρ′)))
   S.○ᴹ S.⟺ᴹ (kwire-∘ (detₚ ∘ preimage ρ) (detₚ ∘ routePick ρ) (detₚ ∘ preimage ρ′) (detₚ ∘ routePick ρ′))
+
+wireᴾ-total : (m : Cᴵ⟦ S⃗ ⟧ SSP.⇒ᴵ Cᴵ⟦ T⃗ ⟧) (back : Ch Cᴵ⟦ T⃗ ⟧ → Ch Cᴵ⟦ S⃗ ⟧)
+              (inv : ∀ i → back (ch m i) ≡ i) (inv′ : ∀ k → ch m (back k) ≡ k)
+            → P._≈_ {Cᶠ T⃗} {Cᶠ S⃗} (wireᴾ (wireʳ {S⃗} {T⃗} m back inv)) (wireᴹ {Cᶠ T⃗} {Cᶠ S⃗} back (Payload.mapᴾ m))
+wireᴾ-total {S⃗} {T⃗} m back inv inv′ = kwire-cong {Cᶠ T⃗} {Cᶠ S⃗}
+  (λ c → ≡⇒≈ₚ (cong detₚ (preimage-wireʳ {S⃗} {T⃗} m back inv inv′ c))) (λ _ → ≈refl)
+  S.○ᴹ S.⟺ᴹ (wire-kwire {Cᶠ T⃗} {Cᶠ S⃗} back (Payload.mapᴾ m))
 
 module _ {S⃗ T⃗ S⃗′ T⃗′ : List Set} (ρ : S⃗ ⇝ T⃗) (ρ′ : S⃗′ ⇝ T⃗′) where
   private

@@ -20,10 +20,16 @@ open import ProbabilisticLogic.Dp
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.ND.PM.Factor
+open import CategoricalCrypto.ND.PM.Factor.Read
+open import CategoricalCrypto.ND.PM.Read
+import CategoricalCrypto.ND.Grade as Grade
 open import CategoricalCrypto.ND.Relabel using (Pick)
 open import CategoricalCrypto.SSP.Iface using (Ch)
 open import CategoricalCrypto.ND.SSP.Choice using (Cᴵ⟦_⟧)
 open import CategoricalCrypto.UC.Machine
+open import CategoricalCrypto.UC.Machine.Dictionary
+open import CategoricalCrypto.UC.Model.Seal
+open import CategoricalCrypto.UC.Model.Symmetric
 
 import CategoricalCrypto.Machines.Core as Core
 
@@ -31,8 +37,11 @@ module CategoricalCrypto.ND.PM.Choice where
 
 private
   module MC = Core (𝒱ₚ 0ℓ)
+  module G = SymmetricMonoidalCategory 𝔾ˢ
+  module P = Category 𝒫ᴵ
+  module N = Grade 𝔾ˢ C
   variable
-    A B D : Iface
+    A B D E : Iface
     S : Set
     S⃗ T⃗ : List Set
 
@@ -82,3 +91,31 @@ module Online {S : Set} {S⃗ : List Set} {A B : Iface} (P : S → Proc⁺ S⃗ 
 
 choose : (S → Proc⁺ S⃗ A B) → Proc⁺ (S ∷ S⃗) A B
 choose {S} {S⃗} {A} {B} = Online.machine {S} {S⃗} {A} {B}
+
+------------------------------------------------------------------------
+-- Graded process operations
+------------------------------------------------------------------------
+
+plain : Proc A B → Proc⁺ [] A B
+plain {A} {B} p = P._∘_ {A} {𝟭ᴵ ⊗ᴵ B} {Cᶠ [] ⊗ᴵ B} (subᴵ {A = B} nilᶠ)
+  (P._∘_ {A} {B} {𝟭ᴵ ⊗ᴵ B} (wireᴹ {B} {𝟭ᴵ ⊗ᴵ B} inj₂ drop⇒ˡ) p)
+
+infixr 9 _∘⁺_
+_∘⁺_ : Proc⁺ T⃗ B D → Proc⁺ S⃗ A B → Proc⁺ (S⃗ ++ T⃗) A D
+_∘⁺_ {T⃗} {B} {D} {S⃗} {A} q p =
+  P._∘_ {A} {(Cᶠ S⃗ ⊗ᴵ Cᶠ T⃗) ⊗ᴵ D} {Cᶠ (S⃗ ++ T⃗) ⊗ᴵ D} (subᴵ {A = D} (joinᶠ S⃗ T⃗))
+    (P._∘_ {A} {Cᶠ S⃗ ⊗ᴵ (Cᶠ T⃗ ⊗ᴵ D)} {(Cᶠ S⃗ ⊗ᴵ Cᶠ T⃗) ⊗ᴵ D} (a⇐ᴵ {Cᶠ S⃗} {Cᶠ T⃗} {D})
+      (P._∘_ {A} {Cᶠ S⃗ ⊗ᴵ B} {Cᶠ S⃗ ⊗ᴵ (Cᶠ T⃗ ⊗ᴵ D)} (T₁ᴵ (Cᶠ S⃗) q) p))
+
+infixr 10 _⊗⁺_
+_⊗⁺_ : Proc⁺ S⃗ A B → Proc⁺ T⃗ D E → Proc⁺ (S⃗ ++ T⃗) (A ⊗ᴵ D) (B ⊗ᴵ E)
+_⊗⁺_ {S⃗} {A} {B} {T⃗} {D} {E} p q =
+  P._∘_ {A ⊗ᴵ D} {(Cᶠ S⃗ ⊗ᴵ Cᶠ T⃗) ⊗ᴵ (B ⊗ᴵ E)} {Cᶠ (S⃗ ++ T⃗) ⊗ᴵ (B ⊗ᴵ E)} (subᴵ {A = B ⊗ᴵ E} (joinᶠ S⃗ T⃗))
+    (P._∘_ {A ⊗ᴵ D} {(Cᶠ S⃗ ⊗ᴵ B) ⊗ᴵ (Cᶠ T⃗ ⊗ᴵ E)} {(Cᶠ S⃗ ⊗ᴵ Cᶠ T⃗) ⊗ᴵ (B ⊗ᴵ E)}
+      (swapInnerᴵ (Cᶠ S⃗) B (Cᶠ T⃗) E) (tensorᴵ {A} {Cᶠ S⃗ ⊗ᴵ B} {D} {Cᶠ T⃗ ⊗ᴵ E} p q))
+
+⌈_⌉ : Proc⁺ S⃗ A B → ifaceᵒ A G.⇒ N.C⟦ S⃗ ⟧ G.⊗₀ ifaceᵒ B
+⌈_⌉ {S⃗} {A} {B} p = conjugate (ifaceᶠ A) (flat S⃗ ⊗ᶠ ifaceᶠ B) p
+
+reads-compile : (p : Proc⁺ S⃗ A B) → Reads (ifaceᶠ A) (flat S⃗ ⊗ᶠ ifaceᶠ B) (⌈_⌉ {S⃗} {A} {B} p) p
+reads-compile {S⃗} {A} {B} p = reads-conjugate (ifaceᶠ A) (flat S⃗ ⊗ᶠ ifaceᶠ B) p
