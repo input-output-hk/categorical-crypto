@@ -88,6 +88,11 @@ import CategoricalCrypto.Symbolic.Test
 import CategoricalCrypto.ND.SSP.Laws
 import CategoricalCrypto.ND.SSP.Reflect
 import CategoricalCrypto.ND.SSP.Setup
+import CategoricalCrypto.ND.PM.Choice.Compose
+import CategoricalCrypto.ND.PM.Choice.Pin
+import CategoricalCrypto.ND.PM.Setup
+import CategoricalCrypto.UC.Machine.Wire.Kleisli
+import ProbabilisticLogic.Dp.Det
 open import CategoricalCrypto.UC.Approximate.LocalTests
 open import CategoricalCrypto.UC.Family.Negligible.Quantitative
 open import CategoricalCrypto.UC.Family.Quantitative

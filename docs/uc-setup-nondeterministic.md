@@ -20,11 +20,12 @@ of one standard setup along a functor of grades, and A → B is the inclusion.
    for every ι; otherwise the U-kernels differ (the unit at PM, `Examples/RegradeUnit.agda`) and ≤UC is
    not preserved [INFERENCE, §1.3(e)].  ι full ⇒ reflected, with no other hypothesis.  The dual of
    `Abstract2/WideSubcategory.agda`; causal boxes' `regrade` is its `inclusion`.
-2. **ND_B** (§2, built: `ND/Grade.agda`, at SSP `ND/SSP/Setup.agda`) = Std(𝕄)|ι_B over designated grades
-   X ⊗ C_{S₁} ⊗ … ⊗ C_{Sₙ}, n ≥ 0, built by `Construction/Transport`; ι_B is full and essentially
-   surjective, so ND_B has Std(𝕄)'s ≤UC (`≤UC-B⇔≤UC`).
-3. **ND_A** (§3, built: `ND/A.agda`) = ND_B|incl, incl the wide inclusion of the grade morphisms
-   u ⊗ ⌈ρ⌉, ρ a relabelling (`Transport.weaken`).
+2. **ND_B** (§2, built: `ND/Grade.agda`, at SSP `ND/SSP/Setup.agda`, at PM `ND/PM/Setup.agda`) =
+   Std(𝕄)|ι_B over designated grades X ⊗ C_{S₁} ⊗ … ⊗ C_{Sₙ}, n ≥ 0, built by
+   `Construction/Transport`; ι_B is full and essentially surjective, so ND_B has Std(𝕄)'s ≤UC
+   (`≤UC-B⇔≤UC`).
+3. **ND_A** (§3, built: `ND/A.agda`, instantiated at SSP and PM) = ND_B|incl, incl the wide inclusion
+   of the grade morphisms u ⊗ ⌈ρ⌉, ρ a relabelling (`Transport.weaken`).
 4. **A → B** (§4) is `inclusion` at incl: it preserves ≤UC for all f, g (one U-kernel; built, `A⇒B`) and
    does not reflect it (built at SSP, `ND/SSP/Reflect.agda`: one site copied to two).  Undesignation
    B → A is a section; nothing inverts the inclusion on designated grades.
@@ -33,10 +34,10 @@ of one standard setup along a functor of grades, and A → B is the inclusion.
 never calling, and a step cannot suspend.  SSP compiles `choose` *pick-ahead* — picks pushed on
 `Cᴵ S`, queued, popped, an empty queue `dead` — and only PM raises the request online, so SSP-B's
 simulator resolves ideal choices only when the environment activates it.  (b) *The braiding* (§2.3): B
-needs its components at most, A its naturality and hexagon; SSP has one (`Protˢ`), `𝔾ᵒ` exports none,
-and neither `Machines/Base` (symmetric only on the Mealy base) nor `Reverse` (it transports, never
-creates) supplies one.  (c) *Relabellings are partial injections* (§3.1), for stateless pick routing in
-PM.  (d) Under pick-ahead `choose` commutes with coins and calls, and SSPᵈ's laws survive it (§5).
+needs its components at most, A its naturality and hexagon; SSP has `Protˢ`, and PM now has the sealed
+`𝔾ˢ` (`UC/Model/Symmetric.agda`) built from the generic G-construction symmetry.  (c) *Relabellings are
+partial injections* (§3.1), for stateless pick routing in PM.  (d) Under pick-ahead `choose` commutes
+with coins and calls, and SSPᵈ's laws survive it (§5).
 
 **Kept from the 2026-10-09 plan:** the `choose` constructor (now site-indexed) with its `graft`, `serve`,
 `mapᶜ`, `reindex` clauses; the no-go literature (§2.4); `P ∥ Q`'s non-derivability (§5.2).
@@ -44,9 +45,9 @@ PM.  (d) Under pick-ahead `choose` commutes with coins and calls, and SSPᵈ's l
 and their repairs, the routings (2a)/(2b), and the edge SSP → ND with its reflection (R): SSP is ND_B's
 site-free part, read by the same tests.
 
-**Decisions for the maintainer:** (1) pick-ahead SSP-B, or B in PM (P1–P2, §6); (2) relabellings as
-partial injections; (3) site-indexed `choose`.  (Settled: G1 lives in `Abstract2/Regrade.agda`, which the
-causal-boxes plan now imports instead of a `regrade` in `UCSetup/Morphism.agda`.)
+**Implemented choices:** SSP remains pick-ahead; PM has a separate on-demand `choose` combinator,
+and both instantiate A and B. Relabellings are partial injections and choices have designated sites.
+G1 lives in `Abstract2/Regrade.agda`, also used by the causal-boxes plan.
 
 ## 1. The generic construction: restriction along a monoidal functor of grades
 
@@ -231,7 +232,7 @@ given isos
 surjective ((X, []) ↦ X ⊗ I ≅ X) and strong, so by §1.3 (b), (c), (f) ≤UC in ND_B *is* ≤UC in Std(𝕄)
 on choice-graded protocols: uc-models' "ND_B is Std(𝕄) itself, with choice factors named", as an
 instance of the theorem.  The designation matters only to ND_A (§3).  **Built**: `ND/Grade.agda`
-(`𝒢B`, `ιB`, `NDB`, `≤UC-B⇔≤UC`), at SSP `ND/SSP/Setup.agda` (`NDB`, `≤UC-B⇔≤UC`).
+(`𝒢B`, `ιB`, `NDB`, `≤UC-B⇔≤UC`), instantiated at SSP `ND/SSP/Setup.agda` and PM `ND/PM/Setup.agda`.
 
 ### 2.3 Where the braiding is needed
 
@@ -249,18 +250,12 @@ instance of the theorem.  The designation matters only to ND_A (§3).  **Built**
   adversary of a composite could not act on X and Y jointly across C⟦S⃗⟧.
 - **SSP has it**: `Protˢ` (`SSP/Protocol/Monoidal.agda:277`), braiding `⌜ swapᴵ ⌝`, naturality
   `⌜⌝-natσ` (`:222`, brzuska2018 Lemma 3).
-- **PM does not.**  `Machines/Base.agda` exports symmetry only on the Mealy base (`𝒱ₚ` `:77`, `ℳₚ`
-  `:269` via `Bundle.Mealy-Symmetric`); `𝒢ₚᴹ` (`:282`) is `GConstructionMonoidalCategory`
-  (`Categories/GConstructionMonoidal.agda:253`), a plain `MonoidalCategory`, and `𝔾ᵒ` seals it
-  (`opaque`, `UC/Model/Seal.agda:43`).  `Reverse` (agda-categories 0.3.0,
-  `Categories.Category.Monoidal.Construction.Reverse`) only transports a braiding (`Reverse-Braided`
-  `:73`, `Reverse-Symmetric` `:92`); the tree applies it to machine-iso's `machine-monoidal-category`
-  (`Machine/UC.agda:110`), dropping that category's `machine-symmetric` (`Machine/MonoidalCategory.agda:83`),
-  and never to `𝔾ᵒ`.  The G-construction of a traced symmetric category is symmetric (jsv1996), so this is
-  a formalisation gap: σᴳ is the embedded base swap, a relabelling wire (`UC/Machine/Wire.agda`), and
-  `GConstructionEmbedding`'s `absorbˡ`/`absorbʳ` reduce its naturality to `σᴹ`'s plus a routing
-  coherence, built under the seal [INFERENCE: cost unknown; `homomorphismᴳ`'s loop coherence needed a
-  split solver, `Categories/GConstructionHomCoherence.agda`].
+- **PM has it**: `Categories/GConstructionSymmetric.agda` builds σᴳ by embedding the base swap on
+  both polarities, proves naturality with `GConstructionEmbedding.absorbˡ`/`absorbʳ`, and both
+  hexagons through the embedding's composition/tensor laws. `UC/Model/Symmetric.agda` seals the
+  resulting `Symmetric` against `𝔾ᵒ`'s own monoidal field and exports `𝔾ˢ` over `∣𝔾ᵒ∣`. Neither
+  `UC/Model/Seal` nor `UC/Model/Setup` is opened or replaced; the PM A/B proofs use their existing
+  tests and observation kernel.
 
 ### 2.4 `choose` and its compilation
 
@@ -336,6 +331,39 @@ resolve qs (choose i k) = maybe′ (λ pq → resolve (proj₂ pq) (k (proj₁ p
   they take this plan's form, `⌈⌉-∘-split`: ⌈g ∘⁺ f⌉ ≈ᵖ sub φ ∘ (⌈g⌉ ∙ ⌈f⌉), and `⌈⌉-⊗-split`.
   `Choice/Pin.agda` checks by `refl` that these concrete forms are `SSP.Setup`'s `_∙_` and `sub`.
 
+**Compilation, PM side: on demand** (built, `ND/PM/Choice.agda`, `Choice/Compose.agda`,
+`Choice/Pin.agda`). There is no new effect or call-tree syntax:
+
+```agda
+Proc⁺ S⃗ A B = Proc A (Cᶠ S⃗ ⊗ᴵ B)
+choose : (S → Proc⁺ S⃗ A B) → Proc⁺ (S ∷ S⃗) A B
+plain : Proc A B → Proc⁺ [] A B
+_∘⁺_ : Proc⁺ T⃗ B D → Proc⁺ S⃗ A B → Proc⁺ (S⃗ ++ T⃗) A D
+_⊗⁺_ : Proc⁺ S⃗ A B → Proc⁺ T⃗ D E → Proc⁺ (S⃗ ++ T⃗) (A ⊗ᴵ D) (B ⊗ᴵ E)
+⌈_⌉ : Proc⁺ S⃗ A B → ifaceᵒ A ⇒ C⟦ S⃗ ⟧ ⊗₀ ifaceᵒ B
+```
+
+The first activation is suspended in `Online.wait` after emitting the new site's request. A pick
+initialises only the selected branch, then resumes that exact activation; `Online.active` retains
+its selected state. Existing choice-site requests remain online and keep their shifted indices.
+Unsolicited new-site picks and overlapping activations while waiting diverge, rather than inventing
+a response. The concrete `request`, `resume`, `no-early-pick`, `no-overlap`, `no-repeat-pick` and
+`old-request` pins exercise these cases; `two-compiled` and `parallel-compiled` instantiate the laws
+with two Boolean sites.
+
+`ψ : C⟦ S⃗ ⟧ ≅ ifaceᵒ (Cᶠ S⃗)` reads the folded grade as flat sites. `⌈_⌉` conjugates the process
+through `ψ` and the interface tensor comparisons. The flat-reading squares (`ND/PM/Read.agda`,
+`Factor/Read.agda`) give `⌈⌉-resp`, `⌈⌉-plain` (λ⁻¹ ∘ `procᵒ p`), `⌈⌉-∘`
+((`C++.from` ⊗ id) ∘ α⁻¹ ∘ (id ⊗ ⌈q⌉) ∘ ⌈p⌉), and `⌈⌉-⊗` through the middle-four interchange.
+The tensor theorem includes `⊗ᵒ≅` at the source and the ordinary output because the seal does not
+identify `ifaceᵒ (A ⊗ᴵ B)` with `ifaceᵒ A ⊗₀ ifaceᵒ B` by conversion.
+
+The existing `SSP→PM[wb]` (`SSP/Dense.agda`) carries *pick-ahead compiled protocols* into PM's
+well-bracketed machine semantics, with the existing `≤UC` transfer (`SSP/Dense/Tests.agda`).
+The inclusion of well-bracketed computations into PM (`ιᵂ`) does not erase their FIFO or suspension
+discipline: this bridge is not an equality with PM's separate on-demand `choose`.
+
+
 ### 2.5 What ≤UC in B says
 
 By `dummy-complete`, f ≤UC_B g iff some s₀ : ⌊Y,T⃗⌋ → ⌊X,S⃗⌋ — any morphism — has f ≈ᵁ sub_{s₀} ∘ g.
@@ -357,11 +385,11 @@ the old `Schedᴵ` router) or do B in PM (P1–P2, §6).
 ### 3.1 Relabellings
 
 A relabelling ρ : S⃗ ⇝ T⃗ is a partial injection τ from the real sites S⃗ to the ideal sites T⃗ with
-pick maps r_j : S_j → T_{τ j}.  As a grade morphism ⌈ρ⌉ : C⟦T⃗⟧ → C⟦S⃗⟧ (ideal to real, a simulator's
-direction) it is the wire that forwards a pick on a real site j ∈ dom τ to τ j along r_j, absorbs picks
-on the other real sites and, in PM, forwards each request of an ideal site i ∈ im τ to τ⁻¹ i.  It never
-originates a pick and never answers a request.  Injectivity is what makes PM's routing stateless (one way
-back per pick); SSP would accept any partial map, and one class serves both.  In SSP, ⌈ρ⌉ is ⌜ m ⌝ with
+pick maps r_j : S_j → T_{τ j}. As a grade morphism ⌈ρ⌉ : C⟦T⃗⟧ → C⟦S⃗⟧ (ideal to real, a simulator's
+direction) it forwards a real pick along τ and r, and in PM forwards an ideal request along τ⁻¹.
+It never originates a pick or answers a request. In SSP absent routes absorb a pick with `tt`; in
+PM either polarity diverges on an absent route. Injectivity makes PM's routing stateless (one way
+back per request); SSP would accept any partial map, and one class serves both. In SSP, ⌈ρ⌉ is ⌜ m ⌝ with
 m : Cᴵ⟦dom τ⟧ ⇒ᴵ Cᴵ⟦T⃗⟧ (`ch` = τ, `qu` = r), tensored with `ack : Protocol unitᴵ (Cᴵ S)` (state ⊤,
 replies tt) on the absorbed sites, up to reordering wires.  Relabellings form a category Alph (lists of
 sets; partial injections with fibre maps), monoidal under ++.  uc-models' "a stateless wire that forwards
@@ -377,13 +405,19 @@ where `relabelᴵ ρ : Cᴵ⟦ S⃗ ⟧ ⇒ᴵ Cᴵ⟦ T⃗ ⟧ ⊗ᴵ Cᴵ ⊤`
 answers.  `⌈−⌉ʳ : Functor (Category.op Alph) Prot` (`⌈⌉ʳ-id`, `⌈⌉ʳ-∘`, `⌈⌉ʳ-resp`), and `⌈⌉ʳ-++`:
 ⌈ρ ++ʳ ρ′⌉ʳ ≈ᵖ φ ∘ (⌈ρ⌉ʳ ⊗ ⌈ρ′⌉ʳ) ∘ φ⁻¹, the monoidality R-⊗ of §3.2 needs.
 
+**Built at PM** (`ND/PM/Relabel.agda`). `wireᴾ ρ` is the stateless Kleisli wire
+`kwireᴹ (detₚ ∘ preimage ρ) (detₚ ∘ routePick ρ)` on `Cᶠ`; `⌈_⌉ʳᴾ` conjugates it by `ψ`.
+The functorial and monoidal laws (`⌈⌉ʳᴾ-id`, `⌈⌉ʳᴾ-∘`, `⌈⌉ʳᴾ-resp`, `⌈⌉ʳᴾ-++`) and both directions
+of the unit/associative regroupings (`Relabel/Regroup.agda`) fill `ND.A.Relabelling`.
+
+
 ### 3.2 The grades 𝒢_A and the setup ND_A
 
 𝒢_A := `Restriction.transport` at R f := Σ (u , ρ). f ≈ u ⊗ ⌈ρ⌉, u : X → Y arbitrary: wide in 𝒢_B,
 and on the choice part the image of 𝕄 × Alphᵒᵖ (uc-models' 𝓘 × Alphᵒᵖ).  Obligations: R-id, R-∘
 (⌈−⌉ functorial), R-⊗ and R-α/λ/ρ (§2.3).  incl : 𝒢_A → 𝒢_B is the identity on objects and strict:
 `weaken` (R ⊆ R′ ⇒ strict inclusion), top level in `Transport.agda`.  **Built**: `ND/A.agda` (`closedA`,
-`𝒢A`, `incl`, `NDA`), at SSP `ND/SSP/Setup.agda`.
+`𝒢A`, `incl`, `NDA`), at SSP `ND/SSP/Setup.agda` and PM `ND/PM/Setup.agda`.
 
 **ND_A := ND_B|incl** = `regraded ND_B incl`; `pullback-∘-*` relate it to Std(𝕄)|(ι_B ∘ incl) if a
 direct form is wanted.
@@ -419,8 +453,10 @@ per reachable state (ssp.md §4.3's technique) [INFERENCE].
 objects and strict, so §1.3(b) holds with φ = id: ≈ᵁ_A is literally ≈ᵁ_B (the same grade objects, hence
 the same ancillas, prefix contexts and tests — uc-models' proof idea).  By (c), **f ≤UC_A g ⇒ f ≤UC_B g
 for all f, g graded in 𝒢_A**, with the same dummy simulator u ⊗ ⌈ρ⌉ (built: `ND.A.A⇒B`, `Preserves.
-unrestrict-≤UC` at r = id; at SSP `ND.SSP.Setup.A⇒B`, and `A⇒SSP` composes it with `≤UC-B⇔≤UC` down to
-SSP's ≤UC).  Every A-proof — order independence, refinements by relabelling — is a B-proof with the same
+unrestrict-≤UC` at r = id; at SSP `ND.SSP.Setup.A⇒B`/`A⇒SSP`, at PM
+`ND.PM.Setup.A⇒B`/`A⇒PM`, composed with `≤UC-B⇔≤UC` down to the ambient ≤UC).
+Both instances also export `relabel-≤UC` and its converse `≤UC⇒relabel`.
+Every A-proof — order independence, refinements by relabelling — is a B-proof with the same
 simulator, and this one edge is what relates the two models.  §1.3(d) is neither needed nor available
 (PM is not grade-stable; SSP is not known to be).
 
@@ -440,6 +476,12 @@ sees `once` answer `true` and the composite die on an empty ideal queue; the run
 each of ρ's three routes (`pin` freezes the route, `⌈⌉ʳ-resp` moves to it; u never runs), and the two
 `true` masses are 1 and 0.  (i)'s A-half, a case split over pair maps with buffering state on the B
 side, is not built.
+
+The PM witness (ii) remains optional and **unproved**: the remaining obligations are the B-simulation
+for an ideal on-demand choice supplied a constant pick, and an A-refutation through `≤UC⇒relabel`
+with a PM test distinguishing its unmatched, hence unanswered, request. No PM non-reflection theorem
+is claimed; `Choice/Pin.agda` proves request/resume behavior and compilation, not those UC obligations.
+
 
 **The way back.**
 
@@ -536,8 +578,8 @@ integrator's.  Paths are under `src/`.
 | L1 | `CategoricalCrypto/ND/SSP/Laws.agda` | §5.1 at SSP; §3.4's swap; `collapse` against a callee | **built** (`3ca93786`, `6fe4af5c`): `congruence` (row 1), `collapse` and `Callee.either-order` (row 4, against two counters), `permute` (row 3, any π : S → S), `Swap.swap-ᵖ`/`swap-ᵖ′` (the swap instance as ≈ᵖ, both ways), `at`/`at-sub`; row 2 in `Choice/Dist.agda` (`call-dead`, `call-choose`, `call-choose-ᵈ` beside the coin half).  Order independence as mutual ≤UC_A: `Swap.order-indep`, through `pick-≤UC` (a pick relabelling as A-simulator) and `permute-≤UC`.  *Correction* to the cost recorded before (129–333 s, "elaborating the application"): it was one conversion.  `_≤UC_` opens with `∀ {X′}`, so checking a term against it inserts λ {X′} and gives the term's own X′ a meta, solved η-expanded (a grade is a pair); `_≤UC_`'s implicit interfaces, inferred, come out as η-expanded Iface records (`Ch-dec` included).  The two types are then not syntactically equal and `_≤UC_`'s body unfolds down to the compiled protocols: 83 s for the X′ alone, 7 s for the interfaces alone, 0.5 s with X′ bound (λ {X′} → … {X′}) and `{A = A} {B = B}` passed |
 | L2 (opt.) | `CategoricalCrypto/ND/Undesignate.agda` | §4: Φᵤ, B → A by `Between`, the retract | — |
 | L3 (opt.) | `CategoricalCrypto/ND/SSP/Shuffle.agda` | §5.2: `_∥ᶜ_`, commutativity by relabelling | — |
-| P1 | `CategoricalCrypto/UC/Model/Symmetric.agda` | §2.3: `𝔾ᵒ`'s braiding σᴳ, naturality, hexagon | a `SymmetricMonoidalCategory` over `∣𝔾ᵒ∣` |
-| P2 | B1, A1, A2 at PM | choice factors ⊤ ⇿ S in `𝔾ᵒ`; PM's online B | — |
+| P1 | `CategoricalCrypto/UC/Model/Symmetric.agda` | §2.3: `𝔾ᵒ`'s braiding σᴳ, naturality, hexagon | **built** (`e32166b3`): generic `Categories/GConstructionSymmetric.agda` (σᴳ = ⌜ σ⇒ , σ⇒ ⌝; `σᴳ-natural` by `absorbˡ`/`absorbʳ` and the swap conjugating `mid`; both hexagons by `⌜⌝-∘`/`⌜⌝-⊗ˡ`/`⌜⌝-⊗ʳ`, one base hexagon per polarity; `GConstructionBraided`, `GConstructionSymmetric`, bundle; 9 s), sealed as `UC/Model/Symmetric.symmetricᵒ : Symmetric (MonoidalCategory.monoidal 𝔾ᵒ)` (opaque, `unfolding 𝔾ᵒ`, 11 s) and `𝔾ˢ` over `∣𝔾ᵒ∣`.  `UC/Model/Seal`, `UC/Model/Setup` untouched |
+| P2 | B1, A1, A2 at PM | choice factors ⊤ ⇿ S in `𝔾ᵒ`; PM's online B | **built**: `ND/PM/Factor` (`C`, `Cᶠ`, `ψ`, `ψ-C++`/`ψ-C++⁻¹`); `ND/PM/Read` and `Factor/Read` (flat commuting-square calculus); `ND/PM/Relabel` and `Relabel/{Wire,Picks,Regroup}` (partial stateless routing, functorial/monoidal laws and regroupings, `relabelling`); `ND/PM/Setup` (`NDB`, `NDA`, `≤UC-B⇔≤UC`, `A⇒B`, `A⇒PM`, `relabel-≤UC`, `≤UC⇒relabel`); `ND/PM/Choice` (`Proc⁺`, on-demand `choose`, `plain`, composition/tensor, `⌈_⌉`), `Choice/Compose` (`⌈⌉-resp`, `⌈⌉-plain`, `⌈⌉-∘`, `⌈⌉-⊗`), `Choice/Pin` (request/resume/off-protocol and two-site compilation pins). Reuses `UC/Model/Wire`, `UC/Machine/Wire/Kleisli`, `Dp/Det`, `SSP/Iface/Payload`, `ND/Relabel`; preserves the sealed PM tests and observation kernel. Optional PM witness (ii) is not claimed (§4). |
 
 Order: G1 (built), then B1–B2, A1–A2 (A2 with G2's `weaken`), L1 over SSP; P1–P2 when PM's online B, or
 A at PM, is wanted.  Traps: the `refl`s of §1.5 against `FromMonad`'s triple (pinned, they hold); one

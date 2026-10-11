@@ -29,7 +29,7 @@ symbolic steps of `uc-setup-symbolic.md` §6; escape-hatch baseline unchanged):
 | ITM `𝕋ᴹ` | `ITM/{Core,Run,Functor,Setup,Relational}`, `FreeMonoidal.freeStrongMonoidal`, `Seal.unitᵒ` | `itm⇒prot` (`ν` Epi+Mono), `≈ℰ⇔`, `itm⇒iso` |
 | SSP (call/return) | `SSP/{Iface,Protocol,Protocol/Category,Protocol/Monoidal,Observation,Setup,Reduction,Compile,Semantics,Cut,Dense,Dense/Tests}`, `Standard2/UKernel`, `Protocol/{Sim,Machine/Resp,Machine/Oracle}`, `UC/Bracket{,/Category}` | `StdSetup`, `Protᴹ`/`Protˢ`, `toProtocol`, `morphism-resp`, `W`, `morphism-W`, `𝒲`, `ι`, **`games-dense`**, **`SSP→PM[wb]`**, **`preserves-≤UC`** |
 | symbolic `𝔻𝕐` (steps 3–8) | `Symbolic/{Term,Term/PairEnc,Deduction,Role,Fine,Semantics,Setup,Test}`, `FreeMonoidal/Decorated` | `Sym≅`, `Sym`, `fine→sym` (`coarse` Epi), **`grade-stable`** (hypothesis-free), `≈ᵁ⇔≈ℰ`, **`emit-≈E`** (E in the kernel), `eval-cong`, `⊢⇔⊢ᵢ`, `emits⊢`; steps 9–10 (`≈ℰ⇔≈ₛ`, `smt≤ideal`) blocked |
-| nondeterministic choice (over any symmetric 𝕄; at SSP) | `Abstract2/Regrade{,/Pin,/Unit}`, `Categories/…/Construction/Transport` (`Closed`, `weaken`), `ND/{Grade,A,Relabel}`, `ND/SSP/{Choice,Choice/Compose,Choice/Pin,Choice/Dist,Setup,Laws,Reflect}` | `regraded`, `inclusion`, `NDB`, `NDA`, **`A⇒B`**, `≤UC-B⇔≤UC`, `≤UC⇒relabel`, `swap-ᵖ`, **`order-indep`**, **`¬reflect`** |
+| nondeterministic choice (over any symmetric 𝕄; at SSP and PM) | `Abstract2/Regrade{,/Pin,/Unit}`, `Categories/…/Construction/Transport` (`Closed`, `weaken`), `ND/{Grade,A,Relabel}`, `ND/SSP/{Choice,Choice/Compose,Choice/Pin,Choice/Dist,Setup,Laws,Reflect}`, `UC/Model/Symmetric`, `ND/PM/{Factor,Read,Relabel,Setup,Choice,Choice/Compose,Choice/Pin}` | `regraded`, `inclusion`, `𝔾ˢ`, `NDB`, `NDA`, **`A⇒B`**, `≤UC-B⇔≤UC`, `≤UC⇒relabel`, PM online request/resume and compilation laws; SSP `swap-ᵖ`, **`order-indep`**, **`¬reflect`** |
 
 **Major findings** (proven unless marked; finding 3's non-existence claim is argued in
 `Protocol/Machine.agda:14-19`'s header, not a theorem):
@@ -55,11 +55,11 @@ symbolic steps of `uc-setup-symbolic.md` §6; escape-hatch baseline unchanged):
 4. **IPDL and causal boxes are islands** for `UCSetupMorphism` (design-level proofs in
    their plans); **symbolic** reaches only the negligible tier; the first-draft edges
    `SSP → 𝔾ᵒ`, `IPDL → RS`, `RS → causal boxes` are withdrawn.
-5. **Nondeterminism** [built over any symmetric monoidal 𝕄 and at SSP; PM open (needs `𝔾ᵒ`'s braiding);
+5. **Nondeterminism** [built over any symmetric monoidal 𝕄 and at SSP and PM;
    plan [uc-setup-nondeterministic.md](uc-setup-nondeterministic.md)]: the scheduler is a choice factor of
    the *grade*, not an effect.  Model B (adversary-resolved, Canetti) is `Std(𝕄)` restricted to the
    designated grades X ⊗ C_{S₁} ⊗ … ⊗ C_{Sₙ} (`ND/Grade`: `𝒢B`, `ιB`, `NDB`), the `choose` constructor
-   compiled to a request on that factor (`ND/SSP/Choice`); ιB is full and essentially surjective, so
+   compiled pick-ahead at SSP (`ND/SSP/Choice`) or on demand at PM (`ND/PM/Choice`); ιB is full and essentially surjective, so
    B-emulation is `Std(𝕄)`-emulation (`≤UC-B⇔≤UC`).  Model A (environment-resolved, "order does not
    matter") is the restriction of B to relabellings (`ND/A`: `closedA`, `𝒢A`, `incl` by
    `Transport.weaken`, `NDA`).  Both are instances of the generic *restriction of a setup along a
@@ -67,12 +67,16 @@ symbolic steps of `uc-setup-symbolic.md` §6; escape-hatch baseline unchanged):
    dual of `WideSubcategory`): it preserves `≤UC` when ι is essentially surjective with split
    comparisons (`Preserves.unrestrict-≤UC`) or the setup is grade-stable, and reflects it when ι is
    full (`restrict-≤UC`); along the unit at PM the U-kernels differ (`Examples/RegradeUnit`).
-   **`A⇒B`**: A-emulation ⇒ B-emulation for all `f, g`, with the same simulator (at SSP
-   `ND/SSP/Setup.A⇒B`, and `A⇒SSP` down to SSP's `≤UC`); not conversely: at SSP one site copied to two
-   is a B-emulation and no A-emulation (`ND/SSP/Reflect.¬reflect`).  In SSP the request
+   **`A⇒B`**: A-emulation ⇒ B-emulation for all `f, g`, with the same simulator (both
+   `ND/SSP/Setup` and `ND/PM/Setup`, with `A⇒SSP`/`A⇒PM` down to the ambient `≤UC`).
+   Not conversely at SSP: one site copied to two is a B-emulation and no A-emulation
+   (`ND/SSP/Reflect.¬reflect`); the optional PM witness is unproved. In SSP the request
    cannot be raised inside a step, so `choose` compiles pick-ahead and SSP's B is weaker than PM's; its
    laws are `ND/SSP/Laws` (the two orders of a choice equal after swapping the picks, `swap-ᵖ`, hence
    mutual A-emulations, `Swap.order-indep`).  The mathematical statement is `docs/uc-models.typ` §4.
+   PM uses the sealed G-construction symmetry (`UC/Model/Symmetric.𝔾ˢ`) and partial stateless
+   relabelling wires (`ND/PM/Relabel`); `Choice/Compose` and `Choice/Pin` check its online compiler
+   against sequential/tensor composition and concrete request/resume behavior.
 6. **Robust compilation** holds: `≤UC⇔robustᵁ` (UC = RHP over `≈ᵁ`-respecting
    predicates on attacked programs; `UC/Robust/Compilation.agda`), its trace form, and
    the two-setup version along a `UCSetupMorphism` (`robustᵁ-transfer` needs `ν.Epi` +
@@ -111,9 +115,6 @@ symbolic steps of `uc-setup-symbolic.md` §6; escape-hatch baseline unchanged):
 - **Interaction discipline**: standalone SSP setup (built) vs the `W`-restricted
   `𝒲 ⊆ 𝔾ᵒ` (built) — both halves exist and `SSP→PM[wb]` links them, transferring `≤UC`
   (finding 3).  Which one do examples get written in?
-- **Nondeterminism**: settled (finding 5) and built at SSP
-  ([uc-setup-nondeterministic.md](uc-setup-nondeterministic.md) §6): accept SSP's pick-ahead
-  `choose`, or do model B in PM (needs `𝔾ᵒ`'s braiding)?
 - **Hom-equality for RS**: adaptive `≈ᴿ` (built) was chosen over Maurer's
   non-adaptive `≈ᴮ` because congruence under feedback needs decidable message
   equality; `≈ᴮ⇒≈ᴿ-fin` covers finite alphabets.  Accept, or require `≈ᴮ` generally?
@@ -338,7 +339,8 @@ possibilistic, so only the deterministic fragment maps into RS (`det-≈ᴮ⇒�
   ND_B is `Std(𝕄)` over designated grades X ⊗ C_{S₁} ⊗ … ⊗ C_{Sₙ} (via
   `Construction/Transport`), ND_A its restriction to relabellings; A → B preserves `≤UC`
   and does not reflect it (at SSP, `ND/SSP/Reflect`), and undesignation B → A is a section.  `choose` is site-indexed;
-  SSP compiles it pick-ahead (the request cannot be raised inside a step), PM online.  Kept
+  SSP compiles it pick-ahead (the request cannot be raised inside a step), PM online; both are built,
+  with PM's compilation laws and concrete two-site pins in `ND/PM/Choice/{Compose,Pin}`. Kept
   from the 2026-10-09 plan: the `choose` constructor with its `graft`/`serve` clauses, the
   no-go for a probability×nondeterminism monad (`varacca2006`, `zwart2019nogo`; `bonchi2022`
   not needed), and `P ∥ Q` not derivable from `choose` and `_⊗ᵖ_`.
@@ -373,7 +375,7 @@ TM functions (×) ──▶ Rel    Sym≅ ──▶ machine-iso ◀── ITM(de
                              │  SSP ──▶ PM[wb] ◀── 𝒲[ℰᵂ]           ▼
                              │   │                           random systems 𝔾ᴿ ◀⇢ machine-category (det.)
                              ▼   ▼
-              ucSetupᴺ (negligible tier over 𝔾ᵒ)    ND_A ──▶ ND_B = Std(𝕄)  (built at SSP)
+              ucSetupᴺ (negligible tier over 𝔾ᵒ)    ND_A ──▶ ND_B = Std(𝕄)  (built at SSP and PM)
 
 islands: IPDL;  causal boxes (RSIM / task-PIOA inside)
 ```

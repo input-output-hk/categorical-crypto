@@ -475,7 +475,7 @@ tensor, morphisms with their hom-equality — and the test presheaf. #design row
     [#PM's morphisms; grade morphisms: all of them between such grades (#NDB), or $u ⊗ ρ$ with $ρ$ a relabelling of choice factors (#NDA)],
     [the ambient tests],
     [B: adversary-resolved scheduling @canetti2020uc; A: environment-resolved specifications],
-    [#formal over any symmetric 𝕄, at #SSP: #cc("ND/SSP/Setup.agda", 199, "NDB"), #cc("ND/SSP/Setup.agda", 202, "NDA"); at #PM #design; @sec:nd],
+    [#formal over any symmetric 𝕄, at #SSP: #cc("ND/SSP/Setup.agda", 127, "NDB"), #cc("ND/SSP/Setup.agda", 130, "NDA"); at #PM: #cc("ND/PM/Setup.agda", 31, "NDB"), #cc("ND/PM/Setup.agda", 34, "NDA"); @sec:nd],
   )
 }
 ]
@@ -641,9 +641,9 @@ Def. 3), with every strategy as distinguisher.
 
 Not covered #design: constructive cryptography's availability condition (a separate
 statement, since $leUC$ never fixes the simulator of the silent adversary); parallel composition of
-constructions, which needs the interchange $(X ⊗ B) ⊗ (X' ⊗ B') ≅ (X ⊗ X') ⊗ (B ⊗ B')$, i.e. a braiding
-(the G-construction on a symmetric traced category has one, but the formalised $𝔾^o$ is only
-monoidal); and amplification (@maurer2007), which needs conditional probabilities and minima of
+constructions, whose interchange $(X ⊗ B) ⊗ (X' ⊗ B') ≅ (X ⊗ X') ⊗ (B ⊗ B')$ is available from the
+sealed G-construction symmetry (#cc("UC/Model/Symmetric.agda", 37, "𝔾ˢ"), while the parallel
+construction theorem is not built); and amplification (@maurer2007), which needs conditional probabilities and minima of
 masses that lower reals do not form. The exact-$ε$ version of @thm:constructs is the quantitative
 setup #QRS (@sec:qrs).
 
@@ -1091,18 +1091,22 @@ discipline supplies one. #plan("uc-setup-causal-boxes.md")
 The scheduler of a nondeterministic protocol is placed in the _grade_, as a negative factor.
 
 #definition(name: [choice factors, #NDB, #NDA])[
-Let $𝕄$ be #PM (or #SSP). For a set $S$ the _choice factor_ is the interface $C_S := (1, S)$: the
-protocol raises a request and receives a pick in $S$. A protocol with $n$ choice sites is
-$f : A → (X ⊗ C_(S_1) ⊗ dots.c ⊗ C_(S_n)) ⊗ B$; a $op("choose")$ node of a call tree compiles to a
-request on its own factor and resumes with the pick.
+Let $𝕄$ be #PM (with the sealed symmetric bundle $𝔾^s$) or #SSP. For a set $S$ the _choice factor_ is
+the interface $C_S := (1, S)$. A protocol with $n$ choice sites is
+$f : A → (X ⊗ C_(S_1) ⊗ dots.c ⊗ C_(S_n)) ⊗ B$. In #PM an on-demand $op("choose")$ combinator suspends
+its activation, raises a request on its own factor, then initialises the selected branch and resumes
+with the pick. In #SSP a step cannot suspend or call its exported grade: compilation instead queues
+pick-ahead queries and consumes them on activation; an empty queue diverges.
 - $𝒢_B$ is the full subcategory of grades $X ⊗ C_(S_1) ⊗ dots.c ⊗ C_(S_n)$, $n ≥ 0$, with their choice
   factors designated. It is closed under $⊗$ up to the symmetry that moves choice factors to the right
-  (present in the G-construction, not in the formalised $𝔾^o$), contains the unit at $n = 0$, and its
+  (formalised at #PM as $𝔾^s$), contains the unit at $n = 0$, and its
   inclusion into $𝕄$ is strong monoidal. Since $n = 0$ is allowed it contains every interface:
   $NDB := Std(𝕄)|_(𝒢_B)$ is $Std(𝕄)$ itself, with choice factors named.
 - $𝒢_A ⊆ 𝒢_B$ is the wide subcategory of morphisms $u ⊗ ρ$, with $u$ arbitrary on $X$ and $ρ$ a
-  _relabelling_ of choice factors: a stateless wire that forwards each request and pulls the pick back
-  along a function $S'_j → S_i$ (so $𝒢_A ≅ cal(I) × sans("Alph")^"op"$ on the choice part).
+  _relabelling_ of choice factors: a stateless partial wire, given by a partial injection of real
+  sites into ideal sites and a function on each site's picks. An ideal request travels through the
+  partial inverse and a real pick through the forward map; in #PM an absent route diverges on either
+  polarity. The choice part is the image of $sans("Alph")^"op"$.
   $NDA := Std(𝕄)|_(𝒢_A)$.
 Both are grade-side restrictions: the computations, the tests and $cal(M)$ restricted along the
 inclusion (a graded monad pulls back along a lax monoidal functor) are those of $Std(𝕄)$, and
@@ -1115,16 +1119,17 @@ are setup morphisms $("Id", mincl, opid, opid)$.
 request from its own state and from what it learned on $X$, and a simulator may answer the ideal
 world's requests from what it learns from $a$: real choices are adversary-resolved, ideal ones
 simulator-resolved, which is Canetti's model, where the adversary controls delivery order
-(@canetti2020uc; @canetti2015suc). In #NDA no grade morphism can answer a request, so every request
-reaches the environment, which resolves the choices of both worlds, the simulator only renaming
-sites. This is the reading wanted for _specifications_ ("send to $A$, $B$, $C$ in any order"): $op("choose")[p, q]$
-and $op("choose")[q, p]$ emulate each other in #NDA with the swap of the two picks as simulator.
+(@canetti2020uc; @canetti2015suc). In #NDA no grade morphism originates a pick or answers a request;
+matched requests reach the environment, while unmatched requests remain unanswered. The environment
+resolves both worlds and the simulator only relabels sites and their picks. This is the reading wanted
+for _specifications_ ("send to $A$, $B$, $C$ in any order"): at #SSP $op("choose")[p, q]$ and
+$op("choose")[q, p]$ emulate each other in #NDA with the swap of the two picks as simulator.
 
 #proposition(name: [emulation in #NDA implies emulation in #NDB])[
 #formal For protocols $f, g$ graded in $𝒢_A$: if $f leUC g$ in #NDA then $f leUC g$ in #NDB, and in #NDB
 $leUC$ is $Std(𝕄)$'s. The converse fails (built at #SSP: one choice site copied to two). Over any
-symmetric $𝕄$; instantiated at #SSP.
-#srcs(cc("ND/A.agda", 182, "A⇒B"), cc("ND/Grade.agda", 103, "≤UC-B⇔≤UC"), cc("ND/SSP/Setup.agda", 214, "A⇒B"), cc("ND/SSP/Setup.agda", 217, "A⇒SSP"), cc("ND/SSP/Reflect.agda", 147, "¬reflect"), cc("ND/SSP/Laws.agda", 198, "Swap.order-indep"))
+symmetric $𝕄$; instantiated at #SSP and #PM. The separate #PM non-reflection witness is not claimed.
+#srcs(cc("ND/A.agda", 182, "A⇒B"), cc("ND/Grade.agda", 103, "≤UC-B⇔≤UC"), cc("ND/SSP/Setup.agda", 142, "A⇒B"), cc("ND/SSP/Setup.agda", 145, "A⇒SSP"), cc("ND/PM/Setup.agda", 42, "A⇒B"), cc("ND/PM/Setup.agda", 46, "A⇒PM"), cc("ND/PM/Setup.agda", 39, "≤UC-B⇔≤UC"), cc("ND/PM/Setup.agda", 50, "relabel-≤UC"), cc("ND/PM/Setup.agda", 55, "≤UC⇒relabel"), cc("ND/SSP/Reflect.agda", 147, "¬reflect"), cc("ND/SSP/Laws.agda", 198, "Swap.order-indep"))
 ] <prop:nd-incl>
 
 #proofidea[$𝒢_A$ is wide in $𝒢_B$, so the two setups have the same grade objects, hence the same
@@ -1142,6 +1147,18 @@ observation, outcomes $sans("Sched") → sans("Dist")_⊥ sans("Bool")$ under im
 superseded: its obstruction (a demonic closure sees a test's coins, the leak of
 @canetti2006taskpioa) does not arise, because a closed system has no choice factor left and is
 observed by the ordinary tests.
+
+#formal The #PM compiler reads flat processes $A → C^f_(vec(S)) ⊗ B$ through the isomorphism
+$C_(vec(S)) ≅ C^f_(vec(S))$. Its choice-free, sequential and tensor equations use the unitor,
+concatenation comparison and middle-four interchange of $𝔾^s$, including the explicit interface
+tensor comparisons across the seal. The request/resume pins use Boolean picks; two-site sequential
+and parallel pins instantiate these equations.
+#srcs(cc("UC/Model/Symmetric.agda", 32, "symmetricᵒ"), cc("ND/PM/Factor.agda", 124, "ψ"), cc("ND/PM/Relabel.agda", 54, "relabelling"), cc("ND/PM/Choice.agda", 92, "choose"), cc("ND/PM/Choice/Compose.agda", 47, "⌈⌉-plain"), cc("ND/PM/Choice/Compose.agda", 55, "⌈⌉-∘"), cc("ND/PM/Choice/Compose.agda", 67, "⌈⌉-⊗"), cc("ND/PM/Choice/Pin.agda", 57, "request"), cc("ND/PM/Choice/Pin.agda", 60, "resume"), cc("ND/PM/Choice/Pin.agda", 83, "two-compiled"), cc("ND/PM/Choice/Pin.agda", 91, "parallel-compiled"))
+
+The existing $mwb : SSP → PMwb$ carries pick-ahead compiled protocols into well-bracketed machine
+semantics, and $miota$ includes their computations in #PM. It retains the queued interaction
+discipline; it is not an equality with the separate on-demand #PM choice combinator.
+
 
 = Morphisms between the setups <sec:morphisms>
 
