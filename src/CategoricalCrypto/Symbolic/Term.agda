@@ -69,6 +69,14 @@ module Terms (𝔖 : Signature) where
   ren* ρ []       = []
   ren* ρ (t ∷ ts) = ren ρ t ∷ ren* ρ ts
 
+  -- A renaming that may send one name to different names at different sorts.
+  renˢ  : (Sort → Name → Name) → Tm s → Tm s
+  renˢ* : (Sort → Name → Name) → All Tm ss → All Tm ss
+  renˢ ρ (name {s} n) = name (ρ s n)
+  renˢ ρ (app f ts)   = app f (renˢ* ρ ts)
+  renˢ* ρ []       = []
+  renˢ* ρ (t ∷ ts) = renˢ ρ t ∷ renˢ* ρ ts
+
   names  : Tm s → List Name
   names* : All Tm ss → List Name
   names (name n)   = n ∷ []

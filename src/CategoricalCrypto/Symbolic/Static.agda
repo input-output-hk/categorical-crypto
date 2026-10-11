@@ -1,11 +1,9 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- Static equivalence is the kernel of `Sym` on frame emitters
--- (`abadi2018applied` Lemma 4.2 p. 15; docs/uc-setup-symbolic.md §3.6, §6 step
--- 9).  `≈ₛ⇒≈ℰ`: the two emitters answer every query in lockstep, entry `j`
--- related to entry `j` as the same recipe `var j` over the two frames — a
--- relational simulation, which `Static.Relational.relsim⇒≈ℰ` carries through
--- every test.
+-- Static equivalence implies the kernel equality of `Sym` on frame emitters.
+-- The converse is proved for Σ₀/E₀ in `Static.PairEnc`; it is false in general
+-- (docs/uc-setup-symbolic.md §3.7). The same-recipe apex relates entry `j` to
+-- entry `j`, and `Static.Relational.relsim⇒≈ℰ` carries it through every test.
 
 open import CategoricalCrypto.Symbolic.Term
 

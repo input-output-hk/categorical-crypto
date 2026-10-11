@@ -932,9 +932,26 @@ $E$ on every frame are $eqE$-equal generators.
 #srcs(cc("Symbolic/Setup.agda", 123, "grade-stable"), cc("Symbolic/Setup.agda", 129, "≈ᵁ⇔≈ℰ"), cc("Symbolic/Role.agda", 383, "exec-≈E"), cc("Symbolic/Setup.agda", 146, "emit-≈E"))
 ] <thm:sym-kernel>
 
-The kernel of #Sym is Dolev–Yao trace (may-testing) equivalence (@dolevyao1983). On frame emitters
-it should be static equivalence #design: one direction is a distinguishing test, the other needs
-simulations along a message relation, which the machine layer lacks. #plan("uc-setup-symbolic.md")
+The kernel of #Sym is Dolev–Yao trace (may-testing) equivalence (@dolevyao1983).
+
+#theorem(name: [static equivalence of frame emitters])[
+For every signature and convergent theory, statically equivalent frames have $eqE$-equal emitters.
+For the single-sorted pairing/symmetric-encryption theory $E_0$, the converse also holds:
+two frame emitters are $eqE$-equal iff their frames are statically equivalent at every name supply.
+#srcs(cc("Symbolic/Static.agda", 158, "≈ₛ⇒≈ℰ"), cc("Symbolic/Static/PairEnc.agda", 37, "≈ℰ⇔≈ₛ"), cc("Symbolic/StaticTests.agda", 23, "empty-kernel"), cc("Symbolic/StaticTests.agda", 30, "two-port-kernel"))
+] <thm:sym-static>
+
+#proofidea[The same-recipe relation is a span through an apex machine. Its point and step are
+couplings; pure projections make feedback preserve the span, and G-composition and tensor carry it
+through every role context. Conversely, an $E_0$ tester queries all frame ports, draws its own names
+for the recipes' foreign names, and compares them. A non-injective renaming restores the foreign
+names after the possible run changes its existential naming.
+#srcs(cc("Machines/Sim/Relational.agda", 248, "RelSim"), cc("Machines/Sim/Relational.agda", 283, "trace-relsim"), cc("UC/Machine/Relational.agda", 251, "HSim-∘"), cc("Symbolic/Static/Distinguish/Run.agda", 160, "run"), cc("Symbolic/Static/Distinguish.agda", 145, "≈ℰ⇒≈ₛ"))]
+
+The unrestricted converse is false: names in this model are unsorted, so a static recipe can share
+one foreign name across two sorts, whereas fresh allocations in a role cannot. A theory can detect
+that sharing. The exact counterexample and scope are in #plan("uc-setup-symbolic.md") §3.7;
+the theorem above has no added assumption on $E_0$.
 
 == #Iso: relational machines up to isomorphism <sec:iso>
 

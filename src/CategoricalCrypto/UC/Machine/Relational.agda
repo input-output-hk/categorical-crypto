@@ -34,7 +34,8 @@ open import CategoricalCrypto.Machines.Pure
 open import CategoricalCrypto.Machines.Sim.Relational.Pointwise
 open import CategoricalCrypto.Protocol.Machine using (⟦_⟧ᴵ)
 open import CategoricalCrypto.UC.Machine
-open import CategoricalCrypto.UC.Machine.Behaviour.Congruence using (⊗₁ᴳ-raw)
+open import CategoricalCrypto.UC.Machine.Behaviour
+open import CategoricalCrypto.UC.Machine.Behaviour.Congruence
 open import CategoricalCrypto.UC.Machine.Dictionary
 
 import CategoricalCrypto.Machines.Collapse as Col
@@ -98,6 +99,10 @@ HSim⇒≈ᴹ (hsim e s e′) = e S.○ᴹ S.≲⇒≈ᴹ (RS.≲[id]⇒≲ (RS.
   where
   ids : {X Y : Set} → 𝒱._≈_ {X ⊎ Y} {X ⊎ Y} (K.pureᵏ (Sum.map (λ a → a) (λ b → b))) 𝒱.id
   ids = K.pureᵏ-cong (λ { (inj₁ _) → refl ; (inj₂ _) → refl }) ○ ⟺ pure-idᵏ
+
+-- Relationally simulated machines run alike against every distinguisher.
+relsim⇒≈ᴿ : {X Y : Set} {f g : MC.Machine X Y} → RS.RelSim 𝒱.id 𝒱.id 𝒱.id 𝒱.id f g → f ≈ᴿ g
+relsim⇒≈ᴿ r = ≈ᴹ⇒≈ᴿ (RS.relsim⇒≈ᴹ r)
 
 ------------------------------------------------------------------------
 -- Relabellings

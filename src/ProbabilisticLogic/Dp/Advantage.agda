@@ -9,6 +9,7 @@
 -- weighs 0 under either indicator.
 
 open import Data.Bool.Base
+open import Data.Empty
 open import Data.Nat.Base renaming (_≤_ to _≤ℕ_)
 open import Data.Product.Base
 open import Data.Rational as ℚ
@@ -34,6 +35,22 @@ Pr≤ = Pr≤[ true ]
 indᵇ-not : (b : Bool) → indᵇ b (not b) ≡ 0ℚ
 indᵇ-not true  = refl
 indᵇ-not false = refl
+
+private
+  indᵇ-self : ∀ b → indᵇ b b ≡ 1ℚ
+  indᵇ-self true = refl
+  indᵇ-self false = refl
+
+  returnₚ-not : ∀ b → returnₚ b ≈ₚ returnₚ (not b) → ⊥
+  returnₚ-not b e = let n , le = proj₁ e (indᵇ b) (indᵇ-nn b) 1 in
+    1≰0 (subst₂ ℚ._≤_ (trans (returnₚ-cum 0 b (indᵇ b)) (indᵇ-self b)) (indᵇ-not b)
+          (≤-trans le (returnₚ-cum-≤ n (not b) (indᵇ b) (indᵇ-nn b))))
+
+returnₚ-bool-injective : {b b′ : Bool} → returnₚ b ≈ₚ returnₚ b′ → b ≡ b′
+returnₚ-bool-injective {true} {true} _ = refl
+returnₚ-bool-injective {false} {false} _ = refl
+returnₚ-bool-injective {true} {false} e = ⊥-elim (returnₚ-not true e)
+returnₚ-bool-injective {false} {true} e = ⊥-elim (returnₚ-not false e)
 
 -- A verdict scores at most what a flag covering it scores.
 indᵇ-cover : {v b : Bool} → (v ≡ true → b ≡ true) → indᵇ true v ℚ.≤ indᵇ true b

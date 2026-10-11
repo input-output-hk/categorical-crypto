@@ -121,3 +121,9 @@ Foreign φ ψ n = n ∉ names* φ × n ∉ names* ψ
 infix 4 _≈ₛ_
 _≈ₛ_ : Frame Δ → Frame Δ → Set
 φ ≈ₛ ψ = ∀ {s} (ζ ζ′ : Recipe _ (Foreign φ ψ) s) → (ζ ⟨ φ ⟩ ≈E ζ′ ⟨ φ ⟩) ⇔ (ζ ⟨ ψ ⟩ ≈E ζ′ ⟨ ψ ⟩)
+
+-- `abadi2018applied` gives each name one sort; a recipe here may use a foreign
+-- name at several sorts, which no role can replay (each `new` is a new name).
+-- A theory blind to that leaves static equivalence observable by roles.
+SortBlind : Set
+SortBlind = ∀ (ρ : Sort → Name → Name) {s} {t u : Tm s} → t ≈E u → renˢ ρ t ≈E renˢ ρ u

@@ -1,7 +1,9 @@
 # The symbolic (Dolev–Yao) UC setup — plan
 
-Plan of 2026-10-09. Steps 1–8 of §6 are built (2026-10-10); §3.2–§3.6 and §4.1 give their real
-signatures. Steps 9–10 are blocked (§6). Statements about unwritten modules are design claims.
+Plan of 2026-10-09, updated 2026-10-11. Steps 1–9 of §6 are built for the single-sorted
+pairing/encryption theory E₀; static equivalence implies kernel equality for arbitrary signatures
+and theories. The converse fails in general (§3.7). Step 10 has a fixed-message fragment and an
+interactive-channel obstruction (§6). Statements about unwritten modules are design claims.
 `[INFERENCE]` marks reasoning backed by neither a read source nor the tree. Citations are
 `bibkey §/Def/p.` with printed pages (`docs/kb/sources/papers/INDEX.md`). Short names: CLC =
 `comonlundhcortier2008`, CH = `canettiherzog2006`, BPW = `backes2003library`, AR = `abadirogaway2002`.
@@ -135,6 +137,7 @@ record EqTheory (𝔖 : Signature) : Set₁ where   -- abadi2018applied §2.2 p.
         canon      : ∀ {s} → Tm s → Tm s           -- what roles emit and store (§3.3)
         canon-≈E   : ∀ {s} (t : Tm s) → canon t ≈E t
         ≈E⇒canon   : ∀ {s} {t u : Tm s} → t ≈E u → canon t ≡ canon u
+        canon-names : ∀ {s} (t : Tm s) → names (canon t) ⊆ names t
   module ≈E {s} = IsEquivalence (isEquiv {s}) ; Tm-setoid : Sort → Setoid 0ℓ 0ℓ
 
 -- CategoricalCrypto.Symbolic.Term.PairEnc: CLC Examples 3.1 and 3.3 (pp. 9–10)
@@ -178,9 +181,9 @@ Departures from the first draft, all forced:
   `Relation.Unary`; import those with `using`.
 - `EqTheory` gains canonical forms (step 8). Roles emit and store `canon` of what they compute, so
   programs equal modulo E have *equal* steps and `emit-≈E` (§3.6) is a functional simulation.
-  With raw wire terms it needs a simulation along a message relation through 𝔾ᵒ's trace, which
-  the machine layer lacks (`Machines.Sim._≲_` takes a function; `Dp.Iter.Transfer` a pure map).
   The price is a convergent theory, the class §2 names; E₀'s canonical forms are its normal forms.
+  `canon-names` ensures canonicalization cannot invent private names; E₀ proves it by name
+  preservation along reduction. Message relations are now available (§3.7).
 
 ### 3.3 Dolev–Yao roles: the generators
 
@@ -395,8 +398,9 @@ The kernel `f ≈ℰ g` holds iff every DY environment and closure sharing an an
 same verdicts; it is trace (may-testing) equivalence against DY contexts. Diff-equivalence
 implies `∼o`, which implies this kernel, so ProVerif proofs certify it `[INFERENCE: needs a
 translation of roles into applied-π]`. On frame emitters the kernel is static equivalence
-(`abadi2018applied` Lemma 4.2 p. 15); this is step 9, blocked (§6). `≤UC` is `bohlunruh2013`
-Def 4.3, and `≤UCᵈ⇔≤UC` is their Lemma 4.4, here without hypotheses. The reflexivity concern of
+for E₀ (`Symbolic/Static/PairEnc.≈ℰ⇔≈ₛ`); the unrestricted converse has the sort/name
+obstruction of §3.7. `≤UC` is `bohlunruh2013` Def 4.3, and `≤UCᵈ⇔≤UC` is their
+Lemma 4.4, here without hypotheses. The reflexivity concern of
 `delaune2009simulation` (p. 175) does not arise: `≤UC-refl` takes `s = a`.
 
 **Levels, options, layout.** 𝔻𝕐 lives at `0ℓ`. Tests are lifted to `cs = ℓs = suc 0ℓ`, which
@@ -407,6 +411,81 @@ under `Symbolic/` are `Term`, `Term/PairEnc`, `Deduction`, `Role`, `Test`, `Fine
 `Setup`, `Static`, `Machine`, `Computational`, `Soundness` and `Example/SecureChannel`. General additions:
 `freeStrongMonoidal`, `Categories/FreeMonoidal/Decorated.agda`, and `transfer⁺` in
 `Abstract2/Morphism.agda`.
+
+### 3.7 Relational simulation and static equivalence
+
+`Machines/Sim/Relational.agda` presents a relation by an apex machine and two pure
+simulation legs. Its initial `Dₚ` distribution is a coupling whose projections are the
+two initial distributions; its transition is a coupling with the two step distributions
+as marginals. The apex state need not be a function of either world's state.
+
+```agda
+_≲[_∣_]_ : Machine A B → (A ⇒ A′) → (B ⇒ B′) → Machine A′ B′ → Set _
+RelSim : (Aᴿ ⇒ A) → (Aᴿ ⇒ A′) → (Bᴿ ⇒ B) → (Bᴿ ⇒ B′)
+       → Machine A B → Machine A′ B′ → Set _
+≲⇔≲[id] : f ≲ g ⇔ f ≲[ id ∣ id ] g
+≲⇒relsim : f ≲ g → RelSim id id id id f g
+relsim⇒≈ᴹ : RelSim id id id id f g → f ≈ᴹ g
+```
+
+`∘ᴹ-relsim`, `⊗ᵉ-relsim` and `trace-relsim` preserve the span. The feedback theorem
+requires pure output and loop projections and uses `iter-transfer` on the paired
+state/loop variable. `UC/Machine/Relational` carries this through G-composition and
+tensor (`HSim-∘`, `HSim-⊗`); `UC/Model/Relational` exports it across the seal.
+`relsim⇒≈ᴿ` gives equality against every machine distinguisher, not just equality
+of one finite run.
+
+For symbolic contexts, `Static/Same` relates terms computed by the same recipe over
+two frames; an apex role preserves this relation, including fresh allocations and
+guards. `Static/Relational.relsim⇒≈ℰ` lifts the leaf span through the whole circuit.
+This proves the following statement for every `𝔖` and `E`:
+
+```agda
+-- Symbolic.Static 𝔖 E
+≈ₛ⇒≈ℰ : {Δ Ν : List Sort} {ζs ζs′ : All (Rcp Ν) Δ}
+      → (∀ κ → frame κ Ν ζs ≈ₛ frame κ Ν ζs′)
+      → Emitter Ν ζs Sym.≈ℰ Emitter Ν ζs′
+
+-- Symbolic.Static.PairEnc (Σ₀/E₀ only)
+≈ℰ⇔≈ₛ : {Δ Ν : List ⊤} {ζs ζs′ : All (Rcp Ν) Δ}
+      → (Emitter Ν ζs Sym.≈ℰ Emitter Ν ζs′)
+      ⇔ (∀ κ → frame κ Ν ζs ≈ₛ frame κ Ν ζs′)
+```
+
+`Static/Distinguish` proves the converse at E₀. Its tester queries every port,
+allocates fresh names for the foreign names in the two recipes, and compares their
+evaluations. `Distinguish/Run.run` proves the verdict under every naming, including
+empty and multi-port frames. If kernel equality changes the existential naming,
+a possibly non-injective renaming restores both the emitter's names and the
+recipe's foreign names. There is no additional hypothesis on E₀.
+
+**Why the unrestricted converse is false.** `Name = ℕ × ℕ` is unsorted:
+`mine n` may be used at two distinct sorts. A role, however, allocates a different
+counter for every `new s`; no recipe changes the sort of a bare name. Globally
+fresh supplies therefore cannot replay cross-sort sharing of one foreign name.
+The following is a semantic counterexample argument, not an Agda counterexample
+module: take distinct sorts `s₁, s₂, s_f, s_y, s_m, s_c`, public constants
+`c₁ ≠ c₂ : s_m`, and symbols
+`f : s₁ × s₂ → s_f`, `seal : s_m × s_y → s_c`,
+`open : s_c × s_f → s_m`. Normalize by the terminating rule
+
+```
+open(seal(x, y), f(name {s₁} n, name {s₂} n)) → x.
+```
+
+The rule is stable under ordinary name renaming, and normalization discards but
+never invents names. The one-entry emitters `seal(c₁, a)` and `seal(c₂, a)` have
+indistinguishable role runs: no closed role circuit can construct the opening
+token `f(n, n)`. Yet the static recipe
+`open(var 0, f(mine n, mine n))`, compared with `c₁`, distinguishes them for a
+foreign `n`. Adding ordinary substitution closure does not repair this mismatch.
+
+`Deduction.SortBlind` records preservation of E under sort-indexed name renaming
+`Terms.renˢ`. It is proved for E₀ (`Static/PairEnc.sort-blind`), but is **not**
+an `EqTheory` field or an assumption disguising the unrestricted theorem.
+Obtaining a general equivalence requires changing the model (sorted names or
+sort-consistent static recipes), or an explicitly restricted class of theories.
+The computational steps 11–13 must use the actual E₀ theorem above.
 
 ## 4. Morphisms
 
@@ -631,17 +710,17 @@ listed exports.
 8. `Symbolic/Setup.agda`: hypothesis-free `grade-stable`, `≈ᵁ⇔≈ℰ`, `emit-≈E`, `fine→sym`.
    **Built** (§3.6, §4.1), with `leaf-≈ℰ` and `coarse-epi`; `emit-≈E` needed canonical forms
    in `EqTheory` and `Role.Run` (§3.2), and `Symbolic/Test.agda` checks it at Σ₀.
-9. `Symbolic/Static.agda`: `≈ℰ⇔≈ₛ` on frame emitters. **Blocked.** `⇒` is a distinguishing test
-   and needs only work: a generic run of the test against the emitter, and a renaming of the
-   recipes' foreign names onto the test's own. `⇐` is not functional: the two worlds store
-   *different* terms, the same recipe applied to φ and to ψ, so no state map relates them. It needs
-   circuits related along a message relation, or along the substitution of φ's entries for
-   placeholders (with E closed under substitution, a law `EqTheory` lacks). In both cases
-   `Machines.Trace` and the G-composition must preserve such simulations; the machine layer has
-   only `Machines.Sim._≲_` along a state function and `Dp.Iter.Transfer` along a pure map.
-10. `Symbolic/Example/SecureChannel.agda`: `smt≤ideal`, with simulator `enc(0_ℓ, k′, r)`
-    (proved by `dummy-complete` and step 9). **Blocked** on step 9's `⇐`: the real and ideal
-    worlds expose statically equivalent ciphertexts.
+9. `Symbolic/Static.agda`: generic `≈ₛ⇒≈ℰ`; `Static/PairEnc.agda`: E₀ `≈ℰ⇔≈ₛ`.
+   **Built**, with `Static/{Emitter,Same,Relational,Distinguish}` and
+   `Distinguish/{Tester,Run,Names}`. The functional case, feedback and G closure are
+   in `Machines/Sim/Relational`, `UC/Machine/Relational`, `UC/Model/Relational`.
+   `Symbolic/StaticTests` exercises the public equivalence. The unrestricted
+   converse is false for the reason and counterexample of §3.7, not missing proof work.
+10. `Symbolic/Example/SecureChannel.agda`: the compatible fixed-public-message E₀
+    fragment has `real≈simulated`, `real≤simulated`; the simulator's ciphertext is
+    `enc(cst 0, k′, r)`. The interactive `smt≤ideal` requires a relation following
+    the environment-selected plaintext across the run, whereas step 9's apex is
+    parameterized by fixed frames. Step 9 alone is not that theorem.
 11. `Symbolic/Machine.agda`: `sym≅→iso`, with a warm check inside the budget.
 12. `Symbolic/Computational.agda`: `fine→comp`.
 13. `Symbolic/Soundness.agda`: `det⇒∼o`, `sound⁺`, `sound-≤UC`. Pairing and symmetric encryption
