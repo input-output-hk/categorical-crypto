@@ -96,6 +96,25 @@ opaque
           G.≈ _≅_.to (⊗ᵒ≅ B A) G.∘ procᵒ (wireᴹ {A ⊗ᴵ B} {B ⊗ᴵ A} swap swap) G.∘ _≅_.from (⊗ᵒ≅ A B)
   σ-wireᵒ = S.⟺ᴹ (wire-pure swap swap _ _ swapᵏ swapᵏ) ○ ⟺ trim
 
+  -- The relays and reassociators past the comparisons, in the orientation a
+  -- flat reading (`ND.PM.Relabel.Reads`) consumes.
+  T₁ᵒ : (Y : Iface) (f : Proc A B)
+      → _≅_.from (⊗ᵒ≅ Y B) G.∘ (G.id G.⊗₁ procᵒ f) G.≈ procᵒ (T₁ᴵ Y f) G.∘ _≅_.from (⊗ᵒ≅ Y A)
+  T₁ᵒ {A} {B} Y f = G.identityˡ ○ S.⟺ᴹ (T₁-⊗₁ {Y} {A} {B} f) ○ ⟺ G.identityʳ
+
+  subᵒ : (f : Proc A B) → _≅_.from (⊗ᵒ≅ B C) G.∘ (procᵒ f G.⊗₁ G.id) G.≈ procᵒ (subᴵ {A = C} f) G.∘ _≅_.from (⊗ᵒ≅ A C)
+  subᵒ {A} {B} {C} f = G.identityˡ ○ S.⟺ᴹ (sub-⊗₁ {A} {B} {C} f) ○ ⟺ G.identityʳ
+
+  a⇒ᵒ : procᵒ (a⇒ᴵ {A} {B} {C}) G.∘ _≅_.from (⊗ᵒ≅ (A ⊗ᴵ B) C) G.∘ (_≅_.from (⊗ᵒ≅ A B) G.⊗₁ G.id)
+      G.≈ _≅_.from (⊗ᵒ≅ A (B ⊗ᴵ C)) G.∘ (G.id G.⊗₁ _≅_.from (⊗ᵒ≅ B C)) G.∘ G.associator.from
+  a⇒ᵒ = (refl⟩∘⟨ (G.identityˡ ○ G.⊗.identity)) ○ G.identityʳ ○ a⇒-α⇒
+      ○ ⟺ (G.identityˡ ○ (G.⊗.identity ⟩∘⟨refl) ○ G.identityˡ)
+
+  a⇐ᵒ : procᵒ (a⇐ᴵ {A} {B} {C}) G.∘ _≅_.from (⊗ᵒ≅ A (B ⊗ᴵ C)) G.∘ (G.id G.⊗₁ _≅_.from (⊗ᵒ≅ B C))
+      G.≈ _≅_.from (⊗ᵒ≅ (A ⊗ᴵ B) C) G.∘ (_≅_.from (⊗ᵒ≅ A B) G.⊗₁ G.id) G.∘ G.associator.to
+  a⇐ᵒ = (refl⟩∘⟨ (G.identityˡ ○ G.⊗.identity)) ○ G.identityʳ ○ a⇐-α⇐
+      ○ ⟺ (G.identityˡ ○ (G.⊗.identity ⟩∘⟨refl) ○ G.identityˡ)
+
 -- An iso of processes at interfaces is an iso of `𝔾ᵒ`.
 procᵒ-≅ : (f : Proc A B) (g : Proc B A)
         → 𝒫._≈_ {A} {A} (g 𝒫.∘ f) (𝒫.id {A}) → 𝒫._≈_ {B} {B} (f 𝒫.∘ g) (𝒫.id {B}) → ifaceᵒ A ≅ ifaceᵒ B
