@@ -8,7 +8,8 @@
 -- middle-four interchange, whose one braiding component is σ_{C⟦S⃗⟧,Y},
 -- followed by the regrouping C⟦ S⃗ ⟧ ⊗ C⟦ T⃗ ⟧ ≅ C⟦ S⃗ ++ T⃗ ⟧ (`C++`).  ιB is
 -- full, essentially surjective (at S⃗ = []) and strong, so ND_B, Std(𝕄)
--- restricted along ιB, has Std(𝕄)'s ≤UC (`≤UC-B⇔≤UC`, §1.3 (b), (c), (f)).
+-- restricted along ιB, has Std(𝕄)'s ≤UC (`≤UC-B⇔≤UC`, §1.3 (b), (c), (f)) and
+-- its U-kernel is within Std(𝕄)'s (`≈ᵁ-B⇒≈ᵁ`).
 -- C⟦_⟧ is a `foldr`, as `ND.SSP.Choice.Cᴵ⟦_⟧` is, so that at (Protˢ, Cᴵ)
 -- the two agree definitionally.
 
@@ -104,3 +105,6 @@ module _ {cs ℓs : Level} (ℰ : Presheaf U (Setoids cs ℓs)) where
   ≤UC-B⇔≤UC {a = a} {b} = mk⇔
     (NB.Preserves.unrestrict-≤UC (λ {a} {b} → φ.to {a} {b}) (λ {a} {b} → φ.isoˡ {a} {b}) ιB-surj {X = a} {Y = b})
     (NB.restrict-≤UC {X = a} {Y = b} (λ {a} {b} → ιB-full {a} {b}))
+
+  ≈ᵁ-B⇒≈ᵁ : {A B : Obj} {a : Grade} {f g : A ⇒ ⌊ a ⌋ ⊗₀ B} → NB.R._≈ᵁ_ {X = a} f g → f Std.≈ᵁ g
+  ≈ᵁ-B⇒≈ᵁ {a = a} = NB.Preserves.≈ᵁ|ι⇒≈ᵁ (λ {a} {b} → φ.to {a} {b}) (λ {a} {b} → φ.isoˡ {a} {b}) ιB-surj {X = a}

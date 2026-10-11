@@ -6,7 +6,8 @@
 -- the wire pair ⌜ split ⌝, ⌜ join ⌝ of `ND.SSP.Choice` (`C++≈split`,
 -- `C++≈join`), and the regroupings of C⟦ S⃗ ++ [] ⟧ and of a triple
 -- concatenation are single wires along container maps with left inverses on
--- sites, hence relabellings (`Relabel.wireʳ`).
+-- sites, hence relabellings (`Relabel.wireʳ`).  An A-emulation is one whose
+-- simulator is u ⊗ ⌈ ρ ⌉ up to SSP's U-kernel (`relabel-≤UC`, `≤UC⇒relabel`).
 
 module CategoricalCrypto.ND.SSP.Setup where
 
@@ -203,19 +204,23 @@ NDA = 𝔸.NDA relabelling ℰᵖ
 
 -- Generalized variables over these dependent types crash Agda 2.8.0 in
 -- `EtaContract`, so the telescope is bound explicitly.  Each statement is
--- instantiated here, at variables; using one at concrete protocols, see
--- `ND.SSP.Laws.pick-≤UC`.
+-- instantiated here, at variables, and passes `_≤UC_` its interfaces; using one
+-- at concrete protocols, see `ND.SSP.Laws.pick-≤UC`.
 module _ {A B : Iface} {a b : Grade} {f : Protocol A (⌊ a ⌋ ⊗ᴵ B)} {g : Protocol A (⌊ b ⌋ ⊗ᴵ B)} where
 
-  ≤UC-B⇔≤UC : AbstractUC._≤UC_ NDB {X = a} {Y = b} f g ⇔ f ≤UC g
+  ≤UC-B⇔≤UC : AbstractUC._≤UC_ NDB {A = A} {X = a} {B = B} {Y = b} f g ⇔ f ≤UC g
   ≤UC-B⇔≤UC = G.≤UC-B⇔≤UC ℰᵖ {a = a} {b = b}
 
-  A⇒B : AbstractUC._≤UC_ NDA {X = a} {Y = b} f g → AbstractUC._≤UC_ NDB {X = a} {Y = b} f g
+  A⇒B : AbstractUC._≤UC_ NDA {A = A} {X = a} {B = B} {Y = b} f g → AbstractUC._≤UC_ NDB {A = A} {X = a} {B = B} {Y = b} f g
   A⇒B = 𝔸.A⇒B relabelling ℰᵖ {a = a} {b = b}
 
-  A⇒SSP : AbstractUC._≤UC_ NDA {X = a} {Y = b} f g → f ≤UC g
+  A⇒SSP : AbstractUC._≤UC_ NDA {A = A} {X = a} {B = B} {Y = b} f g → f ≤UC g
   A⇒SSP = Equivalence.to ≤UC-B⇔≤UC ∘ A⇒B
 
   relabel-≤UC : (s : Protocol ⌊ b ⌋ ⌊ a ⌋) → 𝔸.Relabels relabelling {b} {a} s
-              → _≈ᵁ_ {X = ⌊ a ⌋} f (s ⊗ᵖ wireᵖ ∘ᵖ g) → AbstractUC._≤UC_ NDA {X = a} {Y = b} f g
+              → _≈ᵁ_ {X = ⌊ a ⌋} f (s ⊗ᵖ wireᵖ ∘ᵖ g) → AbstractUC._≤UC_ NDA {A = A} {X = a} {B = B} {Y = b} f g
   relabel-≤UC = 𝔸.relabel-≤UC relabelling ℰᵖ {A = A} {B = B} {a = a} {b = b} {f = f} {g = g}
+
+  ≤UC⇒relabel : AbstractUC._≤UC_ NDA {A = A} {X = a} {B = B} {Y = b} f g
+              → Σ[ s ∈ Protocol ⌊ b ⌋ ⌊ a ⌋ ] 𝔸.Relabels relabelling {b} {a} s × _≈ᵁ_ {X = ⌊ a ⌋} f (s ⊗ᵖ wireᵖ ∘ᵖ g)
+  ≤UC⇒relabel = 𝔸.≤UC⇒relabel relabelling ℰᵖ {A = A} {B = B} {a = a} {b = b} {f = f} {g = g}

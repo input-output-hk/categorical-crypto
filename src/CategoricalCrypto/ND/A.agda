@@ -184,7 +184,8 @@ module _ (rel : Relabelling) where
     A⇒B {a = a} {b} = NA.Preserves.unrestrict-≤UC (id , tt) identity² (λ c → c , Mor.≅.refl (MonoidalCategory.U 𝒢B))
                                                    {X = a} {Y = b}
 
-    -- A simulator u ⊗ ⌈ ρ ⌉, up to Std(𝕄)'s U-kernel, is an A-emulation.
+    -- A simulator u ⊗ ⌈ ρ ⌉, up to Std(𝕄)'s U-kernel, is an A-emulation, and
+    -- every A-emulation has one.
     relabel-≤UC : {A B : Obj} {a b : Grade} {f : A ⇒ ⌊ a ⌋ ⊗₀ B} {g : A ⇒ ⌊ b ⌋ ⊗₀ B}
                 → (s : ⌊ b ⌋ ⇒ ⌊ a ⌋) → Relabels {b} {a} s
                 → AbstractUC._≈ᵁ_ (StdUC.StdSetup monoidalCategory ℰ) f (s ⊗₁ id ∘ g)
@@ -193,3 +194,12 @@ module _ (rel : Relabelling) where
       ((s , rs) , NA.≈ᵁ⇒≈ᵁ|ι {X = a}
                     (Regrade.≈ᵁ⇒≈ᵁ|ι (StdUC.StdSetup monoidalCategory ℰ) (StrongMonoidalFunctor.monoidalFunctor ιB)
                                      {X = a} e))
+
+    ≤UC⇒relabel : {A B : Obj} {a b : Grade} {f : A ⇒ ⌊ a ⌋ ⊗₀ B} {g : A ⇒ ⌊ b ⌋ ⊗₀ B}
+                → NA.R._≤UC_ {X = a} {Y = b} f g
+                → Σ[ s ∈ ⌊ b ⌋ ⇒ ⌊ a ⌋ ] Relabels {b} {a} s
+                  × AbstractUC._≈ᵁ_ (StdUC.StdSetup monoidalCategory ℰ) f (s ⊗₁ id ∘ g)
+    ≤UC⇒relabel {a = a} {b} le =
+      let (s , rs) , e = NA.R.≤UC⇒dummy {X = a} {Y = b} le
+      in s , rs , ≈ᵁ-B⇒≈ᵁ ℰ {a = a}
+                    (NA.Preserves.≈ᵁ|ι⇒≈ᵁ (id , tt) identity² (λ c → c , Mor.≅.refl (MonoidalCategory.U 𝒢B)) {X = a} e)
