@@ -286,6 +286,18 @@ joinPick : (S⃗ T⃗ : List Set) → Pick S⃗ ⊎ Pick T⃗ → Pick (S⃗ ++ 
 joinPick S⃗ T⃗ (inj₁ (i , p)) = ch (join S⃗ T⃗) (inj₁ i) , qu (join S⃗ T⃗) p
 joinPick S⃗ T⃗ (inj₂ (j , p)) = ch (join S⃗ T⃗) (inj₂ j) , qu (join S⃗ T⃗) p
 
+-- A pick past the first site of `S ∷ S⃗` is split as in `S⃗`: `split`'s routing
+-- of it is stuck until abstracted together with the pick.
+splitPick-cons : (S : Set) (S⃗ T⃗ : List Set) (c : Ch Cᴵ⟦ S⃗ ++ T⃗ ⟧) (p : Q Cᴵ⟦ S⃗ ++ T⃗ ⟧ c)
+               → splitPick (S ∷ S⃗) T⃗ (inj₂ c , p) ≡ Sum.map₁ (λ (i , q) → inj₂ i , q) (splitPick S⃗ T⃗ (c , p))
+splitPick-cons S S⃗ T⃗ c p = go (ch (split S⃗ T⃗) c) (qu (split S⃗ T⃗) p)
+  where
+  go : (x : Ch (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ T⃗ ⟧)) (q : Q (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ T⃗ ⟧) x)
+     → Σ-⊎ (ch (αᴵ⁻¹ {Cᴵ S} {Cᴵ⟦ S⃗ ⟧} {Cᴵ⟦ T⃗ ⟧}) (inj₂ x) , qu (αᴵ⁻¹ {Cᴵ S} {Cᴵ⟦ S⃗ ⟧} {Cᴵ⟦ T⃗ ⟧}) {inj₂ x} q)
+       ≡ Sum.map₁ (λ (i , q′) → inj₂ i , q′) (Σ-⊎ (x , q))
+  go (inj₁ _) _ = refl
+  go (inj₂ _) _ = refl
+
 module _ {S⃗ T⃗ S⃗′ T⃗′ : List Set} (ρ : S⃗ ⇝ T⃗) (ρ′ : S⃗′ ⇝ T⃗′) where
 
   -- A site of the juxtaposition, by the side `split` puts it on.
