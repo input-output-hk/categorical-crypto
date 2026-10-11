@@ -9,23 +9,26 @@
 -- routed site is forwarded as `⌜ m ⌝` forwards a query, any other is answered
 -- as `ack` answers (`⌈⌉ʳ-factor`), and no pick is ever originated.
 -- `⌈−⌉ʳ : Alphᵒᵖ → Prot` is a functor.  SSP's wires never use injectivity; PM's
--- need it to route each request back statelessly.
+-- (`ND.PM.Relabel`) route each request back statelessly along `preimage`.
 
 open import Categories.Category.Core using (Category)
 open import Categories.Category.Helper using (categoryHelper)
 open import Categories.Functor.Core using (Functor)
 
-open import Data.List.Base using (List; _++_)
+open import Class.DecEq using (DecEq)
+open import Data.Empty using (⊥-elim)
+open import Data.List.Base using (List; []; _∷_; _++_)
 open import Data.Maybe.Base as Maybe using (Maybe; just; nothing; maybe′)
-open import Data.Maybe.Properties using (just-injective; map-∘)
+open import Data.Maybe.Properties using (just-injective; map-∘; ≡-dec)
 open import Data.Maybe.Relation.Binary.Pointwise as Pointwise using (Pointwise; just; nothing)
 open import Data.Product.Base
-open import Data.Sum.Base using (inj₁; inj₂)
+open import Data.Sum.Base as Sum using (_⊎_; inj₁; inj₂; [_,_]′)
 open import Data.Sum.Properties using (inj₁-injective; inj₂-injective)
 open import Data.Unit.Base
 open import Function.Base using (case_of_; const; id; _∘_)
 open import Level using (0ℓ; suc)
 open import Relation.Binary.PropositionalEquality
+open import Relation.Nullary using (Dec; yes; no)
 
 open import CategoricalCrypto.ND.SSP.Choice
 open import CategoricalCrypto.SSP.Iface
@@ -68,6 +71,10 @@ just (k , r) ▷ ρ = Maybe.map (map₂ (_∘ r)) (route ρ k)
       → target (x ▷ ρ) ≡ just l → Σ[ k ∈ Ch Cᴵ⟦ T⃗ ⟧ ] target x ≡ just k × target (route ρ k) ≡ just l
 ▷-inv nothing        ρ ()
 ▷-inv (just (k , r)) ρ e = k , refl , trans (map-∘ (route ρ k)) e
+
+▷-target : (x : Maybe (Σ[ k ∈ Ch Cᴵ⟦ T⃗ ⟧ ] (P → Q Cᴵ⟦ T⃗ ⟧ k))) (ρ : T⃗ ⇝ U⃗) {k : Ch Cᴵ⟦ T⃗ ⟧} {l : Ch Cᴵ⟦ U⃗ ⟧}
+         → target x ≡ just k → target (route ρ k) ≡ just l → target (x ▷ ρ) ≡ just l
+▷-target (just (k , r)) ρ refl e = trans (sym (map-∘ (route ρ k))) e
 
 idʳ : S⃗ ⇝ S⃗
 idʳ = record
@@ -158,6 +165,90 @@ Alph = categoryHelper record
   ; ∘-resp-≈  = ∘ʳ-resp-≈ʳ
   }
 
+------------------------------------------------------------------------
+-- Preimages
+------------------------------------------------------------------------
+
+private
+  -- The first site passing a decidable test.
+  first : (S⃗ : List Set) {R : Ch Cᴵ⟦ S⃗ ⟧ → Set} → (∀ j → Dec (R j)) → Maybe (Ch Cᴵ⟦ S⃗ ⟧)
+  first []      _ = nothing
+  first (S ∷ S⃗) d with d (inj₁ tt)
+  ... | yes _ = just (inj₁ tt)
+  ... | no  _ = Maybe.map inj₂ (first S⃗ (d ∘ inj₂))
+
+  first-sound : (S⃗ : List Set) {R : Ch Cᴵ⟦ S⃗ ⟧ → Set} (d : ∀ j → Dec (R j)) {j : Ch Cᴵ⟦ S⃗ ⟧}
+              → first S⃗ d ≡ just j → R j
+  first-sound []      _ ()
+  first-sound (S ∷ S⃗) {R} d e with d (inj₁ tt)
+  first-sound (S ∷ S⃗) {R} d refl | yes r = r
+  first-sound (S ∷ S⃗) {R} d e    | no _ with first S⃗ (d ∘ inj₂) in e′
+  first-sound (S ∷ S⃗) {R} d refl | no _ | just i = first-sound S⃗ (d ∘ inj₂) e′
+  first-sound (S ∷ S⃗) {R} d ()   | no _ | nothing
+
+  first-complete : (S⃗ : List Set) {R : Ch Cᴵ⟦ S⃗ ⟧ → Set} (d : ∀ j → Dec (R j)) {j : Ch Cᴵ⟦ S⃗ ⟧}
+                 → R j → Σ[ j′ ∈ Ch Cᴵ⟦ S⃗ ⟧ ] first S⃗ d ≡ just j′
+  first-complete []      _ {()} _
+  first-complete (S ∷ S⃗) d {inj₁ _} r with d (inj₁ tt)
+  ... | yes _ = inj₁ tt , refl
+  ... | no ¬r = ⊥-elim (¬r r)
+  first-complete (S ∷ S⃗) d {inj₂ i} r with d (inj₁ tt)
+  ... | yes _ = inj₁ tt , refl
+  ... | no _  = let (i′ , e) = first-complete S⃗ (d ∘ inj₂) r in inj₂ i′ , cong (Maybe.map inj₂) e
+
+  found : (ρ : S⃗ ⇝ T⃗) (k : Ch Cᴵ⟦ T⃗ ⟧) (j : Ch Cᴵ⟦ S⃗ ⟧) → Dec (target (route ρ j) ≡ just k)
+  found {T⃗ = T⃗} ρ k j = ≡-dec (DecEq._≟_ (Ch-dec Cᴵ⟦ T⃗ ⟧)) (target (route ρ j)) (just k)
+
+-- The real site routed to an ideal one, if any: PM's wires route a request back
+-- along it, statelessly, by injectivity (`docs/uc-setup-nondeterministic.md` §3.1).
+preimage : S⃗ ⇝ T⃗ → Ch Cᴵ⟦ T⃗ ⟧ → Maybe (Ch Cᴵ⟦ S⃗ ⟧)
+preimage {S⃗} ρ k = first S⃗ (found ρ k)
+
+preimage-sound : (ρ : S⃗ ⇝ T⃗) {k : Ch Cᴵ⟦ T⃗ ⟧} {j : Ch Cᴵ⟦ S⃗ ⟧}
+               → preimage ρ k ≡ just j → target (route ρ j) ≡ just k
+preimage-sound {S⃗} ρ {k} = first-sound S⃗ (found ρ k)
+
+preimage-complete : (ρ : S⃗ ⇝ T⃗) {j : Ch Cᴵ⟦ S⃗ ⟧} {k : Ch Cᴵ⟦ T⃗ ⟧}
+                  → target (route ρ j) ≡ just k → preimage ρ k ≡ just j
+preimage-complete {S⃗} ρ {k = k} e =
+  let (j′ , e′) = first-complete S⃗ (found ρ k) e in trans e′ (cong just (injective ρ (first-sound S⃗ (found ρ k) e′) e))
+
+-- A preimage is the one candidate that is sound and complete.
+preimage-≡ : (ρ : S⃗ ⇝ T⃗) {k : Ch Cᴵ⟦ T⃗ ⟧} {m : Maybe (Ch Cᴵ⟦ S⃗ ⟧)}
+           → (∀ {j} → m ≡ just j → target (route ρ j) ≡ just k)
+           → (∀ {j} → target (route ρ j) ≡ just k → m ≡ just j)
+           → preimage ρ k ≡ m
+preimage-≡ ρ {m = just j} sound _ = preimage-complete ρ (sound refl)
+preimage-≡ ρ {k} {nothing} _ complete with preimage ρ k in e
+... | nothing = refl
+... | just j  = case complete (preimage-sound ρ e) of λ ()
+
+preimage-id : (k : Ch Cᴵ⟦ S⃗ ⟧) → preimage (idʳ {S⃗}) k ≡ just k
+preimage-id {S⃗} k = preimage-complete (idʳ {S⃗}) refl
+
+preimage-∘ : (ρ′ : T⃗ ⇝ U⃗) (ρ : S⃗ ⇝ T⃗) (l : Ch Cᴵ⟦ U⃗ ⟧)
+           → preimage (ρ′ ∘ʳ ρ) l ≡ (preimage ρ′ l Maybe.>>= preimage ρ)
+preimage-∘ ρ′ ρ l = preimage-≡ (ρ′ ∘ʳ ρ) sound complete
+  where
+  sound : ∀ {j} → (preimage ρ′ l Maybe.>>= preimage ρ) ≡ just j → target (route (ρ′ ∘ʳ ρ) j) ≡ just l
+  sound {j} e with preimage ρ′ l in e′
+  ... | just k  = ▷-target (route ρ j) ρ′ (preimage-sound ρ e) (preimage-sound ρ′ e′)
+  ... | nothing = case e of λ ()
+
+  complete : ∀ {j} → target (route (ρ′ ∘ʳ ρ) j) ≡ just l → (preimage ρ′ l Maybe.>>= preimage ρ) ≡ just j
+  complete {j} e = let (k , eᵢ , eₖ) = ▷-inv (route ρ j) ρ′ e in
+    trans (cong (Maybe._>>= preimage ρ) (preimage-complete ρ′ eₖ)) (preimage-complete ρ eᵢ)
+
+private
+  target-≐ : {x y : Maybe (Σ K (λ k → P → F k))} → Pointwise _≐_ x y → target x ≡ target y
+  target-≐ nothing          = refl
+  target-≐ (just (fibre _)) = refl
+
+preimage-resp : {ρ ρ′ : S⃗ ⇝ T⃗} → ρ ≈ʳ ρ′ → (k : Ch Cᴵ⟦ T⃗ ⟧) → preimage ρ k ≡ preimage ρ′ k
+preimage-resp {ρ = ρ} {ρ′} e k = preimage-≡ ρ
+  (λ {j} e′ → trans (target-≐ (pointwise e j)) (preimage-sound ρ′ e′))
+  (λ {j} t → preimage-complete ρ′ (trans (sym (target-≐ (pointwise e j))) t))
+
 module _ {S⃗ T⃗ S⃗′ T⃗′ : List Set} (ρ : S⃗ ⇝ T⃗) (ρ′ : S⃗′ ⇝ T⃗′) where
 
   -- A site of the juxtaposition, by the side `split` puts it on.
@@ -219,6 +310,161 @@ module _ {S⃗ T⃗ S⃗′ T⃗′ : List Set} (ρ : S⃗ ⇝ T⃗) (ρ′ : S�
                  (trans (cong (ch (join S⃗ S⃗′)) (τ-injective eτ (trans eτ′ (cong just (sym y≡y′)))))
                         (join-split S⃗ S⃗′ c′)) }
 
+  private
+    σ : Ch (Cᴵ⟦ T⃗ ⟧ ⊗ᴵ Cᴵ⟦ T⃗′ ⟧) → Maybe (Ch (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧))
+    σ = [ Maybe.map inj₁ ∘ preimage ρ , Maybe.map inj₂ ∘ preimage ρ′ ]′
+
+    σ-τ : (x : Ch (Cᴵ⟦ T⃗ ⟧ ⊗ᴵ Cᴵ⟦ T⃗′ ⟧)) {y : Ch (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧)} → σ x ≡ just y → τ y ≡ just x
+    σ-τ (inj₁ k) e with preimage ρ k in eₖ
+    σ-τ (inj₁ k) refl | just _ = cong (Maybe.map inj₁) (preimage-sound ρ eₖ)
+    σ-τ (inj₁ k) ()   | nothing
+    σ-τ (inj₂ k) e with preimage ρ′ k in eₖ
+    σ-τ (inj₂ k) refl | just _ = cong (Maybe.map inj₂) (preimage-sound ρ′ eₖ)
+    σ-τ (inj₂ k) ()   | nothing
+
+    τ-σ : (y : Ch (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧)) {x : Ch (Cᴵ⟦ T⃗ ⟧ ⊗ᴵ Cᴵ⟦ T⃗′ ⟧)} → τ y ≡ just x → σ x ≡ just y
+    τ-σ (inj₁ i) e with target (route ρ i) in eₖ
+    τ-σ (inj₁ i) refl | just _ = cong (Maybe.map inj₁) (preimage-complete ρ eₖ)
+    τ-σ (inj₁ i) ()   | nothing
+    τ-σ (inj₂ j) e with target (route ρ′ j) in eₖ
+    τ-σ (inj₂ j) refl | just _ = cong (Maybe.map inj₂) (preimage-complete ρ′ eₖ)
+    τ-σ (inj₂ j) ()   | nothing
+
+    target-++ : (c : Ch Cᴵ⟦ S⃗ ++ S⃗′ ⟧) → target (route _++ʳ_ c) ≡ Maybe.map (ch (join T⃗ T⃗′)) (τ (ch (split S⃗ S⃗′) c))
+    target-++ c = trans (sym (map-∘ (route-++ (ch (split S⃗ S⃗′) c)))) (target-route (ch (split S⃗ S⃗′) c))
+
+  preimage-++ : (l : Ch Cᴵ⟦ T⃗ ++ T⃗′ ⟧)
+              → preimage _++ʳ_ l
+                ≡ Maybe.map (ch (join S⃗ S⃗′)) ([ Maybe.map inj₁ ∘ preimage ρ , Maybe.map inj₂ ∘ preimage ρ′ ]′ (ch (split T⃗ T⃗′) l))
+  preimage-++ l = preimage-≡ _++ʳ_ sound complete
+    where
+    open ≡-Reasoning
+
+    sound : ∀ {c} → Maybe.map (ch (join S⃗ S⃗′)) (σ (ch (split T⃗ T⃗′) l)) ≡ just c → target (route _++ʳ_ c) ≡ just l
+    sound e with map-just⁻¹ (σ (ch (split T⃗ T⃗′) l)) e
+    ... | y , eσ , refl = begin
+      target (route _++ʳ_ (ch (join S⃗ S⃗′) y))
+        ≡⟨ target-++ _ ⟩
+      Maybe.map (ch (join T⃗ T⃗′)) (τ (ch (split S⃗ S⃗′) (ch (join S⃗ S⃗′) y)))
+        ≡⟨ cong (Maybe.map (ch (join T⃗ T⃗′)) ∘ τ) (split-join S⃗ S⃗′ y) ⟩
+      Maybe.map (ch (join T⃗ T⃗′)) (τ y)
+        ≡⟨ cong (Maybe.map (ch (join T⃗ T⃗′))) (σ-τ _ eσ) ⟩
+      just (ch (join T⃗ T⃗′) (ch (split T⃗ T⃗′) l))
+        ≡⟨ cong just (join-split T⃗ T⃗′ l) ⟩
+      just l ∎
+
+    complete : ∀ {c} → target (route _++ʳ_ c) ≡ just l → Maybe.map (ch (join S⃗ S⃗′)) (σ (ch (split T⃗ T⃗′) l)) ≡ just c
+    complete {c} e with map-just⁻¹ (τ (ch (split S⃗ S⃗′) c)) (trans (sym (target-++ c)) e)
+    ... | x , eτ , ex = begin
+      Maybe.map (ch (join S⃗ S⃗′)) (σ (ch (split T⃗ T⃗′) l))
+        ≡⟨ cong (Maybe.map (ch (join S⃗ S⃗′)) ∘ σ ∘ ch (split T⃗ T⃗′)) (sym ex) ⟩
+      Maybe.map (ch (join S⃗ S⃗′)) (σ (ch (split T⃗ T⃗′) (ch (join T⃗ T⃗′) x)))
+        ≡⟨ cong (Maybe.map (ch (join S⃗ S⃗′)) ∘ σ) (split-join T⃗ T⃗′ x) ⟩
+      Maybe.map (ch (join S⃗ S⃗′)) (σ x)
+        ≡⟨ cong (Maybe.map (ch (join S⃗ S⃗′))) (τ-σ _ eτ) ⟩
+      just (ch (join S⃗ S⃗′) (ch (split S⃗ S⃗′) c))
+        ≡⟨ cong just (join-split S⃗ S⃗′ c) ⟩
+      just c ∎
+
+------------------------------------------------------------------------
+-- Relabellings along container maps; the regroupings of a concatenation
+------------------------------------------------------------------------
+
+-- A relabelling routing every site along a container map with a left inverse
+-- on sites; its SSP wire is the map's (`⌈⌉ʳ-wire`).
+wireʳ : (m : Cᴵ⟦ S⃗ ⟧ ⇒ᴵ Cᴵ⟦ T⃗ ⟧) (back : Ch Cᴵ⟦ T⃗ ⟧ → Ch Cᴵ⟦ S⃗ ⟧) → (∀ i → back (ch m i) ≡ i) → S⃗ ⇝ T⃗
+wireʳ m back inv = record
+  { route     = λ i → just (ch m i , qu m)
+  ; injective = λ {i} {j} e e′ →
+      trans (sym (inv i)) (trans (cong back (just-injective (trans e (sym e′)))) (inv j)) }
+
+preimage-wireʳ : (m : Cᴵ⟦ S⃗ ⟧ ⇒ᴵ Cᴵ⟦ T⃗ ⟧) (back : Ch Cᴵ⟦ T⃗ ⟧ → Ch Cᴵ⟦ S⃗ ⟧) (inv : ∀ i → back (ch m i) ≡ i)
+               → (∀ k → ch m (back k) ≡ k) → (k : Ch Cᴵ⟦ T⃗ ⟧) → preimage (wireʳ {S⃗} {T⃗} m back inv) k ≡ just (back k)
+preimage-wireʳ {S⃗} {T⃗} m back inv inv′ k = preimage-complete (wireʳ {S⃗} {T⃗} m back inv) (cong just (inv′ k))
+
+unitʳᴵ : (S⃗ : List Set) → Cᴵ⟦ S⃗ ⟧ ⇒ᴵ Cᴵ⟦ S⃗ ++ [] ⟧
+unitʳᴵ S⃗ = join S⃗ [] ∘ᴵ ι₁ {Cᴵ⟦ S⃗ ⟧} {unitᴵ}
+
+unitʳᴵ⁻¹ : (S⃗ : List Set) → Cᴵ⟦ S⃗ ++ [] ⟧ ⇒ᴵ Cᴵ⟦ S⃗ ⟧
+unitʳᴵ⁻¹ S⃗ = ρᴵ {Cᴵ⟦ S⃗ ⟧} ∘ᴵ split S⃗ []
+
+assocᴵ : (S⃗ T⃗ U⃗ : List Set) → Cᴵ⟦ S⃗ ++ (T⃗ ++ U⃗) ⟧ ⇒ᴵ Cᴵ⟦ (S⃗ ++ T⃗) ++ U⃗ ⟧
+assocᴵ S⃗ T⃗ U⃗ = join (S⃗ ++ T⃗) U⃗ ∘ᴵ (join S⃗ T⃗ ⊗ᴵᴵ idᴵ) ∘ᴵ αᴵ⁻¹ {Cᴵ⟦ S⃗ ⟧} {Cᴵ⟦ T⃗ ⟧} {Cᴵ⟦ U⃗ ⟧}
+              ∘ᴵ (idᴵ ⊗ᴵᴵ split T⃗ U⃗) ∘ᴵ split S⃗ (T⃗ ++ U⃗)
+
+assocᴵ⁻¹ : (S⃗ T⃗ U⃗ : List Set) → Cᴵ⟦ (S⃗ ++ T⃗) ++ U⃗ ⟧ ⇒ᴵ Cᴵ⟦ S⃗ ++ (T⃗ ++ U⃗) ⟧
+assocᴵ⁻¹ S⃗ T⃗ U⃗ = join S⃗ (T⃗ ++ U⃗) ∘ᴵ (idᴵ ⊗ᴵᴵ join T⃗ U⃗) ∘ᴵ αᴵ {Cᴵ⟦ S⃗ ⟧} {Cᴵ⟦ T⃗ ⟧} {Cᴵ⟦ U⃗ ⟧}
+                ∘ᴵ (split S⃗ T⃗ ⊗ᴵᴵ idᴵ) ∘ᴵ split (S⃗ ++ T⃗) U⃗
+
+private
+  map-inv : {A B C D : Set} {f : A → B} (g : B → A) {h : C → D} (k : D → C)
+          → (∀ a → g (f a) ≡ a) → (∀ c → k (h c) ≡ c) → ∀ x → Sum.map g k (Sum.map f h x) ≡ x
+  map-inv g k p q (inj₁ a) = cong inj₁ (p a)
+  map-inv g k p q (inj₂ c) = cong inj₂ (q c)
+
+  assocʳˡ : {A B C : Set} (x : A ⊎ B ⊎ C) → Sum.assocʳ (Sum.assocˡ x) ≡ x
+  assocʳˡ (inj₁ _)        = refl
+  assocʳˡ (inj₂ (inj₁ _)) = refl
+  assocʳˡ (inj₂ (inj₂ _)) = refl
+
+  assocˡʳ : {A B C : Set} (x : (A ⊎ B) ⊎ C) → Sum.assocˡ (Sum.assocʳ x) ≡ x
+  assocˡʳ (inj₁ (inj₁ _)) = refl
+  assocˡʳ (inj₁ (inj₂ _)) = refl
+  assocˡʳ (inj₂ _)        = refl
+
+unitʳ-inv : (S⃗ : List Set) (i : Ch Cᴵ⟦ S⃗ ⟧) → ch (unitʳᴵ⁻¹ S⃗) (ch (unitʳᴵ S⃗) i) ≡ i
+unitʳ-inv S⃗ i = cong [ id , ⊥-elim ]′ (split-join S⃗ [] (inj₁ i))
+
+unitʳ⁻¹-inv : (S⃗ : List Set) (c : Ch Cᴵ⟦ S⃗ ++ [] ⟧) → ch (unitʳᴵ S⃗) (ch (unitʳᴵ⁻¹ S⃗) c) ≡ c
+unitʳ⁻¹-inv S⃗ c = trans (cong (ch (join S⃗ [])) (unρ (ch (split S⃗ []) c))) (join-split S⃗ [] c)
+  where
+  unρ : (x : Ch (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ unitᴵ)) → inj₁ ([ id , ⊥-elim ]′ x) ≡ x
+  unρ (inj₁ _) = refl
+  unρ (inj₂ ())
+
+assoc-inv : (S⃗ T⃗ U⃗ : List Set) (i : Ch Cᴵ⟦ S⃗ ++ (T⃗ ++ U⃗) ⟧) → ch (assocᴵ⁻¹ S⃗ T⃗ U⃗) (ch (assocᴵ S⃗ T⃗ U⃗) i) ≡ i
+assoc-inv S⃗ T⃗ U⃗ i =
+  trans (cong (λ x → j₄ (Sum.map id j₃ (Sum.assocʳ (Sum.map s₁ id x)))) (split-join (S⃗ ++ T⃗) U⃗ y₂))
+ (trans (cong (λ x → j₄ (Sum.map id j₃ (Sum.assocʳ x))) (map-inv s₁ id (split-join S⃗ T⃗) (λ _ → refl) y₃))
+ (trans (cong (λ x → j₄ (Sum.map id j₃ x)) (assocʳˡ y₄))
+ (trans (cong j₄ (map-inv id j₃ (λ _ → refl) (join-split T⃗ U⃗) (s₄ i))) (join-split S⃗ (T⃗ ++ U⃗) i))))
+  where
+  s₁ = ch (split S⃗ T⃗)
+  s₄ = ch (split S⃗ (T⃗ ++ U⃗))
+  j₃ = ch (join T⃗ U⃗)
+  j₄ = ch (join S⃗ (T⃗ ++ U⃗))
+  y₄ = Sum.map id (ch (split T⃗ U⃗)) (s₄ i)
+  y₃ = Sum.assocˡ y₄
+  y₂ = Sum.map (ch (join S⃗ T⃗)) id y₃
+
+assoc⁻¹-inv : (S⃗ T⃗ U⃗ : List Set) (c : Ch Cᴵ⟦ (S⃗ ++ T⃗) ++ U⃗ ⟧)
+            → ch (assocᴵ S⃗ T⃗ U⃗) (ch (assocᴵ⁻¹ S⃗ T⃗ U⃗) c) ≡ c
+assoc⁻¹-inv S⃗ T⃗ U⃗ c =
+  trans (cong (λ x → j₂ (Sum.map j₁ id (Sum.assocˡ (Sum.map id s₃ x)))) (split-join S⃗ (T⃗ ++ U⃗) z₂))
+ (trans (cong (λ x → j₂ (Sum.map j₁ id (Sum.assocˡ x))) (map-inv id s₃ (λ _ → refl) (split-join T⃗ U⃗) z₃))
+ (trans (cong (λ x → j₂ (Sum.map j₁ id x)) (assocˡʳ z₄))
+ (trans (cong j₂ (map-inv j₁ id (join-split S⃗ T⃗) (λ _ → refl) (s₂ c))) (join-split (S⃗ ++ T⃗) U⃗ c))))
+  where
+  j₁ = ch (join S⃗ T⃗)
+  j₂ = ch (join (S⃗ ++ T⃗) U⃗)
+  s₂ = ch (split (S⃗ ++ T⃗) U⃗)
+  s₃ = ch (split T⃗ U⃗)
+  z₄ = Sum.map (ch (split S⃗ T⃗)) id (s₂ c)
+  z₃ = Sum.assocʳ z₄
+  z₂ = Sum.map id (ch (join T⃗ U⃗)) z₃
+
+unit⇒ʳ : (S⃗ : List Set) → S⃗ ⇝ S⃗ ++ []
+unit⇒ʳ S⃗ = wireʳ (unitʳᴵ S⃗) (ch (unitʳᴵ⁻¹ S⃗)) (unitʳ-inv S⃗)
+
+unit⇐ʳ : (S⃗ : List Set) → S⃗ ++ [] ⇝ S⃗
+unit⇐ʳ S⃗ = wireʳ (unitʳᴵ⁻¹ S⃗) (ch (unitʳᴵ S⃗)) (unitʳ⁻¹-inv S⃗)
+
+assoc⇒ʳ : (S⃗ T⃗ U⃗ : List Set) → S⃗ ++ (T⃗ ++ U⃗) ⇝ (S⃗ ++ T⃗) ++ U⃗
+assoc⇒ʳ S⃗ T⃗ U⃗ = wireʳ (assocᴵ S⃗ T⃗ U⃗) (ch (assocᴵ⁻¹ S⃗ T⃗ U⃗)) (assoc-inv S⃗ T⃗ U⃗)
+
+assoc⇐ʳ : (S⃗ T⃗ U⃗ : List Set) → (S⃗ ++ T⃗) ++ U⃗ ⇝ S⃗ ++ (T⃗ ++ U⃗)
+assoc⇐ʳ S⃗ T⃗ U⃗ = wireʳ (assocᴵ⁻¹ S⃗ T⃗ U⃗) (ch (assocᴵ S⃗ T⃗ U⃗)) (assoc⁻¹-inv S⃗ T⃗ U⃗)
+
 ------------------------------------------------------------------------
 -- The SSP wires
 ------------------------------------------------------------------------
@@ -255,14 +501,6 @@ relabelᴵ {S⃗} {T⃗} ρ = record
   go _ i p with route ρ i
   ... | nothing = ret refl
   ... | just _  = call λ _ → ret refl
-
--- A relabelling routing every site along a container map with a left inverse
--- on sites; its wire is the map's.
-wireʳ : (m : Cᴵ⟦ S⃗ ⟧ ⇒ᴵ Cᴵ⟦ T⃗ ⟧) (back : Ch Cᴵ⟦ T⃗ ⟧ → Ch Cᴵ⟦ S⃗ ⟧) → (∀ i → back (ch m i) ≡ i) → S⃗ ⇝ T⃗
-wireʳ m back inv = record
-  { route     = λ i → just (ch m i , qu m)
-  ; injective = λ {i} {j} e e′ →
-      trans (sym (inv i)) (trans (cong back (just-injective (trans e (sym e′)))) (inv j)) }
 
 ⌈⌉ʳ-wire : (m : Cᴵ⟦ S⃗ ⟧ ⇒ᴵ Cᴵ⟦ T⃗ ⟧) (back : Ch Cᴵ⟦ T⃗ ⟧ → Ch Cᴵ⟦ S⃗ ⟧) (inv : ∀ i → back (ch m i) ≡ i)
          → ⌈ wireʳ {S⃗} {T⃗} m back inv ⌉ʳ ≲ᵖ ⌜ m ⌝
