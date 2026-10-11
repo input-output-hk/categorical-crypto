@@ -26,8 +26,8 @@ of one standard setup along a functor of grades, and A → B is the inclusion.
 3. **ND_A** (§3, built: `ND/A.agda`) = ND_B|incl, incl the wide inclusion of the grade morphisms
    u ⊗ ⌈ρ⌉, ρ a relabelling (`Transport.weaken`).
 4. **A → B** (§4) is `inclusion` at incl: it preserves ≤UC for all f, g (one U-kernel; built, `A⇒B`) and
-   does not reflect it [INFERENCE].  Undesignation B → A is a section; nothing inverts the inclusion on
-   designated grades.
+   does not reflect it (built at SSP, `ND/SSP/Reflect.agda`: one site copied to two).  Undesignation
+   B → A is a section; nothing inverts the inclusion on designated grades.
 
 **Findings against uc-models §4.**  (a) *SSP cannot raise the request* (§2.4): its grade is called,
 never calling, and a step cannot suspend.  SSP compiles `choose` *pick-ahead* — picks pushed on
@@ -403,11 +403,12 @@ in advance.  An unanswered request blocks one side only, so sites must match thr
 
 For one site and π : S → S, ⌈⟨k ∘ π⟩⌉ ≈ᵖ sub_{⌈π⌉} ∘ ⌈⟨k⟩⌉: the simulation maps the queue by π (built,
 `Laws.permute`, any π, not only bijections; read at grade (I, S⃗) the simulator is id ⊗ ⌈π⌉, `at-sub`).
-This is a hom-equality after a relabelling.  At π = swap, ⟨[t_AB, t_BA]⟩ and ⟨[t_BA, t_AB]⟩ ("A then B"
-against "B then A") are equal after swapping the picks (built, `Laws.Swap.swap-ᵖ`), so they emulate each
-other in A with the swap as simulator (uc-models §4; `relabel-≤UC` gives it, not landed for its
-elaboration cost, §6 L1); hence in B (§4) and, by `UC-compose`, in every context.  "The order does not
-matter" is the stronger, grade-preserving ⌈⟨k⟩⌉ ≈ᵖ ⌈⟨const k₀⟩⌉.  As in the old plan's `OrderSpec`, it
+This is a hom-equality after a relabelling, hence an A-emulation with id ⊗ ⌈π⌉ as simulator (built,
+`Laws.pick-≤UC`, `Laws.permute-≤UC`).  At π = swap, ⟨[t_AB, t_BA]⟩ and ⟨[t_BA, t_AB]⟩ ("A then B"
+against "B then A") are equal after swapping the picks (built, `Laws.Swap.swap-ᵖ`, `swap-ᵖ′`), so they
+emulate each other in A with the swap as simulator (uc-models §4; built, `Laws.Swap.order-indep`); hence
+in B (§4) and, by `UC-compose`, in every context.  "The order does not matter" is the stronger,
+grade-preserving ⌈⟨k⟩⌉ ≈ᵖ ⌈⟨const k₀⟩⌉.  As in the old plan's `OrderSpec`, it
 is a statement about the composite with the actual callee, since calls on different channels do not
 commute for an order-sensitive importer: built for two counters (`Laws.Callee.either-order`), in general
 per reachable state (ssp.md §4.3's technique) [INFERENCE].
@@ -428,14 +429,23 @@ two picks from one site per activation, against the one-site protocol on S × S 
 They are B-equivalent through a simulator that buffers two real picks and passes the pair (or splits
 one), and not A-related, since a relabelling forwards one pick per pick, statelessly [INFERENCE; PM and
 SSP alike].  (ii) In PM, ⟨t₀⟩ ≤UC_B ⟨[t₀, t₁]⟩ (§2.5) while ⟨t₀⟩ ≰UC_A ⟨[t₀, t₁]⟩ (§3.3).  At SSP (ii) is
-unavailable — SSP-B cannot feed the ideal queue (§2.5's caveat) — and (i) is the candidate: its B-half is
-one simulation (buffer one pick), its A-half a case split over ρ : [S] ⇝ [S × S] with a computed
-distinguishing run.  Not built [INFERENCE].
+unavailable — SSP-B cannot feed the ideal queue (§2.5's caveat).  (iii) *Copying*, built at SSP
+(`ND/SSP/Reflect.agda`, `¬reflect`), cheaper than (i): `once` answers with one pick from its one site,
+`twice` takes one pick from each of two sites and answers with the first, S = Bool.  B-half: the
+stateless simulator `copy` forwards each real pick to both ideal sites, so the two queues stay equal to
+the real one (`copy-ᵖ`, one simulation).  A-half: an A-emulation has a simulator u ⊗ ⌈ρ⌉ up to SSP's
+U-kernel (`≤UC⇒relabel`, the converse of `relabel-≤UC`, through `ND/Grade.≈ᵁ-B⇒≈ᵁ`), and ρ : [Bool] ⇝
+[Bool, Bool] routes the real site to at most one ideal site.  The test that pushes `true` and queries
+sees `once` answer `true` and the composite die on an empty ideal queue; the run is computed by `refl` for
+each of ρ's three routes (`pin` freezes the route, `⌈⌉ʳ-resp` moves to it; u never runs), and the two
+`true` masses are 1 and 0.  (i)'s A-half, a case split over pair maps with buffering state on the B
+side, is not built.
 
 **The way back.**
 
 - **Nothing inverts the inclusion on designated grades.**  A morphism B → A fixing them would carry
-  B-simulators to A-simulators (κ-sub), and witness (i)'s simulator is no relabelling [INFERENCE].
+  B-simulators to A-simulators (κ-sub), and witness (iii)'s simulator `copy` is no relabelling (by
+  `¬reflect`) [INFERENCE for the general claim].
 - **Undesignation is a morphism B → A.**  Φ_u : 𝒢_B → 𝒢_A, (X, S⃗) ↦ (⌊X,S⃗⌋, []), u ↦ u ⊗ ⌈id_[]⌉, is a
   functor (between site-free grades every morphism is in R) and strong (comparison φ).  With ND_A in its
   direct form Std(𝕄)|(ι_B ∘ incl), it is `between Φ_u θ` (§1.4), θ the unitor ⌊X,S⃗⌋ ⊗ I ≅ ⌊X,S⃗⌋.  ι_A ∘ Φ_u and ι_B have the
@@ -477,8 +487,9 @@ about ⌈−⌉.
   activated, and the real side dies on an empty queue.  Flattening's B rows and both idempotence
   verdicts are [INFERENCE].
 - Built at SSP (`ND/SSP/Laws.agda`, `Choice/Dist.agda`): row 1 `congruence`; row 2 `coin-choose-ᵈ`,
-  `call-choose-ᵈ`; row 3 `permute`, `Swap.swap-ᵖ` (the A-mutual emulation from it is not landed, §6 L1);
-  row 4 `collapse`, against a callee `Callee.either-order`.  Rows 5–6 are not built.
+  `call-choose-ᵈ`; row 3 `permute`, `Swap.swap-ᵖ`, and as A-emulations `permute-≤UC` and the mutual
+  `Swap.order-indep`; row 4 `collapse`, against a callee `Callee.either-order`.  Rows 5–6 are not built;
+  copying, one site against two (§4 (iii)), is built in `ND/SSP/Reflect.agda`: B one way, not A.
 
 ### 5.2 `P ∥ Q` (kept)
 
@@ -520,8 +531,9 @@ integrator's.  Paths are under `src/`.
 | B1 | `CategoricalCrypto/ND/Grade.agda` | over a `SymmetricMonoidalCategory` and `C : Set → Obj`: `Grade`, `⌊_⌋`, φ, υ, `𝒢B`, `ιB`, `NDB`, ≤UC_B ⇔ ≤UC (G1) | **built** (`42a76270`): `C⟦_⟧` (a `foldr`, as `Choice.Cᴵ⟦_⟧` now is, so the two agree at (Protˢ, Cᴵ)), `C++` : C⟦S⃗⟧ ⊗ C⟦T⃗⟧ ≅ C⟦S⃗ ++ T⃗⟧, φ = (id ⊗ `C++`) ∘ agda-categories' `swapInner` (its one braiding component is σ_{C⟦S⃗⟧,Y}), υ = λ⁻¹, `closedB`, `𝒢B`, `ιB`, `ιB-full`, `ιB-surj`, `NDB`, `≤UC-B⇔≤UC` (`Preserves.unrestrict-≤UC` at r = φ⁻¹, and `restrict-≤UC`).  At (Protˢ, Cᴵ): `ND/SSP/Setup.agda` (`NDB`, `≤UC-B⇔≤UC`: B-emulation is SSP's ≤UC) |
 | B2 | `CategoricalCrypto/ND/SSP/Choice.agda` | §2.4: `Calls⁺`, `Protocol⁺`, the `choose` clauses, `_∘⁺_`, `Queues`, `resolve`, `⌈_⌉`, `⌈⌉-resp`, `⌈⌉-plain`, `⌈⌉-∘`, `⌈⌉-⊗` | a two-site composite pinned by `refl` — **built**: `ND/SSP/Choice.agda` (syntax, `⌈_⌉`, `⌈⌉-resp`, `⌈⌉-plain`), `Choice/Compose.agda` (`⌈⌉-∘`, `⌈⌉-⊗` with φ⁻¹ on the left; `split∘join`, then `⌈⌉-∘-split`, `⌈⌉-⊗-split` in §2.4's form), `Choice/Pin.agda` (`veto ∘⁺ pick`: site order, FIFO, an empty queue `dead`; the concrete forms are `_∙_` and `sub` by `refl`), `Choice/Dist.agda` (§5.3, optional), `SSP/Protocol/Wire.agda` (`⌜⌝-∘`, `⌜⌝-⊗`, `interchangeᴵ`) |
 | A1 | `CategoricalCrypto/ND/Relabel.agda` | §3.1: `Alph`, `++`, the SSP wires `⌈ρ⌉` (`⌜ m ⌝`, `ack`) | `⌈_⌉` a functor Alphᵒᵖ → `Prot` up to ≈ᵖ — **built**: `_⇝_`, `Alph`, `_++ʳ_`, the wires `⌈_⌉ʳ` with `⌈⌉ʳ-factor`, `⌈−⌉ʳ : Functor (Category.op Alph) Prot`, `⌈⌉ʳ-++` (§3.1) |
-| A2 | `CategoricalCrypto/ND/A.agda` | §3.2: the class R and its closure, `𝒢A`, `incl`, `NDA`, `A⇒B` (G1's `unrestrict-≤UC` at `incl`) | **built** (`817e515d`): `Relabelling` (⌈−⌉ on C⟦_⟧ functorial, monoidal through `C++`, and relabellings realising the regroupings `unit++`, `assoc++`, §2.3), `Relabels`, `closedA`, `𝒢A`, `incl = weaken closedA closedB _`, `NDA`, `A⇒B : f ≤UC_A g → f ≤UC_B g` for all f, g (`Preserves.unrestrict-≤UC` at r = id), `relabel-≤UC`.  At SSP (`ND/SSP/Setup.agda`): `relabelling` (`C++` is ⌜split⌝/⌜join⌝ up to ≈ᵖ, `C++≈split`/`C++≈join`; regroupings by `Relabel.wireʳ`), `NDA`, `A⇒B`, `A⇒SSP`, `relabel-≤UC`.  Non-reflection at SSP not built (§4) |
-| L1 | `CategoricalCrypto/ND/SSP/Laws.agda` | §5.1 at SSP; §3.4's swap; `collapse` against a callee | **built** (`3ca93786`): `congruence` (row 1), `collapse` and `Callee.either-order` (row 4, against two counters), `permute` (row 3, any π : S → S), `Swap.swap-ᵖ` (the swap instance as ≈ᵖ), `at`/`at-sub`; row 2 in `Choice/Dist.agda` (`call-dead`, `call-choose`, `call-choose-ᵈ` beside the coin half).  **Not landed:** order independence as mutual ≤UC_A (`relabel-≤UC` at `at … ⌈⟨ba⟩⌉`, `at … ⌈⟨ab⟩⌉` with the swap wire): it checks, but the application alone takes ~100 s warm (whole module 129–333 s against 7 s without it), over budget; the cost sits in elaborating the application at concrete compiled protocols, not in its arguments |
+| A2 | `CategoricalCrypto/ND/A.agda` | §3.2: the class R and its closure, `𝒢A`, `incl`, `NDA`, `A⇒B` (G1's `unrestrict-≤UC` at `incl`) | **built** (`817e515d`): `Relabelling` (⌈−⌉ on C⟦_⟧ functorial, monoidal through `C++`, and relabellings realising the regroupings `unit++`, `assoc++`, §2.3), `Relabels`, `closedA`, `𝒢A`, `incl = weaken closedA closedB _`, `NDA`, `A⇒B : f ≤UC_A g → f ≤UC_B g` for all f, g (`Preserves.unrestrict-≤UC` at r = id), `relabel-≤UC` and its converse `≤UC⇒relabel` (`5adcd7a0`; `NA.Preserves.≈ᵁ\|ι⇒≈ᵁ` at r = id, then `Grade.≈ᵁ-B⇒≈ᵁ`).  At SSP (`ND/SSP/Setup.agda`): `relabelling` (`C++` is ⌜split⌝/⌜join⌝ up to ≈ᵖ, `C++≈split`/`C++≈join`; regroupings by `Relabel.wireʳ`), `NDA`, `A⇒B`, `A⇒SSP`, `relabel-≤UC`, `≤UC⇒relabel`, each passing `_≤UC_` its interfaces |
+| A3 | `CategoricalCrypto/ND/SSP/Reflect.agda` | §4: A → B does not reflect ≤UC at SSP | **built** (`5adcd7a0`): `¬reflect : Σ f g. f ≤UC_B g × ¬ f ≤UC_A g` at `once`/`twice` (one site copied to two, S = Bool, §4 (iii)); B by `copy-ᵖ` and `≤UC-B⇔≤UC`, not A by `≤UC⇒relabel`, `pin` and a run computed per route (`distinguish`, `refute`).  Flattening (§4 (i)) not built |
+| L1 | `CategoricalCrypto/ND/SSP/Laws.agda` | §5.1 at SSP; §3.4's swap; `collapse` against a callee | **built** (`3ca93786`, `6fe4af5c`): `congruence` (row 1), `collapse` and `Callee.either-order` (row 4, against two counters), `permute` (row 3, any π : S → S), `Swap.swap-ᵖ`/`swap-ᵖ′` (the swap instance as ≈ᵖ, both ways), `at`/`at-sub`; row 2 in `Choice/Dist.agda` (`call-dead`, `call-choose`, `call-choose-ᵈ` beside the coin half).  Order independence as mutual ≤UC_A: `Swap.order-indep`, through `pick-≤UC` (a pick relabelling as A-simulator) and `permute-≤UC`.  *Correction* to the cost recorded before (129–333 s, "elaborating the application"): it was one conversion.  `_≤UC_` opens with `∀ {X′}`, so checking a term against it inserts λ {X′} and gives the term's own X′ a meta, solved η-expanded (a grade is a pair); `_≤UC_`'s implicit interfaces, inferred, come out as η-expanded Iface records (`Ch-dec` included).  The two types are then not syntactically equal and `_≤UC_`'s body unfolds down to the compiled protocols: 83 s for the X′ alone, 7 s for the interfaces alone, 0.5 s with X′ bound (λ {X′} → … {X′}) and `{A = A} {B = B}` passed |
 | L2 (opt.) | `CategoricalCrypto/ND/Undesignate.agda` | §4: Φᵤ, B → A by `Between`, the retract | — |
 | L3 (opt.) | `CategoricalCrypto/ND/SSP/Shuffle.agda` | §5.2: `_∥ᶜ_`, commutativity by relabelling | — |
 | P1 | `CategoricalCrypto/UC/Model/Symmetric.agda` | §2.3: `𝔾ᵒ`'s braiding σᴳ, naturality, hexagon | a `SymmetricMonoidalCategory` over `∣𝔾ᵒ∣` |
@@ -534,8 +546,9 @@ spelling of 𝒥's levels, ascribed, so that records are not eta-compared; ν is
 concrete setup by `module X = M 𝕊ᵒ` copies `Regrade`'s and `AbstractUC`'s names (51.6 s against 13.5 s, §1.5);
 generalized `variable`s over the dependent `Protocol A (⌊ a ⌋ ⊗ᴵ B)` crash Agda 2.8.0 (`EtaContract`
 `__IMPOSSIBLE__`), so `ND/SSP/Setup` binds its telescope; interfaces under `⊗ᴵ` and grades under `⌊_⌋`/`C⟦_⟧`
-are not inferable (η-expanded metas), so they are passed.  Warm at `-M3G`: `Transport` 5 s, `Grade` 9 s,
-`A` 13 s, `SSP/Setup` 19 s, `Laws` 7 s, `Choice/Dist` 10 s.
+are not inferable (η-expanded metas), so they are passed; a statement of `_≤UC_` at concrete protocols binds
+X′ and passes the interfaces (L1).  Warm at `-M3G`: `Transport` 5 s, `Grade` 9 s, `A` 13 s, `SSP/Setup` 20 s,
+`Laws` 9.5 s, `Reflect` 8.5 s, `Choice/Dist` 10 s.
 
 ## 7. Sources
 

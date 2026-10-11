@@ -475,7 +475,7 @@ tensor, morphisms with their hom-equality — and the test presheaf. #design row
     [#PM's morphisms; grade morphisms: all of them between such grades (#NDB), or $u ⊗ ρ$ with $ρ$ a relabelling of choice factors (#NDA)],
     [the ambient tests],
     [B: adversary-resolved scheduling @canetti2020uc; A: environment-resolved specifications],
-    [#formal over any symmetric 𝕄, at #SSP: #cc("ND/SSP/Setup.agda", 198, "NDB"), #cc("ND/SSP/Setup.agda", 201, "NDA"); at #PM #design; @sec:nd],
+    [#formal over any symmetric 𝕄, at #SSP: #cc("ND/SSP/Setup.agda", 199, "NDB"), #cc("ND/SSP/Setup.agda", 202, "NDA"); at #PM #design; @sec:nd],
   )
 }
 ]
@@ -1108,7 +1108,7 @@ Both are grade-side restrictions: the computations, the tests and $cal(M)$ restr
 inclusion (a graded monad pulls back along a lax monoidal functor) are those of $Std(𝕄)$, and
 $ NDA arrow.r.hook NDB arrow.r.hook Std(𝕄) $
 are setup morphisms $("Id", mincl, opid, opid)$.
-#srcs(ag("Categories/Monad/Graded/Pullback.agda", 35, "pullback"), cc("Abstract2/Regrade.agda", 55, "regraded"), cc("Abstract2/Regrade.agda", 62, "inclusion"), cc("Abstract2/Regrade.agda", 97, "Preserves"), cc("ND/Grade.agda", 80, "𝒢B"), cc("ND/Grade.agda", 83, "ιB"), cc("ND/Grade.agda", 99, "NDB"), cc("ND/A.agda", 59, "Relabelling"), cc("ND/A.agda", 134, "closedA"), cc("ND/A.agda", 170, "𝒢A"), cc("ND/A.agda", 173, "incl"), cc("ND/A.agda", 179, "NDA"), ag("Categories/Category/Monoidal/Construction/Transport.agda", 229, "weaken"))
+#srcs(ag("Categories/Monad/Graded/Pullback.agda", 35, "pullback"), cc("Abstract2/Regrade.agda", 55, "regraded"), cc("Abstract2/Regrade.agda", 62, "inclusion"), cc("Abstract2/Regrade.agda", 97, "Preserves"), cc("ND/Grade.agda", 81, "𝒢B"), cc("ND/Grade.agda", 84, "ιB"), cc("ND/Grade.agda", 100, "NDB"), cc("ND/A.agda", 59, "Relabelling"), cc("ND/A.agda", 134, "closedA"), cc("ND/A.agda", 170, "𝒢A"), cc("ND/A.agda", 173, "incl"), cc("ND/A.agda", 179, "NDA"), ag("Categories/Category/Monoidal/Construction/Transport.agda", 229, "weaken"))
 ] <def:nd>
 
 *Who resolves.* In #NDB an adversary $a$ is any morphism of grades, so it may answer a real choice
@@ -1122,16 +1122,18 @@ and $op("choose")[q, p]$ emulate each other in #NDA with the swap of the two pic
 
 #proposition(name: [emulation in #NDA implies emulation in #NDB])[
 #formal For protocols $f, g$ graded in $𝒢_A$: if $f leUC g$ in #NDA then $f leUC g$ in #NDB, and in #NDB
-$leUC$ is $Std(𝕄)$'s. The converse fails (argued, not built). Over any symmetric $𝕄$; instantiated at #SSP.
-#srcs(cc("ND/A.agda", 182, "A⇒B"), cc("ND/Grade.agda", 102, "≤UC-B⇔≤UC"), cc("ND/SSP/Setup.agda", 213, "A⇒B"), cc("ND/SSP/Setup.agda", 216, "A⇒SSP"))
+$leUC$ is $Std(𝕄)$'s. The converse fails (built at #SSP: one choice site copied to two). Over any
+symmetric $𝕄$; instantiated at #SSP.
+#srcs(cc("ND/A.agda", 182, "A⇒B"), cc("ND/Grade.agda", 103, "≤UC-B⇔≤UC"), cc("ND/SSP/Setup.agda", 214, "A⇒B"), cc("ND/SSP/Setup.agda", 217, "A⇒SSP"), cc("ND/SSP/Reflect.agda", 147, "¬reflect"), cc("ND/SSP/Laws.agda", 198, "Swap.order-indep"))
 ] <prop:nd-incl>
 
 #proofidea[$𝒢_A$ is wide in $𝒢_B$, so the two setups have the same grade objects, hence the same
 ancillas, prefix contexts and tests: $eqU$ is literally the same relation in both. By dummy
 completeness (@thm:metatheory(2), valid in every setup), $f leUC g$ in #NDA gives
 $s_0 ∈ 𝒢_A (Y, X)$ with $f eqU opsub_(s_0) ∘ g$; since $𝒢_A (Y, X) ⊆ 𝒢_B (Y, X)$, the same $s_0$ is a
-dummy simulator in #NDB. The converse fails because a #NDB simulator may answer requests, which no
-relabelling does. The inclusion preserves $leUC$ and does not reflect it; @thm:transport is not
+dummy simulator in #NDB. The converse fails because a #NDB simulator may answer requests or copy a
+pick to several sites, which no relabelling does; at #SSP a simulator forwarding each real pick to two
+ideal sites is the witness. The inclusion preserves $leUC$ and does not reflect it; @thm:transport is not
 needed (and its hypotheses fail: #PM is not grade-stable, and $mincl$ is not full).]
 
 So a specification proved order-independent in #NDA is usable in the adversarially scheduled #NDB.
