@@ -13,12 +13,13 @@ module CategoricalCrypto.Symbolic.Static.Emitter (𝔖 : Signature) (E : EqTheor
 open import Data.Fin.Base using (Fin; zero; suc)
 open import Data.List.Base using (List; []; _∷_; _++_; length)
 open import Data.List.Membership.Propositional
-open import Data.List.Membership.Propositional.Properties using (∈-++⁺ˡ)
+open import Data.List.Membership.Propositional.Properties using (∈-++⁺ˡ; ∈-++⁺ʳ; ∈-++⁻)
 open import Data.List.Relation.Unary.All using (All; []; _∷_; lookup)
 open import Data.List.Relation.Unary.All.Properties using (++⁺)
 open import Data.List.Relation.Unary.Any using (here; there)
 open import Data.Nat.Base using (ℕ; _+_)
-open import Data.Product using (_×_; _,_)
+open import Data.Product using (_×_; _,_; proj₁)
+open import Data.Sum.Base using (inj₁; inj₂)
 open import Data.Unit using (tt)
 open import Relation.Binary.PropositionalEquality
 
@@ -73,6 +74,39 @@ onPort-port↦ pos p (here refl) = refl
 onPort-port↦ pos {P} p (there j) = onPort-port↦ pos {P = P} (λ j′ → p (there j′)) j
 onPort-port↦ neg p (here refl) = refl
 onPort-port↦ neg {P} p (there j) = onPort-port↦ neg {P = P} (λ j′ → p (there j′)) j
+
+-- A letter on entry `j`'s port.
+portᵐ : (d : Dir) → s ∈ Δ → Tm s → Alphabet d (Ports Δ)
+portᵐ pos (here refl) t = inj₁ t
+portᵐ pos (there j)   t = inj₂ (portᵐ pos j t)
+portᵐ neg (here refl) t = inj₁ t
+portᵐ neg (there j)   t = inj₂ (portᵐ neg j t)
+
+-- Every letter on the ports is on some entry's port.
+data OnPort (d : Dir) (Δ : List Sort) : Alphabet d (Ports Δ) → Set where
+  onport : (j : s ∈ Δ) (t : Tm s) → OnPort d Δ (portᵐ d j t)
+
+onport? : (d : Dir) (Δ : List Sort) (m : Alphabet d (Ports Δ)) → OnPort d Δ m
+onport? pos (_ ∷ _) (inj₁ t) = onport (here refl) t
+onport? neg (_ ∷ _) (inj₁ t) = onport (here refl) t
+onport? pos (_ ∷ Δ) (inj₂ m) with onport? pos Δ m
+... | onport j t = onport (there j) t
+onport? neg (_ ∷ Δ) (inj₂ m) with onport? neg Δ m
+... | onport j t = onport (there j) t
+onport? pos [] ()
+onport? neg [] ()
+
+read-port : (d : Dir) (j : s ∈ Δ) (t : Tm s) → read d (Ports Δ) (portᵐ d j t) ≡ (msg s , port↦ d j , t)
+read-port pos (here refl) t = refl
+read-port neg (here refl) t = refl
+read-port pos (there j)   t = cong (λ { (k , i , v) → k , there i , v }) (read-port pos j t)
+read-port neg (there j)   t = cong (λ { (k , i , v) → k , there i , v }) (read-port neg j t)
+
+write-port : (d : Dir) (j : s ∈ Δ) (t : Tm s) → write d (Ports Δ) (port↦ d j) t ≡ portᵐ d j t
+write-port pos (here refl) t = refl
+write-port neg (here refl) t = refl
+write-port pos (there j)   t = cong inj₂ (write-port pos j t)
+write-port neg (there j)   t = cong inj₂ (write-port neg j t)
 
 ------------------------------------------------------------------------
 -- The emitter
@@ -155,6 +189,38 @@ private
 frame-entry : (κ : ℕ) (Ν : List Sort) (ζs : All (Rcp Ν) Δ) (j : s ∈ Δ)
             → lookup (frame κ Ν ζs) j ≡ canon (lookup ζs j ⟨ drawn κ 0 Ν ⟩)
 frame-entry κ Ν ζs j = trans (lookup-canon* (ζs ⟨ drawn κ 0 Ν ⟩*) j) (cong canon (lookup-⟨⟩* ζs _ j))
+
+-- Every name of a frame is one its occurrence drew.
+frame-names : (κ : ℕ) (Ν : List Sort) (ζs : All (Rcp Ν) Δ) {m : Name} → m ∈ names* (frame κ Ν ζs) → proj₁ m ≡ κ
+frame-names κ Ν ζs p = drawn-names Ν (rcps (canons (ζs ⟨ drawn κ 0 Ν ⟩*) p))
+  where
+  canons : (φ : Frame Δ′) {m : Name} → m ∈ names* (canon* φ) → m ∈ names* φ
+  canons []      ()
+  canons (t ∷ φ) p with ∈-++⁻ (names (canon t)) p
+  ... | inj₁ q = ∈-++⁺ˡ (canon-names t q)
+  ... | inj₂ q = ∈-++⁺ʳ (names t) (canons φ q)
+
+  lookup-names : {Ν′ : List Sort} (d : Frame Ν′) (i : s ∈ Ν′) {m : Name} → m ∈ names (lookup d i) → m ∈ names* d
+  lookup-names (t ∷ _) (here refl) p = ∈-++⁺ˡ p
+  lookup-names (t ∷ d) (there i)   p = ∈-++⁺ʳ (names t) (lookup-names d i p)
+
+  rcp  : (ζ : Rcp Ν s) {m : Name} → m ∈ names (ζ ⟨ drawn κ 0 Ν ⟩) → m ∈ names* (drawn κ 0 Ν)
+  rcp* : (ζs : All (Rcp Ν) Δ′) {m : Name} → m ∈ names* (ζs ⟨ drawn κ 0 Ν ⟩*) → m ∈ names* (drawn κ 0 Ν)
+  rcp (var i)    p = lookup-names (drawn κ 0 Ν) i p
+  rcp (mine _ ()) _
+  rcp (app _ ζs) p = rcp* ζs p
+  rcp* []       ()
+  rcp* (ζ ∷ ζs) p with ∈-++⁻ (names (ζ ⟨ drawn κ 0 Ν ⟩)) p
+  ... | inj₁ q = rcp ζ q
+  ... | inj₂ q = rcp* ζs q
+
+  rcps : {m : Name} → m ∈ names* (ζs ⟨ drawn κ 0 Ν ⟩*) → m ∈ names* (drawn κ 0 Ν)
+  rcps = rcp* ζs
+
+  drawn-names : (Ν′ : List Sort) {j : ℕ} {m : Name} → m ∈ names* (drawn κ j Ν′) → proj₁ m ≡ κ
+  drawn-names []       ()
+  drawn-names (_ ∷ Ν′) (here refl) = refl
+  drawn-names (_ ∷ Ν′) (there p)   = drawn-names Ν′ p
 
 -- After the first activation: the names drawn, kept canonical.
 ready : ℕ → (Ν : List Sort) → Config 2 (Γᵉ Ν)
