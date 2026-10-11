@@ -94,6 +94,14 @@ bind-⟨⟩ σ h e (app f ζs) = app-cong f (bind-⟨⟩* σ h e ζs)
 bind-⟨⟩* σ h e []       = []
 bind-⟨⟩* σ h e (ζ ∷ ζs) = bind-⟨⟩ σ h e ζ ∷ bind-⟨⟩* σ h e ζs
 
+⟨⟩-cong  : All₂ _≈E_ φ ψ → (ζ : Recipe Δ own s) → ζ ⟨ φ ⟩ ≈E ζ ⟨ ψ ⟩
+⟨⟩-cong* : All₂ _≈E_ φ ψ → (ζs : All (Recipe Δ own) ss) → All₂ _≈E_ (ζs ⟨ φ ⟩*) (ζs ⟨ ψ ⟩*)
+⟨⟩-cong e (var i)    = lookup₂ e i
+⟨⟩-cong e (mine _ _) = ≈E.refl
+⟨⟩-cong e (app f ζs) = app-cong f (⟨⟩-cong* e ζs)
+⟨⟩-cong* e []       = []
+⟨⟩-cong* e (ζ ∷ ζs) = ⟨⟩-cong e ζ ∷ ⟨⟩-cong* e ζs
+
 ⊢-cut : Each (K ⊢_) φ → own ⊆ proj₂ K → (φ , own) ⊢ M → K ⊢ M
 ⊢-cut ds h (ζ , e) =
   bind (λ i → proj₁ (lookupᴱ ds i)) h ζ , ≈E.trans (bind-⟨⟩ _ h (λ i → proj₂ (lookupᴱ ds i)) ζ) e

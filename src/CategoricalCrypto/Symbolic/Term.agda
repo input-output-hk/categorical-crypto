@@ -84,6 +84,11 @@ module Terms (𝔖 : Signature) where
     []  : All₂ R [] []
     _∷_ : {t u : Tm s} {ts us : All Tm ss} → R t u → All₂ R ts us → All₂ R (t ∷ ts) (u ∷ us)
 
+  lookup₂ : {R : ∀ {s} → Tm s → Tm s → Set} {ts us : All Tm ss}
+          → All₂ R ts us → (i : s ∈ ss) → R (lookup ts i) (lookup us i)
+  lookup₂ (r ∷ _)  (here refl) = r
+  lookup₂ (_ ∷ rs) (there i)   = lookup₂ rs i
+
   lookupᴱ : {P : ∀ {s} → Tm s → Set} {ts : All Tm ss} → Each P ts → (i : s ∈ ss) → P (lookup ts i)
   lookupᴱ (p ∷ _)  (here refl) = p
   lookupᴱ (_ ∷ ps) (there i)   = lookupᴱ ps i
@@ -164,6 +169,23 @@ module Terms (𝔖 : Signature) where
   bind σ h (app f ζs) = app f (bind* σ h ζs)
   bind* σ h []       = []
   bind* σ h (ζ ∷ ζs) = bind σ h ζ ∷ bind* σ h ζs
+
+  lookup-⟨⟩* : (ζs : All (Recipe Δ own) ss) (φ : Frame Δ) (i : s ∈ ss)
+             → lookup (ζs ⟨ φ ⟩*) i ≡ lookup ζs i ⟨ φ ⟩
+  lookup-⟨⟩* (_ ∷ _)  _ (here refl) = refl
+  lookup-⟨⟩* (_ ∷ ζs) φ (there i)   = lookup-⟨⟩* ζs φ i
+
+  bind-⟨⟩≡  : {σ : ∀ {s} → s ∈ Δ → Recipe Δ′ own′ s} {h : own ⊆ own′} {φ : Frame Δ} {ψ : Frame Δ′}
+            → (∀ {s} (i : s ∈ Δ) → σ i ⟨ ψ ⟩ ≡ lookup φ i)
+            → (ζ : Recipe Δ own s) → bind σ h ζ ⟨ ψ ⟩ ≡ ζ ⟨ φ ⟩
+  bind-⟨⟩≡* : {σ : ∀ {s} → s ∈ Δ → Recipe Δ′ own′ s} {h : own ⊆ own′} {φ : Frame Δ} {ψ : Frame Δ′}
+            → (∀ {s} (i : s ∈ Δ) → σ i ⟨ ψ ⟩ ≡ lookup φ i)
+            → (ζs : All (Recipe Δ own) ss) → bind* σ h ζs ⟨ ψ ⟩* ≡ ζs ⟨ φ ⟩*
+  bind-⟨⟩≡ e (var i)    = e i
+  bind-⟨⟩≡ e (mine _ _) = refl
+  bind-⟨⟩≡ e (app f ζs) = cong (app f) (bind-⟨⟩≡* e ζs)
+  bind-⟨⟩≡* e []       = refl
+  bind-⟨⟩≡* e (ζ ∷ ζs) = cong₂ _∷_ (bind-⟨⟩≡ e ζ) (bind-⟨⟩≡* e ζs)
 
   Ground  : Recipe Δ own s → Set
   Ground* : All (Recipe Δ own) ss → Set
