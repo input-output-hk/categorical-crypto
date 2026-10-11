@@ -63,6 +63,42 @@ Occ _        = ⊥
 ⟦⟧[]-cong α⇐       _ = refl
 ⟦⟧[]-cong σ        _ = refl
 
+-- A property of the target's homs that the structural maps have and `∘`, `⊗₁`
+-- preserve holds of every circuit whose leaves have it.
+module _ {r} (P : (A B : ObjTerm) → ⟦ A ⟧₀ C.⇒ ⟦ B ⟧₀ → Set r) where
+
+  record Closed : Set (ℓ′ ⊔ ℓ ⊔ r) where
+    field
+      P-id : ∀ {A} → P A A C.id
+      P-∘  : ∀ {A B E} {g : ⟦ B ⟧₀ C.⇒ ⟦ E ⟧₀} {f : ⟦ A ⟧₀ C.⇒ ⟦ B ⟧₀}
+           → P B E g → P A B f → P A E (g C.∘ f)
+      P-⊗  : ∀ {A B E F} {f : ⟦ A ⟧₀ C.⇒ ⟦ B ⟧₀} {g : ⟦ E ⟧₀ C.⇒ ⟦ F ⟧₀}
+           → P A B f → P E F g → P (A ⊗₀ E) (B ⊗₀ F) (f C.⊗₁ g)
+      P-λ⇒ : ∀ {A} → P (unit ⊗₀ A) A C.λ⇒
+      P-λ⇐ : ∀ {A} → P A (unit ⊗₀ A) C.λ⇐
+      P-ρ⇒ : ∀ {A} → P (A ⊗₀ unit) A C.ρ⇒
+      P-ρ⇐ : ∀ {A} → P A (A ⊗₀ unit) C.ρ⇐
+      P-α⇒ : ∀ {A B E} → P ((A ⊗₀ B) ⊗₀ E) (A ⊗₀ (B ⊗₀ E)) C.α⇒
+      P-α⇐ : ∀ {A B E} → P (A ⊗₀ (B ⊗₀ E)) ((A ⊗₀ B) ⊗₀ E) C.α⇐
+      P-σ  : ⦃ _ : Symm ≤ v ⦄ → ∀ {A B} → P (A ⊗₀ B) (B ⊗₀ A) C.σ
+
+  module _ (cl : Closed) {q} (Q : D → Set q)
+           (leaf : ∀ {x y} (p : mor x y) δ → Q δ → P x y (⟦ p ⟧ᵈ δ)) where
+    open Closed cl
+
+    ⟦⟧[]-ind : (f : HomTerm A B) (ι : Occ f → D) → (∀ o → Q (ι o)) → P A B ⟦ f ⟧[ ι ]
+    ⟦⟧[]-ind (var p)  ι h = leaf p (ι tt) (h tt)
+    ⟦⟧[]-ind id       _ _ = P-id
+    ⟦⟧[]-ind (g ∘ f)  ι h = P-∘ (⟦⟧[]-ind g (ι ∘′ inj₁) λ o → h (inj₁ o)) (⟦⟧[]-ind f (ι ∘′ inj₂) λ o → h (inj₂ o))
+    ⟦⟧[]-ind (f ⊗₁ g) ι h = P-⊗ (⟦⟧[]-ind f (ι ∘′ inj₁) λ o → h (inj₁ o)) (⟦⟧[]-ind g (ι ∘′ inj₂) λ o → h (inj₂ o))
+    ⟦⟧[]-ind λ⇒       _ _ = P-λ⇒
+    ⟦⟧[]-ind λ⇐       _ _ = P-λ⇐
+    ⟦⟧[]-ind ρ⇒       _ _ = P-ρ⇒
+    ⟦⟧[]-ind ρ⇐       _ _ = P-ρ⇐
+    ⟦⟧[]-ind α⇒       _ _ = P-α⇒
+    ⟦⟧[]-ind α⇐       _ _ = P-α⇐
+    ⟦⟧[]-ind σ        _ _ = P-σ
+
 private
   variable P Q R S : Set
 

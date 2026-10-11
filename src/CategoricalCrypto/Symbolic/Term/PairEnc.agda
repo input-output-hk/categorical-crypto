@@ -10,10 +10,13 @@ module CategoricalCrypto.Symbolic.Term.PairEnc where
 
 open import Data.Empty
 open import Data.List.Base
+open import Data.List.Membership.Propositional
+open import Data.List.Membership.Propositional.Properties
 open import Data.List.Relation.Unary.All
 open import Data.Nat
 open import Data.Nat.Induction
 open import Data.Product
+open import Data.Sum.Base using (inj₁; inj₂)
 open import Data.Unit
 open import Function.Base
 open import Function.Bundles using (_⇔_; mk⇔)
@@ -280,6 +283,28 @@ private
   All₂-nf []       = refl
   All₂-nf (e ∷ es) = ∷-cong e (All₂-nf es)
 
+  -- A rewrite step keeps a subset of the names: every rule's right side is a
+  -- subterm of its left side.
+  ⟶-names  : t ⟶ u → ∀ {n} → n ∈ names u → n ∈ names t
+  ⟶ᵃ-names : ts ⟶ᵃ us → ∀ {n} → n ∈ names* us → n ∈ names* ts
+  ⟶-names (root (π₁⟨,⟩ {x}))       p = ∈-++⁺ˡ (∈-++⁺ˡ p)
+  ⟶-names (root (π₂⟨,⟩ {x}))       p = ∈-++⁺ˡ (∈-++⁺ʳ (names x) (∈-++⁺ˡ p))
+  ⟶-names (root (dec-enc {x}))     p = ∈-++⁺ˡ (∈-++⁺ˡ p)
+  ⟶-names (arg a)                  p = ⟶ᵃ-names a p
+  ⟶ᵃ-names (here {u = u} s)  p with ∈-++⁻ (names u) p
+  ... | inj₁ q = ∈-++⁺ˡ (⟶-names s q)
+  ... | inj₂ q = ∈-++⁺ʳ _ q
+  ⟶ᵃ-names (there {t = t} a) p with ∈-++⁻ (names t) p
+  ... | inj₁ q = ∈-++⁺ˡ q
+  ... | inj₂ q = ∈-++⁺ʳ (names t) (⟶ᵃ-names a q)
+
+  nf-names : ∀ t {n} → n ∈ names (nf t) → n ∈ names t
+  nf-names t = go (nf-reduces t)
+    where
+    go : ∀ {t u} → t ⟶* u → ∀ {n} → n ∈ names u → n ∈ names t
+    go ε        p = p
+    go (s ◅ ss) p = ⟶-names s (go ss p)
+
 E₀ : EqTheory Σ₀
 E₀ = record
   { _≈E_       = λ t u → nf t ≡ nf u
@@ -292,6 +317,7 @@ E₀ = record
   ; canon      = nf
   ; canon-≈E   = λ t → sym (⟶*-nf (nf-reduces t))
   ; ≈E⇒canon   = λ e → e
+  ; canon-names = nf-names
   }
 
 ≈E⇔⟷* : nf t ≡ nf u ⇔ EqClosure _⟶_ t u

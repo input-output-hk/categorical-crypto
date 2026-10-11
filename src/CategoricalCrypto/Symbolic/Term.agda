@@ -199,7 +199,9 @@ module Terms (𝔖 : Signature) where
 -- An equational theory (`abadi2018applied` §2.2 p. 6): a non-trivial
 -- congruence closed under renaming.  Guards are computed, so it is decidable;
 -- roles emit and store canonical forms (the normal forms of a convergent
--- theory), so that E-equal programs run alike (`Role.Run.exec-≈E`).
+-- theory), so that E-equal programs run alike (`Role.Run.exec-≈E`).  A
+-- canonical form mentions no new name, as a normal form cannot: a frame of
+-- canonical forms holds only the names it was computed from.
 
 record EqTheory (𝔖 : Signature) : Set₁ where
   open Signature 𝔖
@@ -215,6 +217,7 @@ record EqTheory (𝔖 : Signature) : Set₁ where
     canon      : ∀ {s} → Tm s → Tm s
     canon-≈E   : ∀ {s} (t : Tm s) → canon t ≈E t
     ≈E⇒canon   : ∀ {s} {t u : Tm s} → t ≈E u → canon t ≡ canon u
+    canon-names : ∀ {s} (t : Tm s) {n} → n ∈ names (canon t) → n ∈ names t
 
   module ≈E {s} = IsEquivalence (isEquiv {s})
 
