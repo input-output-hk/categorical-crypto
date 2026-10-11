@@ -149,3 +149,20 @@ sub-kwire u v = ≲⇒≈ᴹ (mk-cong λ where
   (t , inj₁ (inj₂ a)) → ≈sym (>>=ₚ-identityˡ (inj₂ a) _)
   (t , inj₂ (inj₁ y)) → map-map (v y) _ _ ⟨≈⟩ ≈sym (map-map (v y) _ _)
   (t , inj₂ (inj₂ a)) → ≈sym (>>=ₚ-identityˡ (inj₂ a) _))
+
+kwire-frame : {A′ B′ : Iface} (up : Pos B → Pos B′) (down : Neg B′ → Neg B)
+              (up′ : Pos A′ → Pos A) (down′ : Neg A → Neg A′)
+              (u : Pos A → Dₚ (Pos B)) (v : Neg B → Dₚ (Neg A))
+            → 𝒫._≈_ {A′} {B′}
+                (𝒫._∘_ {A′} {B} {B′} (wireᴹ up down)
+                  (𝒫._∘_ {A′} {A} {B} (kwireᴹ u v) (wireᴹ up′ down′)))
+                (kwireᴹ (λ a → mapₚ up (u (up′ a))) (λ b → mapₚ down′ (v (down b))))
+kwire-frame {B = B} {A = A} {A′} {B′} up down up′ down′ u v =
+  𝒫.∘-resp-≈ {A′} {B} {B′} (wire-kwire up down)
+    (𝒫.∘-resp-≈ {A′} {A} {B} reflᴹ (wire-kwire up′ down′)
+      ○ᴹ kwire-∘ u v (returnₚ ∘ up′) (returnₚ ∘ down′))
+  ○ᴹ kwire-∘ (returnₚ ∘ up) (returnₚ ∘ down)
+       (λ a → returnₚ (up′ a) >>=ₚ u) (λ b → v b >>=ₚ (returnₚ ∘ down′))
+  ○ᴹ kwire-cong
+    (λ a → bindˣ (>>=ₚ-identityˡ (up′ a) u))
+    (λ b → >>=ₚ-identityˡ (down b) (λ n → v n >>=ₚ (returnₚ ∘ down′)))
