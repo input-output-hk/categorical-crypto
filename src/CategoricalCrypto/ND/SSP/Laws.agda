@@ -10,8 +10,10 @@
 -- row 3): the simulation maps the queue by π.  At π = not the two orders of a
 -- two-way choice are equal after swapping the picks (`Swap.swap-ᵖ`, §3.4);
 -- `at`/`at-sub` read a compiled protocol at grade (unitᴵ , S⃗), where that wire
--- is the ND_A simulator id ⊗ ⌈ π ⌉ʳ.  Interfaces under `_⊗ᴵ_` are passed
--- explicitly: unification does not recover them (their `Ch-dec` field).
+-- is the ND_A simulator id ⊗ ⌈ π ⌉ʳ, so a permutation is an A-emulation
+-- (`pick-≤UC`, `permute-≤UC`) and the two orders A-emulate each other
+-- (`Swap.order-indep`).  Interfaces under `_⊗ᴵ_` are passed explicitly:
+-- unification does not recover them (their `Ch-dec` field).
 
 module CategoricalCrypto.ND.SSP.Laws where
 
@@ -30,12 +32,15 @@ import Relation.Binary.Construct.Closure.Equivalence as EqC
 
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 
+open import CategoricalCrypto.Abstract2
 open import CategoricalCrypto.ND.Relabel
 open import CategoricalCrypto.ND.SSP.Choice
+open import CategoricalCrypto.ND.SSP.Setup using (NDA; relabel-≤UC)
 open import CategoricalCrypto.SSP.Iface
 open import CategoricalCrypto.SSP.Protocol
 open import CategoricalCrypto.SSP.Protocol.Category
 open import CategoricalCrypto.SSP.Protocol.Monoidal
+open import CategoricalCrypto.SSP.Setup using (≈C⇒≈ᵁ)
 
 private
   open MonoidalCategory Protᴹ using (module Equiv; module HomReasoning; unitorˡ-commute-to)
@@ -113,6 +118,23 @@ at-sub {B = B} S⃗ T⃗ h P = begin
   λˢ = ⌜ λᴵ {Cᴵ⟦ S⃗ ⟧} ⌝
   λᵗ = ⌜ λᴵ {Cᴵ⟦ T⃗ ⟧} ⌝
 
+-- A one-site protocol that is another after the relabelling wire along π
+-- A-emulates it, the wire as simulator.  Statements of `_≤UC_` at concrete
+-- protocols pass its interfaces and bind its leading `∀ {X′}`: inferred, each is
+-- solved by η-expanding a meta (an Iface record, a grade pair), the two sides
+-- stop being syntactically equal, and `_≤UC_` unfolds down to the compiled
+-- protocols (`Swap.order-indep`: 83 s for an inferred X′, 7 s for inferred
+-- interfaces, against 0.1 s).
+pick-≤UC : (π : S → S) (P Q : Protocol⁺ (S ∷ []) A B) → ⌈ P ⌉ ≈ᵖ ⌈ pickʳ π ⌉ʳ ⊗ᵖ wireᵖ {B} ∘ᵖ ⌈ Q ⌉
+         → AbstractUC._≤UC_ NDA {A = A} {X = unitᴵ , S ∷ []} {B = B} {Y = unitᴵ , S ∷ []} (at {B = B} (S ∷ []) ⌈ P ⌉) (at {B = B} (S ∷ []) ⌈ Q ⌉)
+pick-≤UC {S = S} {A = A} {B = B} π P Q h {X′} =
+  relabel-≤UC {A = A} {B = B} {a = unitᴵ , S ∷ []} {b = unitᴵ , S ∷ []} {f = at {B = B} (S ∷ []) ⌈ P ⌉} {g = at {B = B} (S ∷ []) ⌈ Q ⌉} s
+  (wireᵖ {unitᴵ} , pickʳ π , Equiv.refl)
+  (≈C⇒≈ᵁ (Equiv.trans (refl⟩∘⟨_ {f = ⌜ λᴵ {Cᴵ⟦ S ∷ [] ⟧} ⌝ ⊗ᵖ wireᵖ {B}} h)
+                      (at-sub {B = B} (S ∷ []) (S ∷ []) ⌈ pickʳ π ⌉ʳ ⌈ Q ⌉)))
+  {X′}
+  where s = wireᵖ {unitᴵ} ⊗ᵖ ⌈ pickʳ π ⌉ʳ
+
 ------------------------------------------------------------------------
 -- One-site protocols: collapse (row 4), permutation (row 3)
 ------------------------------------------------------------------------
@@ -149,6 +171,11 @@ module _ {A B : Iface} (s₀ : St₀) where
     go (coin _ k′)   q = coin λ b → go (k′ b) q
     go dead          q = dead
 
+  permute-≤UC : (π : S → S) (k : S → St₀ → (c : Ch B) → Q B c → Calls A (St₀ × R B c))
+              → AbstractUC._≤UC_ NDA {A = A} {X = unitᴵ , S ∷ []} {B = B} {Y = unitᴵ , S ∷ []}
+                  (at {B = B} (S ∷ []) ⌈ ⟨ k ∘ π ⟩ ⌉) (at {B = B} (S ∷ []) ⌈ ⟨ k ⟩ ⌉)
+  permute-≤UC π k {X′} = pick-≤UC π ⟨ k ∘ π ⟩ ⟨ k ⟩ (permute π k) {X′}
+
   -- The two orders of a two-way choice.
   module Swap (t₀ t₁ : St₀ → (c : Ch B) → Q B c → Calls A (St₀ × R B c)) where
     ab ba : Bool → St₀ → (c : Ch B) → Q B c → Calls A (St₀ × R B c)
@@ -161,6 +188,18 @@ module _ {A B : Iface} (s₀ : St₀) where
                             false → ≈ᶜ⁺-refl)
                          (permute not ab)
 
+    swap-ᵖ′ : ⌈ ⟨ ab ⟩ ⌉ ≈ᵖ ⌈ pickʳ not ⌉ʳ ⊗ᵖ wireᵖ {B} ∘ᵖ ⌈ ⟨ ba ⟩ ⌉
+    swap-ᵖ′ = Equiv.trans (congruence λ _ _ _ → choose λ where
+                             true  → ≈ᶜ⁺-refl
+                             false → ≈ᶜ⁺-refl)
+                          (permute not ba)
+
+    -- Order independence (§3.4): each order A-emulates the other.
+    order-indep : AbstractUC._≤UC_ NDA {A = A} {X = unitᴵ , Bool ∷ []} {B = B} {Y = unitᴵ , Bool ∷ []}
+                    (at {B = B} (Bool ∷ []) ⌈ ⟨ ba ⟩ ⌉) (at {B = B} (Bool ∷ []) ⌈ ⟨ ab ⟩ ⌉)
+                × AbstractUC._≤UC_ NDA {A = A} {X = unitᴵ , Bool ∷ []} {B = B} {Y = unitᴵ , Bool ∷ []}
+                    (at {B = B} (Bool ∷ []) ⌈ ⟨ ab ⟩ ⌉) (at {B = B} (Bool ∷ []) ⌈ ⟨ ba ⟩ ⌉)
+    order-indep = (λ {X′} → pick-≤UC not ⟨ ba ⟩ ⟨ ab ⟩ swap-ᵖ {X′}) , (λ {X′} → pick-≤UC not ⟨ ab ⟩ ⟨ ba ⟩ swap-ᵖ′ {X′})
 
 ------------------------------------------------------------------------
 -- Collapse against a callee

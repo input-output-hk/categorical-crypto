@@ -203,8 +203,8 @@ NDA = 𝔸.NDA relabelling ℰᵖ
 
 -- Generalized variables over these dependent types crash Agda 2.8.0 in
 -- `EtaContract`, so the telescope is bound explicitly.  Each statement is
--- instantiated here, at variables: crossing between `ND.A`'s setups and these
--- at concrete protocols unfolds both (`ND.SSP.Laws`: 129 s against 10 s).
+-- instantiated here, at variables; using one at concrete protocols, see
+-- `ND.SSP.Laws.pick-≤UC`.
 module _ {A B : Iface} {a b : Grade} {f : Protocol A (⌊ a ⌋ ⊗ᴵ B)} {g : Protocol A (⌊ b ⌋ ⊗ᴵ B)} where
 
   ≤UC-B⇔≤UC : AbstractUC._≤UC_ NDB {X = a} {Y = b} f g ⇔ f ≤UC g
