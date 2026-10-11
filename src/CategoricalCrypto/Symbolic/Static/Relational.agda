@@ -31,12 +31,15 @@ open import Relation.Binary.PropositionalEquality
 open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Machines.Pointwise using (module K)
+open import CategoricalCrypto.Machines.Sim.Relational.Pointwise using (module RS)
 open import CategoricalCrypto.Symbolic.Deduction 𝔖 E
 open import CategoricalCrypto.Symbolic.Fine 𝔖
 open import CategoricalCrypto.Symbolic.Role 𝔖 using (Atom; Role; pos; neg; verdict; void)
 open import CategoricalCrypto.Symbolic.Semantics 𝔖 E
 open import CategoricalCrypto.Symbolic.Setup 𝔖 E
 open import CategoricalCrypto.Symbolic.Static.Same 𝔖 E
+open import CategoricalCrypto.UC.Machine using (Proc)
 open import CategoricalCrypto.UC.Model.Observation
 open import CategoricalCrypto.UC.Model.Relational
 open import CategoricalCrypto.UC.Model.Seal
@@ -110,21 +113,20 @@ module Apex {Δ : List Sort} (φ ψ : Frame Δ) where
            (subst₂-trans (cong₂ G._⊗₀_ (tree≡ᵃ x ux) (tree≡ᵃ y uy)) (cong₂ G._⊗₀_ (tree≡ x ux) (tree≡ y uy))
                          (⊗ᵒ ⟦ x ⟧ᴵᵃ ⟦ y ⟧ᴵᵃ) (⊗ᵒ ⟦ x ⟧ᴵ ⟦ y ⟧ᴵ))))
 
+  -- An apex process for a single role, read across the seal.
+  liftᵃ : {x y : ObjTerm} → UnitFree x → UnitFree y → Proc ⟦ x ⟧ᴵᵃ ⟦ y ⟧ᴵᵃ → ⟦ x ⟧ᵃ G.⇒ ⟦ y ⟧ᵃ
+  liftᵃ {x} {y} ux uy q = subst₂ G._⇒_ (sym (tree≡ᵃ x ux)) (sym (tree≡ᵃ y uy)) (procᵒ q)
+
+  proc-rel : (w : Side) {x y : ObjTerm} (ux : UnitFree x) (uy : UnitFree y)
+             {q : Proc ⟦ x ⟧ᴵᵃ ⟦ y ⟧ᴵᵃ} {p : Role x y} {κ : ℕ}
+           → q RS.≲[ K.pureᵏ (Πᴵ φ ψ w x y) ∣ K.pureᵏ (Πᴼ φ ψ w x y) ] runᴿ κ p
+           → HSimᵒ (μ w x) (μ w y) (liftᵃ ux uy q) (leafᵒ (ux , uy , p) κ)
+  proc-rel w {x} {y} ux uy s =
+    subst₂ (λ m n → HSimᵒ m n _ _) (sym (μ-tree w x ux)) (sym (μ-tree w y uy))
+      (HSimᵒ-subst (tree≡ᵃ x ux) (tree≡ x ux) (tree≡ᵃ y uy) (tree≡ y uy)
+        (HSimᵒ-proc (Π φ ψ w pos x) (Π φ ψ w neg x) (Π φ ψ w pos y) (Π φ ψ w neg y) s))
+
   module _ (equiv : φ ≈ₛ ψ) where
-
-    leafᵃ : {x y : ObjTerm} (p : UnitFree x × UnitFree y × Role x y) (κ : ℕ)
-          → (∀ j → Foreign φ ψ (κ , j)) → ⟦ x ⟧ᵃ G.⇒ ⟦ y ⟧ᵃ
-    leafᵃ {x} {y} (ux , uy , p) κ fresh =
-      subst₂ G._⇒_ (sym (tree≡ᵃ x ux)) (sym (tree≡ᵃ y uy)) (procᵒ (apexᴿ φ ψ equiv fresh p))
-
-    leaf-rel : (w : Side) {x y : ObjTerm} (p : UnitFree x × UnitFree y × Role x y) (κ : ℕ)
-               (fresh : ∀ j → Foreign φ ψ (κ , j))
-             → HSimᵒ (μ w x) (μ w y) (leafᵃ p κ fresh) (leafᵒ p κ)
-    leaf-rel w {x} {y} (ux , uy , p) κ fresh =
-      subst₂ (λ m n → HSimᵒ m n _ _) (sym (μ-tree w x ux)) (sym (μ-tree w y uy))
-        (HSimᵒ-subst (tree≡ᵃ x ux) (tree≡ x ux) (tree≡ᵃ y uy) (tree≡ y uy)
-          (HSimᵒ-proc (Π φ ψ w pos x) (Π φ ψ w neg x) (Π φ ψ w pos y) (Π φ ψ w neg y)
-                      (apex≲ φ ψ equiv fresh p w)))
 
     -- An apex related to `h` in both worlds.
     Rel : (A B : ObjTerm) → Φ.⟦ A ⟧₀ G.⇒ Φ.⟦ B ⟧₀ → Set₁
@@ -147,8 +149,9 @@ module Apex {Δ : List Sort} (φ ψ : Frame Δ) where
 
     -- A circuit whose occurrences draw foreign names runs alike in both worlds.
     context : (c : HomTerm A B) (ι : Occ c → ℕ) → (∀ o j → Foreign φ ψ (ι o , j)) → Rel A B ⟦ c ⟧[ ι ]
-    context = ⟦⟧[]-ind Rel closed (λ κ → ∀ j → Foreign φ ψ (κ , j))
-                (λ p κ fresh → leafᵃ p κ fresh , leaf-rel l p κ fresh , leaf-rel r p κ fresh)
+    context = ⟦⟧[]-ind Rel closed (λ κ → ∀ j → Foreign φ ψ (κ , j)) λ (ux , uy , p) κ fresh →
+      liftᵃ ux uy (apexᴿ φ ψ equiv fresh p)
+      , proc-rel l ux uy (apex≲ φ ψ equiv fresh p l) , proc-rel r ux uy (apex≲ φ ψ equiv fresh p r)
 
 ------------------------------------------------------------------------
 -- Circuits differing in one part
