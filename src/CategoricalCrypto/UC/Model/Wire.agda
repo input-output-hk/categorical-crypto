@@ -95,3 +95,15 @@ opaque
   σ-wireᵒ : G.braiding.⇒.η (ifaceᵒ A , ifaceᵒ B)
           G.≈ _≅_.to (⊗ᵒ≅ B A) G.∘ procᵒ (wireᴹ {A ⊗ᴵ B} {B ⊗ᴵ A} swap swap) G.∘ _≅_.from (⊗ᵒ≅ A B)
   σ-wireᵒ = S.⟺ᴹ (wire-pure swap swap _ _ swapᵏ swapᵏ) ○ ⟺ trim
+
+-- An iso of processes at interfaces is an iso of `𝔾ᵒ`.
+procᵒ-≅ : (f : Proc A B) (g : Proc B A)
+        → 𝒫._≈_ {A} {A} (g 𝒫.∘ f) (𝒫.id {A}) → 𝒫._≈_ {B} {B} (f 𝒫.∘ g) (𝒫.id {B}) → ifaceᵒ A ≅ ifaceᵒ B
+procᵒ-≅ f g gf fg = record
+  { from = procᵒ f
+  ; to   = procᵒ g
+  ; iso  = record
+    { isoˡ = ⟺ (procᵒ-∘ g f) ○ ≈ᴹ⇒≈ᵒ gf ○ procᵒ-id
+    ; isoʳ = ⟺ (procᵒ-∘ f g) ○ ≈ᴹ⇒≈ᵒ fg ○ procᵒ-id
+    }
+  }
