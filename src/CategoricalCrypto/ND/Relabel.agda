@@ -249,6 +249,43 @@ preimage-resp {ρ = ρ} {ρ′} e k = preimage-≡ ρ
   (λ {j} e′ → trans (target-≐ (pointwise e j)) (preimage-sound ρ′ e′))
   (λ {j} t → preimage-complete ρ′ (trans (sym (target-≐ (pointwise e j))) t))
 
+------------------------------------------------------------------------
+-- Picks
+------------------------------------------------------------------------
+
+-- A pick at a site, flat: what PM's wires carry down.
+Pick : List Set → Set
+Pick S⃗ = Σ (Ch Cᴵ⟦ S⃗ ⟧) (Q Cᴵ⟦ S⃗ ⟧)
+
+-- A real pick, routed to its ideal site.
+routePick : S⃗ ⇝ T⃗ → Pick S⃗ → Maybe (Pick T⃗)
+routePick ρ (i , p) = Maybe.map (λ (k , r) → k , r p) (route ρ i)
+
+routePick-∘ : (ρ′ : T⃗ ⇝ U⃗) (ρ : S⃗ ⇝ T⃗) (x : Pick S⃗) → routePick (ρ′ ∘ʳ ρ) x ≡ (routePick ρ x Maybe.>>= routePick ρ′)
+routePick-∘ ρ′ ρ (i , p) with route ρ i
+... | nothing      = refl
+... | just (k , _) with route ρ′ k
+...   | nothing = refl
+...   | just _  = refl
+
+routePick-resp : {ρ ρ′ : S⃗ ⇝ T⃗} → ρ ≈ʳ ρ′ → (x : Pick S⃗) → routePick ρ x ≡ routePick ρ′ x
+routePick-resp {ρ = ρ} {ρ′} e (i , p) with route ρ i | route ρ′ i | pointwise e i
+... | _ | _ | nothing        = refl
+... | _ | _ | just (fibre h) = cong (λ q → just (_ , q)) (h p)
+
+private
+  Σ-⊎ : {A B : Set} {F : A → Set} {G : B → Set} → Σ (A ⊎ B) [ F , G ]′ → Σ A F ⊎ Σ B G
+  Σ-⊎ (inj₁ a , u) = inj₁ (a , u)
+  Σ-⊎ (inj₂ b , v) = inj₂ (b , v)
+
+-- A pick of a concatenation, on the side `split` puts its site, and back.
+splitPick : (S⃗ T⃗ : List Set) → Pick (S⃗ ++ T⃗) → Pick S⃗ ⊎ Pick T⃗
+splitPick S⃗ T⃗ (c , p) = Σ-⊎ (ch (split S⃗ T⃗) c , qu (split S⃗ T⃗) p)
+
+joinPick : (S⃗ T⃗ : List Set) → Pick S⃗ ⊎ Pick T⃗ → Pick (S⃗ ++ T⃗)
+joinPick S⃗ T⃗ (inj₁ (i , p)) = ch (join S⃗ T⃗) (inj₁ i) , qu (join S⃗ T⃗) p
+joinPick S⃗ T⃗ (inj₂ (j , p)) = ch (join S⃗ T⃗) (inj₂ j) , qu (join S⃗ T⃗) p
+
 module _ {S⃗ T⃗ S⃗′ T⃗′ : List Set} (ρ : S⃗ ⇝ T⃗) (ρ′ : S⃗′ ⇝ T⃗′) where
 
   -- A site of the juxtaposition, by the side `split` puts it on.
@@ -365,6 +402,22 @@ module _ {S⃗ T⃗ S⃗′ T⃗′ : List Set} (ρ : S⃗ ⇝ T⃗) (ρ′ : S�
       just (ch (join S⃗ S⃗′) (ch (split S⃗ S⃗′) c))
         ≡⟨ cong just (join-split S⃗ S⃗′ c) ⟩
       just c ∎
+
+  routePick-++ : (x : Pick (S⃗ ++ S⃗′))
+               → routePick _++ʳ_ x
+                 ≡ Maybe.map (joinPick T⃗ T⃗′) ([ Maybe.map inj₁ ∘ routePick ρ , Maybe.map inj₂ ∘ routePick ρ′ ]′ (splitPick S⃗ S⃗′ x))
+  routePick-++ (c , p) = trans (sym (map-∘ (route-++ (ch (split S⃗ S⃗′) c)))) (go (ch (split S⃗ S⃗′) c) (qu (split S⃗ S⃗′) p))
+    where
+    -- `split`'s routing of the site, abstracted together with the pick.
+    go : (y : Ch (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧)) (q : Q (Cᴵ⟦ S⃗ ⟧ ⊗ᴵ Cᴵ⟦ S⃗′ ⟧) y)
+       → Maybe.map (λ (l , r) → l , r q) (route-++ y)
+         ≡ Maybe.map (joinPick T⃗ T⃗′) ([ Maybe.map inj₁ ∘ routePick ρ , Maybe.map inj₂ ∘ routePick ρ′ ]′ (Σ-⊎ (y , q)))
+    go (inj₁ i) q with route ρ i
+    ... | nothing = refl
+    ... | just _  = refl
+    go (inj₂ j) q with route ρ′ j
+    ... | nothing = refl
+    ... | just _  = refl
 
 ------------------------------------------------------------------------
 -- Relabellings along container maps; the regroupings of a concatenation
