@@ -686,3 +686,253 @@ When the computational-symbolic review becomes available, append its reviewed co
 [ac06]: kb/sources/papers/abadicortier2006.pdf
 [canetti-herzog06]: kb/sources/papers/canettiherzog2006.pdf
 [coupling17]: kb/sources/papers/barthe2017.pdf
+
+<a id="resolution-dc3f817e"></a>
+## Checked integrated dispositions — dc3f817e
+
+**Integrated snapshot:** `dc3f817ea4060295658747f4929037799654481d` (`dc3f817e`).
+This append records completed implementation and integration evidence for the
+specific slices below. It preserves the baseline findings, their original evidence
+classes, and the static/channel supplement. In particular, the earlier
+“implementation in progress” status for UAR-016–017 is historical: the comparison
+theorems are now checked and integrated at this snapshot. No symbolic or PM-choice
+finding is marked resolved by this entry.
+
+The proof claims below are supported by the named implementors' completed reports
+and Main's integrated checks, not by a new Agda invocation from the documentation
+worker. **Checked** here distinguishes these new Agda results from the original
+source-derived review witnesses; it does not broaden their theorem statements or
+erase the remaining theory boundaries.
+
+### Integrated provenance and verification
+
+| Slice | Integration commit(s) | Disposition scope |
+|---|---|---|
+| Full-test W inclusion | `124ecf8833d6866241462e248501253f53ea1776` | UAR-017; positive full-test/PM clients in UAR-034. |
+| SSPᵈ target examples | `5ae3c2d8a8cd4bb5c135f46ef6c00a2622150a96` | SSPᵈ row of UAR-034 and status drift in UAR-035. |
+| Availability-qualified construction | `f2cfe47e5943ae56bcf99c8388520213afbc01e6`, `d744aed738d5b6d189578d2162d0fde6383acc9a` | UAR-002 at the compiled-resource boundary; RS acceptance/full-construction evidence in UAR-034. |
+| W observation coarsening | `a30c4bd5d41a8d48d4729d5771f041a66cdca908`, `7a8f7a1dd9fd4c03c451ad1af4a3ff16578dcbab`, `0cdf781b83d09dca0ab19c7b9ebc71d8442db3b4` | UAR-016; positive restricted/coarsened clients in UAR-034. |
+| Concrete positive-error QRS construction | `dc3f817ea4060295658747f4929037799654481d` | QRS nonzero-error client/sealing/composition/rejection gap in UAR-034. |
+
+Main reported the following integrated checks through this snapshot:
+
+- The actual SSP quotient OTP target leaf passed at `-M3G -H1G`, with an observed
+  wall time of **16.70 s**.
+- The combined W observation-restriction consumer and availability-example leaf
+  checks passed at `-M3G -H1G`, **53.29 s** total.
+- The QRS `Examples/FaultFlag/UC.agda` leaf first exhausted `-M3G` while rebuilding
+  `UC.Model.Quantitative`; its `-M6G -H1G` retry passed in **27.76 s**.
+- The integrated root first exhausted `-M6G` while rebuilding `UC.Model.Family`.
+  After separately staging that dependency at `-M6G -H1G`, the staged
+  Family/root run passed at `-M6G -H1G`, **84.18 s** total (parent job `bg206`).
+  Main reports this as the successful full integrated closure through
+  `dc3f817e`, with no warnings.
+- The implementors' named warning gates were empty and their escape-hatch scans
+  retained the existing **16** matches without growth. Main introduced no new
+  source patch while performing these integrated checks.
+
+The resource-limited attempts are recorded separately from the successful retries;
+they are not type-error diagnoses or successful root checks. These times describe
+the reported runs, not uncontended compute measurements, performance improvements,
+or a promise that every cold root fits 3 GiB. The documentation worker did not rerun
+Agda, these gates, or the reported failures.
+
+### Construction and availability: UAR-002
+
+**Disposition: the missing availability API and overbroad identification are
+addressed at the explicitly compiled-resource boundary.** Existing `Constructs`
+and `≤UC` remain security-only; their definitions and existing equivalences were
+not silently changed.
+
+[`UC.RandomSystems.Availability`][availability-api] now exports:
+
+- `no-adversary a f`, obtained by applying the designated converter `a` to the
+  adversary grade and removing the resulting unit interface;
+- `Available a b f g` and `AvailableWithin ε a b f g`, comparing those closed
+  honest resources behaviorally and at quantitative error `ε`;
+- `SecureConstruction a b f g`, containing both security `f ≤UC g` and
+  `Available a b f g`;
+- `SecurelyConstructs εₛ εₐ a b f g`, containing both security
+  `Constructs εₛ f g` and availability `AvailableWithin εₐ a b f g`;
+- the qualitative/zero-error equivalences
+  `Available⇔AvailableWithin₀` and `SecureConstruction⇔SecurelyConstructs₀`,
+  plus introductions/projections and replacement-transitivity theorems.
+
+The literal [Maurer Definition 3][m11] specialization requires **both**
+`εₛ = εₐ = ε` and the **same** designated no-adversary converter
+`a = b = ⊥` on the same Eve interface. Allowing distinct typed converters is an
+explicit resource-specific-mode generalization, not an unnoticed identification
+with the paper's literal statement. The honest protocol is already compiled into
+the compared resource (`f = πR`); honest boundaries are fixed and Eve is represented
+by one aggregate grade.
+
+The former source-derived mode-bit witness is now a checked
+[`Examples.RandomSystems.Availability`][availability-example] counterexample:
+`mode-bit` and `bit-run` compute the designated honest readings; `security-only`
+proves zero-error simulation with the forced-false converter, while
+`not-available`, `not-full`, and `not-full₀` refute availability/full construction
+under the designated true mode. Thus the distinction recorded in UAR-002 is now
+exercised, rather than being removed by weakening the example.
+
+`forced-true-full` and `forced-true-full₀` also give a nonidentity forced-true
+simulator with the **same** `mode true` on both sides. `flipped-full`/
+`flipped-full₀` exercise compatible distinct modes, and `twice-full`/
+`twice-full₀` consume qualitative and additive-error composition, returning to
+a shared designated mode. The APIs `secure-construction-trans` and
+`securely-constructs-trans` require behavioral compatibility of the middle
+designated converters; the examples prove that compatibility rather than assume it.
+
+**Boundary retained:** this is replacement transitivity, not a newly proved
+serial/parallel honest-protocol composition theorem for all of Maurer's TT1.
+The records do not establish AB-converter syntax, initialized-state alignment,
+normalized or terminating behavior, query bounds, or computational feasibility.
+[UAR-001](#uar-001) therefore remains open. Neither the construction records nor
+the checked examples justify treating a portless divergent simulator as inert.
+
+### Full-test observation coarsening: UAR-016
+
+**Disposition: the useful discovery is formalized and integrated; the forward
+no-map claim is corrected.**
+
+[`UC.Bracket.ObservationRestriction`][w-observation-restriction] supplies the exact
+all-tests witness `verdict-W` and its sealed version `verdict-Wᵒ`. With invariant
+`I s φ = ⊤`, the single verdict channel makes every output after either legal
+`Opp` case admissible; `Supp-all` discharges the obligations. No monitor or
+scheduler is inserted.
+
+The module proves the verdict-interface inverse laws, `restrict-read`,
+`restrict-cong`, and `restrict-natural`, then packages
+
+```text
+ν-restrict     : PresheafMorphism idF ι*ℰᵒ ℰᵂ
+ν-restrict-epi : PresheafMorphism.Epi ν-restrict
+restriction⇒wb : UCSetupMorphism Full.StdSetup 𝒲ᵂ.StdSetup
+full⇒PM[wb]    : UCSetupMorphism Full.StdSetup UC.Bracket.Setup.StdSetup
+```
+
+Here `Full = Standard2.StdUC 𝒲ᴹ ι*ℰᵒ`, exactly the full-test source of `ι⇒prot`.
+`restriction⇒wb` is `changeKernel` with the natural epi, and `full⇒PM[wb]`
+is its composition with `q`. Shared computational structure and prefix contexts
+give `full-≈ᵁ⇒wb-≈ᵁ`, `full-≤UC⇒wb-≤UC`, the corresponding PM[wb] results,
+and the exact composed `full-preserves-≤UC`. No `GradeStable` premise is added.
+
+**Boundary retained:** all-PM-test and W-closure setups remain distinct.
+`full-test` repacks representatives; it is deliberately **not** a reverse setoid
+map. This result gives neither security reflection nor a PM[wb]-to-ordinary-PM
+bridge. Conditional safety and termination findings
+[UAR-014](#uar-014)–[UAR-015](#uar-015), and nonuniform density
+[UAR-018](#uar-018), are not resolved by this comparison theorem.
+
+### Essentially-surjective full-test inclusion: UAR-017
+
+**Disposition: the forward-security discovery is formalized and integrated;
+PM grade instability does not block this particular route.**
+
+[`UC.Bracket.InclusionTransfer`][w-inclusion-transfer] constructs `oneᵒ`, an
+actual isomorphism in the sealed PM target between `ιᴹ (oneᴵ (objᵒ X))`
+and each target object `X`, using the singleton-tag adding/removing wires and
+both inverse laws. It exports:
+
+```text
+ι-essentially-surjective : EssentiallySurjective (StrongMonoidalFunctor.F ιᴹ)
+ι-preserves-≈ℰ           : Transfer.Preserves-≈ℰ ι⇒prot
+ι-preserves-≈ᵁ           : Transfer.Preserves-≈ᵁ ι⇒prot
+ι-preserves-≤UC          : Transfer.Preserves-≤UC ι⇒prot
+```
+
+The proof uses `νι-epi`, the existing
+`Standard2.Morphism.surjective⇒preserves-≈ᵁ`, and `Transfer.transfer⁺`.
+It does not assume target grade stability or fullness.
+
+**Boundary retained:** its source is exactly
+`StdUC.StdSetup 𝒲ᴹ ι*ℰᵒ`, with all PM tests and closures, **not**
+`𝒲ᵂ.StdSetup` or PM[wb]. There is no UC-reflection claim and no reversal
+of the coarsening leg. Together with UAR-016, the proved comparisons form the
+previously proposed **fork** from the full-test source; they do not make restricted
+security a premise for ordinary-PM security.
+
+### Public-target examples: partial disposition of UAR-034
+
+**Disposition: several concrete target gaps are closed; UAR-034 as a whole remains
+partially open.** The following replaces the indicated *current* coverage claims,
+not the historical baseline table.
+
+| Boundary | Newly checked public evidence | Scope still not supplied by this slice |
+|---|---|---|
+| RS / availability construction | [`HashForwardConsumer.hash-security` and `hash-rs`][availability-example] consume the existing inhabited-grade, three-state HashForward PM proof and transport it to `Constructs 0` and the actual RS setup. The same module provides full-construction positive and negative mode-bit examples described above. | No HashForward availability theorem is asserted. The availability/full-construction rejection is not a rejection of the original security-only `Constructs₀`—that relation deliberately holds for the counterexample. Do not count it as an independently exported RS security-only negative or a new behavioral-equality-versus-simulation separation. |
+| QRS | [`Examples.FaultFlag.UC`][faultflag-uc] exports `first-security` at 1/4, `second-security` at 1/4, `composed-security` through `≤UCᴿ[]-trans`, `half-security`, `security-condition`, and `no-small-security` rejecting every bound below 1/2 for every sealed simulator. | Security-only replacement/construction chain, not availability, a parameterized computational family, query-budget transformation, or parallel-resource theorem. |
+| SSPᵈ | [`otp≤ideal-dist`, `otp≤ideal-image-dist`, and `leaky-not-secure-dist`][otp-dist] are explicitly qualified at `SSPᵈ = SSP.Dist.Setup`. `otp-simulator-dist` fixes the actual simulator `a ∘ᵖ sim` for every adversary; `otp-observations-dist` quantifies every ancilla/distinguisher/game; `leaky-no-simulator-dist` quantifies every simulator. | The original `otp≤idealᵈ` remains explicitly a native `SSP.≤UC` theorem. The resource is still finite-rational, one-bit/one-message and passive/reliable as in UAR-012–013; no general sampler, adversarial delivery or corruption claim follows. |
+| W / full PM tests and ordinary PM | [`Examples.SSP.OneTimePad.FullTests`][otp-fulltests] exports `otp≈real-full`, `otp≤real-full`, and the transported `otp≤real-PM`, using nontrivial probabilistic/stateful OTP **inlining**. `ideal-with-sim≤ideal-full` and `ideal-with-sim≤ideal-PM` use the actual compiled random simulator across different grades. | This is **not** full-context OTP confidentiality `compiled-otp Full.≤UC compiled-ideal`. `ideal-with-sim` is formed with the W category's actual action/tensor; no unproved full-test compilation tensor law or reverse use of PM[wb] confidentiality is assumed. Full-test negative/hostile-channel witnesses are still not supplied by this slice. |
+| W / restricted closures and PM[wb] comparison | [`Examples.SSP.OneTimePad.ObservationRestriction`][otp-observation-restriction] consumes those exact full-test premises in `otp≤real-restricted`, `otp≤real-coarsened`, and `ideal-with-sim≤ideal-coarsened`. This is a direct positive source/composed-morphism client, not just a declaration of Epi/Mono. | It does not add a `q` security round-trip, a restricted-W negative, or the missing leaky-channel negative in PM[wb]. The pre-existing `otp≤idealᵂ` remains a genuine PM[wb] positive but is not an input to the full-test inclusion. |
+
+The QRS example is not a weakened zero-error theorem. Its raw
+[`FaultFlag`][faultflag] resources cache one initialized Boolean for their lifetime:
+the real resource has true probability 1/2, the intermediate resource 1/4, and
+the ideal always answers false. Both probabilistic initial laws have checked
+mass exactly one at depth 2; repeated adaptive reads return the same bit rather
+than amplify independent trials. `half-quarter-cache` and
+`quarter-false-cache` prove the two quarter bounds uniformly over strategies
+using finite cumulative-mass arithmetic.
+
+Its simulator performs live tag translation (`latest → previous → original`);
+the composed witness is the actual `simᵒ ∘ simᵒ`. Raw and composed simulator
+transactions, and their zero-error nonidentity refutations, are proved.
+`composed-simulator`/`composed-simulator-image` expose the witness.
+`no-small-construction` and `no-small-security` reject **every rational
+`ε < 1/2` and every simulator**, including partially initialized ones:
+one honest read has real true mass 1/2 and simulated-ideal true mass zero.
+The same simulator must precede all positive slacks and adaptive strategies.
+New [`Composition` sealing bridges][rs-composition] (`procᵒ-≈ᴿ[]`,
+`unprocᵒ-∼ᴿ[]`, `gradedᵒ-≈ᴿ[]`, `ungradedᵒ-∼ᴿ[]`), together with
+[`procᵒ-unprocᵒ`][pm-seal], preserve epsilon and carry the rejection across
+arbitrary sealed simulators, closing the baseline's concrete sealing seam.
+
+For SSPᵈ, the negative transport now has the missing justification:
+[`Dist.Setup.dist≈ᵁ⇒ssp≈ᵁ`, `dist≤⇒ssp≤`, and `reflects-≤UC`][ssp-dist-setup]
+use `descendᵛ-mono` at every unchanged prefix and reflect the full security
+quantification. Therefore `leaky-not-secure-dist` legitimately uses the native
+probe contradiction; it is **not** inferred from positive preservation of a
+negation. The same API also supplies preservation, `G≈id`, and
+`ssp≤⇒dist≤`. Security reflection does not assert `≈ᵈ ⇒ ≈ᵖ`, an inverse
+functor, or completeness of the stochastic-sampling proof principle.
+
+### SSPᵈ documentation status: UAR-035
+
+**Disposition: the status drift is corrected at the integrated snapshot.**
+The [Typst model source](uc-models.typ), [SSPᵈ plan](uc-setup-ssp-dist.md),
+[SSP plan](uc-setup-ssp.md), [example guide](examples-ssp-otp.md), and
+[landscape](uc-setup-landscape.md) now distinguish the already existing quotient
+from designed work and distinguish the native `otp≤idealᵈ` from actual target
+`otp≤ideal-dist`. The formal quotient, bidirectional security comparison and
+target examples are documented. This entry does not claim that Typst rendering
+or PDF regeneration was exercised.
+
+The original rejection of “SSPᵈ absent” remains correct: the setup existed at
+`4c9bf3e1`; the new work supplies clients/comparison corollaries and corrects the
+status text, rather than retrospectively making the baseline setup appear.
+
+### Remaining review status after this integration
+
+- UAR-002 is addressed only with the availability, converter, and compiled-resource
+  qualifications above; UAR-001's initialization/normalization issue remains.
+- UAR-016 and UAR-017 are now checked comparisons in the stated directions.
+  UAR-014–015, UAR-018, the missing W negatives and reverse/reflection boundaries
+  remain as stated.
+- UAR-034 is partially superseded by the concrete RS/QRS/W/SSPᵈ evidence above.
+  No unmentioned setup gains example coverage by association.
+- UAR-035's documentation-status defect is addressed. SSP sampling, delivery,
+  budget and primary-theory limitations remain.
+- **No symbolic or PM-choice resolution is included in this snapshot-pinned
+  disposition.** Candidate isolated reports do not by themselves establish
+  integration. The computational-symbolic adversarial review remains pending;
+  UAR-023 and UAR-028–033/037–039 are not marked resolved here.
+
+<!-- Sources added by the checked integrated disposition. -->
+[availability-api]: ../src/CategoricalCrypto/UC/RandomSystems/Availability.agda
+[availability-example]: ../src/CategoricalCrypto/Examples/RandomSystems/Availability.agda
+[w-inclusion-transfer]: ../src/CategoricalCrypto/UC/Bracket/InclusionTransfer.agda
+[w-observation-restriction]: ../src/CategoricalCrypto/UC/Bracket/ObservationRestriction.agda
+[otp-fulltests]: ../src/CategoricalCrypto/Examples/SSP/OneTimePad/FullTests.agda
+[otp-observation-restriction]: ../src/CategoricalCrypto/Examples/SSP/OneTimePad/ObservationRestriction.agda
+[faultflag]: ../src/CategoricalCrypto/Examples/FaultFlag.agda
+[faultflag-uc]: ../src/CategoricalCrypto/Examples/FaultFlag/UC.agda
