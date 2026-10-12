@@ -307,9 +307,12 @@ itm⇒prot = StdUCMorphism 𝕋ᴹ 𝔾ᵒ ℰᵀ ℰᵒ Fᴾ (pullbackᵛ (Stro
 Reused: `StdUCMorphism`, `pullbackᵛ`, `Categories.FreeMonoidal` (`freeFunctor`, `⟦⟧-resp-≈`), `iterₚ`,
 `coinₚ`, `initˢ`, `procᵒ`, `⊗ᵒ`. New: `freeStrongMonoidal` (shared), `runᴾ`, `F₀≡`, `leafᵒ`, `unitᵒ`.
 `Transfer` (`Abstract2/Morphism.agda:26-100`) yields only
-reflection and preservation of `≈ℰ`. `transfer` needs `GradeStable 𝔾ᵒ`, which the tree lacks
-(cf. `Machine/UC.agda:14-17`). `reflects-≤UC` needs `Full Φ`, which rightly fails: a `𝔾ᵒ` simulator
-need not be a TM system. Preserving `≤UC` needs "port ancillas suffice" (§6 step 9).
+reflection and preservation of `≈ℰ`. Its general `transfer` theorem needs target
+`GradeStable`, which **fails** at PM (`UC.RandomSystems.FullAbstraction.¬gradeStableᵒ`).
+`reflects-≤UC` needs `Full Φ`, which rightly fails: a `𝔾ᵒ` simulator need not be a TM system.
+A general forward `≤UC` transfer still needs "port ancillas suffice" (§6 step 9).
+The source clients in §6.1 instead ingest initialized **compiled hom equality**
+through `≈ᴾ⇒≈ᵁ`; they do not assume either missing transfer premise.
 
 ### 4.2 `itm⇒iso : ITMᴵˢᵒ → machine-iso` ("forget to the step relation")
 
@@ -497,6 +500,64 @@ single-module wall clock at `+RTS -M3G -H1G`, of which about 9 s is startup and 
 11. *(blocked on `G`)* `ITM/Triangle.agda` (K, `--guardedness`): the §4.3 iso and `ν`-square.
 12. Correct `docs/uc-setup-landscape.md` §2–3 per §5.7, then run the closure check (`*Tests`,
     `CategoricalCrypto`).
+
+### 6.1 Executable probabilistic source clients
+
+`CategoricalCrypto.Examples.ITM.Tests` exercises the **probabilistic source setup**
+`ITM.Setup`, not just membership or security of its PM images. The tables and their
+initialized activation proofs live in `Examples.ITM.Tables`; `Examples.ITM.Interpretation`
+connects them to the actual pulled-back tests and closed observations.
+
+The interface `Service = Var ⁺ ⊗ Var ⁻` has a reply port and a request port. Each
+resource has domain `unit` and codomain `Service ⊗ Service`: the first service is the
+adversarial grade and the second is the honest interface. The four-state finite table
+starts at state zero with a blank work tape. An honest request samples a fair bit with
+`flip`, appends that bit to the output buffer, replies, and returns to the same blank
+memory. A grade request instead returns a fixed marker: `true` in `real`, `false` in
+`ideal`. Requests may contain arbitrary bitstrings; these resources ignore their payloads.
+
+The explicit **two-state simulator** is a source table from `Service` to `Service`.
+It normalizes a grade request to the empty bitstring and replaces an ideal grade reply
+with the one-bit string `[true]`. It is tensored with the honest identity, so it cannot
+rewrite the honest coin. This is observable work, not identity forwarding:
+
+| checked client | statement |
+|---|---|
+| `explicit-simulator` | `real ≈ᵁ (var simulator ⊗ id) ∘ ideal` in `ITM.Setup` |
+| `secure` | `real ≤UC ideal` in `ITM.Setup`, for every source adversary |
+| `real-marker`, `ideal-marker`, `simulated-marker` | the actual closed marker observations are respectively `returnₚ true`, `returnₚ false`, and `returnₚ true`, up to `≈ₚ` |
+| `marker-environment`, `marker-pull-distinct` | a concrete environment in `ITM.Setup.Env` separates the two source `pull` actions |
+| `initialized-distinct`, `initialized-distinctᵁ` | the unsimulated source pair is neither `≈ℰ`- nor `≈ᵁ`-equivalent |
+| `simulation-observable`, `simulator-nonidentity` | installing the simulator changes source observations, and its source arrow is not the identity |
+| `honest-coin` | either initialized resource's honest observation is `coinₚ uniform-Bool` |
+| `honest-independent` | a client comparing two consecutive honest replies observes two independently sampled fair bits |
+
+`resource-correct` and `simulator-correct` are **point-preserving** simulations: their
+state maps select `blank`, and their point equations check the actual initialized
+`runᴾ` processes. The proof covers every incoming message at that reachable memory,
+including arbitrary payloads and repeated activations. `ITM.Run.Properties` supplies the
+`iterₚ-fix` laws for internal instructions, coin flips, and sends, without a halting or
+termination premise. The marker tests are real PM strategy environments, and the empty
+closure is an explicit process from `𝟘ᵒ` to the interpreted source unit; neither is an
+assumed or synthetic observation.
+
+For security, the initialized simulation first proves **compiled hom equality**.
+`ITM.Setup.≈ᴾ⇒≈ᵁ` then lifts that equality through every source prefix. The strict
+interpreter sends `id ⊗ f` to `id ⊗ Fᴾ f`, so target tensor congruence and
+`≈ℰ⇔` establish each prefixed source kernel equality. Thus the argument covers every
+pulled-back test and every closure those tests quantify over, not only the particular
+marker or coin clients. `dummy-complete` supplies the arbitrary-adversary source
+`≤UC` theorem. No PM `GradeStable`, fullness, ports-suffice theorem, or general
+ITM-to-PM `≤UC` transfer is assumed.
+
+**Exact scope.** This is a static finite-table, perfect-information example: a randomized
+honest bit service with a public marker, not an encryption, secrecy, or computational
+security result. Tests are the unrestricted PM tests pulled back along `Fᴾ`, rather than
+PPT or computable finite-table environments. Both verdict masses are compared at every
+positive rational slack, so divergence is distinct from a `false` reply. There is no
+security parameter, negligible bound, dynamic ITI creation, adaptive corruption, or
+scheduling/silent-return extension. The client does not close any of those gaps or turn
+the uninitialized relational interpretation into an initialized UC setup.
 
 ## 7. Sources
 

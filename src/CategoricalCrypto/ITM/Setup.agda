@@ -57,3 +57,13 @@ itm⇒prot = StdUCMorphism 𝕋ᴹ 𝔾ᵒ ℰᵀ ℰᵒ Fᴾ νᵀ
 ≈ℰ⇔ : ∀ {A B} {f g : A ⇒ B} → f ≈ℰ g ⇔ Fᴾ.₁ f Prot.≈ℰ Fᴾ.₁ g
 ≈ℰ⇔ = mk⇔ (epi⇒preserves-≈ℰ λ {A} → νᵀ-epi {A}) (mono⇒reflects-≈ℰ λ {A} → νᵀ-mono {A})
   where open Transfer itm⇒prot
+
+-- `Fᴾ` is strict on the free tensor, so compiled hom equality survives
+-- every prefix before the observation pullback; no GradeStable premise.
+≈ᴾ⇒≈ᵁ : ∀ {A X B} {f g : A ⇒ T₀ X B}
+         → Fᴾ.₁ f Prot.𝒞.≈ Fᴾ.₁ g → f ≈ᵁ g
+≈ᴾ⇒≈ᵁ {A} {X} {B} {f} {g} e W =
+  Equivalence.from (≈ℰ⇔ {A = W ⊗₀ A} {B = (W ⊗₀ X) ⊗₀ B} {f = prefix W f} {g = prefix W g})
+    (Prot.≈C⇒≈ℰ (Prot.𝒞.∘-resp-≈ʳ (Prot.⊗.F-resp-≈
+      {(Fᴾ.₀ W , Fᴾ.₀ A)} {(Fᴾ.₀ W , Fᴾ.₀ (X ⊗₀ B))}
+      {(Prot.id , Fᴾ.₁ f)} {(Prot.id , Fᴾ.₁ g)} (Prot.𝒞.Equiv.refl , e))))
