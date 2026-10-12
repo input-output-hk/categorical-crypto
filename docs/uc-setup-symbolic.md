@@ -2,8 +2,9 @@
 
 Plan of 2026-10-09, updated 2026-10-11. Steps 1–9 of §6 are built for the single-sorted
 pairing/encryption theory E₀; static equivalence implies kernel equality for arbitrary signatures
-and theories. The converse fails in general (§3.7). Step 10 has a fixed-message fragment and an
-interactive-channel obstruction (§6). Statements about unwritten modules are design claims.
+and theories. The converse fails in general (§3.7). Step 10 proves `smt≤ideal` for a
+fixed-public-message fragment; environment-selected interactive messages are not covered (§6).
+Statements about unwritten modules are design claims.
 `[INFERENCE]` marks reasoning backed by neither a read source nor the tree. Citations are
 `bibkey §/Def/p.` with printed pages (`docs/kb/sources/papers/INDEX.md`). Short names: CLC =
 `comonlundhcortier2008`, CH = `canettiherzog2006`, BPW = `backes2003library`, AR = `abadirogaway2002`.
@@ -435,6 +436,10 @@ tensor (`HSim-∘`, `HSim-⊗`); `UC/Model/Relational` exports it across the sea
 `relsim⇒≈ᴿ` gives equality against every machine distinguisher, not just equality
 of one finite run.
 
+`UC/Machine/RelationalTests` exercises the functional-graph compatibility,
+behavioural consequence, tensor, feedback, and G-composition/tensor exports with
+concrete machines whose hidden states differ.
+
 For symbolic contexts, `Static/Same` relates terms computed by the same recipe over
 two frames; an apex role preserves this relation, including fresh allocations and
 guards. `Static/Relational.relsim⇒≈ℰ` lifts the leaf span through the whole circuit.
@@ -717,10 +722,17 @@ listed exports.
    `Symbolic/StaticTests` exercises the public equivalence. The unrestricted
    converse is false for the reason and counterexample of §3.7, not missing proof work.
 10. `Symbolic/Example/SecureChannel.agda`: the compatible fixed-public-message E₀
-    fragment has `real≈simulated`, `real≤simulated`; the simulator's ciphertext is
-    `enc(cst 0, k′, r)`. The interactive `smt≤ideal` requires a relation following
-    the environment-selected plaintext across the run, whereas step 9's apex is
-    parameterized by fixed frames. Step 9 alone is not that theorem.
+    fragment has the Eve-only `real≈simulated`, `real≤simulated` and the full
+    honest/Eve-port `smt≤ideal`. The real protocol is the tensor of the ciphertext
+    emitter and an honest emitter delivering `cst n`; the ideal leaves the Eve
+    interface void and delivers the same `cst n`. The non-identity simulator is
+    `Emitter keys (ciphertext 0)`, supplying `enc(cst 0, k′, r)`. `emitter-emits`
+    and `Apex.context` carry the ciphertext span beside the unchanged honest wire;
+    dummy completeness turns it into realization. `StaticTests` checks the public
+    theorem. This is **not** the environment-selected-message interactive channel:
+    that requires a relation following the plaintext across the run, whereas
+    step 9's apex is parameterized by fixed frames. Step 9 alone is not that theorem.
+
 11. `Symbolic/Machine.agda`: `sym≅→iso`, with a warm check inside the budget.
 12. `Symbolic/Computational.agda`: `fine→comp`.
 13. `Symbolic/Soundness.agda`: `det⇒∼o`, `sound⁺`, `sound-≤UC`. Pairing and symmetric encryption

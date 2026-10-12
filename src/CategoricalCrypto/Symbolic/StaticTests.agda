@@ -35,3 +35,6 @@ private
 
   _ : ∀ κ → frame κ Channel.keys (Channel.ciphertext 1) ≈ₛ frame κ Channel.keys (Channel.ciphertext 0)
   _ = Equivalence.to ≈ℰ⇔≈ₛ (Channel.real≈simulated 1)
+
+  _ : Channel.smt 1 Sym.≤UC Channel.ideal 1
+  _ = Channel.smt≤ideal 1

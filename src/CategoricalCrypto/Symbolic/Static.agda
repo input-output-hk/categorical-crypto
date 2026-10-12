@@ -29,7 +29,7 @@ open import CategoricalCrypto.Machines.Sim.Relational.Pointwise
 open import CategoricalCrypto.Symbolic.Deduction 𝔖 E
 open import CategoricalCrypto.Symbolic.Fine 𝔖 using (Var)
 open import CategoricalCrypto.Symbolic.Role 𝔖
-open import CategoricalCrypto.Symbolic.Semantics 𝔖 E using (runᴿ)
+open import CategoricalCrypto.Symbolic.Semantics 𝔖 E using (Occ; runᴿ)
 open import CategoricalCrypto.Symbolic.Setup 𝔖 E using (module Sym)
 open import CategoricalCrypto.Symbolic.Static.Emitter 𝔖 E
 open import CategoricalCrypto.Symbolic.Static.Relational 𝔖 E
@@ -155,12 +155,15 @@ module _ {Δ Ν : List Sort} (ζs ζs′ : All (Rcp Ν) Δ) (κ : ℕ) where
 ------------------------------------------------------------------------
 -- Statically equivalent frames make kernel-equal emitters
 
-≈ₛ⇒≈ℰ : {Δ Ν : List Sort} {ζs ζs′ : All (Rcp Ν) Δ}
-      → (∀ κ → frame κ Ν ζs ≈ₛ frame κ Ν ζs′) → Emitter Ν ζs Sym.≈ℰ Emitter Ν ζs′
-≈ₛ⇒≈ℰ {Δ} {Ν} {ζs} {ζs′} equiv = relsim⇒≈ℰ (↔-id _) λ ι _ → let κ = ι tt in record
+-- The emitter span itself, also used when the honest and Eve ports are
+-- separate factors of a protocol.
+emitter-emits : {Δ Ν : List Sort} {ζs ζs′ : All (Rcp Ν) Δ}
+              → (ι : Occ (Emitter Ν ζs) → ℕ) → frame (ι tt) Ν ζs ≈ₛ frame (ι tt) Ν ζs′
+              → Emits (Emitter Ν ζs) (Emitter Ν ζs′) (↔-id _) ι
+emitter-emits {Δ} {Ν} {ζs} {ζs′} ι equiv = let κ = ι tt in record
   { φ     = frame κ Ν ζs
   ; ψ     = frame κ Ν ζs′
-  ; equiv = equiv κ
+  ; equiv = equiv
   ; held  = λ where
       (inj₁ n∈) → tt , frame-names κ Ν ζs n∈
       (inj₂ n∈) → tt , frame-names κ Ν ζs′ n∈
@@ -168,3 +171,7 @@ module _ {Δ Ν : List Sort} (ζs ζs′ : All (Rcp Ν) Δ) (κ : ℕ) where
   ; left  = Apex.proc-rel (frame κ Ν ζs) (frame κ Ν ζs′) l {Var void} {Ports Δ} tt (ports-free Δ) (emitter≲ ζs ζs′ κ l)
   ; right = Apex.proc-rel (frame κ Ν ζs) (frame κ Ν ζs′) r {Var void} {Ports Δ} tt (ports-free Δ) (emitter≲ ζs ζs′ κ r)
   }
+
+≈ₛ⇒≈ℰ : {Δ Ν : List Sort} {ζs ζs′ : All (Rcp Ν) Δ}
+      → (∀ κ → frame κ Ν ζs ≈ₛ frame κ Ν ζs′) → Emitter Ν ζs Sym.≈ℰ Emitter Ν ζs′
+≈ₛ⇒≈ℰ equiv = relsim⇒≈ℰ (↔-id _) λ ι _ → emitter-emits ι (equiv (ι tt))
