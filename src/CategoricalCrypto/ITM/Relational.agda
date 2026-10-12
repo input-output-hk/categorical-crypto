@@ -1,15 +1,10 @@
 {-# OPTIONS --safe #-}
 
--- `itm⇒iso`, the arrow from ITM systems into machine-iso
--- (`docs/uc-setup-itm.md` §4.2).  `Fᴿ` reads a leaf as its run relation
--- (`Halts`): coins become nondeterministic choice, a diverging activation has
--- no transition and `blank` is forgotten.  It is strict into the REVERSED
--- machine tensor, so `⟦ A ⊗₀ B ⟧₀` is `⟦ B ⟧₀ ⊗₀ ⟦ A ⟧₀` and the channel codec
--- reads a tree mirrored.
---
--- The source observation is `ℰᴵˢᵒ`, pulled back from `Machine.UC.ℰ-tests`, not
--- `ITM.Setup`'s `ℰᵀ`: machine-iso compares tests up to state bijections,
--- which no map out of `ℰᵀ`'s classes respects.  K, because `Machine.UC` uses it.
+-- The uninitialized structural interpretation into Machine.UC, and the
+-- initialization-aware execution boundary (`docs/uc-setup-itm.md` §4.2).
+-- The target category has no chosen initial state. Its contextual state
+-- isomorphism tests are neither initialized trace tests nor probability tests.
+-- Trees are mirrored because the target tensor is reversed.
 
 module CategoricalCrypto.ITM.Relational where
 
@@ -24,6 +19,7 @@ open import Categories.NaturalTransformation
 
 open import Data.Bool.Base
 open import Data.Empty
+open import Data.Fin.Base using (Fin)
 open import Data.List.Base
 open import Data.Maybe.Base
 open import Data.Product.Base
@@ -36,7 +32,9 @@ open import Relation.Binary.PropositionalEquality
 
 open import CategoricalCrypto.Channel.Core hiding (In; Out) renaming (_⊗₀_ to _⊗ᶜ_)
 open import CategoricalCrypto.ITM.Core
-open import CategoricalCrypto.Machine.Core
+open import CategoricalCrypto.Machine.Core hiding (ℰ)
+open import CategoricalCrypto.Machine.Initialized
+open import CategoricalCrypto.Machine.Iso
 open import CategoricalCrypto.Standard2
 open import CategoricalCrypto.Standard2.Morphism
 open import CategoricalCrypto.UCSetup.Morphism
@@ -110,30 +108,106 @@ encodeᴿ : (A B : Ports) → Out A B × Bits → outType (⟦ A ⟧₀ ⊗ᵀ �
 encodeᴿ A B (inj₁ o , w) = construct-⊗ {m = Mode.Out} (inj₁ (encodeᶜ ⁻ A (o , w)))
 encodeᴿ A B (inj₂ o , w) = construct-⊗ {m = Mode.Out} (inj₂ (encodeᶜ ⁺ B (o , w)))
 
-leafᴿ : {A B : Ports} → Gen A B → Machine ⟦ A ⟧₀ ⟦ B ⟧₀
-leafᴿ {A} {B} M = MkMachine {State = Mem M} λ m i o m′ →
-  Σ[ y ∈ Out A B × Bits ] Halts M (load M m (decodeᴿ A B i)) (m′ , y) × o ≡ just (encodeᴿ A B y)
+module Uninitialized where
+  leaf : {A B : Ports} → Gen A B → Machine ⟦ A ⟧₀ ⟦ B ⟧₀
+  leaf {A} {B} M = MkMachine {State = Mem M} λ m i o m′ →
+    Σ[ y ∈ Out A B × Bits ] Halts M (load M m (decodeᴿ A B i)) (m′ , y) × o ≡ just (encodeᴿ A B y)
 
-Fᴿ : StrongMonoidalFunctor 𝕋ᴹ Iso.machines
-Fᴿ = freeStrongMonoidal record { ⟦v⟧ = ⟦v⟧ᴿ ; ⟦_⟧ᵖ₀ = ⟦_⟧ᶜ ; ⟦_⟧ᵖ₁ = leafᴿ }
+  module Reinitialize {I O : Set} (M : TM I O) (q : Fin (TM.#Q M)) where
+    M′ : TM I O
+    M′ = record M { start = q }
 
-private module Fᴿ = StrongMonoidalFunctor Fᴿ
+    private
+      conf-to : Conf M → Conf M′
+      conf-to c = record
+        { state = Conf.state c ; work = Conf.work c ; port = Conf.port c
+        ; input = Conf.input c ; buf = Conf.buf c }
 
-ℰᴵˢᵒ : Presheaf (MonoidalCategory.U 𝕋ᴹ) (Setoids (suc 0ℓ) (suc 0ℓ))
-ℰᴵˢᵒ = Iso.ℰ-tests ∘F Functor.op Fᴿ.F
+      conf-from : Conf M′ → Conf M
+      conf-from c = record
+        { state = Conf.state c ; work = Conf.work c ; port = Conf.port c
+        ; input = Conf.input c ; buf = Conf.buf c }
 
-module Rel = StdUC 𝕋ᴹ ℰᴵˢᵒ
+    halts-to : ∀ {c r} → Halts M c r → Halts M′ (conf-to c) r
+    halts-to (halt eq) = halt eq
+    halts-to (step eq h) = step eq (halts-to h)
+    halts-to (toss x eq h) = toss x eq (halts-to h)
 
--- `pullbackᵛ`, written out for the reason given at `ITM.Setup.νᵀ`.
-νᴿ : PresheafMorphism Fᴿ.F ℰᴵˢᵒ Iso.ℰ-tests
-νᴿ = record { ν = ntHelper record
-  { η = λ _ → record { to = λ x → x ; cong = λ e → e } ; commute = λ _ → Setoid.refl (Functor.₀ Iso.ℰ-tests _) } }
+    halts-from : ∀ {c r} → Halts M′ c r → Halts M (conf-from c) r
+    halts-from (halt eq) = halt eq
+    halts-from (step eq h) = step eq (halts-from h)
+    halts-from (toss x eq h) = toss x eq (halts-from h)
 
-νᴿ-epi : PresheafMorphism.Epi νᴿ
-νᴿ-epi y = y , Setoid.refl (Functor.₀ Iso.ℰ-tests _)
+  reinitialize-iso : {A B : Ports} (M : Gen A B) (q : Fin (TM.#Q M))
+                   → leaf M ≅ᴹ leaf (Reinitialize.M′ M q)
+  reinitialize-iso M q = MkIso (λ s → s) (λ s → s) (λ _ → refl) (λ _ → refl)
+    (λ { (y , h , eq) → y , Reinitialize.halts-to M q h , eq })
+    (λ { (y , h , eq) → y , Reinitialize.halts-from M q h , eq })
 
-νᴿ-mono : PresheafMorphism.Mono νᴿ
-νᴿ-mono e = e
+  private
+    -- Check contextual congruence before instantiating the relational
+    -- category, so elaboration need not normalize its composed step relations.
+    module ImageContext {o ℓ e} (ffd : FreeFunctorData itmData {o} {ℓ} {e}) where
+      module C = FreeFunctorData.C ffd
+      module I = Functor (FreeFunctor.freeFunctor ffd)
+      module S = FreeMonoidal itmData
 
-itm⇒iso : UCSetupMorphism Rel.StdSetup Iso.StdSetup
-itm⇒iso = StdUCMorphism 𝕋ᴹ Iso.machines ℰᴵˢᵒ Iso.ℰ-tests Fᴿ νᴿ
+      congruence : ∀ {A X B} {f g : S.HomTerm A (X S.⊗₀ B)} (W : Ports)
+                 → I.F₁ f C.≈ I.F₁ g
+                 → I.F₁ (S.α⇐ {A = W} {B = X} {C = B} S.∘ (S.id {A = W} S.⊗₁ f))
+                   C.≈ I.F₁ (S.α⇐ {A = W} {B = X} {C = B} S.∘ (S.id {A = W} S.⊗₁ g))
+      congruence {A} {X} {B} {f} {g} W e = C.∘-resp-≈ C.Equiv.refl
+        (C.⊗.F-resp-≈ {I.F₀ W , I.F₀ A} {I.F₀ W , I.F₀ (X S.⊗₀ B)}
+          {C.id {A = I.F₀ W} , I.F₁ f} {C.id {A = I.F₀ W} , I.F₁ g}
+          (C.Equiv.refl , e))
+
+    relationalData : FreeFunctorData itmData
+    relationalData = record { ⟦v⟧ = ⟦v⟧ᴿ ; ⟦_⟧ᵖ₀ = ⟦_⟧ᶜ ; ⟦_⟧ᵖ₁ = leaf }
+
+  F : StrongMonoidalFunctor 𝕋ᴹ Iso.machines
+  F = freeStrongMonoidal relationalData
+
+  private
+    module F = StrongMonoidalFunctor F
+    module Context = ImageContext relationalData
+
+  ℰ : Presheaf (MonoidalCategory.U 𝕋ᴹ) (Setoids (suc 0ℓ) (suc 0ℓ))
+  ℰ = Iso.ℰ-tests ∘F Functor.op F.F
+
+  module UC = StdUC 𝕋ᴹ ℰ
+
+  -- `pullbackᵛ`, written out for the reason given at `ITM.Setup.νᵀ`.
+  ν : PresheafMorphism F.F ℰ Iso.ℰ-tests
+  ν = record { ν = ntHelper record
+    { η = λ _ → record { to = λ x → x ; cong = λ e → e }
+    ; commute = λ _ → Setoid.refl (Functor.₀ Iso.ℰ-tests _) } }
+
+  ν-epi : PresheafMorphism.Epi ν
+  ν-epi y = y , Setoid.refl (Functor.₀ Iso.ℰ-tests _)
+
+  ν-mono : PresheafMorphism.Mono ν
+  ν-mono e = e
+
+  ⇒iso : UCSetupMorphism UC.StdSetup Iso.StdSetup
+  ⇒iso = StdUCMorphism 𝕋ᴹ Iso.machines ℰ Iso.ℰ-tests F ν
+
+  image-prefix-iso : ∀ {A X B} {f g : A UC.𝒞.⇒ UC.T₀ X B} (W : Ports)
+                   → F.₁ f ≅ᴹ F.₁ g
+                   → F.₁ (UC.prefix {A = A} {X = X} {B = B} W f)
+                     ≅ᴹ F.₁ (UC.prefix {A = A} {X = X} {B = B} W g)
+  image-prefix-iso {A} {X} {B} {f} {g} W e =
+    Context.congruence {A = A} {X = X} {B = B} {f = f} {g = g} W e
+
+  image-iso⇒≈ᵁ : ∀ {A X B} {f g : A UC.𝒞.⇒ UC.T₀ X B}
+               → F.₁ f ≅ᴹ F.₁ g → f UC.≈ᵁ g
+  image-iso⇒≈ᵁ {A} {X} {B} {f} {g} e W =
+    UC.KE.mk∼ {X = (W UC.⊗₀ X) UC.⊗₀ B} {Y = W UC.⊗₀ A}
+      {f = UC.prefix {A = A} {X = X} {B = B} W f}
+      {g = UC.prefix {A = A} {X = X} {B = B} W g}
+      (Functor.F-resp-≈ Iso.ℰ-tests
+        {f = F.₁ (UC.prefix {A = A} {X = X} {B = B} W f)}
+        {g = F.₁ (UC.prefix {A = A} {X = X} {B = B} W g)}
+        (image-prefix-iso {A = A} {X = X} {B = B} {f = f} {g = g} W e))
+
+initializedLeaf : {A B : Ports} → Gen A B → InitializedMachine ⟦ A ⟧₀ ⟦ B ⟧₀
+initializedLeaf M = initialize (Uninitialized.leaf M) (blank M)
