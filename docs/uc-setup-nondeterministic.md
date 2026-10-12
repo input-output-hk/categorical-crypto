@@ -370,8 +370,19 @@ By `dummy-complete`, f ≤UC_B g iff some s₀ : ⌊Y,T⃗⌋ → ⌊X,S⃗⌋ �
 Real choices (S⃗) are resolved by whoever holds the real grade: the adversary a, answering from its own
 state and what it learned on X.  Ideal ones (T⃗) are resolved by the simulator, from what it learns from
 a; the environment plays the dummy adversary.  This is UC with adversarial scheduling (canetti2015suc
-§2.2: the router delivers a message when the adversary says so).  Refining a choice is emulation: in PM
-⟨t₀⟩ ≤UC_B ⟨[t₀, t₁]⟩, s₀ answering every ideal request with 0, invisibly to the environment.
+§2.2: the router delivers a message when the adversary says so). For choice-free PM branches, a
+constant picker proves ⟨t₀⟩ ≤UC_B ⟨[t₀, t₁]⟩ **when the selected branch has almost-surely total
+initialization** (`ASTotal`); it answers the ideal's first request with 0. The other branches need
+not initialize totally. `Choice/Initialization/Graded.constant-pick-≤UC-B` uses the actual compiler
+at designated grades `(I, [])` and `(I, S ∷ [])`, with the explicit grade-unit insertion `at`.
+
+This premise cannot be dropped. `Choice/Initialization/Example.half-initialization-≰UC-B` refutes
+`plain p ≤UC_B choose (const (plain p))` when `p` initializes with probability 1/2 and has a total
+ordinary step. The zero-query and one-query strategies use the **same arbitrary simulator**:
+matching the former bounds its eager initial mass by 1/2; the latter must also survive the deferred
+branch initialization and has mass at most 1/4, against the real world's 1/2. The proof crosses
+`FullAbstraction.≈ᵁ⇒≈ᴿ`, rather than assuming that a portless simulator is inert. PM's global eager
+initialization and divergent runs are unchanged.
 
 **SSP caveat.**  A call/return simulator runs only when the environment calls the real grade; the ideal
 protocol cannot activate it.  So SSP-B resolves ideal choices only on the environment's schedule, and
@@ -515,7 +526,7 @@ about ⌈−⌉.
 | `choose` past `coin` or `call` in one step | ≈ᵈ, hence ≈ᵁ: the pick precedes the activation | ✓ | no syntax | ✓ |
 | permutation `k ∘ π`; commutativity `[t₀,t₁] ~ [t₁,t₀]` | ≈ᵖ after the relabelling ⌈π⌉ | mutual | mutual | mutual |
 | collapse: ∀ i. k i ≈ k₀ ⇒ ⟨k⟩ ~ ⟨const k₀⟩ (same site) | ≈ᵖ | ✓ | ✓ | ✓ |
-| idempotence ⟨const t⟩ ~ ⟨t⟩ (one site against none) | grades differ | ✗ both ways | ⟨t⟩ ≤ ⟨const t⟩ only | ✗ |
+| idempotence ⟨const t⟩ ~ ⟨t⟩ (one site against none) | grades differ | ✗ both ways | ⟨t⟩ ≤ ⟨const t⟩ for AS-total selected initialization only | ✗ |
 | flattening: two picks against one pair-pick | grades differ | ✗ | mutual | mutual |
 
 - Row 2 is new.  Under the old global demon `coin-unit` and choose/coin commutation were non-laws (a
@@ -524,14 +535,16 @@ about ⌈−⌉.
   other before it: `coin-drop` (built, `coin-choose-ᵈ`, §5.3), and "`dead` absorbs a call" (built,
   `call-dead`; so `call-choose-ᵈ`).  In PM a request's position within an activation is observable, so the
   row holds there only for requests raised on every branch [INFERENCE].
-- Idempotence: in A an unanswered site hangs one side only; in PM-B the simulator answers the ideal's
-  request invisibly (⟨t⟩ ≤ ⟨const t⟩) but cannot raise the real one's; in SSP-B the simulator is never
-  activated, and the real side dies on an empty queue.  Flattening's B rows and both idempotence
-  verdicts are [INFERENCE].
+- Idempotence: in A an unanswered site hangs one side only; in PM-B a constant simulator answers
+  the ideal request invisibly if the selected choice-free branch initializes almost surely.
+  The unrestricted forward claim is false by the compiled half-initialization counterexample
+  in §2.5. In SSP-B the simulator is never activated, and the real side dies on an empty queue.
+  The A verdicts, reverse PM-B direction, and flattening's B rows remain [INFERENCE].
 - Built at SSP (`ND/SSP/Laws.agda`, `Choice/Dist.agda`): row 1 `congruence`; row 2 `coin-choose-ᵈ`,
   `call-choose-ᵈ`; row 3 `permute`, `Swap.swap-ᵖ`, and as A-emulations `permute-≤UC` and the mutual
-  `Swap.order-indep`; row 4 `collapse`, against a callee `Callee.either-order`.  Rows 5–6 are not built;
-  copying, one site against two (§4 (iii)), is built in `ND/SSP/Reflect.agda`: B one way, not A.
+  `Swap.order-indep`; row 4 `collapse`, against a callee `Callee.either-order`. Row 5's corrected
+  PM-B forward direction is built in `Choice/Initialization/Graded`; row 6 is not built.
+  Copying, one site against two (§4 (iii)), is built in `ND/SSP/Reflect.agda`: B one way, not A.
 
 ### 5.2 `P ∥ Q` (kept)
 
@@ -580,6 +593,7 @@ integrator's.  Paths are under `src/`.
 | L3 (opt.) | `CategoricalCrypto/ND/SSP/Shuffle.agda` | §5.2: `_∥ᶜ_`, commutativity by relabelling | — |
 | P1 | `CategoricalCrypto/UC/Model/Symmetric.agda` | §2.3: `𝔾ᵒ`'s braiding σᴳ, naturality, hexagon | **built** (`e32166b3`): generic `Categories/GConstructionSymmetric.agda` (σᴳ = ⌜ σ⇒ , σ⇒ ⌝; `σᴳ-natural` by `absorbˡ`/`absorbʳ` and the swap conjugating `mid`; both hexagons by `⌜⌝-∘`/`⌜⌝-⊗ˡ`/`⌜⌝-⊗ʳ`, one base hexagon per polarity; `GConstructionBraided`, `GConstructionSymmetric`, bundle; 9 s), sealed as `UC/Model/Symmetric.symmetricᵒ : Symmetric (MonoidalCategory.monoidal 𝔾ᵒ)` (opaque, `unfolding 𝔾ᵒ`, 11 s) and `𝔾ˢ` over `∣𝔾ᵒ∣`.  `UC/Model/Seal`, `UC/Model/Setup` untouched |
 | P2 | B1, A1, A2 at PM | choice factors ⊤ ⇿ S in `𝔾ᵒ`; PM's online B | **built**: `ND/PM/Factor` (`C`, `Cᶠ`, `ψ`, `ψ-C++`/`ψ-C++⁻¹`); `ND/PM/Read` and `Factor/Read` (flat commuting-square calculus); `ND/PM/Relabel` and `Relabel/{Wire,Picks,Regroup}` (partial stateless routing, functorial/monoidal laws and regroupings, `relabelling`); `ND/PM/Setup` (`NDB`, `NDA`, `≤UC-B⇔≤UC`, `A⇒B`, `A⇒PM`, `relabel-≤UC`, `≤UC⇒relabel`); `ND/PM/Choice` (`Proc⁺`, on-demand `choose`, `plain`, composition/tensor, `⌈_⌉`), `Choice/Compose` (`⌈⌉-resp`, `⌈⌉-plain`, `⌈⌉-∘`, `⌈⌉-⊗`), `Choice/Pin` (request/resume/off-protocol and two-site compilation pins). Reuses `UC/Model/Wire`, `UC/Machine/Wire/Kleisli`, `Dp/Det`, `SSP/Iface/Payload`, `ND/Relabel`; preserves the sealed PM tests and observation kernel. Optional PM witness (ii) is not claimed (§4). |
+| P3 | `CategoricalCrypto/ND/PM/Choice/Initialization{,/Graded,/Example}.agda` | initialization-sensitive PM-B refinement | **built**: `constant-pick-≤UC-B` for the selected branch's `ASTotal` initialization; `half-initialization-≰UC-B` at the same explicit designated grades, using one arbitrary simulator for both strategies; `stateful-≤UC-B`, `stateful-closed-run`, and `stateful-observed-run` exercise two distinct activations and a retained Boolean state update through `plugᴹ` and a closed ancilla/cup observation |
 
 Order: G1 (built), then B1–B2, A1–A2 (A2 with G2's `weaken`), L1 over SSP; P1–P2 when PM's online B, or
 A at PM, is wanted.  Traps: the `refl`s of §1.5 against `FromMonad`'s triple (pinned, they hold); one

@@ -1249,6 +1249,18 @@ tensor comparisons across the seal. The request/resume pins use Boolean picks; t
 and parallel pins instantiate these equations.
 #srcs(cc("UC/Model/Symmetric.agda", 32, "symmetricᵒ"), cc("ND/PM/Factor.agda", 124, "ψ"), cc("ND/PM/Relabel.agda", 54, "relabelling"), cc("ND/PM/Choice.agda", 92, "choose"), cc("ND/PM/Choice/Compose.agda", 47, "⌈⌉-plain"), cc("ND/PM/Choice/Compose.agda", 55, "⌈⌉-∘"), cc("ND/PM/Choice/Compose.agda", 67, "⌈⌉-⊗"), cc("ND/PM/Choice/Pin.agda", 57, "request"), cc("ND/PM/Choice/Pin.agda", 60, "resume"), cc("ND/PM/Choice/Pin.agda", 83, "two-compiled"), cc("ND/PM/Choice/Pin.agda", 91, "parallel-compiled"))
 
+#formal Constant-pick refinement for choice-free #PM branches requires almost-surely total
+initialization of the selected branch and a pick $s : S$; no condition is imposed on unselected
+branches. With grades $(I, [])$ and $(I, [S])$, the explicit unitor insertion $op("at")$ and the online constant picker give
+$p leUC op("choose")(op("const")(p))$ in #NDB under that initialization premise. The unrestricted law
+is false: a half-terminating initialization is observed even by a zero-query strategy, bounding
+the same simulator's surviving initial mass by $1/2$. One ordinary activation also passes
+through the ideal's deferred half-terminating initialization, so its mass is at most $1/4$, against
+the real world's $1/2$. This is a checked #NDB refutation via #PM full abstraction, not a
+compiler-shape equation. The total-initialized consumer uses distinct activations and a retained
+state update through the actual plugged machine and the closed ancilla/cup observation.
+#srcs(cc("ND/PM/Choice/Initialization.agda", 231, "TotalInitialization"), cc("ND/PM/Choice/Initialization/Graded.agda", 61, "at"), cc("ND/PM/Choice/Initialization/Graded.agda", 123, "constant-pick-≤UC-B"), cc("ND/PM/Choice/Initialization/Graded.agda", 182, "B-emulation⇒closed-resolver"), cc("ND/PM/Choice/Initialization/Example.agda", 205, "half-initialization-≰UC-B"), cc("ND/PM/Choice/Initialization/Example.agda", 233, "stateful-≤UC-B"), cc("ND/PM/Choice/Initialization/Example.agda", 255, "stateful-closed-run"), cc("ND/PM/Choice/Initialization/Example.agda", 267, "stateful-observed-run"))
+
 The existing $mwb : SSP → PMwb$ carries pick-ahead compiled protocols into well-bracketed machine
 semantics, and $miota$ includes their computations in #PM. It retains the queued interaction
 discipline; it is not an equality with the separate on-demand #PM choice combinator.
