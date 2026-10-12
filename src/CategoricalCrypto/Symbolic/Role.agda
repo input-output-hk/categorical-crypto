@@ -18,12 +18,14 @@ open import Categories.FreeMonoidal
 open import Data.Bool.Base
 open import Data.Empty
 open import Data.Fin.Base
+import Data.Fin.Properties as Fin
 open import Data.List.Base
 open import Data.List.Membership.Propositional
 open import Data.List.Membership.Propositional.Properties
 open import Data.List.Relation.Unary.All
 open import Data.List.Relation.Unary.All.Properties
 open import Data.List.Relation.Unary.Any
+open import Data.Maybe.Base
 open import Data.Nat.Base
 open import Data.Product
 open import Data.Sum.Base
@@ -213,30 +215,62 @@ Reactions : Role x y → Set
 Reactions {x} {y} p =
   (c : Fin (Role.n p)) {k : Kind} → k ∈ Ins x y → Branch k → React (Role.n p) (Role.Γ p) (Outs x y) (carried k ++ Role.Γ p c)
 
--- `comonlundhcortier2008` §3.3: a failed guard emits a fixed message and the
--- process stops.  Here the message is a ground payload and stopping is a jump
--- to a control point that answers every activation in the same way.  CLC's
--- well-formedness guard `M` needs check symbols in the signature.
+-- Ground output alone does not imply termination or input independence.
 GroundPayload : ∀ k → Payload Δ k → Set
 GroundPayload (msg _) ζ = Ground ζ
 GroundPayload flag    _ = ⊤
 GroundPayload tick    _ = ⊤
 
 module _ {n} {Γ : Fin n → List Sort} {O : List Kind} (h : Fin n) where
-  data Halts : ∀ {Δ} → React n Γ O Δ → Set where
-    halts : {ρs : All (Rcp Δ) (Γ h)} {o : k ∈ O} {π : Payload Δ k}
-          → GroundPayload k π → Halts (emit h ρs o π)
+  data GroundJump : ∀ {Δ} → React n Γ O Δ → Set where
+    ground-jump : {ρs : All (Rcp Δ) (Γ h)} {o : k ∈ O} {π : Payload Δ k}
+                → GroundPayload k π → GroundJump (emit h ρs o π)
 
-  data Guarded : ∀ {Δ} → React n Γ O Δ → Set where
-    test : {ζ ζ′ : Rcp Δ s} {t e : React n Γ O Δ} → Guarded t → Halts e → Guarded (test ζ ζ′ t e)
-    new  : {t : React n Γ O (s ∷ Δ)} → Guarded t → Guarded (new s t)
-    emit : {c : Fin n} {ρs : All (Rcp Δ) (Γ c)} {o : k ∈ O} {π : Payload Δ k} → Guarded (emit c ρs o π)
+  data GroundGuards : ∀ {Δ} → React n Γ O Δ → Set where
+    test : {ζ ζ′ : Rcp Δ s} {t e : React n Γ O Δ} → GroundGuards t → GroundJump e → GroundGuards (test ζ ζ′ t e)
+    new  : {t : React n Γ O (s ∷ Δ)} → GroundGuards t → GroundGuards (new s t)
+    emit : {c : Fin n} {ρs : All (Rcp Δ) (Γ c)} {o : k ∈ O} {π : Payload Δ k} → GroundGuards (emit c ρs o π)
 
-record Simple (p : Role x y) : Set where
+record GroundGuarded (p : Role x y) : Set where
   field
-    halt    : Fin (Role.n p)
-    halted  : ∀ {k} (i : k ∈ Ins x y) b → Halts halt (Role.react p halt i b)
-    guarded : ∀ c {k} (i : k ∈ Ins x y) b → Guarded halt (Role.react p c i b)
+    ground-control : Fin (Role.n p)
+    ground-at-control : ∀ {k} (i : k ∈ Ins x y) b → GroundJump ground-control (Role.react p ground-control i b)
+    ground-guards : ∀ c {k} (i : k ∈ Ins x y) b → GroundGuards ground-control (Role.react p c i b)
+
+closed-payload : ∀ k → Payload [] k → Payload Δ k
+closed-payload (msg _) ζ = bind (λ ()) (λ ()) ζ
+closed-payload flag    b = b
+closed-payload tick    _ = tt
+
+record TerminalOutput (O : List Kind) : Set where
+  constructor terminal-output
+  field
+    kind : Kind
+    output-port : kind ∈ O
+    value : Payload [] kind
+
+module _ {n} {Γ : Fin n → List Sort} {O : List Kind}
+  (h : Fin n) (err : TerminalOutput O) where
+  open TerminalOutput err
+
+  data TerminalJump : ∀ {Δ} → React n Γ O Δ → Set where
+    terminal-jump : {ρs : All (Rcp Δ) (Γ h)}
+      → TerminalJump (emit h ρs output-port (closed-payload kind value))
+
+  data TerminalGuards : ∀ {Δ} → React n Γ O Δ → Set where
+    test : {ζ ζ′ : Rcp Δ s} {t e : React n Γ O Δ}
+      → TerminalGuards t → TerminalJump e → TerminalGuards (test ζ ζ′ t e)
+    new : {t : React n Γ O (s ∷ Δ)} → TerminalGuards t → TerminalGuards (new s t)
+    emit : {c : Fin n} {ρs : All (Rcp Δ) (Γ c)} {o : k ∈ O} {π : Payload Δ k}
+      → TerminalGuards (emit c ρs o π)
+
+-- CLC §3.3's cout(error) · 0 is interpreted by Run.step-terminal, not Run.step.
+-- The total table's boundary row is fixed; the stopped runner never executes it.
+record Terminal (p : Role x y) (err : TerminalOutput (Outs x y)) : Set where
+  field
+    terminal : Fin (Role.n p)
+    boundary : ∀ {k} (i : k ∈ Ins x y) b → TerminalJump terminal err (Role.react p terminal i b)
+    failures : ∀ c {k} (i : k ∈ Ins x y) b → TerminalGuards terminal err (Role.react p c i b)
 
 ------------------------------------------------------------------------
 -- Running a role, and the Dolev–Yao property
@@ -256,6 +290,12 @@ payload : ∀ k → Payload Δ k → Frame Δ → Value k
 payload (msg _) ζ φ = ζ ⟨ φ ⟩
 payload flag    b _ = b
 payload tick    _ _ = tt
+
+closed-payload-eval : ∀ k (π : Payload [] k) (φ : Frame Δ)
+  → payload k (closed-payload k π) φ ≡ payload k π []
+closed-payload-eval (msg _) ζ φ = bind-⟨⟩≡ (λ ()) ζ
+closed-payload-eval flag    _ _ = refl
+closed-payload-eval tick    _ _ = refl
 
 -- The terms received over a history of inputs, newest first.
 Received : List (Input x y) → List Sort
@@ -296,6 +336,54 @@ module Run (E : EqTheory 𝔖) where
   step : (κ : ℕ) (p : Role x y) → Config (Role.n p) (Role.Γ p) → Input x y
        → Config (Role.n p) (Role.Γ p) × Emission (Outs x y)
   step κ p (config c φ j) (i ↦ v) = exec κ (Role.react p c i (branch v)) (++⁺ (carry v) φ) j
+
+  terminal-emission : TerminalOutput O → Emission O
+  terminal-emission (terminal-output k o π) = o ↦ canonᵛ (payload k π [])
+
+  terminal-jump-exec : ∀ {h : Fin n} {err : TerminalOutput O} {r : React n Γ O Δ}
+    → TerminalJump h err r → (κ : ℕ) (φ : Frame Δ) (j : ℕ)
+    → control (proj₁ (exec κ r φ j)) ≡ h
+      × proj₂ (exec κ r φ j) ≡ terminal-emission err
+      × counter (proj₁ (exec κ r φ j)) ≡ j
+  terminal-jump-exec {err = terminal-output k o π} terminal-jump κ φ j =
+    refl , cong (λ v → o ↦ canonᵛ v) (closed-payload-eval k π φ) , refl
+
+  -- Unlike the generic total table, this opt-in boundary has no activation at
+  -- its terminal control. In particular it performs no guard or fresh draw.
+  step-terminal : (κ : ℕ) (p : Role x y) {err : TerminalOutput (Outs x y)}
+    → Terminal p err → Config (Role.n p) (Role.Γ p) → Input x y
+    → Maybe (Config (Role.n p) (Role.Γ p) × Emission (Outs x y))
+  step-terminal κ p t cfg i with control cfg Fin.≟ Terminal.terminal t
+  ... | yes _ = nothing
+  ... | no _ = just (step κ p cfg i)
+
+  step-terminal-stopped : (κ : ℕ) (p : Role x y) {err : TerminalOutput (Outs x y)}
+    (t : Terminal p err) (cfg : Config (Role.n p) (Role.Γ p)) (i : Input x y)
+    → control cfg ≡ Terminal.terminal t → step-terminal κ p t cfg i ≡ nothing
+  step-terminal-stopped κ p t cfg i e with control cfg Fin.≟ Terminal.terminal t
+  ... | yes _ = refl
+  ... | no ne = ⊥-elim (ne e)
+
+  run-terminal : (κ : ℕ) (p : Role x y) {err : TerminalOutput (Outs x y)}
+    → Terminal p err → Config (Role.n p) (Role.Γ p) → List (Input x y)
+    → Config (Role.n p) (Role.Γ p) × List (Emission (Outs x y))
+  run-terminal κ p t cfg [] = cfg , []
+  run-terminal κ p t cfg (i ∷ is) with step-terminal κ p t cfg i
+  ... | nothing = cfg , []
+  ... | just (cfg′ , o) = let final , os = run-terminal κ p t cfg′ is in final , o ∷ os
+
+  terminal-no-further-behavior : (κ : ℕ) (p : Role x y) {err : TerminalOutput (Outs x y)}
+    (t : Terminal p err) (cfg : Config (Role.n p) (Role.Γ p)) (is : List (Input x y))
+    → control cfg ≡ Terminal.terminal t → run-terminal κ p t cfg is ≡ (cfg , [])
+  terminal-no-further-behavior κ p t cfg [] _ = refl
+  terminal-no-further-behavior κ p t cfg (i ∷ is) e rewrite step-terminal-stopped κ p t cfg i e = refl
+
+  post-terminal-transition : (κ : ℕ) (p : Role x y) {err : TerminalOutput (Outs x y)}
+    (t : Terminal p err) (cfg cfg′ : Config (Role.n p) (Role.Γ p))
+    (i : Input x y) (o : Emission (Outs x y)) (is : List (Input x y))
+    → step-terminal κ p t cfg i ≡ just (cfg′ , o)
+    → control cfg′ ≡ Terminal.terminal t → run-terminal κ p t cfg′ is ≡ (cfg′ , [])
+  post-terminal-transition κ p t cfg cfg′ i o is _ = terminal-no-further-behavior κ p t cfg′ is
 
   -- An emitted term is deducible; a bit or a tick carries no term.
   Known : Knowledge Δ → Emission O → Set

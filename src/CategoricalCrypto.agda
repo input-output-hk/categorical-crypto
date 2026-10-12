@@ -86,6 +86,7 @@ import CategoricalCrypto.ND.SSP.Choice.Compose
 import CategoricalCrypto.ND.SSP.Choice.Dist
 import CategoricalCrypto.ND.SSP.Choice.Pin
 import CategoricalCrypto.Symbolic.Test
+import CategoricalCrypto.Symbolic.TerminalTests
 import CategoricalCrypto.Symbolic.StaticTests
 import CategoricalCrypto.Symbolic.InterpretationTests
 import CategoricalCrypto.Symbolic.TheoryTests

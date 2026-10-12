@@ -280,12 +280,23 @@ record Role (x y : ObjTerm) : Set where
         react : (c : Fin n) {k : Kind} → k ∈ Ins x y → Branch k
               → React n Γ (Outs x y) (carried k ++ Γ c)
 Reactions : Role x y → Set                     -- `react`'s type at p's shape
-data Halts (h : Fin n) : React n Γ O Δ → Set   -- `emit h _ _ π` with a ground payload
-data Guarded (h : Fin n) : React n Γ O Δ → Set -- every failed `test` halts at h
-record Simple (p : Role x y) : Set where       -- CLC §3.3 basic processes
-  field halt : Fin (Role.n p)
-        halted  : ∀ {k} (i : k ∈ Ins x y) b → Halts halt (Role.react p halt i b)
-        guarded : ∀ c {k} (i : k ∈ Ins x y) b → Guarded halt (Role.react p c i b)
+data GroundJump (h : Fin n) : React n Γ O Δ → Set   -- ground emission jumping to h
+data GroundGuards (h : Fin n) : React n Γ O Δ → Set -- every failed test is a GroundJump
+record GroundGuarded (p : Role x y) : Set where
+  field ground-control : Fin (Role.n p)
+        ground-at-control : ∀ {k} (i : k ∈ Ins x y) b
+          → GroundJump ground-control (Role.react p ground-control i b)
+        ground-guards : ∀ c {k} (i : k ∈ Ins x y) b
+          → GroundGuards ground-control (Role.react p c i b)
+record TerminalOutput (O : List Kind) : Set where
+  constructor terminal-output
+  field kind : Kind ; output-port : kind ∈ O ; value : Payload [] kind
+record Terminal (p : Role x y) (err : TerminalOutput (Outs x y)) : Set where
+  field terminal : Fin (Role.n p)
+        boundary : ∀ {k} (i : k ∈ Ins x y) b
+          → TerminalJump terminal err (Role.react p terminal i b)
+        failures : ∀ c {k} (i : k ∈ Ins x y) b
+          → TerminalGuards terminal err (Role.react p c i b)
 record Config (n : ℕ) (Γ : Fin n → List Sort) : Set where
   constructor config ; field control : Fin n ; registers : Frame (Γ control) ; counter : ℕ
 init : (p : Role x y) → Config (Role.n p) (Role.Γ p)
@@ -297,6 +308,10 @@ module Run (E : EqTheory 𝔖) where
   exec κ (emit c ρs o π) φ j = config c (canon* (ρs ⟨ φ ⟩*)) j , o ↦ canonᵛ (payload _ π φ)
   step : (κ : ℕ) (p : Role x y) → Config (Role.n p) (Role.Γ p) → Input x y
        → Config (Role.n p) (Role.Γ p) × Emission (Outs x y)
+  step-terminal : (κ : ℕ) (p : Role x y) → Terminal p err → Config (Role.n p) (Role.Γ p)
+    → Input x y → Maybe (Config (Role.n p) (Role.Γ p) × Emission (Outs x y))
+  run-terminal : (κ : ℕ) (p : Role x y) → Terminal p err → Config (Role.n p) (Role.Γ p)
+    → List (Input x y) → Config (Role.n p) (Role.Γ p) × List (Emission (Outs x y))
   Known : Knowledge Δ → Emission O → Set               -- an emitted term is deducible
   exec⊢ : Own κ ⊆ proj₂ K → (t : React n Γ O Δ) → Each (K ⊢_) φ → Deduced K (exec κ t φ j)
   after : (κ : ℕ) (p : Role x y) → List (Input x y) → Config (Role.n p) (Role.Γ p)
@@ -314,10 +329,30 @@ roles are DY deducers: what occurrence κ emits is deducible from every term it 
 its trigger included, together with its own names `(κ , _)`. The recipe is the emitting branch's
 `Rcp`, with each `new` turned into `mine` (`exec⊢`, `⊢-cut`). Ports are kinds listed in tensor
 order. A role branches on a received bit, so a verdict in its domain can be read, and it pushes
-a received term on its frame. `Simple` keeps CLC's shape: a failed guard emits a ground payload
-(CLC's `⊥`) and jumps to a halting point that answers every activation that way. CLC's
-well-formedness guard `M` is not an equation, so it needs check symbols in the signature
-(step 13). Everything is first-order data in `Set`, as `FreeMonoidalData.mor` requires. Unbounded
+a received term on its frame. `GroundGuarded` only requires ground output on failed guards
+and at a designated control: ground flags can still depend on input bits, and different
+failed guards can emit different constants. It is not the CLC §3.3 terminal contract.
+
+`Terminal p err` is a separate, opt-in contract. `err` fixes one output port and closed
+payload; `TerminalJump` requires exactly that emission followed by a jump to `terminal`,
+and `TerminalGuards` imposes this on every guard-failure branch. The boundary row is fixed
+too. `Run.step-terminal` checks the actual control before executing a reaction: at
+`terminal` it returns `nothing`, without evaluating guards, drawing names, changing
+registers/counter, or emitting anything. `Run.run-terminal` executes finite input histories.
+`terminal-jump-exec` derives the fixed error, destination control and unchanged fresh counter;
+`terminal-no-further-behavior` proves every suffix at that control leaves the complete
+configuration unchanged with an empty output trace. `post-terminal-transition` applies
+that theorem after a transition reaches the designated terminal control.
+
+This models the `cout(⊥) · 0` boundary in CLC §3.3, not a translation of all CLC basic
+processes. The generic total `Run.step` and `Fine` remain unrestricted and do **not**
+silently terminate at this control. `Symbolic/TerminalTests.agda` checks a one-state
+bit-forwarder that is `GroundGuarded` but cannot be `Terminal` for any fixed error,
+a verdict emitted exactly once with arbitrary silent suffixes, and both successful and
+failed guards through the opt-in runtime. It also checks that the original total runner
+still emits at the boundary. CLC's well-formedness guard `M` needs check symbols in the
+signature (step 13). Everything is first-order data in `Set`, as `FreeMonoidalData.mor`
+requires. Unbounded
 sessions are a single role that dispatches on session tags. This is `bohlunruh2013`'s `!!`
 (Def 5.11 p. 42), the only replication their composition theorem covers. An emission and the
 stored registers are canonical (§3.2): `emits⊢` still holds through `⊢-conv`, and `exec-≈E`
@@ -792,8 +827,8 @@ listed exports.
 3. `Categories/FreeMonoidal/Decorated.agda`: `⟦⟧[]-resp-≈`, generic in `⟦v⟧`. **Built.**
 4. `Symbolic/{Term,Deduction}.agda`: `⊢⇔⊢ᵢ`, plus a convergent pairing/encryption theory. **Built**,
    with the theory in `Symbolic/Term/PairEnc.agda` (§3.2).
-5. `Symbolic/Role.agda`: `Role`, `Simple`, a decidable `Atom`, and `emits⊢`, which shows that roles
-   are DY deducers. **Built** (§3.3); `Symbolic/Test.agda` runs a role.
+5. `Symbolic/Role.agda`: `Role`, `GroundGuarded`, opt-in `Terminal`, a decidable `Atom`,
+   and `emits⊢`. **Built** (§3.3); `Symbolic/{Test,TerminalTests}.agda` consume both runtimes.
 6. `Symbolic/Fine.agda`: `Sym≅`, with `Sym≅.UC-compose` instantiated. **Built** (§3.4).
 7. `Symbolic/Semantics.agda`: `eval-cong`, plus a two-role example that evaluates to `true`.
    **Built** (§3.5), with `runᴿ-≈E`.
