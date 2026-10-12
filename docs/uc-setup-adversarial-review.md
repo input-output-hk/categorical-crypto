@@ -1500,3 +1500,50 @@ or new documentation-worker Agda runs. This resolves UAR-037's interface-purity
 qualification; it does not resolve the separate channel-construction or
 computational-soundness findings.
 
+## Checked terminal and error-contract dispositions: UAR-030/UAR-040 — 2026-10-12
+
+**Integration and validation.** Terminal commits `0bda915f` and `d386c43c`
+are integrated as `b606503c` and `41f603b9`; error-contract commit `76a19427`
+is integrated as `ec1b6a17`. Main reports `InterpretationTests` passing at
+`-M5G -H1G`, followed by the full root at `-M6G -H1G`, in **59.91 s combined**
+(job `bg78`), with no warnings; terminal/static consumers and `TheoryTests`
+were rebuilt. Both implementors report the escape-hatch baseline unchanged at
+16. These are attributed checks, not documentation-worker Agda runs or
+uncontended performance measurements.
+
+**UAR-030: misleading ground/terminal identification corrected, with a checked
+opt-in terminal contract.** The weaker predicate is now named `GroundGuarded`,
+with migrated callers and no compatibility aliases. The original total
+`exec`/`step` and `Fine` semantics remain unchanged. A separate `Terminal`
+contract fixes the error emission; its optional runtime enters an absorbing
+terminal state. Derived results establish a silent suffix after the terminal
+jump and the complete single-emission trace. Actual verdict/guard consumers
+exercise the positive contract, while a universal forwarding negative shows
+why unrestricted forwarding does not satisfy it. This is not a claim that
+every ground-guarded role terminates, nor a CLC/applied-pi correspondence or
+computational soundness theorem. Historical `Simple` terminology above names
+the reviewed snapshot, not a retained public alias.
+
+**UAR-040: uniform-over-protocol error requirement corrected.** Extraction
+still fixes one spectator/context-specific sampled symbolic experiment before
+choosing the honest circuit. `ProtocolError` now supplies `error f η` and its
+negligibility proof for each eligible circuit `f`; comparison combines
+`error f η + error g η`. `sound⁺` remains derived from exact classification,
+source-kernel equality, and the two one-system bounds. `sound-≤UC` still retains
+one symbolic dummy and returns `DummyWitness`, not canonical target UC.
+
+The checked `ErrorTests` consumer constructs a fixed-budget recorded-guess
+experiment with a uniform η-bit nonce and the one-system bound `N · 2⁻η`;
+`InterpretationTests` consumes distinct budgets 1 and 2 with their separate
+errors. `no-uniform-comparison` refutes a negligible bound for all fixed finite
+budgets: the already-quantified budget `2^η` exhausts every nonce at each η.
+`no-uniform-factorization` also excludes uniform approximation through an
+arbitrary shared predicted subdistribution. These are **formal closed
+experiments**, not a formal embedding of UAR-040's parallel symbolic circuits.
+
+**Remaining boundaries.** No concrete cryptographic `Scheme`/`Backtranslation`,
+primitive-security reduction, or canonical computational-UC theorem is
+constructed. UAR-041's malformed-projection/error-aware eligibility boundary
+remains unresolved: neither the new error quantifier nor `GroundGuarded` or
+the opt-in terminal runtime supplies that realization correspondence.
+
