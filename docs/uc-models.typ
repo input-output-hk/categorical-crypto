@@ -797,9 +797,38 @@ and the key is drawn at Alice's send, whereas the simulated ideal can draw only 
 #srcs(cc("Examples/SSP/OneTimePad.agda", 299, "no-tree-simulation"))
 ] <prop:no-tree>
 
-So the call/return discipline buys clean composition, not clean probabilistic reasoning: a
-deferred-sampling step is never a hom-equality of #SSP and has to be proved at the level of runs.
-A distributional hom-equality on call trees is the design lever #SSPd (@sec:designed) #design.
+So the call/return discipline buys clean composition, not clean probabilistic reasoning at
+$eqP$. The distributional quotient #SSPd makes the deferred-sampling step a hom-equation without
+changing the tests or the security relation.
+
+=== #SSPd: distributional state-separating proofs <sec:ssp-dist>
+
+#definition(name: [the distributional quotient])[
+For packages $P, P' : A → B$ define
+$ P scripts(≈)^sans("d") P' :⟺ ∀ Y, Z. thin (opid_Y ⊗ P) ⊗ opid_Z eqE (opid_Y ⊗ P') ⊗ opid_Z. $
+The two-sided ancillas allow the distinguisher and game to share oracles. This is a monoidal
+congruence coarser than $eqP$ and contained in $eqE$. The same tests descend to the quotient:
+$SSPd := Std(sans("Prot") slash scripts(≈)^sans("d"), cal(E)^sans("d"))$.
+#srcs(cc("SSP/Dist.agda", 37, "_≈ᵈ_"), cc("SSP/Dist.agda", 54, "congᵈ"), cc("SSP/Dist.agda", 65, "≈ᵈ⇒≋"), cc("Standard2/UKernel.agda", 101, "uKernel"), cc("SSP/Dist/Setup.agda", 26, "Protᵈ"), cc("SSP/Dist/Setup.agda", 29, "ℰᵈ"))
+] <def:ssp-dist>
+
+#theorem(name: [deferred sampling in #SSPd])[
+The OTP and its simulated ideal are hom-equal in #SSPd. Hence
+$op("otp") leUC op("ideal")$ in this setup, with the same simulator as @thm:otp. For every
+adversary $a$ the simulator is $a ∘ op("sim")$, and the target prefix-context verdicts agree
+for every ancilla, distinguisher and game. The authenticated channel still does not realize the
+secure one: $op("aut") ≰_"UC" op("ideal")$, and no simulator gives target U-equivalence.
+#srcs(cc("Examples/SSP/OneTimePad/Dist.agda", 95, "otp≈idealᵈ"), cc("Examples/SSP/OneTimePad/Dist.agda", 106, "otp≤ideal-dist"), cc("Examples/SSP/OneTimePad/Dist.agda", 112, "otp-simulator-dist"), cc("Examples/SSP/OneTimePad/Dist.agda", 116, "otp-observations-dist"), cc("Examples/SSP/OneTimePad/Dist.agda", 124, "leaky-not-secure-dist"), cc("Examples/SSP/OneTimePad/Dist.agda", 127, "leaky-no-simulator-dist"))
+] <thm:otp-dist>
+
+#proofidea[A sampling kernel per state commutes with each activation against every import oracle.
+It gives a padded-protocol equation by readout. In the pad example, deferred sampling reduces to
+nine per-activation squares: six computations, two pad cancellations and one fair-coin bijection.
+The impossibility crosses by reflection of security, not by one-way preservation
+(@prop:ssp-dist-morphism).]
+
+The example is a one-bit, one-message pollable-state channel with finite rational call trees. It
+does not establish general SSProve expressiveness, asynchronous delivery control or corruption.
 
 == #ITM and #ITMiso: interactive Turing machines <sec:itm>
 
@@ -1057,15 +1086,6 @@ resource grading on $𝔾^R$, which is not built.
 Nothing in this section is type-checked. Each setup is specified by a design document on the branch,
 and every statement is a #design claim argued there.
 
-== #SSPd: distributional state-separating proofs
-
-@prop:no-tree shows that a deferred-sampling step is never a hom-equality of #SSP. #SSPd keeps
-#SSP's objects, packages, composition and tests and coarsens $eqP$ to a distributional equality of
-call trees, under which moving a uniform draw from the sender's step to the eavesdropper's poll is an
-equation. It is a quotient of #SSP by a monoidal congruence below $eqE$, so the identity-on-objects
-functor $SSP → SSPd$ is a change of hom-equality with identity test map (@prop:quotient) — provided the
-distributional equality is a monoidal congruence, which is the obligation. #plan("examples-ssp-otp.md")
-
 == #IPDL: interactive probabilistic dependency logic
 
 Objects are polarised typed channel contexts $"pos" ⇌ "neg"$ under concatenation; a morphism
@@ -1185,6 +1205,7 @@ kernel relation on one computational structure (@thm:refine), not drawn.
     node((2.6, 2), $RS$, name: <rs>),
     node((3.9, 2), $NDB$, name: <ndb>),
     node((0, 3), $SSP$, name: <ssp>),
+    node((0, 2), $SSPd$, name: <sspd>),
     node((1.3, 3), $PMwb$, name: <pmwb>),
     node((2.6, 3), $WW$, name: <ww>),
     node((3.9, 3), $NDA$, name: <nda>),
@@ -1201,6 +1222,7 @@ kernel relation on one computational structure (@thm:refine), not drawn.
     edge(<pm>, <rs>, "->", label: $mrs$),
     edge(<wio>, <pm>, "->", label: $miota$),
     edge(<ssp>, <pmwb>, "->", label: $mwb$, label-side: right),
+    edge(<ssp>, <sspd>, "->", label: $mq$, label-side: right),
     edge(<ww>, <pmwb>, "->", label: $mq$),
     edge(<nda>, <ndb>, "->", label: $mincl$, label-side: right),
     edge(<ndb>, <pm>, "-->", label: $≃$, label-side: right),
@@ -1276,6 +1298,21 @@ preserves $leUC$ without grade stability. In particular the one-time pad (@thm:o
 The test map is not known to be Epi, and likely is not: a well-bracketed test can carry an
 irrational verdict mass, a distinguisher only a finite rational one. Preservation needs no Epi: both
 densities serve their quantifier by approximation, not by representation.
+
+=== $mq : SSP → SSPd$
+
+#proposition(name: [security across the distributional quotient])[
+The quotient functor and descended presheaf define a standard setup morphism $mq : SSP → SSPd$,
+identity on objects and protocol representatives, with identity test map, Epi and Mono.
+It preserves and reflects emulation:
+$ f leUC g " in " SSP quad ⇔ quad f leUC g " in " SSPd. $
+Preservation on the mapped protocols uses the surjective-ancilla theorem
+(the same argument as @def:mwb), not grade stability. Reflection applies Mono at every unchanged prefix
+context; it likewise requires no grade stability. Removing the structural identity in the mapped
+protocol identifies this comparison with the original representatives. Reflection is not an
+inverse functor at hom-equality: it does not say $scripts(≈)^sans("d") ⇒ eqP$.
+#srcs(cc("SSP/Dist/Setup.agda", 34, "ssp⇒dist"), cc("SSP/Dist/Setup.agda", 49, "preserves-≤UC"), cc("SSP/Dist/Setup.agda", 56, "ssp≤⇒dist≤"), cc("SSP/Dist/Setup.agda", 62, "dist≈ᵁ⇒ssp≈ᵁ"), cc("SSP/Dist/Setup.agda", 67, "dist≤⇒ssp≤"), cc("SSP/Dist/Setup.agda", 71, "reflects-≤UC"), cc("Examples/SSP/OneTimePad/Dist.agda", 109, "otp≤ideal-image-dist"))
+] <prop:ssp-dist-morphism>
 
 === $mq : WW → PMwb$
 
@@ -1361,7 +1398,7 @@ None of the following is a setup morphism.
   tests of their own for #ITM would need a density theorem.
 + _#Iso into #PM:_ the three model changes behind $mdet$.
 + _The designed setups_ of @sec:designed, starting with #NDA (choice factors, relabellings,
-  @prop:nd-incl) and #SSPd (the distributional congruence).
+  @prop:nd-incl).
 + _Computational soundness_ over $mcs$: the side-conditioned theorem and its transport, which needs
   a preservation hypothesis in place of Epi and grade stability.
 

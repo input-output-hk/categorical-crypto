@@ -1,10 +1,10 @@
-# The one-time pad in the SSP setup
+# The one-time pad in SSP and its distributional quotient
 
 `src/CategoricalCrypto/Examples/SSP/OneTimePad.agda`: maurer2011cc §3.2–3.3's one-time pad in `SSP.Setup`
 (`StdUC Protᴹ ℰᵖ`), beside the possibilistic `Examples/RelSetup.agda`.  Interfaces are `oneᴵ`s; a message
 travels by pollable state (`docs/uc-setup-ssp.md` §5.2): Alice sends, Bob, Eve and the key fetches poll.
 
-## 1. What is proved (all in the SSP setup)
+## 1. The source `SSP.Setup`
 
 | name | content |
 |---|---|
@@ -35,8 +35,10 @@ General lemmas added: `SSP.Reduction.≈ᵍ⇒≈ᵁ` (closed games no distingui
   one induction on `D`'s step tree per phase, `fresh` (nothing sent), `pending` (the real side
   averaged over the key, `D`'s own coins commuting by `>>=ᴹ-comm`), `revealed` (lockstep), with
   `uniform-flip` at Eve's poll; then `≈ᵍ⇒≈ᵁ`.
-- **Up to `≈ᵈ`** (`Examples/SSP/OneTimePad/Dist.agda:otp≤idealᵈ`): the same theorem, its core one `defer`
-  of nine per-activation squares; see `docs/uc-setup-ssp-dist.md` §5.
+- **Distributional proof** (`Examples/SSP/OneTimePad/Dist.agda:otp≤idealᵈ`): the same **source**
+  theorem `otp SSP.≤UC ideal`, its core one `defer` of nine per-activation squares.
+  `otp≈idealᵈ` is also an actual hom-equation in the quotient, giving the separate target theorem
+  `otp≤ideal-dist : otp SSPᵈ.≤UC ideal`; see `docs/uc-setup-ssp-dist.md` §5.
 
 ## 3. The negative result
 
@@ -46,8 +48,21 @@ and 0.  On `sub s ∘ ideal` they read the same: `ideal` absorbs relabelling the
 (`flip-ideal`), the relabelling turns one probe into the other (`probe-flip`), and it commutes with
 the simulator by `sub-commute′` (`Slide.slide`).  Hence `1 ≤ ½`.  `≈ᵁ⇒≈ℰ` suffices (RelSetup's `ℰ-faithful` has no analogue).
 
+In the actual `SSP.Dist.Setup`, `leaky-not-secure-dist : ¬ (aut SSPᵈ.≤UC ideal)` reflects any
+purported quotient security proof through `SSPᵈ.dist≤⇒ssp≤` and invokes this source contradiction.
+It does **not** follow from one-way preservation.  The stronger consumer
+`leaky-no-simulator-dist` rules out target U-equivalence to `sub s ∘ ideal` for every simulator `s`.
+
 ## 4. Crossing to other setups
 
+- **SSPᵈ**, crossed: `SSP.Dist.Setup.ssp⇒dist` is the identity on protocol representatives and tests,
+  with the latter descended along `quotientF`; its preservation uses the existing `Standard2`
+  surjective-ancilla theorem and `Abstract2` transfer.  The example's `otp≤ideal-image-dist`
+  consumes that morphism on both endpoints.  Its unwrapped target result `otp≤ideal-dist`
+  retains `sim`, and `otp-simulator-dist` gives the explicit simulator `a ∘ᵖ sim` for **every**
+  adversary `a`.  `otp-observations-dist` reads this witness through the target presheaf for
+  **every** ancilla, distinguisher and game, not just a selected test.  Reflection uses the
+  unchanged prefix contexts and the descended test map's `Mono`, without grade stability.
 - **PM[wb]** (`docs/uc-setup-ssp.md` §4.2–4.3), crossed: `Examples/SSP/OneTimePad/WB.agda:otp≤idealᵂ`,
   `Fᵂ otp ≤UC Fᵂ ideal`, i.e. `morphism (toProtocol otp) ≤UC morphism (toProtocol ideal)` against
   well-bracketed environments, is `SSP.Dense.Tests.preserves-≤UC otp≤ideal`.  `preserves-≤UC` is
@@ -72,6 +87,9 @@ the simulator by `sub-commute′` (`Slide.slide`).  Hence `1 ≤ ½`.  `≈ᵁ�
   theorem still does not reach random systems through these bridges. Its 𝔾ᴿ statement
   needs the PM statement against all environments first, which needs an adequacy of
   `runᵖ` for compiled closed games that the tree does not have.
+
+These examples cover a one-bit, one-message pollable-state interface with finite rational
+call trees, not all SSProve programs or models of asynchronous delivery and corruption.
 
 Checks (warm single-module, `+RTS -M3G -H1G`): `Uniform/Flip` 7 s (30 lines), `SSP/Reduction` 11 s
 (121 lines), `Examples/SSP/OneTimePad` 14 s (409 lines), `Examples/SSP/OneTimePad/WB` 15 s (16 lines);

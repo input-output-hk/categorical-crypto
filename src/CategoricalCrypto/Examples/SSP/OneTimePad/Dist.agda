@@ -1,14 +1,10 @@
 {-# OPTIONS --safe --without-K #-}
 
--- `Examples.SSP.OneTimePad`'s `otp ≤UC ideal` again, its core a chain of `≈ᵈ`
--- laws (`docs/uc-setup-ssp-dist.md` §5) in place of the induction over every
--- distinguisher's tree (`fresh`, `pending`, `revealed`).  `lazy` is the
--- simulated world on its reachable states, `draw` samples the real world's
--- ciphertext and key from each, and `defer` checks one square of call trees
--- per activation: six by computation, two pad cancellations (`xor-cancelˡ`)
--- and the pad's bijection at Alice's send (`coin-xor`).  The core, `Phase` to
--- `lazy≲simulated`, is 51 lines of code against the run-level 53 (`play` to
--- `perfect`): what it buys is locality, not length.
+-- Deferred sampling for the OTP, with separate results in `SSP.Setup`
+-- (`otp≤idealᵈ`) and the distributional quotient `SSP.Dist.Setup`
+-- (`otp≤ideal-dist`).  The latter includes the concrete simulator against
+-- every adversary, ancilla, distinguisher and game, and reflects the
+-- authenticated-channel impossibility.  See `docs/uc-setup-ssp-dist.md` §5.
 
 module CategoricalCrypto.Examples.SSP.OneTimePad.Dist where
 
@@ -20,15 +16,21 @@ open import Data.Product.Base
 open import Data.Sum.Base
 open import Data.Unit.Base
 open import Relation.Binary.PropositionalEquality
+open import Relation.Nullary
 
 open import ProbabilisticLogic.Distribution.Uniform
 
+open import CategoricalCrypto.Abstract2.Morphism
 open import CategoricalCrypto.Examples.SSP.OneTimePad
 open import CategoricalCrypto.SSP.Dist
 open import CategoricalCrypto.SSP.Dist.Kernel
 open import CategoricalCrypto.SSP.Dist.Laws
+open import CategoricalCrypto.SSP.Iface
+open import CategoricalCrypto.SSP.Observation
 open import CategoricalCrypto.SSP.Protocol
-open import CategoricalCrypto.SSP.Setup
+
+import CategoricalCrypto.SSP.Dist.Setup as SSPᵈ
+import CategoricalCrypto.SSP.Setup as SSP
 
 -- Nothing sent; sent, Eve not yet polled; Eve saw ciphertext `c`.
 data Phase : Set where
@@ -45,7 +47,7 @@ msg idle         = nothing
 msg (sent m)     = just m
 msg (polled _ m) = just m
 
-lazy : unit ⇒ T₀ Eveᴵ Honᴵ
+lazy : SSP.unit SSP.⇒ SSP.T₀ Eveᴵ Honᴵ
 lazy = record
   { St = Phase ; init = idle
   ; step = λ where
@@ -90,6 +92,38 @@ lazy≲simulated = record
       (sent _)     (inj₁ _)        _ → ≈ᶜ-refl
       (polled _ _) (inj₁ _)        _ → ≈ᶜ-refl }
 
-otp≤idealᵈ : otp ≤UC ideal
-otp≤idealᵈ = dummy-complete (sim , ≈ᵈ⇒≈ᵁ (≈ᵈ.trans (≈ᵖ⇒≈ᵈ (≲⇒≈ᵖ otp≲real))
-  (≈ᵈ.trans (≈ᵈ.sym lazy≈real) (≈ᵈ.trans (≈ᵖ⇒≈ᵈ (≲⇒≈ᵖ lazy≲simulated)) (≈ᵈ.sym (≈ᵖ⇒≈ᵈ (≲⇒≈ᵖ ideal≲simulated)))))))
+otp≈idealᵈ : otp ≈ᵈ (SSP.sub sim SSP.∘ ideal)
+otp≈idealᵈ = ≈ᵈ.trans (≈ᵖ⇒≈ᵈ (≲⇒≈ᵖ otp≲real))
+  (≈ᵈ.trans (≈ᵈ.sym lazy≈real) (≈ᵈ.trans (≈ᵖ⇒≈ᵈ (≲⇒≈ᵖ lazy≲simulated)) (≈ᵈ.sym (≈ᵖ⇒≈ᵈ (≲⇒≈ᵖ ideal≲simulated)))))
+
+otp≤idealᵈ : otp SSP.≤UC ideal
+otp≤idealᵈ = SSP.dummy-complete (sim , ≈ᵈ⇒≈ᵁ otp≈idealᵈ)
+
+------------------------------------------------------------------------
+-- The actual distributional setup
+------------------------------------------------------------------------
+
+otp≤ideal-dist : otp SSPᵈ.≤UC ideal
+otp≤ideal-dist = SSPᵈ.dummy-complete (sim , SSPᵈ.≈C⇒≈ᵁ otp≈idealᵈ)
+
+otp≤ideal-image-dist : Transfer.G SSPᵈ.ssp⇒dist otp SSPᵈ.≤UC Transfer.G SSPᵈ.ssp⇒dist ideal
+otp≤ideal-image-dist = SSPᵈ.preserves-≤UC otp≤idealᵈ
+
+otp-simulator-dist : ∀ {X} (a : Protocol Eveᴵ X)
+                   → (SSPᵈ.sub a SSPᵈ.∘ otp) SSPᵈ.≈ᵁ (SSPᵈ.sub (a ∘ᵖ sim) SSPᵈ.∘ ideal)
+otp-simulator-dist a = proj₂ (otp≤ideal-dist a)
+
+otp-observations-dist : ∀ {X} (a : Protocol Eveᴵ X) (W : Iface)
+                      (D : Protocol ((W ⊗ᴵ X) ⊗ᴵ Honᴵ) Ωᴵ)
+                      (G : Protocol unitᴵ (W ⊗ᴵ unitᴵ))
+                    → runᵖ ((D ∘ᵖ SSPᵈ.prefix W (SSPᵈ.sub a SSPᵈ.∘ otp)) ∘ᵖ G)
+                      SSP.S.≈
+                      runᵖ ((D ∘ᵖ SSPᵈ.prefix W (SSPᵈ.sub (a ∘ᵖ sim) SSPᵈ.∘ ideal)) ∘ᵖ G)
+otp-observations-dist a W D G = SSPᵈ.KE.run∼ (otp-simulator-dist a W) {D} G
+
+leaky-not-secure-dist : ¬ (aut SSPᵈ.≤UC ideal)
+leaky-not-secure-dist le = leaky-not-secure (SSPᵈ.dist≤⇒ssp≤ le)
+
+leaky-no-simulator-dist : (s : Protocol (Pollᴵ Bool) Eveᴵ)
+                        → ¬ (aut SSPᵈ.≈ᵁ (SSPᵈ.sub s SSPᵈ.∘ ideal))
+leaky-no-simulator-dist s e = leaky-not-secure-dist (SSPᵈ.dummy-complete (s , e))

@@ -102,8 +102,8 @@ symbolic steps of `uc-setup-symbolic.md` §6; escape-hatch baseline unchanged):
    `leaky-not-secure` refuted via `≈ᵁ`), but **not by call-tree simulation**:
    `no-tree-simulation` shows syntactic `≈ᵖ` cannot move the key draw from `send` to
    `poll` (deferred sampling), so the core is a run-level induction.  The call/return
-   discipline buys clean composition, not clean probabilistic reasoning — a
-   distributional equivalence on call trees is the next design lever.  The pad crosses
+   discipline buys clean composition, not clean probabilistic reasoning at `≈ᵖ`; the
+   formal distributional quotient `SSP.Dist.Setup` supplies that reasoning (§10). The pad crosses
    to PM[wb] (`Examples/SSP/OneTimePad/WB.otp≤idealᵂ`, by `preserves-≤UC`); to `𝔾ᵒ` it
    waits on the bridge.
 9. **Performance** (resolved): the `UC.Graded` hang after the merges came from
@@ -116,6 +116,9 @@ symbolic steps of `uc-setup-symbolic.md` §6; escape-hatch baseline unchanged):
 10. **SSP up to distributions** ([uc-setup-ssp-dist.md](uc-setup-ssp-dist.md)): `≈ᵈ`, `UKernel`'s kernel
     of `ℰᵖ`, makes deferred sampling and fair-coin relabelling laws via sampling simulations; the
     one-time pad's core becomes nine per-activation squares, local but no shorter (51 vs 53 lines).
+    `otp≤idealᵈ` still names a source-setup result. The actual quotient is exercised by the
+    target-qualified `otp≤ideal-dist` and `leaky-not-secure-dist`, with the concrete simulator
+    under all adversaries, ancillas, tests and games, and reflection for the negative result.
 
 **Decisions pending from the maintainer:**
 
