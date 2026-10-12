@@ -93,6 +93,9 @@ import CategoricalCrypto.ND.SSP.Laws
 import CategoricalCrypto.ND.SSP.Reflect
 import CategoricalCrypto.ND.SSP.Setup
 import CategoricalCrypto.ND.PM.Choice.Compose
+import CategoricalCrypto.ND.PM.Choice.Initialization
+import CategoricalCrypto.ND.PM.Choice.Initialization.Example
+import CategoricalCrypto.ND.PM.Choice.Initialization.Graded
 import CategoricalCrypto.ND.PM.Choice.Pin
 import CategoricalCrypto.ND.PM.Setup
 import CategoricalCrypto.UC.Machine.Wire.Kleisli
