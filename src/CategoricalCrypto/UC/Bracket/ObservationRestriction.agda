@@ -14,6 +14,7 @@ open import Categories.NaturalTransformation
 open import Data.Bool.Base
 open import Data.Product.Base
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
+import Data.Unit.Base as Unit
 open import Data.Unit.Polymorphic.Base
 open import Function.Bundles
 open import Level
@@ -36,7 +37,6 @@ open import CategoricalCrypto.UC.Model.Observation
 open import CategoricalCrypto.UC.Model.Seal
 open import CategoricalCrypto.UCSetup.Morphism
 
-import Data.Unit.Base as Unit
 import CategoricalCrypto.Iface as Flat
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
@@ -149,3 +149,39 @@ restriction⇒wb = changeKernel ι*ℰᵒ ℰᵂ ν-restrict
 
 full⇒PM[wb] : UCSetupMorphism Full.StdSetup StdSetup
 full⇒PM[wb] = composeᵁ q restriction⇒wb
+
+------------------------------------------------------------------------
+-- Security under restricted observations
+
+restriction-preserves-≈ℰ : Transfer.Preserves-≈ℰ restriction⇒wb
+restriction-preserves-≈ℰ = Transfer.epi⇒preserves-≈ℰ restriction⇒wb (λ {A} → ν-restrict-epi {A})
+
+full-≈ᵁ⇒wb-≈ᵁ : {f g : A Full.⇒ Full.T₀ X B} → f Full.≈ᵁ g → f 𝒲ᵂ.≈ᵁ g
+full-≈ᵁ⇒wb-≈ᵁ = Refine.≈ᵁ-refine Full.StdSetup ℰᵂ restriction-preserves-≈ℰ
+
+full-≤UC⇒wb-≤UC : {f : A Full.⇒ Full.T₀ X B} {g : A Full.⇒ Full.T₀ Y B}
+                 → f Full.≤UC g → f 𝒲ᵂ.≤UC g
+full-≤UC⇒wb-≤UC = Refine.≤UC-refine Full.StdSetup ℰᵂ restriction-preserves-≈ℰ
+
+-- The quotient keeps the arrows and prefix terms, hence the ancilla
+-- quantifiers. Only the kernel record's type changes.
+full-≈ᵁ⇒PM[wb]-≈ᵁ : {f g : A Full.⇒ Full.T₀ X B} → f Full.≈ᵁ g → f ≈ᵁ g
+full-≈ᵁ⇒PM[wb]-≈ᵁ {A} {X} {B} {f} {g} e Y = KE.mk∼ λ {t} →
+  𝒲ᵂ.KE.run∼ {X = 𝒲ᵂ.T₀ (Y 𝒲ᵂ.⊗₀ X) B} {Y = 𝒲ᵂ.T₀ Y A}
+    {f = 𝒲ᵂ.prefix Y f} {g = 𝒲ᵂ.prefix Y g} (full-≈ᵁ⇒wb-≈ᵁ {A} {X} {B} e Y) {t}
+
+full-≤UC⇒PM[wb]-≤UC : {f : A Full.⇒ Full.T₀ X B} {g : A Full.⇒ Full.T₀ Y B}
+                     → f Full.≤UC g → f ≤UC g
+full-≤UC⇒PM[wb]-≤UC le =
+  let s , e = Full.≤UC⇒dummy le in dummy-complete (s , full-≈ᵁ⇒PM[wb]-≈ᵁ e)
+
+full⇒PM[wb]-action : (f : A Full.⇒ Full.T₀ X B) → Transfer.G full⇒PM[wb] f ≈ f
+full⇒PM[wb]-action f = Equiv.trans (∘-resp-≈ˡ identity²) identityˡ
+
+full-preserves-≈ᵁ : Transfer.Preserves-≈ᵁ full⇒PM[wb]
+full-preserves-≈ᵁ {f = f} {g} e =
+  ≈ᵁ-trans (≈C⇒≈ᵁ (full⇒PM[wb]-action f))
+    (≈ᵁ-trans (full-≈ᵁ⇒PM[wb]-≈ᵁ e) (≈ᵁ-sym (≈C⇒≈ᵁ (full⇒PM[wb]-action g))))
+
+full-preserves-≤UC : Transfer.Preserves-≤UC full⇒PM[wb]
+full-preserves-≤UC = Transfer.transfer⁺ full⇒PM[wb] full-preserves-≈ᵁ

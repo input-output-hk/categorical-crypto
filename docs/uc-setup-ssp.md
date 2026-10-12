@@ -1,6 +1,6 @@
 # State-separating proofs as a UC setup
 
-Plan, 2026-10-09; built through 2026-10-10. A1–A7 and C1–C7 are built (branches `ssp-setup`, `ssp-bridge`, `ssp-bridge2`, `games-dense`); §6 records their names, warm times and deviations. Every other claim about a module is a design claim.
+Plan, 2026-10-09; built through 2026-10-12. A1–A7 and C1–C7 are built (branches `ssp-setup`, `ssp-bridge`, `ssp-bridge2`, `games-dense`); §6 records their names, warm times and deviations. The full-test inclusion and observation coarsening in §4.2 are also formal. Other module claims are design claims.
 Line references are
 to the `uc-setup-landscape` worktree.
 
@@ -17,16 +17,16 @@ to the `uc-setup-landscape` worktree.
 **Its link to protocol-model** (`UC/Model/Setup.agda`, "PM") goes through a variant of PM obtained by swapping parameters (table in §4.2):
 
 ```
-SSP ──StdUCMorphism──▶ PM[wb] ◀──quotientF── 𝒲[ℰᵂ]          𝒲[ι*ℰᵒ] ──ι──▶ PM
+SSP ──StdUCMorphism──▶ PM[wb] ◀──q── 𝒲[ℰᵂ] ◀──changeKernel── 𝒲[ι*ℰᵒ] ──ι──▶ PM
 ```
 
 - **𝒞 and ℐ:** all machines → the well-bracketed ones, `𝒲`.
-- **ℰ:** `ℰᵒ` → the well-bracketed environments `ℰᵂ`. Neither presheaf is a sub-presheaf of the other on 𝒲, so `changeKernel` and `Factorization` do not apply.
+- **ℰ:** `ι*ℰᵒ` → the well-bracketed environments `ℰᵂ` by a natural, componentwise-surjective coarsening on 𝒲. Every PM verdict test already has a `W` witness after respelling the verdict interface; only equality against closures is restricted. Thus `changeKernel` applies to the full-test source and composes with `q`.
 - **Hom-equality:** `≈ᴹ` → `ℰᵂ`'s own two-sided ancilla kernel (`uKernel`). It is built with the RS plan's generic `Categories.Category.Monoidal.Construction.Quotient` and adds no new datum.
 
 The two swaps beyond ℰ are forced:
 
-- `ℰᵂ` is a presheaf only on 𝒲;
+- `ℰᵂ` is defined on 𝒲, where precomposition preserves its well-bracketed closures;
 - a `StdUCMorphism`'s functor laws live at the target's equality.
 
 **Headline lemmas** (§4.3). Under well-bracketed environments:
@@ -360,6 +360,7 @@ Closure under the 𝔾ᵒ structure:
 - **Its inclusion** is `StdUCMorphism 𝒲ᴹ 𝔾ᵒ (ι*ℰᵒ) ℰᵒ ιᴹ (pullbackᵛ ι ℰᵒ)`.
   - It has the shape of `Restriction.inclusion` (`:118-131`: `F = ι`, `κ = id`), except `Φ = ιᴹ` instead of `idF-Monoidal ℐ`.
   - `pullbackᵛ` is Epi and Mono, so `≈ℰ` crosses both ways (`Abstract2/Morphism.agda:48-52`).
+  - `ι-essentially-surjective` uses `oneᴵ (objᵒ X)` and the stateless wires adding/removing its singleton channel tag (`UC/Bracket/InclusionTransfer.oneᵒ`). Together with `νι-epi`, `Standard2.Morphism.surjective⇒preserves-≈ᵁ` and `Abstract2.Morphism.transfer⁺`, this proves `ι-preserves-≈ᵁ` and `ι-preserves-≤UC` from the exact full-test source, without PM grade stability. Non-fullness gives no reflection claim.
 
 ```agda
 -- CategoricalCrypto/UC/Bracket/Setup.agda: well-bracketed environments on 𝒲
@@ -387,18 +388,21 @@ q = StdUCMorphism 𝒲ᴹ PM[wb]ᴹ ℰᵂ ℰ[wb] (quotientF 𝒲ᴹ _) (descen
 
 | parameter | PM | PM[wb] | how | why it has to change |
 |---|---|---|---|---|
-| 𝒞, ℐ | `∣𝔾ᵒ∣`, `𝔾ᵒ` | `𝒲ᴹ`: `W`-machines on `SSP.Iface` | monoidal `SetupSubcategory` form + `ιᴹ` | for an undisciplined `f`, `t ∘ f` is not a well-bracketed test and `f ∘ m` is not a well-bracketed closure, so no well-bracketed presheaf exists on all of `∣𝔾ᵒ∣`; `W-sub` (`:58`) forces ℐ down too |
-| ℰ | `ℰᵒ` (`ι*ℰᵒ` on 𝒲): all tests, all closures | `ℰᵂ`: `W`-tests, `W`-closures | new presheaf on 𝒲 | the reason neither is a sub-presheaf is given below the table |
+| 𝒞, ℐ | `∣𝔾ᵒ∣`, `𝔾ᵒ` | `𝒲ᴹ`: `W`-machines on `SSP.Iface` | monoidal `SetupSubcategory` form + `ιᴹ` | an undisciplined `f` need not send a well-bracketed closure to a well-bracketed closure; `W-sub` (`:58`) forces ℐ down too |
+| ℰ | `ℰᵒ` (`ι*ℰᵒ` on 𝒲): all tests, all closures | `ℰᵂ`: `W`-tests, `W`-closures | natural epi coarsening on 𝒲 | the verdict has one channel, so all tests can be repacked without a monitor; equality against all PM closures implies equality against the restricted closures |
 | hom-equality | `≈ᴹ` | `∼` of `uKernel 𝒲ᴹ ℰᵂ`, which lies between `≈ᴹ` and `≈ᵁ` | `quotient`/`quotientF`/`descend`/`descendᵛ` | a `StdUCMorphism`'s `F` is a functor at the target's equality; with `≈ᴹ`, `F.identity` (`morphism wireᵖ ≈ᴹ σ⇒`) is false whatever ℰ is |
 
-**Why neither ℰ is a sub-presheaf of the other.**
+**The one-way observation coarsening.**
 
-- **`ℰᵂ ⊄ ι*ℰᵒ`.** The carriers are included (`W`-tests ⊂ tests), but `ℰᵂ`'s equality is coarser. Two `W`-tests that differ only in their reaction to a reply on the wrong channel agree on every `W`-closure, but not on an undisciplined one. So the inclusion is not a setoid map, let alone Mono.
-- **`ι*ℰᵒ ⊄ ℰᵂ`.** Its carriers contain non-`W` tests.
-- **No natural `ν` in either direction.** `ℰᵂ → ι*ℰᵒ` is ill-defined by the same pair. `ι*ℰᵒ → ℰᵂ` must monitor arbitrary tests (`t ↦ t ∘ e`), and that is not natural: at a `W`-morphism `f`, `t ∘ f ∘ e` and `t ∘ e ∘ f` differ when `t` misbehaves.
-- Hence neither `changeKernel` (`UCSetup/Morphism.agda:48-51`) nor `Factorization` (`:101-114`, images of an existing `ν`) reaches PM[wb].
+- **All verdict tests are `W`.** `Ωᴵ` has one channel. Take `I s φ = ⊤` for any `Proc (flat A) (flat Ωᴵ)`: after either legal-input constructor `Opp.query` or `Opp.return`, every output is a call below or an answer on that sole channel. `Supp-all` proves both invariant obligations (`UC/Bracket/ObservationRestriction.verdict-W`).
+- **`ι*ℰᵒ → ℰᵂ`.** `restrict-test` respells a PM verdict test through `ωʷ⁻¹`, inverse to `Setup.ωʷ`, and attaches that witness. `restrict-read` identifies its readout with the original readout at a PM closure; `restrict-cong` restricts equality to `W` closures. Associativity gives `restrict-natural`; every `W` test is recovered from a full-test representative (`restrict-surjective`), so `ν-restrict` is componentwise Epi (`ν-restrict-epi`).
+- **The reverse underlying-test inclusion is not a setoid map.** Tests that react differently to a wrong-channel reply may agree against every `W` closure and disagree against an unrestricted one. The representative function `full-test` does not transport this coarser equality. This warning does not rule out the forward coarsening.
+- **`restriction⇒wb`** is `changeKernel ι*ℰᵒ ℰᵂ ν-restrict`; **`full⇒PM[wb]`** is `composeᵁ q restriction⇒wb`. Neither inserts a monitor or scheduler, nor replaces the machine identity. `𝒲[ι*ℰᵒ]` remains a distinct setup: its component, adversary and simulator arrows are `W`-restricted, but its tests and closures are still all PM tests and closures.
+- **Security preservation has its premises proved.** `ν-restrict-epi` gives `restriction-preserves-≈ℰ`. The prefix/ancilla contexts are unchanged, so `Refine` gives `full-≈ᵁ⇒wb-≈ᵁ` and `full-≤UC⇒wb-≤UC`, without grade stability. The quotient keeps the arrows, grade action and tests, yielding `full-preserves-≈ᵁ` and `full-preserves-≤UC` for the exact composed morphism `full⇒PM[wb]`.
 
 The quotient changes no contexts and no kernel, so `≤UC` in PM[wb] is `≤UC` in `𝒲[ℰᵂ]`, and `q` transports it both ways.
+
+`Examples/SSP/OneTimePad/ObservationRestriction.otp≤real-coarsened` exercises that composite on `FullTests.otp≤real-full`, the full-PM-context equality of the compiled probabilistic/stateful OTP protocol and its inlined real resource. `ideal-with-sim≤ideal-coarsened` exercises the actual compiled random simulator across different grades. Neither uses the PM[wb] confidentiality theorem as a full-test premise. There is no inference here from SSP/PM[wb] security to ordinary PM security; `ι-preserves-≤UC` applies only to security actually proved in the full-test source.
 
 ### 4.3 `SSP → PM[wb]`: the main line
 
@@ -525,7 +529,7 @@ Choose **(a)**:
 - objects need channels;
 - only `∘` is a theorem.
 
-**Replace the edge** by `SSP → PM[wb] ← 𝒲[ℰᵂ]` and `𝒲[ι*ℰᵒ] → PM` (§4.2–4.3).
+**Replace the edge** by `SSP → PM[wb] ← 𝒲[ℰᵂ] ← 𝒲[ι*ℰᵒ] → PM` (§4.2–4.3); the middle edge is the observation coarsening, not a morphism from PM[wb] back to ordinary PM.
 
 - An ℰ-only variant of PM cannot receive SSP: functor laws live at `≈ᴹ`, and `ℰᵂ` lives only on 𝒲.
 - Any well-bracketed target, RS included, needs the same three swaps.
@@ -555,6 +559,15 @@ Status: warm single-module check (one `Checking` line, `+RTS -M3G -H1G`, free ga
 | C7 | `SSP/Dense`, `SSP/Dense/Tests` (+ `Protocol/Machine/Oracle`, `SSP/Cut`, `Dp.Mass.cum-const-≤`; leaf `Examples/SSP/OneTimePad/WB`) | `Oracle`: `orun`, `answer`, `stepᴼ`, `oracleᴹ`, `oracle≈∘`. `Cut`: `ev`, `ev-ret`, `ev-dead`, `ev-coin`, `ev-map`, `ev-serve`, `nodeᴰ`, `cutᵏ`, `ev-cutᵏ`, `coin-≤E`, `coin-bind-≤E`. `Dense`: `e⁺`, `e⁻`, `replyᵍ`, `settle`, `game`, `compiled`, `verd`, `below`, `above`, `readoutᴹ`, `obs-proc`, `oracle-run`, `obs-oracle`, `dense≼`, **`games-dense`**, `νᵂ`, **`SSP→PM[wb]`**, `≤UC-transfer`. `Tests`: `treeT`, `leafT`, `trunc`, `cut-below`, `cut-above`, `Lp`, `step≈Lp`, `tree-below`, `loop-below`, `comp-run`, `obs-comp`, `tests≼`, **`tests-dense`**, **`preserves-≈ℰ`**, **`preserves-≤UC`**. `WB`: `otp≤idealᵂ` | exports `SSP→PM[wb] : UCSetupMorphism SSP.StdSetup PM[wb].StdSetup` and `preserves-≤UC`, unconditionally | ✓ `Dense` 388 lines, 19.0 s; `Tests` 490 lines, 18.3 s; `Oracle` 117 lines, 11.8 s; `Cut` 117 lines, 7.7 s; `WB` 16 lines, 15.1 s |
 
 Order: A1–A6 deliver the standalone setup (the primary deliverable); C1–C7 deliver the link. A7 and B1 can be done at any time.
+
+The 2026-10-12 adversarial-review additions use the exact source `StdUC.StdSetup 𝒲ᴹ ι*ℰᵒ`; they do not replace `𝒲ᵂ.StdSetup` or PM[wb]:
+
+| module / consumer | formal result | acceptance |
+|---|---|---|
+| `UC/Bracket/ObservationRestriction` | `verdict-W`; natural epi `ν-restrict`; `restriction⇒wb`; `full⇒PM[wb]`; `full-preserves-≈ᵁ` and `full-preserves-≤UC` | unchanged computational structure and prefix contexts; no monitor/scheduler insertion or grade-stability premise |
+| `UC/Bracket/InclusionTransfer` | `oneᵒ`, `ι-essentially-surjective`, `ι-preserves-≈ℰ`, `ι-preserves-≈ᵁ`, `ι-preserves-≤UC` | singleton-channel relabelling isomorphisms; Epi test map; forward security only |
+| `Examples/SSP/OneTimePad/FullTests` | `otp≈real-full`, `otp≤real-full`, `otp≤real-PM`, `ideal-with-sim≤ideal-full`, `ideal-with-sim≤ideal-PM` | real OTP inlining and the compiled random simulator in the full-test source |
+| `Examples/SSP/OneTimePad/ObservationRestriction` | `otp≤real-restricted`, `otp≤real-coarsened`, `ideal-with-sim≤ideal-coarsened` | consumes the full-test theorems through the public coarsening and composed bridge |
 
 **Deviations of the built steps** (the code blocks of §3 carry the same corrections):
 

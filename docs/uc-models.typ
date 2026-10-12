@@ -736,12 +736,23 @@ $ι : Wio → PM$ is a standard morphism whose test map is the identity, Epi and
 #srcs(cc("UC/Bracket/Monoidal.agda", 332, "ι⇒prot"), cc("UC/Bracket/Monoidal.agda", 326, "νι-epi"), cc("UC/Bracket/Monoidal.agda", 329, "νι-mono"))
 ] <prop:iota>
 
-#design The two observations on $cal(W)$ are incomparable: neither is a sub-presheaf of the other, and
-no natural map exists in either direction. Two well-bracketed tests that differ only in how they react
-to a reply on the wrong channel agree on every well-bracketed closure but not on an undisciplined
-one; and "monitoring" an arbitrary test is not natural. So #PMwb cannot be reached from #Wio by a
-change of kernel or an image factorisation (@sec:setup-morphisms); the quotient morphism
-$mq : WW → PMwb$ is formal (@sec:formal-morphisms).
+#proposition(name: [restriction of observations])[
+There is a natural, componentwise-surjective map $ν_W : ι^* cal(E)^o → cal(E)^W$ on $cal(W)$.
+The resulting change of kernel $mck_(ν_W) : Wio → WW$ composes with $mq : WW → PMwb$.
+#srcs(cc("UC/Bracket/ObservationRestriction.agda", 56, "verdict-W"), cc("UC/Bracket/ObservationRestriction.agda", 134, "ν-restrict"), cc("UC/Bracket/ObservationRestriction.agda", 144, "ν-restrict-epi"), cc("UC/Bracket/ObservationRestriction.agda", 147, "restriction⇒wb"), cc("UC/Bracket/ObservationRestriction.agda", 150, "full⇒PM[wb]"))
+] <prop:Wrestriction>
+
+#proofidea[The verdict signature $Ω$ has one channel. For every process $op("flat") A → op("flat") Ω$,
+take the invariant $I(s, φ) = ⊤$: after a legal input, every output is a legal call or an answer on that
+sole channel. Thus every #PM verdict test can be repacked through the inverse verdict-respelling wire,
+without a monitor or scheduler. Equality against all #PM closures implies equality against the
+well-bracketed closures, associativity gives naturality, and respelling a well-bracketed test back gives
+a preimage.]
+
+The full-test setup #Wio and the restricted-closure setup #WW remain distinct. The reverse
+underlying-test inclusion is not a setoid map: tests reacting differently to a wrong-channel return can
+agree on every well-bracketed closure but disagree on an unrestricted one. This is an obstruction to
+that representative inclusion, not to the forward observation coarsening.
 
 == #SSP: call/return packages <sec:ssp>
 
@@ -1250,6 +1261,7 @@ kernel relation on one computational structure (@thm:refine), not drawn.
     edge(<iso>, <pm>, "-->", label: $mdet$, label-side: right),
     edge(<pm>, <rs>, "->", label: $mrs$),
     edge(<wio>, <pm>, "->", label: $miota$),
+    edge(<wio>, <ww>, "->", label: $mck_(ν_W)$, label-side: right),
     edge(<ssp>, <pmwb>, "->", label: $mwb$, label-side: right),
     edge(<ssp>, <sspd>, "->", label: $mq$, label-side: right),
     edge(<ww>, <pmwb>, "->", label: $mq$),
@@ -1299,14 +1311,40 @@ impossibility in #Iso is one in #ITMiso.
 #srcs(cc("ITM/Relational.agda", 138, "itm⇒iso"), cc("ITM/Relational.agda", 117, "Fᴿ"), cc("ITM/Relational.agda", 128, "νᴿ"), cc("ITM/Relational.agda", 132, "νᴿ-epi"), cc("ITM/Relational.agda", 135, "νᴿ-mono"), cc("Machine/UC.agda", 164, "grade-stable"), cc("Abstract2/Morphism.agda", 75, "transfer"))
 ] <prop:mitmiso>
 
-This is the only formal morphism whose transport of $leUC$ is the general theorem. The triangle
-$ITM → PM$, $ITMiso → Iso$ and $mdet$ is expected to commute only on deterministic leaves, up to the
-mirror isomorphism of port trees #design.
+This instantiates the grade-stable general transport theorem. The inclusion of #Wio below instead
+uses essential surjectivity of its computational functor. The triangle $ITM → PM$, $ITMiso → Iso$ and
+$mdet$ is expected to commute only on deterministic leaves, up to the mirror isomorphism of port trees #design.
 
 === $miota : Wio → PM$
 
-The inclusion of well-bracketed machines, with the identity test map, Epi and Mono (@prop:iota). It
-preserves and reflects $eqE$; like $mitm$ it transports nothing more, for the same two reasons.
+The inclusion of well-bracketed machines, with the identity test map, Epi and Mono (@prop:iota).
+It preserves and reflects $eqE$, and preserves $eqU$ and $leUC$ in the forward direction.
+Every #PM object $X$ is isomorphic to the image of the singleton-channel signature
+$op("one") (op("obj") X)$, through stateless wires adding and removing the channel tag. Hence $ι$ is
+essentially surjective, and @thm:transport's $sans("transfer")^+$ applies after
+$sans("surjective⇒preserves-≈ᵁ")$: every target ancilla is an image up to isomorphism.
+No #PM grade-stability assumption is used, and non-fullness does not obstruct preservation.
+This is not a reflection theorem.
+#srcs(cc("UC/Bracket/InclusionTransfer.agda", 39, "oneᵒ"), cc("UC/Bracket/InclusionTransfer.agda", 51, "ι-essentially-surjective"), cc("UC/Bracket/InclusionTransfer.agda", 54, "ι-preserves-≈ℰ"), cc("UC/Bracket/InclusionTransfer.agda", 57, "ι-preserves-≈ᵁ"), cc("UC/Bracket/InclusionTransfer.agda", 61, "ι-preserves-≤UC"))
+
+The source-facing consumer compiles the probabilistic, stateful one-time-pad protocol and its
+inlined real resource. Their machine hom-equality proves $eqU$ and $leUC$ in the exact full-test
+setup #Wio, and the inclusion transports that security to #PM. A second consumer uses the actual
+compiled random simulator across different grades. These are inlining and simulator-construction
+theorems, not a claim that #PMwb's one-time-pad confidentiality reverses into full-context security.
+#srcs(cc("Examples/SSP/OneTimePad/FullTests.agda", 29, "otp≈real-full"), cc("Examples/SSP/OneTimePad/FullTests.agda", 32, "otp≤real-full"), cc("Examples/SSP/OneTimePad/FullTests.agda", 35, "otp≤real-PM"), cc("Examples/SSP/OneTimePad/FullTests.agda", 48, "ideal-with-sim≤ideal-full"), cc("Examples/SSP/OneTimePad/FullTests.agda", 51, "ideal-with-sim≤ideal-PM"))
+
+=== $mck_(ν_W) : Wio → WW$
+
+The observation coarsening of @prop:Wrestriction leaves the computational category, grades and
+their action unchanged. Its epi test map preserves $eqE$; the shared prefix contexts then preserve
+$eqU$ and $leUC$ without grade stability. Composition with $mq$ reaches #PMwb, not ordinary #PM.
+#srcs(cc("UC/Bracket/ObservationRestriction.agda", 156, "restriction-preserves-≈ℰ"), cc("UC/Bracket/ObservationRestriction.agda", 159, "full-≈ᵁ⇒wb-≈ᵁ"), cc("UC/Bracket/ObservationRestriction.agda", 162, "full-≤UC⇒wb-≤UC"), cc("UC/Bracket/ObservationRestriction.agda", 186, "full-preserves-≤UC"))
+
+The composed bridge is exercised on the genuine full-test OTP inlining theorem and the compiled
+random-simulator construction, including its change of grade. These uses do not assume a reverse
+map from #PMwb to #PM.
+#srcs(cc("Examples/SSP/OneTimePad/ObservationRestriction.agda", 18, "otp≤real-coarsened"), cc("Examples/SSP/OneTimePad/ObservationRestriction.agda", 21, "ideal-with-sim≤ideal-coarsened"))
 
 === $mwb : SSP → PMwb$
 
@@ -1357,9 +1395,10 @@ verdicts: identity on tests, Epi, so it carries every #Symiso emulation to #Sym 
 
 === The generic morphisms, instantiated
 
-Besides $mcoarse$, change of kernel $mck$ and the wide-subcategory inclusion $mincl$
-(@sec:setup-morphisms) have one concrete use each: the refinements between each tier and its
-quantitative family (@thm:tiers(3), through @thm:refine) and #NDA $→$ #NDB (@prop:nd-incl, formal at #SSP).
+Besides $mcoarse$ and the observation restriction @prop:Wrestriction, change of kernel $mck$ and
+the wide-subcategory inclusion $mincl$ (@sec:setup-morphisms) instantiate the refinements between
+each tier and its quantitative family (@thm:tiers(3), through @thm:refine) and #NDA $→$ #NDB
+(@prop:nd-incl, formal at #SSP).
 
 == Designed morphisms <sec:designed-morphisms>
 
@@ -1405,7 +1444,8 @@ None of the following is a setup morphism.
   interleaving. Causal boxes are reachable only laxly. #design
 + _$Sym → RS$, $Sym → Iso$._ Names are guessed with positive probability, so exact soundness fails;
   only the syntactic twin #Symiso maps. #design
-+ _A change of kernel between $Wio$ and $WW$, in either direction_ (@sec:wb). #design
++ _The reverse underlying-test inclusion $WW → Wio$._ Restricted-closure equality need not imply
+  full-closure equality, so this representative inclusion is not a setoid map (@prop:Wrestriction).
 + _A morphism reflecting emulation from #NDB to #NDA._ The inclusion preserves $leUC$ and does not
   reflect it (@prop:nd-incl). #design
 #srcs(cc("Protocol/Machine.agda", 71, "morphism"), cc("Machine/Iso.agda", 50, "padded-not-iso"))

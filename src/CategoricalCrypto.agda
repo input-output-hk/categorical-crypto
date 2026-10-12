@@ -101,6 +101,8 @@ open import CategoricalCrypto.UC.Machine.MonitorTests
 open import CategoricalCrypto.UC.Machine.Run.Lax
 open import CategoricalCrypto.UC.Machine.StateEvent.HitTests
 import CategoricalCrypto.UC.Bracket.Category
+import CategoricalCrypto.UC.Bracket.InclusionTransfer
+import CategoricalCrypto.UC.Bracket.ObservationRestriction
 import CategoricalCrypto.UC.Bracket.Setup
 open import CategoricalCrypto.UC.Model.Family.Ingest
 open import CategoricalCrypto.UC.Model.Quantitative
@@ -119,6 +121,8 @@ open import CategoricalCrypto.Examples.Signatures
 open import CategoricalCrypto.Examples.RandomOracle
 import CategoricalCrypto.Examples.RandomSystems.Availability
 import CategoricalCrypto.Examples.SSP.OneTimePad.Dist
+import CategoricalCrypto.Examples.SSP.OneTimePad.FullTests
+import CategoricalCrypto.Examples.SSP.OneTimePad.ObservationRestriction
 import CategoricalCrypto.Examples.SSP.OneTimePad.WB
 open import CategoricalCrypto.Examples.HashForward.Audit
 open import CategoricalCrypto.Examples.RelSetup
