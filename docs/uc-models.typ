@@ -140,12 +140,14 @@ of #plan("uc-setup-adversarial-review.md") distinguish historical findings from 
 *Refresh boundary.* This account includes the checked W comparisons, distributional SSP clients,
 availability API, positive-error QRS example, PM-choice initialization repair, symbolic theory/static
 and certified layers, pure-interface simulation, opt-in terminal runtime, protocol-indexed errors,
-probabilistic ITM security clients and relational initialization/finite-trace consumers.
-The integrated proof boundary is `4c5ee9ca` (initialization: `35ef17c`; ITM clients: `63d03981`;
-preceding core: `ec1b6a17`; terminal: `b606503c`, `41f603b9`; purity: `84b408c8`;
-original five-item integration: `cf6653e6`). Only the interactive symbolic transmission/decryption
-construction remains ongoing isolated implementation work, not a result claimed here. The proposed
-island connections in @sec:designed are research obligations, not newly checked edges.
+probabilistic ITM security clients, relational initialization/finite-trace consumers, and a
+conservative environment-selected symbolic transmission/decryption construction.
+The integrated proof boundary is `2d9741ef` (transmitting channel: `5cd63401`;
+initialization: `4c5ee9ca`; ITM clients: `63d03981`; preceding core: `ec1b6a17`;
+terminal: `b606503c`, `41f603b9`; purity: `84b408c8`; original five-item integration:
+`cf6653e6`). The new channel is a checked client of #Sym, not a new setup or a computational
+cryptography theorem. The proposed island connections in @sec:designed remain research
+obligations, not newly checked edges.
 
 #{
   set text(size: 8.7pt)
@@ -452,7 +454,7 @@ the grade category without restricting computations. #design rows are planned, n
     [free monoidal category on Dolev–Yao roles with unit-free boundaries; free monoidal congruence],
     [role circuits with an ancilla; #Sym: possible verdicts in fixed token-passing runs with globally fresh names; #Symiso: circuit syntax],
     [restricted symbolic may-testing / syntactic proof IR; not general applied-pi UC],
-    [#formal #cc("Symbolic/Setup.agda", 105, "StdUC 𝔻𝕐 ℰˢʸᵐ"), #cc("Symbolic/Fine.agda", 74, "StdUC 𝔻𝕐 ℰ≅"), #cc("Symbolic/Fine.agda", 41, "𝔻𝕐"), #cc("Symbolic/Setup.agda", 102, "ℰˢʸᵐ"), #cc("Symbolic/Fine.agda", 71, "ℰ≅")],
+    [#formal #cc("Symbolic/Setup.agda", 105, "StdUC 𝔻𝕐 ℰˢʸᵐ"), #cc("Symbolic/Fine.agda", 74, "StdUC 𝔻𝕐 ℰ≅"), #cc("Symbolic/Fine.agda", 41, "𝔻𝕐"), #cc("Symbolic/Setup.agda", 102, "ℰˢʸᵐ"), #cc("Symbolic/Fine.agda", 71, "ℰ≅"); transmitting client: @thm:sym-transmitting],
     [#Symcert \ certified symbolic source], [as #Symiso],
     [free circuits whose generators carry direct positive-rate query certificates for their actual parameterized runtime; coherence equality],
     [syntactic tests of certified circuits],
@@ -1142,6 +1144,52 @@ simulator (or with plaintext leakage). The nontrivial result is the common encry
 simulator and associated static opacity, not environment-selected-message transmission, delivery
 acceptance or a cryptographic secure-channel construction.]
 #srcs(cc("Symbolic/Static.agda", 160, "emitter-emits"), cc("Symbolic/Static/Relational.agda", 151, "context"))
+
+#theorem(name: [environment-selected one-send symbolic transmission])[
+For the pairing/encryption theory $E_0$, write $"smt"_1$, $"ideal"_1$ and $"sim"_1$
+for the protocols exported by `SecureChannel.Interactive`. Unlike @thm:sym-channel,
+the honest input chooses the plaintext at run time. The real role accepts that input,
+generates a fresh symmetric key shared by encryption and decryption, plus fresh coins,
+and exposes its ciphertext to the attacker. It accepts a return only when equal to
+the stored ciphertext modulo $E_0$; the receiver then decrypts it and emits the canonical
+selected plaintext. A nonmatching return emits the explicit error/drop outcome `cst 2`,
+not a different plaintext. The ideal stores the selected input and accepts a delivery command.
+In the existing #Sym, $"smt"_1 leUC "ideal"_1$, with the nonidentity simulator $"sim"_1$:
+it exposes a fresh encryption of $0$ and translates equality with that dummy ciphertext
+into ideal delivery, otherwise a drop command. This is the checked `Interactive.smt≤ideal`,
+not a new setup.
+#srcs(cc("Symbolic/Example/SecureChannel/Protocol.agda", 80, "channel"), cc("Symbolic/Example/SecureChannel/Protocol.agda", 123, "ideal-role"), cc("Symbolic/Example/SecureChannel/Protocol.agda", 143, "simulator-role"), cc("Symbolic/Example/SecureChannel/Security.agda", 117, "smt≤ideal"))
+] <thm:sym-transmitting>
+
+#proofidea[A run-following world records the environment-selected plaintext and relates the
+real and dummy ciphertext worlds. The relation is stable through serial/tensor composition
+and feedback; lowering each syntactic role circuit supplies the invariant for every #Sym
+test and closure, with globally fresh, disjoint occurrence namespaces. The receive-step
+lemma `decrypt-delivers` uses the actual equality guard and $E_0$ decryption rule.
+This proves `smt≈simulated`. A separate machine coupling proves
+`simulated≈ideal-simulator` for the actual ideal/nonidentity-simulator composition;
+its naming construction supplies the additional ideal occurrence with a fresh namespace.
+Converting both kernel equalities with #Sym's grade stability and applying dummy
+completeness gives the stated UC theorem. No security certificate or restriction to
+static emitters is assumed.
+#srcs(cc("Symbolic/RunFollowing/Circuit.agda", 267, "context"), cc("Symbolic/Example/SecureChannel/Relation.agda", 109, "decrypt-delivers"), cc("Symbolic/Example/SecureChannel/Security.agda", 107, "smt≈simulated"), cc("Symbolic/Example/SecureChannel/Ideal.agda", 128, "simulated≈ideal-simulator"))]
+
+*Checked consumers and their scope.* Direct `Run.step` witnesses accept every supplied
+plaintext and deliver its canonical form on return of its ciphertext. The separate
+`arbitrary-delivery-trace` exhibits ciphertext then plaintext under the opt-in
+`run-terminal`, for any remaining input suffix; `drop-trace` exhibits the nonmatching
+error outcome. Only that terminal runner has an absorbing silent suffix. The UC theorem
+uses ordinary total #Sym execution, including the explicit stopped/error table rows.
+An equality tester separates a plaintext-leaking variant from both the real and simulated
+worlds: `leaky≉real` and `leaky≉simulated` are _observation-kernel negatives_, not
+non-emulation or impossibility against every simulator.
+#srcs(cc("Symbolic/Example/SecureChannel/Tests.agda", 95, "accepts-arbitrary-environment-plaintext"), cc("Symbolic/Example/SecureChannel/Tests.agda", 112, "delivers-arbitrary-selected-plaintext"), cc("Symbolic/Example/SecureChannel/Tests.agda", 119, "arbitrary-delivery-trace"), cc("Symbolic/Example/SecureChannel/Tests.agda", 49, "drop-trace"), cc("Symbolic/Example/SecureChannel/Tests.agda", 56, "no-post-delivery-activation"), cc("Symbolic/Example/SecureChannel/Negative.agda", 185, "leaky≉real"), cc("Symbolic/Example/SecureChannel/Negative.agda", 177, "leaky≉simulated"))
+
+This is one accepted message and one conservative delivery/drop decision, not an unrestricted
+chosen-ciphertext or multi-session channel, arbitrary raw-machine context security, applied-pi
+correspondence, or computational cryptographic soundness. The original fixed-public-message
+opacity theorem remains a distinct, unchanged result; @sec:symbolic-interpretations retains
+the separate computational-interpretation obligations.
 
 == #Iso: relational machines up to isomorphism <sec:iso>
 
@@ -2196,8 +2244,8 @@ This ledger records their current scope; absence of a public client is not nonex
     [014–018], [W is conditional safety, not hostile enforcement or liveness; density is pointwise/cofinal. Both full-test forward bridges (016–017) are formal. Neither supplies reverse WB security.],
     [019–026, 036], [Choice payload/ownership, SSP preload/starvation, branch-permutation, PM lifetime and fail-stop boundaries remain. The selected-branch ASTotal repair and all-resolver half-init refutation (023) are formal; FIFO scaling is not a benchmark.],
     [027–033, 038], [Fine/coarse observations remain distinct. Sorted term substitution and fresh-name rejection (028) are formal; the older multisort impossibility is withdrawn (038). Raw names/public frames remain restricted. GroundGuarded and opt-in Terminal now separate the old terminal overclaim (030); general applied-pi/session correspondence is not proved.],
-    [034–035], [Actual SSPᵈ reflection, W positive transfers, RS security/full-construction, tight QRS, PM-B and both ITM interpretations have checked consumers. ITM finite-trace/observational negatives are not non-emulation. SSPᵈ is built; W/PM[wb] negatives, PM-A clients and full-context OTP confidentiality remain absent.],
-    [037, 039], [Pure interface legs are enforced (037). The checked channel remains fixed-public-message factorized opacity (039); interactive transmission/decryption is ongoing and not claimed here.],
+    [034–035], [Actual SSPᵈ reflection, W positive transfers, RS security/full-construction, tight QRS, PM-B, both ITM interpretations and the transmitting #Sym channel have checked consumers. ITM trace/observational negatives and symbolic leakage separators are not all-simulator impossibility. SSPᵈ is built; W/PM[wb] negatives, PM-A clients and full-context OTP confidentiality remain absent.],
+    [037, 039], [Pure interface legs are enforced (037). Fixed-public-message opacity is retained. The new one-send #Sym client accepts an environment-selected plaintext and decrypts/delivers only on the original ciphertext modulo E₀, with actual nonidentity-simulator UC security (039). This is conservative delivery/drop, not general active-channel or computational security; @thm:sym-transmitting.],
     [040–041], [Protocol-indexed errors with shared extraction and closed finite-budget positive/negative experiments repair 040. Crypto backtranslation, target UC, and malformed-projection/error-aware eligibility (041) remain unproved.],
   )
 }

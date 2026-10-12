@@ -1618,3 +1618,62 @@ Agda runs. UAR-003's hidden initialization issue is now named and witnessed;
 the independent state-representation, probability, scheduler and native-context
 limitations remain. The symbolic transmitting-channel implementation alone
 remains pending among these resumed implementation slices.
+
+## Checked transmitting symbolic channel: UAR-039/UAR-034 — 2d9741ef
+
+**Disposition: a conservative one-send transmitting/decrypting client is now
+checked; UAR-034 gains exact-target symbolic coverage.** Source commit `5cd63401`
+is integrated as `2d9741ef`. This supersedes the pending channel status in the
+preceding disposition. It does not rewrite UAR-039's valid historical assessment
+of the original, unchanged fixed-public-message theorem.
+
+The new public [`SecureChannel.Interactive`](../src/CategoricalCrypto/Symbolic/Example/SecureChannel/Interactive.agda#L5)
+exports [`smt≤ideal : smt Sym.≤UC ideal`](../src/CategoricalCrypto/Symbolic/Example/SecureChannel/Security.agda#L117).
+The environment chooses the plaintext through the honest input. The real role
+generates one fresh symmetric key shared by encryption and decryption, plus fresh
+coins, and exposes the ciphertext. Its actual
+[`receive` transition](../src/CategoricalCrypto/Symbolic/Example/SecureChannel/Protocol.agda#L72)
+tests the attacker's return against the stored ciphertext modulo E₀, decrypts on
+success, and delivers the canonical selected plaintext. A nonmatching return emits
+the error/drop outcome `cst 2`; it does not provide an arbitrary decryption oracle.
+The nonidentity simulator emits a fresh encryption of zero and translates a
+matching return into the ideal's delivery command, otherwise its drop command.
+
+This is not emitter factorization presented as transmission. A run-following
+selected-message relation and
+[`decrypt-delivers`](../src/CategoricalCrypto/Symbolic/Example/SecureChannel/Relation.agda#L109)
+prove [`smt≈simulated`](../src/CategoricalCrypto/Symbolic/Example/SecureChannel/Security.agda#L107)
+for every syntactic `Sym` test and closure. The
+[`context` lowering](../src/CategoricalCrypto/Symbolic/RunFollowing/Circuit.agda#L267)
+carries the invariant through composition/tensor and feedback, with disjoint
+occurrence namespaces. A separate machine coupling proves
+[`simulated≈ideal-simulator`](../src/CategoricalCrypto/Symbolic/Example/SecureChannel/Ideal.agda#L128)
+for the actual ideal/simulator composition, adding a fresh ideal occurrence.
+`Sym` grade stability and dummy completeness then yield the public UC theorem;
+no assumed security certificate substitutes for this proof.
+
+**Checked consumers and negative scope.**
+[`accepts-arbitrary-environment-plaintext`](../src/CategoricalCrypto/Symbolic/Example/SecureChannel/Tests.agda#L95)
+and [`delivers-arbitrary-selected-plaintext`](../src/CategoricalCrypto/Symbolic/Example/SecureChannel/Tests.agda#L112)
+are direct `Run.step` equations.
+[`arbitrary-delivery-trace`](../src/CategoricalCrypto/Symbolic/Example/SecureChannel/Tests.agda#L119)
+exhibits ciphertext then plaintext with any suffix under the separate opt-in
+`run-terminal`; [`drop-trace`](../src/CategoricalCrypto/Symbolic/Example/SecureChannel/Tests.agda#L49)
+exhibits the nonmatching error outcome. The UC proof still uses ordinary total
+`Sym` execution, including explicit stopped/error clauses. Absorbing silence is
+only a terminal-runner claim, not a semantic change to arbitrary symbolic roles.
+[`leaky≉real`](../src/CategoricalCrypto/Symbolic/Example/SecureChannel/Negative.agda#L185)
+and [`leaky≉simulated`](../src/CategoricalCrypto/Symbolic/Example/SecureChannel/Negative.agda#L177)
+are genuine observation-kernel separators for a chosen-plaintext equality tester.
+They are **not non-emulation or impossibility against every UC simulator**.
+
+**Limits and validation.** This is one accepted plaintext and one conservative
+original-ciphertext-modulo-E₀ delivery/drop decision, not unrestricted
+chosen-ciphertext, multi-session, general applied-pi or computational cryptographic
+security. It adds no setup and does not establish fine `Sym≅` security, the
+computational backtranslation, or the other unfilled UAR-034 targets. Main reports
+the integrated public `Interactive` check at `-M3G -H1G` and the full
+`CategoricalCrypto` root at `-M6G -H1G`, with all 14 new modules rebuilt and no
+warnings (job `bg227`, 51.00 s combined; not an isolated benchmark). The implementor
+reports the escape-hatch baseline unchanged at 16. These are attributed checks,
+not new documentation-worker Agda runs.
