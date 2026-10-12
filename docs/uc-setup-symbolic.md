@@ -908,9 +908,34 @@ listed exports.
     `Emitter keys (ciphertext 0)`, supplying `enc(cst 0, k′, r)`. `emitter-emits`
     and `Apex.context` carry the ciphertext span beside the unchanged honest wire;
     dummy completeness turns it into realization. `StaticTests` checks the public
-    theorem. This is **not** the environment-selected-message interactive channel:
-    that requires a relation following the plaintext across the run, whereas
-    step 9's apex is parameterized by fixed frames. Step 9 alone is not that theorem.
+    theorem. These fixed-public-message statements are unchanged; the interactive
+    theorem is separate rather than a reinterpretation of the static fragment.
+
+    `Symbolic/Example/SecureChannel/Interactive.agda` is the environment-selected,
+    one-send E₀ channel. `Protocol` takes an arbitrary honest input, creates one
+    shared fresh symmetric key and fresh encryption coins, exposes only its
+    ciphertext on the attacker wire, and delivers the recorded plaintext only
+    when the attacker returns that ciphertext modulo E₀. Every other reply drops
+    with the explicit error term; this is a conservative deliver/drop attacker,
+    not an unrestricted chosen-ciphertext or multi-session channel.
+    `Security.smt≤ideal` uses the actual `Sym` order and the non-identity simulator
+    from `Protocol`, with `smt≈simulated` and `Ideal.simulated≈ideal-simulator` as
+    the two kernel equalities. The ideal stores the honest input and reveals only
+    a public notification; the simulator generates a fresh dummy ciphertext and
+    translates matching/nonmatching replies into deliver/drop commands.
+    `Machines/Sim/RunFollowing` and `Symbolic/RunFollowing/{PairEnc,Role,Circuit}`
+    follow the selected plaintext through arbitrary reactive context circuits,
+    serial/tensor composition and feedback; `Supply` supplies a fresh occurrence
+    for the ideal in the simulator composition. No assumed security certificate
+    is an input to the theorem.
+    `Tests.arbitrary-delivery-trace` proves delivery of the selected canonical
+    plaintext for every message and namespace, with no later activation in the
+    opt-in terminal runner. Ordinary `Role.Run.step` remains total and uses the
+    role's explicit stopped/error clauses; the terminal contract is separate.
+    `Negative.leaky≉real` and `leaky≉simulated` are genuine observation-kernel
+    counterexamples using an environment that selects its input and checks for
+    plaintext leakage. They do not assert impossibility against every simulator
+    in the UC order. The root build imports the interactive entrypoint.
 
 11. `Symbolic/Machine.agda`: `sym≅→iso`. Formal relational interpretation of `Sym≅`;
     freshness and observational-kernel preservation are not asserted (§4.2).

@@ -91,6 +91,7 @@ import CategoricalCrypto.Symbolic.TerminalTests
 import CategoricalCrypto.Symbolic.StaticTests
 import CategoricalCrypto.Symbolic.InterpretationTests
 import CategoricalCrypto.Symbolic.TheoryTests
+import CategoricalCrypto.Symbolic.Example.SecureChannel.Interactive
 import CategoricalCrypto.ND.SSP.Laws
 import CategoricalCrypto.ND.SSP.Reflect
 import CategoricalCrypto.ND.SSP.Setup
