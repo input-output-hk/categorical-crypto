@@ -1439,3 +1439,36 @@ assigned and unverified here.
 [symbolic-runtime]: ../src/CategoricalCrypto/Symbolic/Computational/Run.agda
 [symbolic-interpretation-tests]: ../src/CategoricalCrypto/Symbolic/InterpretationTests.agda
 [symbolic-deterministic]: ../src/CategoricalCrypto/Symbolic/Soundness/Deterministic.agda
+
+## Completed PM-choice integration and independent review — 2026-10-12
+
+**PM initialization: integrated closure checked.** This supersedes the pending
+parent status in the [isolated-leaf disposition](#pm-choice-leaf-disposition).
+Main integrated source commits `f07a63a8`, `0595cf6d`, and `e70c33c3`, root
+registrations `dafe925d`, and documentation `cf6653e6`: the original five-item
+batch is now integrated. After the earlier `Initialization/Example.agda`
+check at `-M3G -H1G` (14.63 s), Main reports the full
+`CategoricalCrypto.agda` root passing at `-M6G -H1G` in **22.49 s**
+(job `bg11`), with one `Checking` line and no warnings. These are attributed
+execution observations, not fresh documentation-worker checks or uncontended
+performance measurements.
+
+The UAR-023 counterexample and selected-branch `ASTotal` correction are thus
+checked through the actual `NDB` boundary and integrated root. The positive/
+negative clients and stateful closed observation improve UAR-034 as described
+above. No global initialization semantics changed; this does not resolve the
+separate UAR-001 or PM-A/model-boundary qualifications.
+
+**Independent source review: no new actionable findings at `d898f3f0`.**
+`ReviewFixesResume` recovered the original integrated-fixes review and its four
+completed supporting reports, then completed its read-only assessment of that
+pinned snapshot. It found the availability/compatibility premises, quantitative
+quarter-error composition and all-simulator lower bound, actual SSPᵈ reflection
+client, separate W transfer routes, and strengthened symbolic freshness
+contract consistent with their stated public boundaries. A shifted source-link
+anchor suggestion was classified as a non-blocking documentation nit.
+This is source/API inspection, **not execution validation**, and its earlier
+snapshot does not independently review the subsequent PM initialization batch.
+Known limitations and active follow-ups remain separate; neither this review
+nor the green root silently resolves them.
+
