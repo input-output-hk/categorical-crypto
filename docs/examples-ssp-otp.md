@@ -53,8 +53,24 @@ the simulator by `sub-commute′` (`Slide.slide`).  Hence `1 ≤ ½`.  `≈ᵁ�
   well-bracketed environments, is `SSP.Dense.Tests.preserves-≤UC otp≤ideal`.  `preserves-≤UC` is
   unconditional: `SSP→PM[wb]` is built over `games-dense` and preserves `≈ℰ` by `tests-dense`
   (`docs/uc-setup-ssp.md` §5.1, §6 C7); no `ν.Epi` is used.
-- **𝔾ᴿ**: `rewrite⇒RS` starts at PM, not at PM[wb], so the bridge does not reach random systems.  The
-  𝔾ᴿ statement needs the PM statement against all environments first, which needs an adequacy of
+- **Full-test `𝒲[ι*ℰᵒ]` and PM**, for inlining and an explicit simulator construction:
+  `Examples/SSP/OneTimePad/FullTests.agda` uses exactly `StdUC.StdSetup 𝒲ᴹ ι*ℰᵒ`,
+  not `𝒲ᵂ.StdSetup` or PM[wb]. `otp≈real-full` lifts the nontrivial probabilistic,
+  stateful `otp≲real` through `⟦⟧ᵂ-resp` to the full-test U-kernel;
+  `otp≤real-full` and `otp≤real-PM` give source security and its inclusion image.
+  `ideal-with-sim≤ideal-full` uses the actual compiled, stateful random `sim` as
+  dummy simulator, with different real/ideal adversary grades, and
+  `ideal-with-sim≤ideal-PM` transports that construction. Its real side is
+  `Full.sub compiled-sim ∘ compiled-ideal`, using `𝒲ᴹ`'s tensor: this does not
+  assert that compilation preserves the SSP tensor under full tests.
+  The bridge `UC/Bracket/InclusionTransfer.ι-preserves-≤UC` needs no PM
+  `GradeStable`: singleton-channel wires make `ιᴹ` essentially surjective.
+  Neither example asserts full-context OTP confidentiality. `otp≤idealᵂ` lives in
+  PM[wb], and the inclusion has no reverse map from that setup into its full-test
+  source; the well-bracketed quotient theorem is not an input to this bridge.
+- **𝔾ᴿ**: `rewrite⇒RS` starts at PM, not at PM[wb], so the existing OTP confidentiality
+  theorem still does not reach random systems through these bridges. Its 𝔾ᴿ statement
+  needs the PM statement against all environments first, which needs an adequacy of
   `runᵖ` for compiled closed games that the tree does not have.
 
 Checks (warm single-module, `+RTS -M3G -H1G`): `Uniform/Flip` 7 s (30 lines), `SSP/Reduction` 11 s

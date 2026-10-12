@@ -52,6 +52,13 @@ symbolic steps of `uc-setup-symbolic.md` §6; escape-hatch baseline unchanged):
    dense among well-bracketed tests (`tests-dense`), which gives `Preserves-≈ℰ`; no
    `ν.Epi` is used.  Both densities approximate from below, by depth-cut call trees.
    Status: `docs/uc-setup-ssp.md` §6, C7.
+   The separate inclusion `𝒲[ι*ℰᵒ] → PM` also preserves `≤UC`
+   (`UC/Bracket/InclusionTransfer.ι-preserves-≤UC`): every PM object `X` is
+   isomorphic to the image of `oneᴵ (objᵒ X)` by wires adding/removing the singleton
+   channel tag. Essential surjectivity and `νι-epi` give `Preserves-≈ᵁ`, then
+   `Abstract2/Morphism.transfer⁺` applies without target grade stability.
+   Its source retains **all PM tests and closures**, unlike `𝒲[ℰᵂ]` and `PM[wb]`;
+   this is not a reflection theorem or a reverse transport of SSP's OTP security.
 4. **IPDL and causal boxes are islands** for `UCSetupMorphism` (design-level proofs in
    their plans); **symbolic** reaches only the negligible tier; the first-draft edges
    `SSP → 𝔾ᵒ`, `IPDL → RS`, `RS → causal boxes` are withdrawn.
