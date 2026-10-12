@@ -2,7 +2,7 @@
 
 Plan of 2026-10-09, updated 2026-10-12. Steps 1–9 of §6 are built for the single-sorted
 pairing/encryption theory E₀; static equivalence implies kernel equality for arbitrary signatures
-and theories. The converse fails in general (§3.7). Step 10 proves `smt≤ideal` for a
+and admissible theories. The multi-sort converse remains unproved (§3.7). Step 10 proves `smt≤ideal` for a
 fixed-public-message fragment; environment-selected interactive messages are not covered (§6).
 Steps 11–13 distinguish formal interpretations and derived conditional results from the missing
 cryptographic reduction (§4.3). Statements about unwritten modules are design claims.
