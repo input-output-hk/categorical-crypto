@@ -54,6 +54,10 @@ opaque
   ≈ᴿ⇒∼ᴿ : {A B : Iface} {f g : Proc A B} → f ≈ᴿ g → MonoidalCongruence._∼_ congᴿ (procᵒ f) (procᵒ g)
   ≈ᴿ⇒∼ᴿ e = e
 
+  ∼ᴿ⇒≈ᴿ-image : {A B : Iface} {f g : Proc A B}
+               → MonoidalCongruence._∼_ congᴿ (procᵒ f) (procᵒ g) → f ≈ᴿ g
+  ∼ᴿ⇒≈ᴿ-image e = e
+
   ∼ᴿ⇒≈ᴿ : {A B : Iface} {f g : ifaceᵒ A G.⇒ ifaceᵒ B}
         → MonoidalCongruence._∼_ congᴿ f g → unprocᵒ f ≈ᴿ unprocᵒ g
   ∼ᴿ⇒≈ᴿ e = e

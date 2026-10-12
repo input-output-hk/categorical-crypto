@@ -1,13 +1,12 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- The construction notion of constructive cryptography (maurer2011cc §5.1
--- Def 3, the security condition) over 𝔾ᵒ: "f constructs within ε what g
--- does behind a simulator s" is `Constructs ε f g`.  At ε = 0 it IS
--- UC-emulation, in protocol-rewrite and, along `rewrite⇒RS`, in random
--- systems (`≤UC⇔Constructs₀`, `≤UCᴿ⇔Constructs₀`); at ε it is the slack
--- closure of `UC.Quantitative.Observed`'s witness at 𝔾ᵒ, with one simulator
--- for every slack (`Constructs⇔Witness⁺`).  It composes as maurer2011cc
--- Thm 1 says.  See docs/uc-setup-random-systems.md §4.4.
+-- Security-only construction (maurer2011cc §5.1 Def 3, condition 2) over
+-- 𝔾ᵒ: `Constructs ε f g` places f within ε of g behind one simulator.
+-- At zero it is UC-emulation (`≤UC⇔Constructs₀`, `≤UCᴿ⇔Constructs₀`); at ε
+-- it is the slack closure of `UC.Quantitative.Observed`'s witness, with one
+-- simulator for every slack (`Constructs⇔Witness⁺`). Its composition laws
+-- concern security only. Definition 3's independent availability obligation
+-- is in `RandomSystems.Availability`. See docs/uc-setup-random-systems.md §4.4.
 --
 -- The morphisms of `_≤UC_`, `_≈ᵁ_` and `At` are passed explicitly: inferred,
 -- they are solved by unfolding those relations at the concrete 𝔾ᵒ, and
@@ -69,7 +68,7 @@ private
   λ h d → Verdict.≈̄-closed λ δ pos → ≈ᵁ[]⇒∼ᴿ[] {ε = ε ℚ.+ δ} (h δ pos) d
 
 ------------------------------------------------------------------------
--- The construction notion
+-- Security-only construction
 
 -- maurer2011cc Def 3, condition 2, with d = Δ over every `Strat`: the real
 -- f is within ε of the ideal g behind the simulator s.
@@ -136,7 +135,7 @@ Witness⇒Constructs : {f : A Sᵒ.⇒ Sᵒ.T₀ X B} {g : A Sᵒ.⇒ Sᵒ.T₀ 
 Witness⇒Constructs {ε = ε} {f = f} {g = g} (s , u) = s , ≈ᵁ[]⇒∼ᴿ[] {ε = ε} {f = f} {g = Sᵒ.sub s Sᵒ.∘ g} u
 
 ------------------------------------------------------------------------
--- maurer2011cc Thm 1
+-- maurer2011cc Thm 1, security obligations
 
 constructs-refl : (f : A Sᵒ.⇒ Sᵒ.T₀ X B) → Constructs 0ℚ f f
 constructs-refl f =

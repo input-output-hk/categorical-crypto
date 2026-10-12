@@ -70,6 +70,10 @@ opaque
   ext-gradedᵒ k f =
     G.∘-resp-≈ (G.Equiv.sym a⇐-α⇐) (G.∘-resp-≈ˡ (G.Equiv.sym (T₁-⊗₁ k)))
 
+  ≈ᴹ⇒≈ᵘ : {X : Iface} {a b : Proc X 𝟭ᴵ}
+         → 𝒢ₚ 0ℓ [ a ≈ b ] → procᵘ a G.≈ procᵘ b
+  ≈ᴹ⇒≈ᵘ e = e
+
   procᵘ-∘ : {X Y : Iface} (a : Proc X 𝟭ᴵ) (s : Proc Y X)
           → procᵘ (M._∘_ a s) G.≈ procᵘ a G.∘ procᵒ s
   procᵘ-∘ _ _ = G.Equiv.refl
