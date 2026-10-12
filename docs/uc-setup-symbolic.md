@@ -1,10 +1,11 @@
 # The symbolic (Dolev–Yao) UC setup — plan
 
-Plan of 2026-10-09, updated 2026-10-11. Steps 1–9 of §6 are built for the single-sorted
+Plan of 2026-10-09, updated 2026-10-12. Steps 1–9 of §6 are built for the single-sorted
 pairing/encryption theory E₀; static equivalence implies kernel equality for arbitrary signatures
 and theories. The converse fails in general (§3.7). Step 10 proves `smt≤ideal` for a
 fixed-public-message fragment; environment-selected interactive messages are not covered (§6).
-Statements about unwritten modules are design claims.
+Steps 11–13 distinguish formal interpretations and derived conditional results from the missing
+cryptographic reduction (§4.3). Statements about unwritten modules are design claims.
 `[INFERENCE]` marks reasoning backed by neither a read source nor the tree. Citations are
 `bibkey §/Def/p.` with printed pages (`docs/kb/sources/papers/INDEX.md`). Short names: CLC =
 `comonlundhcortier2008`, CH = `canettiherzog2006`, BPW = `backes2003library`, AR = `abadirogaway2002`.
@@ -17,10 +18,12 @@ on **Dolev–Yao roles**: finite reactive programs whose outputs are recipes ove
 an ancilla, as in `Machine/UC.agda`. Two tests are equal when the same verdicts are possible under
 some *globally fresh* naming, run in 𝔾ᵒ at term alphabets. The kernel is DY trace (may-testing)
 equivalence; E is a kernel fact, because roles emit and store canonical forms; `GradeStable` holds
-without hypotheses. Morphisms leave from the
-syntactic twin `Sym≅`: to `Sym` (`changeKernel`), to machine-iso and to `ucSetupᴺ` (both
-`StdUCMorphism`, unconditional). Computational soundness is a side-conditioned theorem over the
-last. Nothing leaves `Sym` itself.
+without hypotheses. The syntactic twin `Sym≅` maps to `Sym` (`changeKernel`) and to
+machine-iso (`StdUCMorphism`). Its unrestricted computational execution lands in 𝔾ᵒ, not in the
+query-certified family category `Famᴹ`. A separate certificate-bearing source `Sym≅ᶜ` maps to
+`ucSetupᴺ`. A context-uniform operational backtranslation implies a feasible comparison theorem;
+neither that backtranslation from cryptographic games nor full computational UC soundness is
+established. No interpretation of `Sym`'s observational quotient is claimed.
 
 ## 2. The source model
 
@@ -495,8 +498,8 @@ The computational steps 11–13 must use the actual E₀ theorem above.
 ## 4. Morphisms
 
 `Sym≅ = StdUC 𝔻𝕐 ℰ≅` (built, §3.4) has the same tests, compared by `SameTerm (Y , T) (Y , T′) =
-T ≈Term T′`. It shares 𝒞, ℐ and ℳ with `Sym`. Every morphism starts from it, so each `ν`'s `cong` is
-`⟦⟧-resp-≈`.
+T ≈Term T′`. It shares 𝒞, ℐ and ℳ with `Sym`. The maps of §4.1–4.2 start from this syntactic
+equality; §4.3 uses a separate certificate-bearing source with the same coherence equality.
 
 ### 4.1 `Sym≅ → Sym`
 
@@ -515,149 +518,152 @@ fine→sym = changeKernel ℰ≅ ℰˢʸᵐ coarse
 `coarse` is Epi (`coarse-epi`). So `epi⇒preserves` and `Transfer.transfer` (with `grade-stable`)
 carry every `Sym≅` emulation to `Sym`.
 
-### 4.2 `Sym≅ → machine-iso`; nothing from `Sym`
+### 4.2 `Sym≅ → machine-iso`; no observational-quotient interpretation
+
+`Symbolic/Machine.agda` implements:
 
 ```agda
-{-# OPTIONS --safe #-}
-module CategoricalCrypto.Symbolic.Machine (𝔖 : Signature) (E : EqTheory 𝔖) where
-relational : FreeFunctorData symData
-relational = record
-  { ⟦v⟧   = fromMC machines noSymmetric                 -- Machine.UC.machines (reversed)
-  ; ⟦_⟧ᵖ₀ = λ { (port s t) → Tm s ⇿ Tm t ; verdict → Bool ⇿ ⊤ ; void → I }
-  ; ⟦_⟧ᵖ₁ = roleMachine }            -- guards as ≈E; `new` picks any name; always `just`
-Fᴿ : StrongMonoidalFunctor 𝔻𝕐 machines
-Fᴿ = freeStrongMonoidal relational                      -- Φ = Fᴿ, κ = Oplax.δ = id
-νᴿ : PresheafMorphism (StrongMonoidalFunctor.F Fᴿ) ℰ≅ ℰ-tests
-νᴿ = record { ν = ntHelper record
-  { η = λ A → record { to   = λ (Y , E) → ⟦ Y ⟧₀ , untick CC.∘ ⟦ E ⟧₁   -- untick : Bool ⇿ ⊤ ⇒ ℰ-Out
-                     ; cong = λ { (lift (same e)) → same (refl⟩∘⟨ ⟦⟧-resp-≈ e) } }
-  ; commute = λ f → same ∘-assoc-≅ᴹ } }
+Fᴿ : StrongMonoidalFunctor 𝔻𝕐 Machine.UC.machines
+νᴿ : PresheafMorphism (StrongMonoidalFunctor.F Fᴿ) ℰ≅ Machine.UC.ℰ-tests
 sym≅→iso : UCSetupMorphism Sym≅.StdSetup Machine.UC.StdSetup
-sym≅→iso = StdUCMorphism 𝔻𝕐 machines ℰ≅ ℰ-tests Fᴿ νᴿ
 ```
 
-Reversal makes the shapes agree: `⟦ Y ⊗₀ A ⟧₀ = ⟦ A ⟧₀ ⊗₀ ⟦ Y ⟧₀`, which is machine-iso's
-`Machine (A ⊗₀ Y) ℰ-Out`. None of the obligations is cryptographic. `F-resp-≈` is free;
-strong-monoidal coherence follows from `⊗₁-id` and `∘-identityˡ-≅ᴹ`; the κ laws come from
-`StdUCMorphism`; naturality is `∘-assoc-≅ᴹ`. This is the "forget E, terms as sets" map, and E
-survives only in guards. It transfers nothing: `νᴿ` is not Epi (most machine-iso tests are not
-DY) and not Mono (different circuits can have isomorphic semantics).
+`roleMachine` executes a role as a relation on its symbolic configurations. `new` chooses
+arbitrary names, including names already used; equality guards use E, and emissions/registers
+are canonicalized with E. There is no global freshness or initial-state condition in this
+target semantics. The reversed machine tensor makes
+`⟦ Y ⊗₀ A ⟧₀ = ⟦ A ⟧₀ ⊗₀ ⟦ Y ⟧₀` match the target's test shape.
+`untick` removes the verdict interface's administrative input.
 
-`Sym → machine-iso` does not exist, for three reasons:
-- `cong` would need observationally equal tests to be state-isomorphic;
-- machine-iso's environments are arbitrary relations on raw terms, which see through encryption,
-  so no coarser test equality respects `Sym`'s kernel;
-- `⟦_⟧[_]` is not a functor.
+The free interpretation supplies functoriality and strong-monoidal coherence. `toᴿ-cong`
+uses only source coherence, and `toᴿ-natural` uses machine associativity; `StdUCMorphism`
+supplies the κ laws. These obligations make no cryptographic assertion. The public
+`InterpretationTests.relational-consumer` instantiates the morphism at Σ₀/E₀.
 
-The same three reasons exclude `Sym → 𝔾ᵒ` at term alphabets.
+This is not a map out of `Sym`'s observational quotient: source equality there quantifies
+globally fresh DY contexts, whereas target equality is state isomorphism and target contexts
+may be arbitrary relations on terms. The construction provides neither preservation of
+that observational kernel nor an Epi/Mono/UC-transfer artifact.
 
-### 4.3 Computational soundness over `Sym≅ → ucSetupᴺ`
+### 4.3 Computational interpretation, admissibility, and conditional soundness
 
-**Target.** `UC.Model.Family.ucSetupᴺ = StdUC Famᴹ ℰᴺ`, the negligible tier over 𝔾ᵒ. Random
-systems 𝔾ᴿ has no asymptotic tier (`uc-setup-random-systems.md` §3.1). Exact (Δ = 0) soundness
-into 𝔾ᴿ fails as soon as names appear: a `Dₚ` machine samples them from a finite space, so they
-can be guessed with positive probability (CH p. 395; BPW §5.3 p. 19). RS identities still reach
-this target through that plan's `≈ᴿ ⇒ 𝔾ᵒ.≈ᵁ`.
+**Execution without certificates.** `Symbolic/Computational/Run.agda` defines `Scheme`
+and `Execution`. A scheme supplies a carrier `Bits`, parameter-indexed primitive algorithms
+`impl`, a nonce distribution, decidable bitstring equality, and sort tags. `evalᶜ` runs these
+algorithms on recipes; `execᶜ` implements guards, independent nonce draws, and emissions.
+No symbolic normalizer runs on bitstrings. `Scheme` itself asserts neither correct equations,
+uniform nonce sampling, disjoint/injective tags, polynomial time, nor encryption security.
+
+For every scheme, `Execution.runᶜ` compiles every role to an actual `Proc`, and
+`Execution.Fᶜ η : StrongMonoidalFunctor 𝔻𝕐 𝔾ᵒ` extends the generators freely.
+This unrestricted interpretation is a raw family of 𝔾ᵒ morphisms, **not** a morphism into
+`Famᴹ`: the family category requires query-bound certificates.
+
+**The universal rate-one claim is false.** One emission per activation does not mean one
+query per activation **from above**. `Computational/Obstruction.backwards` receives a domain
+`Pos` input and emits downward immediately, without budget from a codomain activation.
+For any sort, any scheme with an inhabitant `b : Bits`, and any natural rate `c`, the module proves:
 
 ```agda
-{-# OPTIONS --safe --without-K --guardedness #-}
-module CategoricalCrypto.Symbolic.Computational (𝔖 : Signature) (E : EqTheory 𝔖) where
-record Scheme : Set₁ where                    -- CoSP's computational implementation; AR Fig. 1
-  field Bits  : Set
-        impl  : (f : Sym) → ℕ → All (λ _ → Bits) (dom f) → Bits   -- coins are explicit names
-        nonce : ℕ → Dₚ Bits                                       -- uniform on {0,1}^η
-        _≟ᵇ_  : DecidableEquality Bits
-        tag   : Sort → Bits → Bits                                -- CLC §5.1 p. 19
-computational : Scheme → FreeFunctorData symData
-computational sch = record
-  { ⟦v⟧   = fromMC Famᴹ noSymmetric
-  ; ⟦_⟧ᵖ₀ = λ { (port _ _) → ifaceᶠ (λ _ → Bits ⇿ Bits) ; verdict → Δ Ωᵒ ; void → Δ 𝟘ᵒ }
-  ; ⟦_⟧ᵖ₁ = λ (_ , _ , p) → family (λ η → treeᵒ … (procᵒ (runᶜ sch η p))) (rate-one p) }
-Fᶜ : Scheme → StrongMonoidalFunctor 𝔻𝕐 Famᴹ                  -- Φ = Fᶜ, κ = Oplax.δ = id
-Fᶜ = freeStrongMonoidal ∘ computational
-νᶜ : (sch : Scheme) → PresheafMorphism (StrongMonoidalFunctor.F (Fᶜ sch)) ℰ≅ ℰᴺ
-νᶜ sch .η A = λ (Y , E) → ⟦ E ⟧₁ Famᴹ.∘ (deadᶠ Famᴹ.⊗₁ Famᴹ.id) Famᴹ.∘ Famᴹ.λ⇐  -- ancilla closed
-fine→comp : Scheme → UCSetupMorphism Sym≅.StdSetup ucSetupᴺ
-fine→comp sch = StdUCMorphism 𝔻𝕐 Famᴹ ℰ≅ ℰᴺ (Fᶜ sch) (νᶜ sch)      -- ℰᴺ = UCSetup.ℰ ucSetupᴺ
+no-backwards-certificate : (c : ℕ) → ¬ Certified c (runᶜ 0 (backwards s))
 ```
 
-| obligation | discharged by | crypto |
-|---|---|---|
-| functor, `F-resp-≈`, strong monoidal | `freeFunctor`, `⟦⟧-resp-≈`, `freeStrongMonoidal` | none |
-| `κ-return`, `κ-ext`, `κ-sub` | `StdUCMorphism` | none |
-| generators land in `Famᴹ` | `rate-one`: each reaction emits one message | none |
-| `νᶜ` cong (from `ℰ≅`), naturality | `⟦⟧-resp-≈`, `≈⇒≋`; `⊗-∘-dist`, `λ⇐` naturality | none |
-| `νᶜ` cong from `ℰˢʸᵐ` (`Sym → ucSetupᴺ`) | soundness with arbitrary DY tests as honest systems | open: non-failing `else` (CLC §8 p. 34) |
+Its single state cannot strictly decrease its potential on that downward response. The
+certificate's refined response type is empty, but the actual response has mass one; coherence
+would force `1 ≤ 0`. This refutes the proposed direct `rate-one` construction, not merely a
+particular proof attempt. The theorem is about `Certified` for the actual runtime; it does not
+silently assert the stronger statement about `QB`'s machine-equivalence closure.
 
-**Where soundness lives.** Soundness is preservation of the kernel. `Mono` gives *reflection*
-(`mono⇒reflects`, `Presheaf/Morphism.agda:81-83`), i.e. computational ⇒ symbolic; that is
-completeness, the other half of CH Thm 1, and it fails in AR (p. 124). Preservation would follow
-from `Epi` (`epi⇒preserves`, lines 73-79), but `νᶜ` is not Epi: few PPT distinguishers are images
-of DY tests. `Factorization (fine→comp sch)` puts the content in the right place. The image
-kernel is agreement under *interpreted* DY attackers. Passing from it to the target kernel,
-across the Mono half `image-morphism`, is exactly CH Lemma 1: on interpreted protocols, every
-feasible attacker behaves like an interpreted DY attacker. `sound⁺` proves the composite
-directly, for simple honest systems and under side conditions:
+**The certificate-bearing interpretation.** `Symbolic/Computational.agda` defines a distinct
+`CertifiedSource sch`. Its generators contain unit-free endpoint witnesses, a role, a positive
+natural rate, and a direct certificate for that role's actual runtime at every parameter:
 
 ```agda
-module Soundness (sch : Scheme) (Feasible : ∀ {A B} → A Famᴹ.⇒ B → Set)   -- itm §5.6: open
-                 (hyp : CSHyp sch Feasible) where
-  open Transfer (fine→comp sch)
-  _≈ᶠ_ : A Famᴹ.⇒ B → A Famᴹ.⇒ B → Set     -- agreement on Feasible tests/closures: no kernel
-  sound⁺ : ∀ {A B} {f g : HomTerm A B} → SimpleC f → SimpleC g
-         → f ≈ℰ g → ∀ Y′ → Famᴹ.id {Y′} Famᴹ.⊗₁ F.₁ f ≈ᶠ Famᴹ.id {Y′} Famᴹ.⊗₁ F.₁ g
-record CSSignature : Set₁ where              -- CLC §3, made compositional
-  field sig : Signature ; level : Sort → Maybe ℕ   -- enc at level ℓ+1 takes keys of level ≤ ℓ
-        lenTest : … ; typed : … ; randOne : …      -- §3.2 p. 10; §5.1 p. 19; §3.3 p. 11
-record CSHyp (sch : Scheme) (Feasible : …) : Set₁ where
-  field correct  : Realizes sch E                  -- E-axioms on tagged honest values
-        ind-cpa  : LR-CPA₀ sch ≈ᶠ LR-CPA₁ sch      -- joint IND-CPA = AR type 3 (CLC Def 8)
-        int-ctxt : CTXT₀ sch ≈ᶠ CTXT₁ sch          -- CLC Def 9
+bounded : (η : ℕ) → Certified (value rate) (Execution.runᶜ sch η role)
+Fᶜ : StrongMonoidalFunctor 𝔻𝕐ᶜ Famᴹ
+fine→comp : UCSetupMorphism Sym≅ᶜ.StdSetup ucSetupᴺ
 ```
 
-| ingredient of `sound⁺` | hypothesis | source |
-|---|---|---|
-| E-equal honest terms evaluate equally | `correct` | AR §5.1; CLC §4.3 p. 14 |
-| ciphertexts hide plaintexts | joint IND-CPA + INT-CTXT; IND-CCA2, EUF-CMA for public-key encryption and signatures | CLC Thm 12; BPW Defs 5.1–5.2, Thm 7.1 |
-| no key cycles | key-level sorts (sufficient for CLC Def 11 `[INFERENCE]`) | CLC Def 11 p. 19; AR §3.1 |
-| parsing, lengths | `tag`/`typed`; lengths observable in guards | CLC §5.1 p. 19, §3.2 p. 10; BPW §2.2 |
-| honest systems | `SimpleC f`, `SimpleC g`: every occurrence `Simple` | CLC §3.3 pp. 10–12 |
-| dishonest keys, PPT attackers | `Feasible` on tests and closures (registered keys, time bounds) | CLC p. 15, Defs 2, 4; itm §5.6 |
-| nonce guessing | none (statistical, `≤ q·2^{-η}`) | CH p. 395; BPW §5.3 p. 19 |
-| trace vs `∼o` | roles deterministic, hence determinate | lemma `det⇒∼o` (§6 step 13) |
+`Sym≅ᶜ.StdSetup = StdUC 𝔻𝕐ᶜ ℰ≅ᶜ` is a new syntactic setup, not an alias for unrestricted
+`Fine.Sym≅`. A generator carries the constant polynomial schedule `λ _ → rate`.
+`certified⇒QB` and `qbᵒ` put its execution in the family grading, and `freeStrongMonoidal`
+extends it to circuits. `νᶜ` closes the test ancilla with `deadᶠ`, compares only syntactic
+coherence, and is natural by tensor interchange and left-unitor naturality.
+This formal setup morphism makes no computational-security claim.
 
-**The hypotheses are neither a `WideSubcategory` nor data of `F`.** Feasible machines form no
-category: no identity is a priori polynomial, and the double repeater breaks composition. This
-obstruction is `uc-setup-itm.md` §5.6, after `hofheinz2013`; a feasible target is unowned and
-open. A feasible-closure presheaf on `Famᴹ` is not functorial along infeasible maps. So
-`Feasible` and the security artifacts are side conditions of the theorem, and `F` needs only the
-algorithms. The source restrictions are pointwise (`SimpleC`) or live in the signature
-(`CSSignature`), so `Sym`'s attackers keep full DY strength. Restricting `Sym` to simple roles
-would weaken its tests and make soundness *harder*.
+`InterpretationTests.CertifiedForward` supplies a real rate-one certificate for a forwarding
+role for **every** scheme, constructs its generator, pins the carried schedule, consumes
+`fine→comp`, and also consumes the backwards obstruction. Query admissibility is separate
+from `SimpleC` and from feasibility.
 
-**From kernels to emulation.** `Transfer.transfer` needs `Epi` and a target `GradeStable`. Neither
-holds here: ℰᵒ is not `GradeStable` (`uc-setup-random-systems.md` §5.3). A pointwise variant
-takes exactly what `sound⁺` provides:
+**The derived theorem and its exact prerequisite.** `Symbolic/Soundness.agda` keeps the honest
+source unrestricted and defines `SimpleC` pointwise on generator occurrences. `Feasible` is
+an external predicate on certified tests and closures. A `Context` contains an arbitrary family
+ancilla, such a test and closure, and their feasibility witnesses. Honest interpreted systems
+are raw 𝔾ᵒ families; `_≈ᶠ_` compares the resulting Bool subdistributions negligibly in every
+feasible context. It is not the target setup's canonical observational kernel.
 
-```agda
-transfer⁺ : (f≤g : f S.≤UC g) (let s₀ = proj₁ (S.≤UC⇒dummy f≤g))   -- Abstract2/Morphism, Transfer
-          → (∀ Y′ → S′.T₁ Y′ (F.₁ f) S′.≈ℰ S′.T₁ Y′ (F.₁ (S.sub s₀ S.𝒞.∘ g)))
-          → G f S′.≤UC G g
--- transfer = transfer⁺ fed λ Y′ → gs′ Y′ (epi⇒preserves-≈ℰ epi …)
-```
+`SimpleC` uses the repository's `Role.Simple`, not a proved CLC simple-process translation.
+That predicate requires ground emissions on guard failure and at a designated halt control,
+but does not require a uniform terminal response or enforce `cout(⊥) · 0`; a verdict role can
+keep forwarding input bits there. The backtranslation must cover this actual, weaker class.
+Likewise generic `EqTheory` does not assert separation of distinct names: an injective naming
+can still be identified modulo E. E₀ is not affected, but no generic unguessable-name claim is
+used to derive `sound⁺`.
 
-The proof is `transfer`'s, with `T₁ Y′ κ` post-composed (`T-homomorphism`, `≈ℰ-cong-post`), and
-it already covers information-theoretic interpretations. The computational corollary is a
-side-conditioned twin:
-`sound-≤UC : SimpleC f → SimpleC g → SimpleC s₀ → f ≤UC g → ≤UCᶠ (G f) (G g)`.
-The simulator is honest in the ideal world, so it must be simple too. How side-conditioned
-emulations compose is open (`uc-setup-itm.md` §5.6). Inside `Sym`, `UC-compose` and
-`dummy-complete` stay unconditional; only the final emulation crosses.
+`Backtranslation.extract` must, for each context and spectator family `W`, supply **before
+choosing an honest system**:
 
-**Ideal interpretation, rejected.** Interpreting encryption by `Fcpke` or `TH_H` would make
-soundness statistical and condition-free (CH p. 395). But the table would then be shared across
-morphisms, so `F` would be neither local nor a functor. The sharing analysis is in §3.3 of the
-2026-07-31 memo `docs/uc-symbolic-crypto.md` (main checkout, untracked).
+- a parameter-indexed sampling distribution and symbolic test/closure for each sample;
+- a `Maybe Bool` result for each simple honest circuit, with exact classification by symbolic
+  `eval` (`nothing` accounts for no verdict);
+- one context-dependent negligible error, uniform in the honest circuit, relating its actual
+  computational observation to the sampled symbolic result.
+
+No field mentions a pair of protocols, symbolic kernel equality, or the desired preservation
+conclusion. `Derived.sound⁺` genuinely derives that conclusion: source kernel equality and
+the classification laws make the sampled results agree; two operational approximation bounds
+then give error `ε + ε`. Its inputs are `Backtranslation`, `SimpleC f`, `SimpleC g`, and
+`f Sym.≈ℰ g`; its output quantifies every `W` and every feasible context.
+`ConditionalConsumer.normalized-output` applies it to the Σ₀/E₀ echo and projected-pair echo.
+The consumer remains parameterized by `Backtranslation`; it is not a constructed crypto
+instance.
+
+`Derived.sound-≤UC` additionally requires `SimpleC` for the symbolic dummy simulator chosen
+by `Sym.≤UC⇒dummy`. It returns `DummyWitness`: that same explicit simulator, with negligible
+agreement in every spectator/feasible context. It does **not** return the target's
+adversary-quantified `≤UC`. No feasibility closure law is supplied to absorb arbitrary
+computational adversaries, so that stronger UC corollary remains unproved.
+`ConditionalConsumer.normalized-dummy` consumes this corollary from the concrete
+`normalized-UC` source emulation; it has the same explicit backtranslation prerequisite.
+
+**Determinism is not the missing CLC bridge.** `Soundness/Deterministic.trace⇒bisim` proves that
+equal exact labeled traces of two total deterministic Mealy transitions yield a strong
+bisimulation; `ExactEcho.echo-determinate` uses it on symbolic-role transitions. `Sym.≈ℰ`
+instead compares verdicts of closed DY contexts, and CLC compares labeled frames modulo
+static equivalence and applied-π observational equivalence. Neither required correspondence
+follows from the exact-trace lemma, and no `det⇒∼o` theorem is claimed.
+
+**Missing mathematical prerequisites, not assumed conclusions.** There is no constructed
+`Backtranslation`, `CSSignature`, or `CSHyp` instance in this development. In particular the
+repository has no reduction from joint IND-CPA/INT-CTXT to the labeled-frame attacker
+extraction required above. Establishing computational soundness from those games needs:
+
+| missing ingredient | intended source |
+|---|---|
+| correct tagged algorithms realizing E on honest values | AR §5.1; CLC §4.3 |
+| labeled-frame simulation and attacker extraction from joint IND-CPA/INT-CTXT | CLC Defs 8–9, Thm 12 and Lemma 15 |
+| a uniform-terminal CLC restriction and name separation for any generic theory used cryptographically | CLC §3.3; applied-π §2.2 |
+| key-level/acyclicity restrictions and one-use randomness discipline | CLC §3 and Def 11 |
+| parsing and length observability, dishonest/registered-key rules, and a concrete PPT model | CLC §§3–5; `uc-setup-itm.md` §5.6 |
+| quantitative nonce-guessing bound for a concrete uniform sampler | CH p. 395; BPW §5.3 |
+| relation between this verdict kernel and the literature's frame/trace/observational semantics | CLC §§3–6; applied-π semantics |
+| feasibility closure sufficient for adversary-quantified computational UC transfer | `uc-setup-itm.md` §5.6 |
+
+These requirements are not replaced by a record field assuming `sound⁺`. The formal
+interpretations, concrete certificate obstruction, exact-trace theorem, and derived
+backtranslation implication are the reachable results; the advertised game-based
+computational soundness and full UC transfer are not completed.
 
 ### 4.4 Other planned setups
 
@@ -683,11 +689,11 @@ of scope.
    `unfolding 𝔾ᵒ` beside `StdUC` (12 GiB, `Enrichment.agda:12-13`); `Sym`'s `StdUC` is over 𝔻𝕐.
    Types at `curriedTensor machines` cost 9–15 min (`Machine/MonoidalCategory.agda:95-98`), so
    state them over abstract bundles, as in `Machine.UC.Kleisli`.
-4. **Definitional matches.** `F₀ (Var verdict)` must be `Δ Ωᵒ` on the nose
-   (`UC/Family.agda:115`), or `νᶜ` needs a coercion. `deadᶠ` is built at `objᵒ G.unit`.
-5. **Scope.** CLC covers symmetric encryption, pairing, simple processes and `∼o`. Our kernel is
-   trace-style, so `det⇒∼o` is needed. Public-key primitives have only realization results (BPW,
-   CH). The proof is research-grade (CLC §§5–6, Lemma 15 p. 22).
+4. **Definitional matches.** The family interpretation reaches verdict `Δ Ωᵒ` through
+   `atomᶠ`; `deadᶠ` coerces its empty interface using `unitᵒ` and `ifaceᵒ-onto`.
+5. **Scope.** The family map needs per-generator query admissibility, and CLC's game-based
+   soundness needs labeled-frame extraction plus a correspondence to this verdict kernel.
+   Exact deterministic traces alone do not provide that correspondence (§4.3).
 6. **Disagreements.**
    - Landscape: the symbolic setup is not "possibilistic next to machine-iso". It is
      deterministic up to names and has no morphism to machine-iso.
@@ -733,15 +739,19 @@ listed exports.
     that requires a relation following the plaintext across the run, whereas
     step 9's apex is parameterized by fixed frames. Step 9 alone is not that theorem.
 
-11. `Symbolic/Machine.agda`: `sym≅→iso`, with a warm check inside the budget.
-12. `Symbolic/Computational.agda`: `fine→comp`.
-13. `Symbolic/Soundness.agda`: `det⇒∼o`, `sound⁺`, `sound-≤UC`. Pairing and symmetric encryption
-    first, with `Feasible` abstract and no postulates.
+11. `Symbolic/Machine.agda`: `sym≅→iso`. Formal relational interpretation of `Sym≅`;
+    freshness and observational-kernel preservation are not asserted (§4.2).
+12. `Symbolic/Computational{,/Run,/Obstruction}.agda`: unrestricted execution into 𝔾ᵒ;
+    `fine→comp` from the distinct certificate-bearing `Sym≅ᶜ`; and
+    `no-backwards-certificate`. The original universal rate-one source claim is false.
+13. `Symbolic/Soundness{,/Deterministic}.agda`: exact-trace `trace⇒bisim` and the derived
+    `Backtranslation → sound⁺`/`sound-≤UC` results, consumed by `InterpretationTests`.
+    Game-based backtranslation, `det⇒∼o`, and the full computational UC order remain
+    unavailable for the precise mathematical reasons in §4.3.
 14. Docs: a pointer in the `WideSubcategory.agda` header, and `Sym` in landscape §5.
 
 ## 7. Sources
 
-Used: `abadi2018applied`, `abadicortier2006`, `blanchet2016proverif`, `canettiherzog2006`,
 `backes2007rsim`, and `hofheinz2013` (via the ITM plan). `lowe1996` and `paulson1998inductive`
 are background only.
 

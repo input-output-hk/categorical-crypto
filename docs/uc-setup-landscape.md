@@ -30,6 +30,7 @@ symbolic steps of `uc-setup-symbolic.md` §6; escape-hatch baseline unchanged):
 | SSP (call/return) | `SSP/{Iface,Protocol,Protocol/Category,Protocol/Monoidal,Observation,Setup,Reduction,Compile,Semantics,Cut,Dense,Dense/Tests}`, `Standard2/UKernel`, `Protocol/{Sim,Machine/Resp,Machine/Oracle}`, `UC/Bracket{,/Category}` | `StdSetup`, `Protᴹ`/`Protˢ`, `toProtocol`, `morphism-resp`, `W`, `morphism-W`, `𝒲`, `ι`, **`games-dense`**, **`SSP→PM[wb]`**, **`preserves-≤UC`** |
 | nondeterministic choice (over any symmetric 𝕄; at SSP and PM) | `Abstract2/Regrade{,/Pin,/Unit}`, `Categories/…/Construction/Transport` (`Closed`, `weaken`), `ND/{Grade,A,Relabel}`, `ND/SSP/{Choice,Choice/Compose,Choice/Pin,Choice/Dist,Setup,Laws,Reflect}`, `UC/Model/Symmetric`, `ND/PM/{Factor,Read,Relabel,Setup,Choice,Choice/Compose,Choice/Pin}` | `regraded`, `inclusion`, `𝔾ˢ`, `NDB`, `NDA`, **`A⇒B`**, `≤UC-B⇔≤UC`, `≤UC⇒relabel`, PM online request/resume and compilation laws; SSP `swap-ᵖ`, **`order-indep`**, **`¬reflect`** |
 | symbolic `𝔻𝕐` (steps 3–9; fixed-message step 10) | `Symbolic/{Term,Term/PairEnc,Deduction,Role,Fine,Semantics,Setup,Static,Static/PairEnc,Test,StaticTests,Example/SecureChannel}`, `FreeMonoidal/Decorated`, `Machines/Sim/Relational`, `UC/{Machine,Model}/Relational` | `Sym≅`, `Sym`, `fine→sym` (`coarse` Epi), **`grade-stable`** (hypothesis-free), `≈ᵁ⇔≈ℰ`, **`emit-≈E`**, **generic `≈ₛ⇒≈ℰ`**, **E₀ `≈ℰ⇔≈ₛ`**; fixed-public-message **`smt≤ideal`** with a non-identity simulator, `real≈simulated`, `real≤simulated`; the unrestricted static converse is false (unsorted cross-sort name sharing), and environment-selected interactive messages are not covered |
+| certified symbolic `𝔻𝕐ᶜ` | `Symbolic/Computational{,/Run,/Obstruction}`, `Symbolic/InterpretationTests` | distinct `CertifiedSource.Sym≅ᶜ.StdSetup`; `fine→comp : UCSetupMorphism` into `ucSetupᴺ` from per-generator query certificates; unrestricted rate-one certificates are refuted by `no-backwards-certificate`; no crypto soundness or PPT setup is asserted |
 
 **Major findings** (proven unless marked; finding 3's non-existence claim is argued in
 `Protocol/Machine.agda:14-19`'s header, not a theorem):
@@ -60,7 +61,8 @@ symbolic steps of `uc-setup-symbolic.md` §6; escape-hatch baseline unchanged):
    Its source retains **all PM tests and closures**, unlike `𝒲[ℰᵂ]` and `PM[wb]`;
    this is not a reflection theorem or a reverse transport of SSP's OTP security.
 4. **IPDL and causal boxes are islands** for `UCSetupMorphism` (design-level proofs in
-   their plans); **symbolic** reaches only the negligible tier; the first-draft edges
+   their plans); the **certified symbolic** source reaches the negligible tier, and `Sym≅`
+   has a formal relational interpretation into machine-iso; the first-draft edges
    `SSP → 𝔾ᵒ`, `IPDL → RS`, `RS → causal boxes` are withdrawn.
 5. **Nondeterminism** [built over any symmetric monoidal 𝕄 and at SSP and PM;
    plan [uc-setup-nondeterministic.md](uc-setup-nondeterministic.md)]: the scheduler is a choice factor of
@@ -339,16 +341,19 @@ possibilistic, so only the deterministic fragment maps into RS (`det-≈ᴮ⇒�
   names can be shared across sorts (§3.7 of the symbolic plan). `smt≤ideal` uses a
   non-identity encryption-of-zero simulator for a fixed public message, not an
   environment-selected interactive message. **Corrections:** it is not "possibilistic next to
-  `machine-iso`" (deterministic up to names); `Sym → machine-iso` does not exist, only
-  the coarse variant `Sym≅ → machine-iso` (via `freeStrongMonoidal` into `Reverse`
-  machines) and `Sym≅ → Sym` by `changeKernel`; there is no `symbolic → RS` (names are
-  guessed with positive probability, so exact soundness fails).  Computational
-  soundness is a `StdUCMorphism` `Sym≅ → UC.Model.Family.ucSetupᴺ` (the negligible
-  tier over `𝔾ᵒ`) plus a side-conditioned pointwise theorem `sound⁺` over it
-  (hypothesis table: IND-CPA+INT-CTXT or IND-CCA2/EUF-CMA, sorts, tags, …); `ν Mono`
-  gives completeness, not soundness.  Needs the pointwise transfer in
-  `Abstract2/Morphism` (`Preserves-≈ᵁ`/`transfer⁺`, landing with the SSP bridge) since
-  `ℰᵒ` is not `GradeStable`.
+  `machine-iso`" (deterministic up to names). The formal relational interpretation
+  `Symbolic/Machine.sym≅→iso` starts from coherence equality in `Sym≅`, not from `Sym`'s
+  observational kernel; it deliberately forgets freshness. Unrestricted role execution
+  `Computational/Run.Execution.Fᶜ η` lands in `𝔾ᵒ`. A **distinct certificate-bearing**
+  `CertifiedSource.Sym≅ᶜ` has `fine→comp : UCSetupMorphism` into `ucSetupᴺ`; one emission
+  per activation is not a universal query bound (`no-backwards-certificate`).
+  `Soundness.Derived.sound⁺` derives feasible indistinguishability from a context-uniform,
+  one-system operational `Backtranslation`; that prerequisite has not been constructed
+  from joint IND-CPA/INT-CTXT. `sound-≤UC` returns an explicit symbolic dummy simulator
+  with feasible contextual agreement, not the target's canonical UC order. The exact
+  deterministic trace lemma is not a correspondence with applied-π observational
+  equivalence. Thus game-based soundness and full computational UC transfer remain
+  unproved (`uc-setup-symbolic.md` §4.3); `ν Mono` gives reflection, not preservation.
 - **Nondeterministic choice** (plan: [uc-setup-nondeterministic.md](uc-setup-nondeterministic.md),
   rewritten 2026-10-10 around finding 5 and `docs/uc-models.typ` §4).  Its generic piece is built:
   `Abstract2/Regrade`, a setup restricted along a monoidal functor of grades, with its inclusion,
@@ -391,9 +396,10 @@ TM functions (×) ──▶ Rel    Sym≅ ──▶ machine-iso ◀── ITM(de
                              │   𝒲[ι*ℰᵒ] ──▶ protocol-rewrite 𝔾ᵒ ◀── ITM 𝕋ᴹ
                              │    ▲                   │
                              │  SSP ──▶ PM[wb] ◀── 𝒲[ℰᵂ]           ▼
-                             │   │                           random systems 𝔾ᴿ ◀⇢ machine-category (det.)
-                             ▼   ▼
-              ucSetupᴺ (negligible tier over 𝔾ᵒ)    ND_A ──▶ ND_B = Std(𝕄)  (built at SSP and PM)
+                             │                               random systems 𝔾ᴿ ◀⇢ machine-category (det.)
+                             ▼
+                            Sym              Sym≅ᶜ ──▶ ucSetupᴺ (negligible tier over 𝔾ᵒ)
+                                                   ND_A ──▶ ND_B = Std(𝕄)  (built at SSP and PM)
 
 islands: IPDL;  causal boxes (RSIM / task-PIOA inside)
 ```
@@ -434,6 +440,8 @@ grade-side restriction `Abstract2/Regrade` (built; nondeterminism, causal boxes'
 3. **SSP standalone setup** (channel-indexed `Iface`, `_⊗ᵖ_`) — the interaction
    discipline; then its chain into `PM[wb]` (the two headline lemmas).
 4. **Nondeterministic choice** on top of SSP.
-5. **Symbolic** (`Sym≅ → ucSetupᴺ`, `sound⁺`) and the **robust compilation** lemma.
+5. **Symbolic**: formal `Sym≅ → machine-iso`, certified-source `Sym≅ᶜ → ucSetupᴺ`, and the
+   derived `Backtranslation → sound⁺`; the game-based reduction and full UC transfer
+   remain unavailable. The **robust compilation** lemma is independent of that reduction.
 6. `machine-iso → protocol-rewrite` only after the three model changes of §2; IPDL and
    causal boxes as standalone setups when wanted — no morphisms are lost by deferring them.

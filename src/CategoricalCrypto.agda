@@ -87,6 +87,7 @@ import CategoricalCrypto.ND.SSP.Choice.Dist
 import CategoricalCrypto.ND.SSP.Choice.Pin
 import CategoricalCrypto.Symbolic.Test
 import CategoricalCrypto.Symbolic.StaticTests
+import CategoricalCrypto.Symbolic.InterpretationTests
 import CategoricalCrypto.ND.SSP.Laws
 import CategoricalCrypto.ND.SSP.Reflect
 import CategoricalCrypto.ND.SSP.Setup
