@@ -1472,3 +1472,31 @@ snapshot does not independently review the subsequent PM initialization batch.
 Known limitations and active follow-ups remain separate; neither this review
 nor the green root silently resolves them.
 
+## Checked pure-interface disposition: UAR-037 — 2026-10-12
+
+**Disposition: the stochastic-interface loophole is closed by an enforced
+purity contract.** The assigned `PureInterfacesResume` commit `0be796c3` is
+integrated as `84b408c8`. The generic `≲[]` relation now requires purity of both
+input and output interface legs; `HSim` and static consumers have migrated.
+The trace theorem requires explicit purity of every projection it uses.
+The static and E₀ theorem statements remain unchanged.
+
+The checked fair-coin example exhibits the formerly admitted commuting
+stochastic interface and proves that the strengthened contract excludes it.
+Positive consumers still admit genuine nonidentity pure spans, including
+projections from a shared random apex: the repair does not restrict relations
+to identities or remove probabilistic state. Abstract `PureSub` supplies the
+pure-square contract, **not a theorem that an arbitrary base is a probabilistic
+coupling category**. The deterministic-subdistribution-pushforward reading is
+restricted to `Kl(Dₚ)`.
+
+Main reports `RelationalTests` passing at `-M3G -H1G` before a storage failure
+prevented the next launch. After GC freed 7.7 GiB across 577 store paths,
+`StaticTests` at `-M3G -H1G` and the integrated root at `-M6G -H1G` passed with
+no warnings (job `bg53`, **111.49 s total**, including Nix downloads).
+The implementor reports the escape-hatch baseline unchanged at 16.
+These are attributed validation observations, **not a performance benchmark**
+or new documentation-worker Agda runs. This resolves UAR-037's interface-purity
+qualification; it does not resolve the separate channel-construction or
+computational-soundness findings.
+
