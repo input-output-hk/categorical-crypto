@@ -1,10 +1,9 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- A one-system, context-uniform backtranslation suffices for feasible
--- indistinguishability. `Backtranslation` is an explicit operational prerequisite,
--- NOT an IND-CPA/INT-CTXT assumption or a proof of that cryptographic reduction.
--- No field mentions two protocols or assumes kernel preservation. The remaining
--- crypto and applied-π prerequisites are recorded in docs/uc-setup-symbolic.md §4.3.
+-- A shared symbolic experiment with protocol-dependent approximation errors
+-- suffices for feasible indistinguishability. `Backtranslation` remains an
+-- operational prerequisite, not an IND-CPA/INT-CTXT reduction. See
+-- docs/uc-setup-symbolic.md §4.3 for its quantifier order and eligibility limits.
 
 open import CategoricalCrypto.Symbolic.Term
 
@@ -17,7 +16,6 @@ open import Data.Bool.Base
 open import Data.Maybe.Base
 open import Data.Nat.Base hiding (_⊔_)
 open import Data.Product
-open import Data.Rational as ℚ using (ℚ)
 open import Data.Unit
 open import Function.Bundles
 open import Level
@@ -29,9 +27,10 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Symbolic.Computational.Run 𝔖
 open import CategoricalCrypto.Symbolic.Fine 𝔖
-open import CategoricalCrypto.Symbolic.Role 𝔖 using (Simple; verdict)
+open import CategoricalCrypto.Symbolic.Role 𝔖 using (GroundGuarded; verdict)
 open import CategoricalCrypto.Symbolic.Semantics 𝔖 E using (eval)
 open import CategoricalCrypto.Symbolic.Setup 𝔖 E
+open import CategoricalCrypto.Symbolic.Soundness.Errors
 open import CategoricalCrypto.UC.Approximate
 open import CategoricalCrypto.UC.Model.Enrichment
 open import CategoricalCrypto.UC.Model.Family hiding (Closure; Test; observe)
@@ -43,11 +42,11 @@ private
   module Fm = MonoidalCategory Famᴹ
   variable A B X Y : ObjTerm
 
-SimpleC : HomTerm A B → Set
-SimpleC (var (_ , _ , p)) = Simple p
-SimpleC (g ∘ f) = SimpleC g × SimpleC f
-SimpleC (f ⊗₁ g) = SimpleC f × SimpleC g
-SimpleC _ = ⊤
+GroundGuardedC : HomTerm A B → Set
+GroundGuardedC (var (_ , _ , p)) = GroundGuarded p
+GroundGuardedC (g ∘ f) = GroundGuardedC g × GroundGuardedC f
+GroundGuardedC (f ⊗₁ g) = GroundGuardedC f × GroundGuardedC g
+GroundGuardedC _ = ⊤
 
 maybe-ext : {a b : Maybe Bool} → (∀ x → a ≡ just x ⇔ b ≡ just x) → a ≡ b
 maybe-ext {nothing} {nothing} _ = refl
@@ -112,13 +111,11 @@ module FeasibleComparison (sch : Scheme)
       symbolic-test : (η : ℕ) (a : Sample η) → HomTerm (symbolic-ancilla η a ⊗₀ B) (Var verdict)
       symbolic-closure : (η : ℕ) (a : Sample η) → Closure (symbolic-ancilla η a ⊗₀ A)
       result : HomTerm A B → (η : ℕ) → Sample η → Maybe Bool
-      classifies : (f : HomTerm A B) → SimpleC f → (η : ℕ) (a : Sample η) (b : Bool)
+      classifies : (f : HomTerm A B) → GroundGuardedC f → (η : ℕ) (a : Sample η) (b : Bool)
         → eval ((symbolic-test η a ∘ (id ⊗₁ f)) ∘ symbolic-closure η a) b ⇔ result f η a ≡ just b
-      error : ℕ → ℚ
-      negligible-error : Negligible error
-      realizes : (f : HomTerm A B) → SimpleC f → (η : ℕ)
-        → observeᶠ c (λ η → G.id {W η} G.⊗₁ interpret f η) η
-          ≈ₚ[ error η ] (samples η >>=ₚ λ a → detₚ (result f η a))
+      approximation : ProtocolError (HomTerm A B) GroundGuardedC
+        (λ f η → observeᶠ c (λ η → G.id {W η} G.⊗₁ interpret f η) η)
+        (λ f η → samples η >>=ₚ λ a → detₚ (result f η a))
 
   open OperationalPrerequisite
     (∀ {A B} (W : Obj^ω) (c : Context (W ⊛ω Objᶜ A) (W ⊛ω Objᶜ B)) → Extraction {A} {B} W c) public
@@ -126,14 +123,11 @@ module FeasibleComparison (sch : Scheme)
   module Derived (hyp : Backtranslation) where
     open Backtranslation hyp
 
-    sound⁺ : {f g : HomTerm A B} → SimpleC f → SimpleC g → f Sym.≈ℰ g
+    sound⁺ : {f g : HomTerm A B} → GroundGuardedC f → GroundGuardedC g → f Sym.≈ℰ g
            → (W : Obj^ω) → _≈ᶠ_ {W ⊛ω Objᶜ A} {W ⊛ω Objᶜ B}
              (λ η → G.id {W η} G.⊗₁ interpret f η) (λ η → G.id {W η} G.⊗₁ interpret g η)
     sound⁺ {A = A} {B = B} {f = f} {g} sf sg e W c =
-      (λ η → error η ℚ.+ error η) , Negligible-+ negligible-error negligible-error , λ η →
-      ≈ₚ[]-trans
-        (≈ₚ[]-resp ≈refl (mixtures-agree η) (realizes f sf η))
-        (≈ₚ[]-sym (realizes g sg η))
+      Comparison.compare approximation f g sf sg mixtures-agree
       where
       open Extraction (extract {A} {B} W c)
 
@@ -160,8 +154,8 @@ module FeasibleComparison (sch : Scheme)
             (λ η → G.id {W η} G.⊗₁ ((interpret simulator η G.⊗₁ G.id {Objᶜ B η}) G.∘ interpret g η))) public
 
     sound-≤UC : {f : HomTerm A (X ⊗₀ B)} {g : HomTerm A (Y ⊗₀ B)}
-              → (le : f Sym.≤UC g) → SimpleC f → SimpleC g
-              → SimpleC (proj₁ (Sym.≤UC⇒dummy le)) → DummyWitness f g
+              → (le : f Sym.≤UC g) → GroundGuardedC f → GroundGuardedC g
+              → GroundGuardedC (proj₁ (Sym.≤UC⇒dummy le)) → DummyWitness f g
     sound-≤UC {f = f} {g} le sf sg ss = record
       { simulator = proj₁ (Sym.≤UC⇒dummy le)
       ; agreement = sound⁺ sf ((ss , tt) , sg) (Sym.≈ᵁ⇒≈ℰ (proj₂ (Sym.≤UC⇒dummy le))) }

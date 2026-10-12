@@ -705,19 +705,24 @@ This formal setup morphism makes no computational-security claim.
 `InterpretationTests.CertifiedForward` supplies a real rate-one certificate for a forwarding
 role for **every** scheme, constructs its generator, pins the carried schedule, consumes
 `fine→comp`, and also consumes the backwards obstruction. Query admissibility is separate
-from `SimpleC` and from feasibility.
+from `GroundGuardedC` and from feasibility.
 
 **The derived theorem and its exact prerequisite.** `Symbolic/Soundness.agda` keeps the honest
-source unrestricted and defines `SimpleC` pointwise on generator occurrences. `Feasible` is
-an external predicate on certified tests and closures. A `Context` contains an arbitrary family
-ancilla, such a test and closure, and their feasibility witnesses. Honest interpreted systems
-are raw 𝔾ᵒ families; `_≈ᶠ_` compares the resulting Bool subdistributions negligibly in every
-feasible context. It is not the target setup's canonical observational kernel.
+source unrestricted and defines `GroundGuardedC` pointwise on generator occurrences.
+`Feasible` is an external predicate on QB-admissible family tests and closures, not a
+cryptographic security assumption. A `Context` contains an arbitrary family ancilla, such a
+test and closure, and their feasibility witnesses. Honest interpreted systems are raw 𝔾ᵒ
+families; `_≈ᶠ_` compares the resulting **two** Bool verdict masses negligibly in every
+feasible context. It is not the target setup's canonical observational kernel. An empty
+`Feasible` makes the conditional theorem vacuous; a meaningful instantiation must separately
+exhibit its observers and justify the claimed coverage.
 
-`SimpleC` uses the repository's `Role.Simple`, not a proved CLC simple-process translation.
-That predicate requires ground emissions on guard failure and at a designated halt control,
-but does not require a uniform terminal response or enforce `cout(⊥) · 0`; a verdict role can
-keep forwarding input bits there. The backtranslation must cover this actual, weaker class.
+`GroundGuardedC` uses `Role.GroundGuarded`, not a proved CLC simple-process translation.
+That predicate requires ground emissions on guard failure and at a designated control point,
+but does not require an absorbing uniform terminal response. The separate opt-in
+`Role.Terminal` semantics (§3.3) does enforce absorbing termination; it does not silently
+change generic `Run` or the source setup used by this theorem. The backtranslation must cover
+the actual ground-guarded class in its statement.
 
 The strengthened `EqTheory` closes under sorted name-to-term substitution and retains
 per-sort nontriviality. Its derived `fresh-name` and `name-injective` exclude equating a name
@@ -727,26 +732,69 @@ applies this fact to actual role emissions. These results close the old generic 
 collapse attack, but do not establish secrecy of keys occurring inside ciphertexts or a
 computational nonce-guessing bound. Raw name identity and ownership remain unsorted (§3.2).
 
-`Backtranslation.extract` must, for each context and spectator family `W`, supply **before
-choosing an honest system**:
+`Backtranslation.extract` first fixes the context and spectator family `W`, then supplies
+one **shared symbolic experiment**, independent of the honest circuit:
 
 - a parameter-indexed sampling distribution and symbolic test/closure for each sample;
-- a `Maybe Bool` result for each simple honest circuit, with exact classification by symbolic
-  `eval` (`nothing` accounts for no verdict);
-- one context-dependent negligible error, uniform in the honest circuit, relating its actual
-  computational observation to the sampled symbolic result.
+- a `Maybe Bool` result for each ground-guarded honest circuit, with exact classification by
+  symbolic `eval` (`nothing` accounts for no verdict);
+- a `Soundness.Errors.ProtocolError` with `error f η`, a negligibility witness for each
+  `GroundGuardedC f`, and a one-system approximation of the actual computational observation
+  by that circuit's sampled result.
+
+Thus the error may depend on `W`, the context, and the honest circuit's size/randomness/query
+budget. Sampling and symbolic contexts remain fixed **before** the circuit; its applicable
+error need not be uniform over unbounded circuits. In quantifier form:
+
+```
+∀ W,c. ∃ shared experiment.
+  ∀ f ∈ GroundGuardedC. ∃ negligible ε(W,c,f). ∀ η. actual(f) ≈[ε(W,c,f)(η)] sampled(f).
+```
+
+CLC Lemma 24 fixes a process and attacker; Lemma 25 uses separate process-dependent
+approximation errors `ν₁ + ν₂` (primary text, pp. 31–34). The contract reflects that order,
+not a single negligible error for all finite programs. It asserts no PPT extractor, primitive
+games, or cryptographic reduction.
 
 No field mentions a pair of protocols, symbolic kernel equality, or the desired preservation
 conclusion. `Derived.sound⁺` genuinely derives that conclusion: source kernel equality and
 the classification laws make the sampled results agree; two operational approximation bounds
-then give error `ε + ε`. Its inputs are `Backtranslation`, `SimpleC f`, `SimpleC g`, and
-`f Sym.≈ℰ g`; its output quantifies every `W` and every feasible context.
-`ConditionalConsumer.normalized-output` applies it to the Σ₀/E₀ echo and projected-pair echo.
-The consumer remains parameterized by `Backtranslation`; it is not a constructed crypto
-instance.
+then give error `error f η + error g η`, negligible by the two corresponding witnesses.
+Its inputs are `Backtranslation`, `GroundGuardedC f`, `GroundGuardedC g`, and `f Sym.≈ℰ g`;
+its output quantifies every `W` and every feasible context. `ConditionalConsumer.normalized-output`
+applies it to the Σ₀/E₀ echo and projected-pair echo. This consumer remains parameterized by
+`Backtranslation`; it is not a constructed crypto instance.
 
-`Derived.sound-≤UC` additionally requires `SimpleC` for the symbolic dummy simulator chosen
-by `Sym.≤UC⇒dummy`. It returns `DummyWitness`: that same explicit simulator, with negligible
+**A concrete error consumer and the uniform-error obstruction.**
+`Soundness/ErrorTests.agda` implements a closed experiment: draw an independent uniform
+η-bit nonce with `uniformₚ η`, compare it against at most `N` recorded guesses, and return
+whether any equality succeeds. For every fixed finite `N`, `nonce-approximation` constructs
+the one-system `ProtocolError` against the symbolic prediction `false`. Its bound
+`N · 2⁻η` follows from `Uniform.Collision.E-countMatch` and the membership indicator bound;
+settling and the total-distribution complement law establish **both** verdict bounds.
+`Comparison.compare` therefore gives negligible agreement between two fixed budgets.
+`InterpretationTests.nonce-guessing-comparison` specifically consumes distinct budgets 1
+and 2 and their distinct error functions; it assumes neither a `Backtranslation` nor
+desired pairwise indistinguishability.
+
+The same experiment formally rejects a uniform bound: at each η, the already-quantified
+finite program `N = 2^η` enumerates every η-bit value and answers `true` with probability one,
+whereas budget zero answers `false`. `no-uniform-comparison` proves that no negligible
+sequence bounds all these gaps. `no-uniform-factorization` also allows an arbitrary shared
+predicted subdistribution and refutes one negligible approximation error for every `N`:
+the triangle inequality would give the forbidden uniform error `ε + ε`. Each selected
+program has a fixed finite budget; the contradiction does not require one exponential
+parameter-indexed honest program.
+
+These are formal closed nonce-collision/guessing experiments, **not** an embedding of the
+reviewer's parallel fresh-name-equality circuits into `Sym`, a concrete `Scheme`, or a
+complete `Backtranslation`. Applying the obstruction to that circuit model additionally
+requires its uniform/injectively tagged sampler, symbolic equivalence, and an admitted
+one-query observer. The independent experiment makes the quantifier failure precise without
+claiming those missing bridges.
+
+`Derived.sound-≤UC` additionally requires `GroundGuardedC` for the symbolic dummy simulator
+chosen by `Sym.≤UC⇒dummy`. It returns `DummyWitness`: that same explicit simulator, with negligible
 agreement in every spectator/feasible context. It does **not** return the target's
 adversary-quantified `≤UC`. No feasibility closure law is supplied to absorb arbitrary
 computational adversaries, so that stronger UC corollary remains unproved.
@@ -769,12 +817,20 @@ extraction required above. Establishing computational soundness from those games
 |---|---|
 | correct tagged algorithms realizing E on honest values | AR §5.1; CLC §4.3 |
 | labeled-frame simulation and attacker extraction from joint IND-CPA/INT-CTXT | CLC Defs 8–9, Thm 12 and Lemma 15 |
-| a uniform-terminal CLC restriction for honest roles, rather than identifying it with the weaker `Role.Simple` | CLC §3.3 |
+| correspondence between the opt-in absorbing terminal roles and CLC's simple-process class, rather than identifying it with `Role.GroundGuarded` | CLC §3.3 |
 | key-level/acyclicity restrictions and one-use randomness discipline | CLC §3 and Def 11 |
 | parsing and length observability, dishonest/registered-key rules, and a concrete PPT model | CLC §§3–5; `uc-setup-itm.md` §5.6 |
-| quantitative nonce-guessing bound for a concrete uniform sampler | CH p. 395; BPW §5.3 |
+| nonce-guessing/collision bounds for arbitrary eligible role interactions, beyond the fixed-budget closed uniform-sampler regression above | CH p. 395; BPW §5.3 |
 | relation between this verdict kernel and the literature's frame/trace/observational semantics | CLC §§3–6; applied-π semantics |
 | feasibility closure sufficient for adversary-quantified computational UC transfer | `uc-setup-itm.md` §5.6 |
+| error-aware/well-formed source eligibility and its preservation by compilation and contexts | CLC §§3–5 |
+
+Primitive security alone does not justify the current broad realization premise. For
+example, ordinary projections returning one shared error value on malformed constants
+make `π₁(c₀) = π₁(c₁)` computationally true but E₀-symbolically false. This source-derived
+boundary example is not formalized here. A conventional realization needs appropriate
+eligibility/correctness laws; this theorem does not quietly restrict its source class or
+assume that those laws follow from IND-CPA/INT-CTXT.
 
 These requirements are not replaced by a record field assuming `sound⁺`. The formal
 interpretations, concrete certificate obstruction, exact-trace theorem, and derived
