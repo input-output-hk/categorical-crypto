@@ -660,9 +660,14 @@ feasible context. It is not the target setup's canonical observational kernel.
 That predicate requires ground emissions on guard failure and at a designated halt control,
 but does not require a uniform terminal response or enforce `cout(⊥) · 0`; a verdict role can
 keep forwarding input bits there. The backtranslation must cover this actual, weaker class.
-Likewise generic `EqTheory` does not assert separation of distinct names: an injective naming
-can still be identified modulo E. E₀ is not affected, but no generic unguessable-name claim is
-used to derive `sound⁺`.
+
+The strengthened `EqTheory` closes under sorted name-to-term substitution and retains
+per-sort nontriviality. Its derived `fresh-name` and `name-injective` exclude equating a name
+with a term that does not contain it, and identify E-equal names. `Deduction.⊬-fresh` rules out
+deducing a name literally absent from a frame and not granted by ownership; `Run.emits≉fresh`
+applies this fact to actual role emissions. These results close the old generic fresh-name
+collapse attack, but do not establish secrecy of keys occurring inside ciphertexts or a
+computational nonce-guessing bound. Raw name identity and ownership remain unsorted (§3.2).
 
 `Backtranslation.extract` must, for each context and spectator family `W`, supply **before
 choosing an honest system**:
@@ -706,7 +711,7 @@ extraction required above. Establishing computational soundness from those games
 |---|---|
 | correct tagged algorithms realizing E on honest values | AR §5.1; CLC §4.3 |
 | labeled-frame simulation and attacker extraction from joint IND-CPA/INT-CTXT | CLC Defs 8–9, Thm 12 and Lemma 15 |
-| a uniform-terminal CLC restriction and name separation for any generic theory used cryptographically | CLC §3.3; applied-π §2.2 |
+| a uniform-terminal CLC restriction for honest roles, rather than identifying it with the weaker `Role.Simple` | CLC §3.3 |
 | key-level/acyclicity restrictions and one-use randomness discipline | CLC §3 and Def 11 |
 | parsing and length observability, dishonest/registered-key rules, and a concrete PPT model | CLC §§3–5; `uc-setup-itm.md` §5.6 |
 | quantitative nonce-guessing bound for a concrete uniform sampler | CH p. 395; BPW §5.3 |
