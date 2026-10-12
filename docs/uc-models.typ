@@ -139,12 +139,13 @@ of #plan("uc-setup-adversarial-review.md") distinguish historical findings from 
 
 *Refresh boundary.* This account includes the checked W comparisons, distributional SSP clients,
 availability API, positive-error QRS example, PM-choice initialization repair, symbolic theory/static
-and certified layers, pure-interface simulation, opt-in terminal runtime and protocol-indexed errors.
-The integrated proof boundary is `ec1b6a17` (terminal: `b606503c`, `41f603b9`; purity: `84b408c8`;
-original five-item integration: `cf6653e6`). Initialized relational-ITM execution, concrete ITM
-security clients and an interactive symbolic transmission/decryption construction are ongoing
-isolated work, not results claimed here. The proposed island connections in @sec:designed are
-research obligations, not newly checked edges.
+and certified layers, pure-interface simulation, opt-in terminal runtime, protocol-indexed errors
+and initialized probabilistic ITM security/observation clients. The integrated proof boundary is
+`63d03981` (ITM clients: `90911024`; preceding boundary: `ec1b6a17`; terminal: `b606503c`,
+`41f603b9`; purity: `84b408c8`; original five-item integration: `cf6653e6`).
+Initialized _relational_-ITM execution and an interactive symbolic transmission/decryption
+construction remain ongoing isolated work, not results claimed here. The proposed island
+connections in @sec:designed are research obligations, not newly checked edges.
 
 #{
   set text(size: 8.7pt)
@@ -442,7 +443,7 @@ the grade category without restricting computations. #design rows are planned, n
     [terms of the free monoidal category on finite-table interactive Turing machines; free monoidal congruence],
     [#PM's tests of the interpreted interface],
     [static-port, always-reply ITM fragment; not full Canetti/IITM correspondence],
-    [#formal #cc("ITM/Setup.agda", 39, "StdUC 𝕋ᴹ ℰᵀ"), #cc("ITM/Core.agda", 206, "𝕋ᴹ"), #cc("ITM/Setup.agda", 36, "ℰᵀ")],
+    [#formal #cc("ITM/Setup.agda", 39, "StdUC 𝕋ᴹ ℰᵀ"), #cc("ITM/Core.agda", 206, "𝕋ᴹ"), #cc("ITM/Setup.agda", 36, "ℰᵀ"); @thm:itm-client],
     [#ITMiso \ uninitialized relational ITMs], [as #ITM], [as #ITM],
     [arbitrary #Iso tests of all-state halting relations; whole-composite state isomorphism],
     [structural, unweighted transition interpretation; not initialized execution security],
@@ -978,6 +979,39 @@ Here emulation is perfect and unbounded, despite each generator having a finite 
 theorem. #design Polynomial running time is not generally a composition-closed property of these
 morphisms (@hofheinz2013, §1.5); computational UC additionally needs uniform security-parameter
 families, admissibility quantifiers and their composition laws, not just a finite program.
+
+#theorem(name: [an initialized probabilistic #ITM client])[
+#formal Let `Service` be a signed request/reply interface. The four-state tables
+$"real", "ideal" : I → "Service" ⊗ "Service"$ start from their designated blank memories,
+return a fresh fair bit on each honest request, and return respectively true or false on
+the adversarial service. A two-state source simulator $s : "Service" → "Service"$ normalizes
+adversarial requests to the empty bitstring and rewrites their replies to `[true]`, leaving
+the honest service untouched. In the actual #ITM setup,
+$ "real" eqU (s ⊗ opid) ∘ "ideal", quad "real" leUC "ideal". $
+The first claim uses this explicit simulator; dummy completeness gives the second for every
+source adversary, not merely for a chosen observation.
+#srcs(cc("Examples/ITM/Tables.agda", 81, "resource"), cc("Examples/ITM/Tables.agda", 169, "simulator"), cc("Examples/ITM/Tests.agda", 41, "explicit-simulator"), cc("Examples/ITM/Tests.agda", 44, "secure"))
+] <thm:itm-client>
+
+#proofidea[Point-preserving simulations relate the initialized table executions and their
+composite. The resulting compiled hom-equality survives every source prefix and every
+pulled-back test/closure by `≈ᴾ⇒≈ᵁ`. This route does not assume PM grade stability and does
+not establish a general security-transfer theorem from #ITM to #PM.
+#srcs(cc("Examples/ITM/Tables.agda", 145, "resource-correct"), cc("Examples/ITM/Tables.agda", 203, "simulator-correct"), cc("Examples/ITM/Interpretation.agda", 62, "compiled-correct"), cc("ITM/Setup.agda", 63, "≈ᴾ⇒≈ᵁ"))]
+
+A concrete source `Env` distinguishes the two unsimulated marker observations through `pull`:
+the closed real and ideal verdicts are respectively true and false. Thus
+$¬("real" eqE "ideal")$ and $¬("real" eqU "ideal")$; installing the simulator changes
+observations, and its source arrow is not identity. These are _observational negatives_,
+not a no-simulator or non-emulation theorem: the positive $leUC$ result above holds.
+The honest consumers check one fair reply and a two-reply comparison with the law of
+two independent fair draws.
+#srcs(cc("Examples/ITM/Tests.agda", 38, "marker-environment"), cc("Examples/ITM/Tests.agda", 54, "marker-pull-distinct"), cc("Examples/ITM/Tests.agda", 58, "initialized-distinct"), cc("Examples/ITM/Tests.agda", 61, "initialized-distinctᵁ"), cc("Examples/ITM/Tests.agda", 64, "simulation-observable"), cc("Examples/ITM/Tests.agda", 67, "simulator-nonidentity"), cc("Examples/ITM/Interpretation.agda", 92, "honest-coin"), cc("Examples/ITM/Interpretation.agda", 95, "honest-independent"))
+
+This is a finite static-table service under perfect, unrestricted PM-pullback tests, not
+encryption/secrecy, PPT or negligible security, dynamic ITI creation, adaptive corruption,
+or full IITM correspondence. It neither changes the always-reply instruction set nor
+completes the separately ongoing initialized _relational_ interpretation.
 
 == #Sym and #Symiso: the Dolev–Yao model <sec:sym>
 
@@ -2070,11 +2104,11 @@ This ledger records their current scope; absence of a public client is not nonex
   table(columns: (0.85fr, 2.5fr), inset: 4pt, stroke: 0.35pt + luma(65%),
     table.header([*Review IDs*], [*Current disposition*]),
     [001–002, 010–013], [Global partial initialization and unrestricted/readout-sensitive observation remain. Availability is separately built with designated modes, not inferred from security; finite-rational SSP and passive reliable OTP retain their restrictions.],
-    [003–009], [ITM structural/uninitialized versus probabilistic/perfect tests are explicitly separated. The unrestricted presheaf no-go is withdrawn. Initialized-trace and public security clients are ongoing, not integrated proofs in this refresh. Native silent-control/PPT/context correspondence remains open.],
+    [003–009], [ITM structural/uninitialized versus probabilistic/perfect tests are explicitly separated. The unrestricted presheaf no-go is withdrawn. The probabilistic security/observation client is checked; initialized relational traces remain ongoing. Native silent-control/PPT/context correspondence remains open.],
     [014–018], [W is conditional safety, not hostile enforcement or liveness; density is pointwise/cofinal. Both full-test forward bridges (016–017) are formal. Neither supplies reverse WB security.],
     [019–026, 036], [Choice payload/ownership, SSP preload/starvation, branch-permutation, PM lifetime and fail-stop boundaries remain. The selected-branch ASTotal repair and all-resolver half-init refutation (023) are formal; FIFO scaling is not a benchmark.],
     [027–033, 038], [Fine/coarse observations remain distinct. Sorted term substitution and fresh-name rejection (028) are formal; the older multisort impossibility is withdrawn (038). Raw names/public frames remain restricted. GroundGuarded and opt-in Terminal now separate the old terminal overclaim (030); general applied-pi/session correspondence is not proved.],
-    [034–035], [Actual SSPᵈ positive/negative reflection, W full/restricted positive transfers, RS security/full-construction consumers, QRS nonzero tight bound and PM-B clients are integrated. SSPᵈ is built. Coverage remains uneven: these do not create W/PM[wb] negatives, PM-A clients or full-context OTP confidentiality.],
+    [034–035], [Actual SSPᵈ positive/negative reflection, W full/restricted positive transfers, RS security/full-construction consumers, QRS nonzero tight bound, PM-B clients and the probabilistic ITM simulator/observational negatives are integrated. The ITM negatives are not non-emulation. SSPᵈ is built; W/PM[wb] negatives, PM-A clients and full-context OTP confidentiality remain absent.],
     [037, 039], [Pure interface legs are enforced (037). The checked channel remains fixed-public-message factorized opacity (039); interactive transmission/decryption is ongoing and not claimed here.],
     [040–041], [Protocol-indexed errors with shared extraction and closed finite-budget positive/negative experiments repair 040. Crypto backtranslation, target UC, and malformed-projection/error-aware eligibility (041) remain unproved.],
   )

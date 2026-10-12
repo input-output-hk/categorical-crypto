@@ -1547,3 +1547,35 @@ constructed. UAR-041's malformed-projection/error-aware eligibility boundary
 remains unresolved: neither the new error quantifier nor `GroundGuarded` or
 the opt-in terminal runtime supplies that realization correspondence.
 
+## Checked probabilistic ITM coverage: UAR-034 — 2026-10-12
+
+**Disposition: the probabilistic ITM source-client gap is partially closed.**
+Commit `90911024` is integrated as `63d03981`. The historical baseline table
+above is unchanged. [`Examples.ITM.Tests`](../src/CategoricalCrypto/Examples/ITM/Tests.agda#L38)
+now proves `explicit-simulator : real ≈ᵁ (var simulator ⊗ id) ∘ ideal` and
+`secure : real ≤UC ideal` in the actual `ITM.Setup`, for every source adversary.
+The initialized four-state resources return fresh honest fair bits and distinct
+public grade markers; an explicit two-state source simulator normalizes requests
+and rewrites the ideal marker, without modifying honest replies.
+[`≈ᴾ⇒≈ᵁ`](../src/CategoricalCrypto/ITM/Setup.agda#L63) lifts compiled hom-equality
+through all source prefixes and pulled-back observations, without assuming PM
+grade stability or a general ITM-to-PM security-transfer theorem.
+
+The concrete `marker-environment`/`marker-pull-distinct` client yields
+`initialized-distinct` and `initialized-distinctᵁ` for the **unsimulated** pair;
+`simulation-observable` and `simulator-nonidentity` show that the simulator does
+observable, nonidentity work. These are **observational negatives, not a
+non-emulation or all-simulator rejection theorem**; `secure` holds for this pair.
+[`honest-coin` and `honest-independent`](../src/CategoricalCrypto/Examples/ITM/Interpretation.agda#L92)
+exercise one honest reply and a two-reply comparison against independent fair draws.
+
+**Validation and limits.** Main reports the integrated `Examples.ITM.Tests`
+check at `-M3G -H1G` and full `CategoricalCrypto` root at `-M6G -H1G`, with no
+warnings (job `bg136`, 57.45 s combined including Nix downloads, not a benchmark).
+The implementor reports the escape-hatch baseline unchanged at 16. These are
+attributed checks, not new documentation-worker Agda runs. Coverage is finite
+static-table, perfect security under unrestricted PM-pullback tests: no
+encryption/secrecy, PPT/negligible guarantee, dynamic ITIs, adaptive corruption,
+silent-return extension or full Canetti/IITM correspondence is supplied.
+The initialized relational-ITM slice remains ongoing; UAR-003–009's distinct
+model-boundary obligations and the other unfilled UAR-034 targets remain.
