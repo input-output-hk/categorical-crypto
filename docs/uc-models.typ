@@ -1756,15 +1756,39 @@ Every row remains #design; none is a promised or implemented graph edge.
 
 = Morphisms between the setups <sec:morphisms>
 
-*Diagram legend.* Solid black arrows are implemented setup morphisms, not automatically
-security-transfer theorems. Blue dashed arrows are proposed constructions with their restrictions
-stated below: `O` is only an operational interpretation; `M` is a proposed setup morphism.
-Red dotted arrows marked × identify a _specific obstructed candidate_, not a universal no-map
-theorem. Quantitative forgetting and family refinements (@thm:refine) are omitted.
-The #Symcert source is distinct from #Symiso and #Sym; its solid arrow to #PMN certifies a
-formal query-admissible interpretation, not cryptographic soundness.
-The #ITMuninit arrow is structural/uninitialized; the checked initialized finite-trace API is
-not an additional setup node or an initialized-security bridge.
+*Diagram legend: line style and UC-transfer shape are independent.* Solid black edges are
+implemented setup morphisms. Blue dashed edges are proposed constructions: `O` is only an
+operational interpretation; `M` is a proposed setup morphism. Red dotted edges marked ×
+identify a _specific obstructed candidate_, not a universal no-map theorem.
+
+In these two figures, for $𝕄 : 𝕊 → 𝕊'$ write $G(f) := κ ∘ F(f)$ for the translated protocol
+(@def:morphism). For every well-typed source protocol pair $f, g$, the decorations mean:
+
+#{
+  set text(size: 8.5pt)
+  set par(justify: false)
+  let sample(marks) = diagram(spacing: 16mm,
+    edge((0, 0), (1, 0), marks, stroke: 0.7pt))
+  table(columns: (20mm, 1fr), inset: 4pt, stroke: 0.35pt + luma(65%),
+    align: (center + horizon, left + horizon),
+    table.header([*Shape*], [*Direction of UC-relation transfer*]),
+    sample("->>"), [*Preservation:* $(f leUC g " in " 𝕊) ⇒ (G(f) leUC G(g) " in " 𝕊')$.],
+    sample("hook->"), [*Reflection:* $(G(f) leUC G(g) " in " 𝕊') ⇒ (f leUC g " in " 𝕊)$.],
+    sample("hook->>"), [*Both:* the two UC statements are equivalent.],
+    sample("->"), [*Neither direction is claimed:* this means unknown/not established here, not that either implication is false.],
+  )
+}
+
+The double head is _epi-style_ and the hook _mono-style_, but neither denotes a categorical
+epi/mono, an equivalence of categories, or merely `ν.Epi`/`ν.Mono`. Those test-map properties
+alone do not establish UC transfer. Decorations on solid edges use the specific security
+results and discharged premises below; on dashed edges they state only the restricted
+_proposed transfer objective_, not a theorem. Missing decorations never assert a negative result.
+
+Quantitative forgetting and family refinements (@thm:refine) are omitted.
+The plain #Symcert arrow to #PMN certifies a formal query-admissible interpretation, not
+cryptographic soundness or canonical target UC. The #ITMuninit arrow is structural/uninitialized;
+the checked initialized finite-trace API is not another setup node or initialized-security bridge.
 
 #figure(
   diagram(
@@ -1773,6 +1797,7 @@ not an additional setup node or an initialized-security bridge.
     node-inset: 4pt,
     node-corner-radius: 2pt,
     label-size: 8pt,
+    mark-scale: 130%,
     node((0, 0), $Sym$, name: <sym>),
     node((1.3, 0), $Symiso$, name: <symiso>),
     node((2.6, 0), $Iso$, name: <iso>),
@@ -1783,26 +1808,26 @@ not an additional setup node or an initialized-security bridge.
     node((3.9, 1), $ITM$, name: <itm>),
     node((1.3, 2), $Wio$, name: <wio>),
     node((2.6, 2), $RS$, name: <rs>),
-    node((3.9, 2), $NDB$, name: <ndb>),
+    node((3.9, 2), $NDB^(PM)$, name: <ndb>),
     node((0, 4), $SSP$, name: <ssp>),
     node((0, 3), $SSPd$, name: <sspd>),
     node((1.3, 4), $PMwb$, name: <pmwb>),
     node((1.3, 3), $WW$, name: <ww>),
-    node((3.9, 3), $NDA$, name: <nda>),
+    node((3.9, 3), $NDA^(PM)$, name: <nda>),
     node((2.6, 4), [#Rel \ one-shot], name: <rel>),
-    edge(<symiso>, <sym>, "->", label: $mcoarse$, label-side: right),
+    edge(<symiso>, <sym>, "->>", label: $mcoarse$, label-side: right),
     edge(<symiso>, <iso>, "->", label: $msym$),
     edge(<symcert>, <pmn>, "->", label: $mcs$),
-    edge(<itm-uninit>, <iso>, "->", label: $mitmuninit$, label-side: right),
+    edge(<itm-uninit>, <iso>, "->>", label: $mitmuninit$, label-side: right),
     edge(<itm>, <pm>, "->", label: $mitm$),
-    edge(<pm>, <rs>, "->", label: $mrs$),
-    edge(<wio>, <pm>, "->", label: $miota$),
-    edge(<wio>, <ww>, "->", label: $mck_(ν_W)$, label-side: right),
-    edge(<ssp>, <pmwb>, "->", label: $mwb$, label-side: right),
-    edge(<ssp>, <sspd>, "->", label: $mq$, label-side: right),
-    edge(<ww>, <pmwb>, "->", label: $mq$),
-    edge(<nda>, <ndb>, "->", label: $mincl$, label-side: right),
-    edge(<ndb>, <pm>, "->", label: $mincl$, label-side: right),
+    edge(<pm>, <rs>, "hook->>", label: $mrs$),
+    edge(<wio>, <pm>, "->>", label: $miota$),
+    edge(<wio>, <ww>, "->>", label: $mck_(ν_W)$, label-side: right),
+    edge(<ssp>, <pmwb>, "->>", label: $mwb$, label-side: right),
+    edge(<ssp>, <sspd>, "hook->>", label: $mq$, label-side: right),
+    edge(<ww>, <pmwb>, "hook->>", label: $mq$),
+    edge(<nda>, <ndb>, "->>", label: $mincl$, label-side: right),
+    edge(<ndb>, <pm>, "hook->>", label: $mincl$, label-side: right),
     edge(<ssp>, <pm>, "..>", stroke: red + 0.6pt, bend: -35deg, label: text(fill: red)[$mcomp$ ×]),
     edge(<pm>, <iso>, "..>", stroke: red + 0.6pt, label: text(fill: red)[state-retaining ×], label-side: right),
   ),
@@ -1811,6 +1836,19 @@ not an additional setup node or an initialized-security bridge.
     security path. #Rel is an actual separate component, not an impossibility class.],
 ) <fig:graph>
 
+*Implemented-edge qualifications.* The ND nodes are the #PM instances. Their preservation
+uses proved split comparison maps and essential surjectivity, not a blanket regrading rule;
+the hook from #NDB to #PM additionally uses fullness. Its equivalence compares source pairs at
+their translated designated grades. The #NDA $→$ #NDB edge has no claimed #PM reflection theorem;
+the separate copying counterexample refutes reflection at #SSP, not at #PM (@prop:nd-incl).
+#srcs(cc("ND/Grade.agda", 89, "ιB-full"), cc("ND/Grade.agda", 92, "ιB-surj"), cc("ND/Grade.agda", 103, "≤UC-B⇔≤UC"), cc("ND/A.agda", 182, "A⇒B"), cc("ND/PM/Setup.agda", 39, "≤UC-B⇔≤UC"), cc("ND/PM/Setup.agda", 42, "A⇒B"))
+
+The restricted-W quotient's two-way decoration is the definition-level derivation in
+@sec:wb-quotient-transfer, not a separately exported q-security theorem. The full-test W
+coarsening and inclusion claim preservation only. Plain symbolic/ITM interpretation arrows
+remain useful morphisms; bare-kernel agreement, certificates or individual clients do not
+by themselves prove their general UC-transfer directions.
+
 #figure(
   diagram(
     spacing: (10mm, 8mm),
@@ -1818,6 +1856,7 @@ not an additional setup node or an initialized-security bridge.
     node-inset: 3pt,
     node-corner-radius: 2pt,
     label-size: 7.5pt,
+    mark-scale: 130%,
     node((0, 0), [finite IPDL \ Fig. 9 API], name: <api>),
     node((1.5, 0), [#SSPd resource], name: <api-target>),
     node((0, 1), [finite RSIM \ explicit buffers], name: <rsim-source>),
@@ -1833,15 +1872,18 @@ not an additional setup node or an initialized-security bridge.
     edge(<api>, <api-target>, "-->", stroke: blue, label: [O]),
     edge(<rsim-source>, <rsim-target>, "-->", stroke: blue, label: [O]),
     edge(<task-source>, <task-target>, "-->", stroke: blue, label: [O]),
-    edge(<batch-source>, <kernel-target>, "-->", stroke: blue, label: [M]),
-    edge(<kernel-target>, <support-target>, "-->", stroke: blue, label: [M: support]),
-    edge(<causal-source>, <kernel-target>, "-->", stroke: blue, label: [M], label-side: right),
-    edge(<sa-source>, <sa-target>, "-->", stroke: blue, label: [M]),
+    edge(<batch-source>, <kernel-target>, "-->>", stroke: blue, label: [M]),
+    edge(<kernel-target>, <support-target>, "-->>", stroke: blue, label: [M: support]),
+    edge(<causal-source>, <kernel-target>, "-->>", stroke: blue, label: [M], label-side: right),
+    edge(<sa-source>, <sa-target>, "-->>", stroke: blue, label: [M]),
   ),
-  caption: [Proposed bounded connections, all unformalised. O-edges do not supply open
-    linking/gluing or uniform UC simulation. M-edges require the carriers, tests and preservation
-    proofs in @sec:designed. Support is exact-only and nonreflecting; batch reflection also
-    needs causal simulators on the causal route.],
+  caption: [Proposed bounded connections, all unformalised. Dashed double heads are
+    exact-UC preservation objectives under @sec:designed's stated hypotheses, not checked
+    transfer theorems. Operational O-edges remain plain: they supply no open linking/gluing
+    or uniform UC simulation. Support preservation is exact-only and does not reflect
+    probability-sensitive security. Causal-history reflection would additionally need
+    prefix-causal simulators and reconstruction/fullness; no such hook is claimed.
+    The single-assignment objective requires a closed lawful carrier, linker and legal-test density.],
 ) <fig:proposed>
 
 == Formal morphisms <sec:formal-morphisms>
@@ -1962,10 +2004,20 @@ inverse functor at hom-equality: it does not say $scripts(≈)^sans("d") ⇒ eqP
 #srcs(cc("SSP/Dist/Setup.agda", 34, "ssp⇒dist"), cc("SSP/Dist/Setup.agda", 49, "preserves-≤UC"), cc("SSP/Dist/Setup.agda", 56, "ssp≤⇒dist≤"), cc("SSP/Dist/Setup.agda", 62, "dist≈ᵁ⇒ssp≈ᵁ"), cc("SSP/Dist/Setup.agda", 67, "dist≤⇒ssp≤"), cc("SSP/Dist/Setup.agda", 71, "reflects-≤UC"), cc("Examples/SSP/OneTimePad/Dist.agda", 109, "otp≤ideal-image-dist"))
 ] <prop:ssp-dist-morphism>
 
-=== $mq : WW → PMwb$
+=== $mq : WW → PMwb$ <sec:wb-quotient-transfer>
 
 The quotient morphism of @prop:quotient(1) at $simW$, with the descended test map.
-#srcs(cc("UC/Bracket/Setup.agda", 155, "q"))
+Its two-way UC comparison follows from the existing definitions and quantified lemmas;
+there is no separately exported q-preservation/reflection theorem.
+For preservation, `quotientF` is identity on objects, hence essentially surjective, and
+`descendᵛ-epi` preserves the bare kernel. The surjective-ancilla theorem followed by
+`transfer⁺` gives UC preservation without grade stability. For reflection, normalize the
+leading identity in $G$, retain the target simulator (the raw grade-arrow carriers are
+unchanged), and apply `descendᵛ-mono` at every unchanged prefix/ancilla. This recovers the
+source U-agreement and hence source emulation. The checked SSPᵈ quotient proof
+(@prop:ssp-dist-morphism) exhibits precisely this direct pattern. Neither direction follows
+from Epi/Mono alone; the unchanged contexts and grade arrows are essential.
+#srcs(cc("UC/Bracket/Setup.agda", 155, "q"), ag("Categories/Category/Monoidal/Construction/Quotient.agda", 74, "quotientF"), ag("Categories/Category/Monoidal/Construction/Quotient.agda", 92, "descend"), ag("Categories/Category/Monoidal/Construction/Quotient.agda", 101, "descendᵛ-mono"), ag("Categories/Category/Monoidal/Construction/Quotient.agda", 104, "descendᵛ-epi"), cc("Standard2/Morphism.agda", 97, "surjective⇒preserves-≈ᵁ"), cc("Abstract2/Morphism.agda", 62, "transfer⁺"), cc("SSP/Dist/Setup.agda", 67, "dist≤⇒ssp≤"))
 
 === $mcoarse : Symiso → Sym$
 
