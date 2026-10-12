@@ -1,17 +1,9 @@
 {-# OPTIONS --safe --without-K #-}
 
--- Simulation along a relation.  A relation between two machines' states — and
--- between their interfaces — is a span: an apex machine whose states are the
--- related pairs, simulated into each machine (`RelSim`).  The apex's point is a
--- COUPLING of the two points (each leg carries it to one of them) and its step
--- a coupling of the two steps, so outputs are related exactly when the output
--- legs agree on them.  The legs are simulations along pure interface maps
--- (`_≲[_∣_]_`), of which `_≲_` is the identity case; they compose under
--- `_∘ᴹ_`, `_⊗ᵉ_` and `traceᴹ` — the last by `iter-transfer`, which moves the
--- loop variable along with the state — so a relational simulation of a circuit
--- is assembled from its leaves.  With identity legs outside, the apex simulates
--- both machines, which are then `_≈ᴹ_` (`relsim⇒≈ᴹ`); `_≲_` is the graph case
--- (`≲⇒relsim`).
+-- Relational simulation with pure state and interface projections. In a
+-- distribution Kleisli category the apex point and each apex step have the
+-- two deterministic pushforwards as marginals. For an abstract `𝒱`, this is
+-- a span of commuting simulation squares, not an assertion about measures.
 
 open import Categories.Category.Monoidal.Bundle
 open import Categories.Category.Monoidal.Pure
@@ -160,13 +152,17 @@ record _≲[_∣_]_ {A B A′ B′ : Obj} (f : Machine A B) (μᵢ : A ⇒ A′)
   field
     leg       : St f ⇒ St g
     leg-pure  : Pure leg
+    input-pure  : Pure μᵢ
+    output-pure : Pure μₒ
     leg-point : leg ∘ point (state f) ≈ point (state g)
     leg-step  : leg ⊗₁ μₒ ∘ step f ≈ step g ∘ leg ⊗₁ μᵢ
 
 open _≲[_∣_]_ public
 
 ≲⇒≲[id] : {f g : Machine A B} → f ≲ g → f ≲[ id ∣ id ] g
-≲⇒≲[id] s = record { leg = θ s ; leg-pure = θ-pure s ; leg-point = θ-point s ; leg-step = θ-step s }
+≲⇒≲[id] s = record
+  { leg = θ s ; leg-pure = θ-pure s ; input-pure = pure-id ; output-pure = pure-id
+  ; leg-point = θ-point s ; leg-step = θ-step s }
 
 ≲[id]⇒≲ : {f g : Machine A B} → f ≲[ id ∣ id ] g → f ≲ g
 ≲[id]⇒≲ s = record { θ = leg s ; θ-pure = leg-pure s ; θ-point = leg-point s ; θ-step = leg-step s }
@@ -178,6 +174,8 @@ open _≲[_∣_]_ public
            → μ ≈ μ′ → ν ≈ ν′ → f ≲[ μ ∣ ν ] g → f ≲[ μ′ ∣ ν′ ] g
 ≲[]-resp-≈ eμ eν s = record
   { leg = leg s ; leg-pure = leg-pure s ; leg-point = leg-point s
+  ; input-pure = pure-resp-≈ eμ (input-pure s)
+  ; output-pure = pure-resp-≈ eν (output-pure s)
   ; leg-step = ((refl⟩⊗⟨ ⟺ eν) ⟩∘⟨refl) ○ leg-step s ○ (refl⟩∘⟨ (refl⟩⊗⟨ eμ)) }
 
 ≲[]-trans : {f : Machine A B} {g : Machine A′ B′} {h : Machine A″ B″}
@@ -186,21 +184,24 @@ open _≲[_∣_]_ public
 ≲[]-trans s t = record
   { leg       = leg t ∘ leg s
   ; leg-pure  = pure-∘ (leg-pure t) (leg-pure s)
+  ; input-pure = pure-∘ (input-pure t) (input-pure s)
+  ; output-pure = pure-∘ (output-pure t) (output-pure s)
   ; leg-point = pullʳ (leg-point s) ○ leg-point t
   ; leg-step  = (⊗-distrib-over-∘ ⟩∘⟨refl) ○ assoc ○ (refl⟩∘⟨ leg-step s) ○ sym-assoc
               ○ (leg-step t ⟩∘⟨refl) ○ assoc ○ (refl⟩∘⟨ ⟺ ⊗-distrib-over-∘)
   }
 
-idᴹ-≲[] : (μ : A ⇒ A′) → idᴹ ≲[ μ ∣ μ ] idᴹ
-idᴹ-≲[] μ = record
-  { leg = id ; leg-pure = pure-id ; leg-point = identityˡ ; leg-step = identityʳ ○ ⟺ identityˡ }
+idᴹ-≲[] : (μ : A ⇒ A′) → Pure μ → idᴹ ≲[ μ ∣ μ ] idᴹ
+idᴹ-≲[] μ μᵖ = record
+  { leg = id ; leg-pure = pure-id ; input-pure = μᵖ ; output-pure = μᵖ
+  ; leg-point = identityˡ ; leg-step = identityʳ ○ ⟺ identityˡ }
 
--- A pure machine is simulated along any square it commutes in.
+-- A machine induced by a base morphism is simulated along a pure square.
 pureᴹ-≲[] : {h : A ⇒ B} {h′ : A′ ⇒ B′} {μ : A ⇒ A′} {ν : B ⇒ B′}
-          → ν ∘ h ≈ h′ ∘ μ → pureᴹ h ≲[ μ ∣ ν ] pureᴹ h′
-pureᴹ-≲[] sq = record
-  { leg = id ; leg-pure = pure-id ; leg-point = identityˡ
-  ; leg-step = merge₂ˡ ○ (refl⟩⊗⟨ sq) ○ ⟺ merge₂ˡ }
+          → Pure μ → Pure ν → ν ∘ h ≈ h′ ∘ μ → pureᴹ h ≲[ μ ∣ ν ] pureᴹ h′
+pureᴹ-≲[] μᵖ νᵖ sq = record
+  { leg = id ; leg-pure = pure-id ; input-pure = μᵖ ; output-pure = νᵖ
+  ; leg-point = identityˡ ; leg-step = merge₂ˡ ○ (refl⟩⊗⟨ sq) ○ ⟺ merge₂ˡ }
 
 opaque
   unfolding _∘ᴹ_
@@ -211,6 +212,8 @@ opaque
   ∘ᴹ-resp-≲[] {f = f} {f′} {g} {g′} u v = record
     { leg       = leg u ⊗₁ leg v
     ; leg-pure  = pure-⊗₁ (leg-pure u) (leg-pure v)
+    ; input-pure = input-pure v
+    ; output-pure = output-pure u
     ; leg-point = ⊛-point₂ (state f) (state f′) (state g) (state g′) (leg-point u) (leg-point v)
     ; leg-step  = pullˡ (onL-sim[] (leg-step u)) ○ assoc
                 ○ (refl⟩∘⟨ onR-sim[] (leg-step v)) ○ sym-assoc
@@ -223,19 +226,23 @@ opaque
 ⊗ᵉ-resp-≲[] {f = f} {f′} {g} {g′} u v = record
   { leg       = leg u ⊗₁ leg v
   ; leg-pure  = pure-⊗₁ (leg-pure u) (leg-pure v)
+  ; input-pure = pure-+₁ (input-pure u) (input-pure v)
+  ; output-pure = pure-+₁ (output-pure u) (output-pure v)
   ; leg-point = ⊛-point₂ (state f) (state f′) (state g) (state g′) (leg-point u) (leg-point v)
   ; leg-step  = tstep-sim[] (onL-sim[] (leg-step u)) (onR-sim[] (leg-step v))
   }
 
--- The loop's map `ξ` is on both sides of the body; output and loop maps must
--- be pure, for `iter-transfer`.
+-- The separate component witnesses are necessary: an abstract `PureSub`
+-- does not provide elimination from purity of a sum map.
 trace-resp-≲[] : {f : Machine (A + X) (B + X)} {g : Machine (A′ + X′) (B′ + X′)}
                  {μ : A ⇒ A′} {ν : B ⇒ B′} {ξ : X ⇒ X′}
-               → Pure ν → Pure ξ → f ≲[ μ +₁ ξ ∣ ν +₁ ξ ] g
+               → Pure μ → Pure ν → Pure ξ → f ≲[ μ +₁ ξ ∣ ν +₁ ξ ] g
                → traceᴹ A B X f ≲[ μ ∣ ν ] traceᴹ A′ B′ X′ g
-trace-resp-≲[] {A = A} {X = X} {B = B} {A′ = A′} {X′ = X′} {B′ = B′} {f = f} {g} νᵖ ξᵖ s = record
+trace-resp-≲[] {A = A} {X = X} {B = B} {A′ = A′} {X′ = X′} {B′ = B′} {f = f} {g} μᵖ νᵖ ξᵖ s = record
   { leg       = leg s
   ; leg-pure  = leg-pure s
+  ; input-pure = μᵖ
+  ; output-pure = νᵖ
   ; leg-point = leg-point s
   ; leg-step  = traceStep-sim[] (state f) (state g) A B X A′ B′ X′ (leg-pure s) νᵖ ξᵖ (leg-step s)
   }
@@ -283,10 +290,10 @@ relsim⇒≈ᴹ r = ≲⇒≈ᴹ˘ (≲[id]⇒≲ (left r)) ○ᴹ ≲⇒≈ᴹ 
 trace-relsim : {f : Machine (A + X) (B + X)} {g : Machine (A′ + X′) (B′ + X′)}
                {a₁ : Aᴿ ⇒ A} {a₂ : Aᴿ ⇒ A′} {b₁ : Bᴿ ⇒ B} {b₂ : Bᴿ ⇒ B′}
                {x₁ : Xᴿ ⇒ X} {x₂ : Xᴿ ⇒ X′}
-             → Pure b₁ → Pure b₂ → Pure x₁ → Pure x₂
+             → Pure a₁ → Pure a₂ → Pure b₁ → Pure b₂ → Pure x₁ → Pure x₂
              → RelSim (a₁ +₁ x₁) (a₂ +₁ x₂) (b₁ +₁ x₁) (b₂ +₁ x₂) f g
              → RelSim a₁ a₂ b₁ b₂ (traceᴹ A B X f) (traceᴹ A′ B′ X′ g)
-trace-relsim {Aᴿ = Aᴿ} {Bᴿ = Bᴿ} {Xᴿ = Xᴿ} b₁ᵖ b₂ᵖ x₁ᵖ x₂ᵖ r = record
+trace-relsim {Aᴿ = Aᴿ} {Bᴿ = Bᴿ} {Xᴿ = Xᴿ} a₁ᵖ a₂ᵖ b₁ᵖ b₂ᵖ x₁ᵖ x₂ᵖ r = record
   { apex  = traceᴹ Aᴿ Bᴿ Xᴿ (apex r)
-  ; left  = trace-resp-≲[] b₁ᵖ x₁ᵖ (left r)
-  ; right = trace-resp-≲[] b₂ᵖ x₂ᵖ (right r) }
+  ; left  = trace-resp-≲[] a₁ᵖ b₁ᵖ x₁ᵖ (left r)
+  ; right = trace-resp-≲[] a₂ᵖ b₂ᵖ x₂ᵖ (right r) }

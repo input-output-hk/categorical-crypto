@@ -1,9 +1,9 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
 -- `UC.Machine.Relational` across the seal (`UC.Model.Seal`'s third
--- discipline): interface maps on `𝔾ᵒ`'s objects and the relation on its homs,
--- exported with their closure laws from inside one `opaque` block, so that a
--- consumer relating two interpretations of a circuit never unfolds `𝔾ᵒ`.
+-- discipline): deterministic letter functions on both polarities and their
+-- simulation closure laws. The opaque exports let circuit consumers retain
+-- the pure-interface contract without unfolding `𝔾ᵒ`.
 
 module CategoricalCrypto.UC.Model.Relational where
 

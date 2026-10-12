@@ -472,10 +472,18 @@ under `Symbolic/` are `Term`, `Term/PairEnc`, `Deduction`, `Role`, `Test`, `Fine
 
 ### 3.7 Relational simulation and static equivalence
 
-`Machines/Sim/Relational.agda` presents a relation by an apex machine and two pure
-simulation legs. Its initial `Dₚ` distribution is a coupling whose projections are the
-two initial distributions; its transition is a coupling with the two step distributions
-as marginals. The apex state need not be a function of either world's state.
+`Machines/Sim/Relational.agda` presents a relation by an apex machine and two
+simulation legs. Each `_≲[ μᵢ ∣ μₒ ]_` carries **three** purity witnesses: its state
+map (`leg-pure`), input map (`input-pure`), and output map (`output-pure`). At
+`Kl(Dₚ)`, purity means equivalence to `returnₚ` composed with an ordinary function;
+none of these projections can draw randomness. The apex initial distribution has
+the two worlds' initial distributions as deterministic pushforwards. For every apex
+state and input, its transition has as pushforwards the two step distributions at
+the projected state/input. Thus these are couplings of the corresponding
+**subdistributions** (divergence may lose mass), supported on the image of the two
+projections. No injectivity or functional dependence between the worlds is assumed.
+For an abstract categorical base the API asserts pure commuting squares, not a
+measure-theoretic coupling theorem. No stochastic-interface relational API is retained.
 
 ```agda
 _≲[_∣_]_ : Machine A B → (A ⇒ A′) → (B ⇒ B′) → Machine A′ B′ → Set _
@@ -486,16 +494,29 @@ RelSim : (Aᴿ ⇒ A) → (Aᴿ ⇒ A′) → (Bᴿ ⇒ B) → (Bᴿ ⇒ B′)
 relsim⇒≈ᴹ : RelSim id id id id f g → f ≈ᴹ g
 ```
 
-`∘ᴹ-relsim`, `⊗ᵉ-relsim` and `trace-relsim` preserve the span. The feedback theorem
-requires pure output and loop projections and uses `iter-transfer` on the paired
-state/loop variable. `UC/Machine/Relational` carries this through G-composition and
-tensor (`HSim-∘`, `HSim-⊗`); `UC/Model/Relational` exports it across the seal.
+`∘ᴹ-relsim`, `⊗ᵉ-relsim` and `trace-relsim` preserve the pure-interface span. The
+feedback theorem takes separate purity witnesses for both worlds' input, output,
+and loop projections: purity of a sum map cannot be eliminated in an abstract
+`PureSub`. It uses `iter-transfer` on the paired state/loop variable.
+`UC/Machine/Relational` carries this through G-composition and tensor (`HSim-∘`,
+`HSim-⊗`); its `Map` contains ordinary functions on both polarities.
+`UC/Model/Relational` exports that same function-map contract across the seal.
 `relsim⇒≈ᴿ` gives equality against every machine distinguisher, not just equality
 of one finite run.
 
-`UC/Machine/RelationalTests` exercises the functional-graph compatibility,
-behavioural consequence, tensor, feedback, and G-composition/tensor exports with
-concrete machines whose hidden states differ.
+`UC/Machine/RelationalTests` exercises functional-graph compatibility, behavioural
+consequence, tensor, feedback, G-composition/tensor, and a nonidentity pure-interface
+span that flips the visible bit while forgetting hidden state. `coin-flipped-span`
+also starts with a faircoin apex: its deterministic right state projection complements
+the shared sample, preserving the faircoin marginal while relating opposite hidden
+bits and visible letters. Its faircoin **interface-map** counterexample, in contrast,
+commutes with the identity-machine step square but
+cannot be a deterministic projection: every point event has probability `½`, whereas
+a deterministic value has probability one for its own point event. The tests prove
+`¬ IsPure faircoin-map`, exclude a simulation and a `RelSim` with that output leg,
+and separately exclude a `RelSim` with that input leg. Commutation without interface
+purity therefore does not justify the ordinary
+deterministic-marginal interpretation.
 
 For symbolic contexts, `Static/Same` relates terms computed by the same recipe over
 two frames; an apex role preserves this relation, including fresh allocations and

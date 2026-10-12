@@ -1,9 +1,9 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- G-homs related along interface maps (`Machines.Sim.Relational` at the G
--- construction over `Kl(Dₚ)`): `HSim μA μB f g` says that, up to `_≈ᴹ_` at
--- both ends, a simulation carries `f` to `g` relabelling every letter forwards
--- — positive and negative alike, so the maps are not G-homs.  It is closed
+-- G-homs related along deterministic interface functions
+-- (`Machines.Sim.Relational` at the G construction over `Kl(Dₚ)`):
+-- `HSim μA μB f g` allows `_≈ᴹ_` at both ends of a pure-interface simulation.
+-- Letter maps are forward on both polarities, so they are not G-homs. Closure is
 -- under the G composite, a trace whose loop letters are relabelled too
 -- (`trace-resp-≲[]`), the G tensor, the identities and the structural isos:
 -- `Machines.Collapse`, `Machines.Pure` and `UC.Machine.Dictionary` present each
@@ -115,7 +115,7 @@ private
 
   pure-sim : {h : V → W} {μ : V → V′} {ν : W → W′} {h′ : V′ → W′}
            → (∀ v → ν (h v) ≡ h′ (μ v)) → pureᶠ h RS.≲[ K.pureᵏ μ ∣ K.pureᵏ ν ] pureᶠ h′
-  pure-sim sq = RS.pureᴹ-≲[] (natural sq)
+  pure-sim {μ = μ} {ν} sq = RS.pureᴹ-≲[] (KP.structural μ) (KP.structural ν) (natural sq)
 
   sums : {u : V → V′} {v : W → W′} → 𝒱._≈_ (K.pureᵏ u +₁ K.pureᵏ v) (K.pureᵏ (Sum.map u v))
   sums = +₁-pureᵏ 𝒱.Equiv.refl 𝒱.Equiv.refl
@@ -134,7 +134,8 @@ wire-HSim μA μB eu ed = ≲[]⇒HSim (simFn[] (λ s → s) _ _ (λ x → >>=�
 -- Identities and structural isos: wires natural in the letters
 
 HSim-id : (μ : Map (A⁺ , A⁻) (A′⁺ , A′⁻)) → HSim μ μ (𝔾.id {A⁺ , A⁻}) (𝔾.id {A′⁺ , A′⁻})
-HSim-id μ = ≲[]⇒HSim (RS.pureᴹ-≲[] ((refl⟩∘⟨ swapᵏ) ○ natural sq ○ (⟺ swapᵏ ⟩∘⟨refl)))
+HSim-id μ = ≲[]⇒HSim (RS.pureᴹ-≲[] (KP.structural (inᵐ μ μ)) (KP.structural (outᵐ μ μ))
+  ((refl⟩∘⟨ swapᵏ) ○ natural sq ○ (⟺ swapᵏ ⟩∘⟨refl)))
   where
   sq : ∀ v → Sum.map (proj₂ μ) (proj₁ μ) (Sum.swap v) ≡ Sum.swap (Sum.map (proj₁ μ) (proj₂ μ) v)
   sq (inj₁ _) = refl
@@ -255,7 +256,7 @@ module _ {μA : Map (A⁺ , A⁻) (A′⁺ , A′⁻)} {μB : Map (B⁺ , B⁻) 
                       (𝔾._∘_ {A′⁺ , A′⁻} {B′⁺ , B′⁻} {C′⁺ , C′⁻} g′ f′)
   HSim-∘ {g} {g′} {f} {f′} (hsim {g₀} {g₀′} eg sg eg′) (hsim {f₀} {f₀′} ef sf ef′) = hsim
     (𝔾.∘-resp-≈ {A⁺ , A⁻} {B⁺ , B⁻} {C⁺ , C⁻} {g} {g₀} {f} {f₀} eg ef S.○ᴹ unfold∘ g₀ f₀)
-    (RS.trace-resp-≲[] (KP.structural (outᵐ μA μC)) (KP.structural loop)
+    (RS.trace-resp-≲[] (KP.structural (inᵐ μA μC)) (KP.structural (outᵐ μA μC)) (KP.structural loop)
       (RS.≲[]-resp-≈ (⟺ sums) (⟺ sums)
         (RS.∘ᴹ-resp-≲[] α-sim (RS.∘ᴹ-resp-≲[] (RS.≲[]-resp-≈ sums sums (RS.⊗ᵉ-resp-≲[] sg sf)) γ-sim))))
     (S.⟺ᴹ (unfold∘ g₀′ f₀′)

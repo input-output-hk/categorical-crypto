@@ -32,6 +32,8 @@ simFn[] : {S T : MC.State} {k : MC.obj S × X → Dₚ (MC.obj S × Y)}
 simFn[] {k′ = k′} h μ ν hp hs = record
   { leg       = K.pureᵏ h
   ; leg-pure  = KP.structural h
+  ; input-pure = KP.structural μ
+  ; output-pure = KP.structural ν
   ; leg-point = hp
   ; leg-step  = λ p → bindᶠ (K.pureᵏ-⊗ h ν) ⟨≈⟩ hs p
               ⟨≈⟩ ≈sym (bindˣ (K.pureᵏ-⊗ h μ p) ⟨≈⟩ >>=ₚ-identityˡ (h (proj₁ p) , μ (proj₂ p)) k′)
