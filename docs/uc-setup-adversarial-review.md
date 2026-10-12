@@ -2,11 +2,11 @@
 
 ## Provenance and scope
 
-This is the durable synthesis of **16 read-only adversarial reports covering 15 setup instances**, plus the completed symbolic static/channel extension. It records theory correspondence, source-derived semantic counterexamples, public-API coverage, and engineering observations separately. It is not a replacement model plan and does not change the implementations or existing plans.
+This is the durable synthesis of the initial **16 read-only adversarial reports covering 15 baseline setup instances and the symbolic static/channel extension**, plus the completed computational-symbolic review and later checked dispositions. It records theory correspondence, source-derived semantic counterexamples, public-API coverage, and engineering observations separately. It is not a replacement model plan and does not change the implementations.
 
 - **Baseline:** `4c9bf3e1eb4f841a26a6f9234a26a9116d6cac1e` (`4c9bf3e1`), the integration snapshot reviewed by the first 15 reviewers. Baseline findings are **UAR-001–UAR-036**.
 - **Symbolic static/channel supplement:** `97bfae72a09be1390b609eee73103a8ff8789f6e` (`97bfae72`), reviewed separately by `ReviewSymStaticChannel`. Its additional findings are **UAR-037–UAR-039**. These sources were available in the extension worktree but were not present in the baseline integration tree when this document was written. Extension-only links are therefore commit-pinned repository links, not broken local links; publication of that commit to the remote has not been verified.
-- **Computational-symbolic work:** `SymbolicSoundness3` is still running in isolation. No completed computational-symbolic adversarial report is included or implied. See the [append-only review status](#append-only-review-status).
+- **Computational-symbolic supplement:** `fd212866d1ca3ff663e23019a401c1112e5c3f44` (`fd212866`), the completed `SymbolicSoundness3` implementation reviewed by `ReviewSymbolicComputational` and its three supporting reviewers. The [completed assessment](#review-fd212866) preserves UAR-040 and adds the explicitly conditional, unformalized eligibility boundary UAR-041. It reviews exactly one new setup schema, `CertifiedSource sch .Sym≅ᶜ.StdSetup`, not another newly created target setup.
 - The starting local summary was checked against all 16 full reports and their recorded submissions. In particular, the incremental findings omitted from the final payloads of `ReviewQRS` and `ReviewWRestrictedTests` were recovered. Later follow-ups supersede earlier readiness verdicts without discarding their still-relevant technical evidence.
 - The reviewers performed source/primary-literature inspection and mathematical derivations. **No new Agda counterexample was typechecked in these reviews.** This documentation task runs only the requested documentation smoke, not Agda, builds, or benchmarks. Existing checked declarations are inspected artifacts, not newly exercised verification.
 
@@ -576,11 +576,11 @@ These are archived primary sources, with the sections relied on by the reviews. 
 
 ## Append-only review status
 
-**Computational-symbolic review: pending.** `SymbolicSoundness3` has not supplied a completed computational-symbolic result/review to this synthesis. The reviewed static/channel extension above is not that missing computational layer, and this document does not claim the overall symbolic correspondence complete. There are deliberately no placeholder “findings” or fabricated success entries for it.
+**Computational-symbolic review: completed at `fd212866`.** The [completed report](#review-fd212866) replaces the initial pending status. Its result is a qualified negative readiness assessment because of UAR-040, not a rejection of the conditional Agda implication or the certified interpretation. The malformed-projection boundary UAR-041 is source-derived and unformalized. The full game-based computational-soundness and target-UC correspondence remain unproved.
 
-When the computational-symbolic review becomes available, append its reviewed commit, exact interpretation/admissibility assumptions, evidence class, affected setup/API boundary, counterexamples or positive evidence, and dispositions that cite existing UAR IDs. Allocate subsequent IDs only for genuinely new findings; record overlap or narrowed/superseded scope without erasing the baseline. In particular, compare any eventual name, `Simple`, static, coupling, channel, resource and simulator claims against UAR-007–008, 028–033 and 037–039.
+For subsequent reviews, append the reviewed commit, exact interpretation/admissibility assumptions, evidence class, affected setup/API boundary, counterexamples or positive evidence, and dispositions citing existing UAR IDs. Allocate subsequent IDs only for genuinely new findings; record overlap or narrowed/superseded scope without erasing the baseline. Compare later name, `Simple`, static, coupling, channel, resource and simulator claims against UAR-007–008, 028–033 and 037–041.
 
-**Useful W discoveries: implementation in progress, not resolved here.** The isolated `WObservationCoarsening` and `WInclusionSecurity` efforts concern UAR-016 and UAR-017. Until their checked, integrated results are supplied, these remain source-derived OPEN constructions. A later disposition must separate the baseline documentation correction, newly checked comparison theorem, integrated importer/closure verification, and any still-missing public security client.
+**Historical W-status superseded by checked dispositions.** UAR-016 and UAR-017 were source-derived OPEN constructions at the initial review. Their [later integrated disposition](#resolution-dc3f817e) records the checked comparisons and keeps their public-client limits separate. The baseline assessments above retain their original snapshot scope.
 
 <!-- Baseline source links: repository-relative, named symbols at their uses above. -->
 [abstract2]: ../src/CategoricalCrypto/Abstract2.agda
@@ -936,3 +936,506 @@ status text, rather than retrospectively making the baseline setup appear.
 [otp-observation-restriction]: ../src/CategoricalCrypto/Examples/SSP/OneTimePad/ObservationRestriction.agda
 [faultflag]: ../src/CategoricalCrypto/Examples/FaultFlag.agda
 [faultflag-uc]: ../src/CategoricalCrypto/Examples/FaultFlag/UC.agda
+
+<a id="resolution-d898f3f0"></a>
+## Checked symbolic contract dispositions — d898f3f0
+
+**Integrated proof snapshot:** `d898f3f090d19c0add98b3d6c27a306dc3cd4909`
+(`d898f3f0`). This snapshot integrates the previously reviewed static/relational
+extension, the five assigned computational-interpretation/soundness commits,
+and the two theory-contract commits. The original contract changes were
+`8aac2ebb379fe26c601e499fb9abd541a46f0a11` and
+`3d18e3570effcf2255549c051704ec611e64ee22`; the integration snapshot, rather
+than those isolated commits alone, is the closure boundary for this disposition.
+The static extension's formerly extension-only source files are now present in
+integration; their old `97bfae72` citations remain historical provenance.
+
+Main reports that the targeted `Symbolic/InterpretationTests.agda` check first
+exhausted 5 GiB while rebuilding `UC.Model.Family`. Staging Family at
+`-M6G -H1G`, followed by InterpretationTests at `-M5G -H1G`, passed in
+**46.02 s** combined. The full integrated `CategoricalCrypto.agda` root then
+passed at `-M6G -H1G` in **269.40 s** (parent job `bg221`), rebuilding the
+static, `TheoryTests`, `InterpretationTests`, and affected existing clients,
+with no warnings. The implementor's escape-hatch inventory remained the same
+16 existing comment matches. These are attributed check observations, not new
+documentation-worker Agda runs or uncontended performance claims.
+
+### Fresh-name admissibility: UAR-028
+
+**Disposition: checked resolution for the generic theory contract and its
+literal-absence freshness consequences.** The existing [`EqTheory`][sym-term]
+now requires sort-preserving name-to-term substitution congruence:
+
+```text
+Substitution = ∀ {s} → Name → Tm s
+subst-cong : ∀ σ {s} {t u : Tm s}
+           → t ≈E u → substᵗ σ t ≈E substᵗ σ u
+```
+
+This is a mandatory field of the supported theory, not an optional wrapper or
+parallel weak interface. Uniform `ren-cong` and sort-indexed `renˢ-cong` are
+derived from it. Per-sort `nontrivial` is retained. If `name n ≈E t` and `n`
+does not occur in `t`, substituting either of two inequivalent same-sort witnesses
+for `n` fixes `t` and would identify those witnesses. The derived `fresh-name`,
+`name-injective`, and `distinct-names` make that reasoning available to clients.
+
+[`Terms.recipe-names`][sym-term] and [`Deduction.⊬-fresh`][sym-deduction] connect this law to
+recipes: a name absent from the exposed frame and not granted by `own` cannot be
+deduced. [`Role.Run.emits≉fresh`][sym-role] applies the result to actual role
+emissions using the received-frame and ownership hypotheses. The concrete
+[`PairEnc.E₀`][sym-pairenc] proves the stronger substitution law with its existing
+normalization relation; substitution preserves its rewrite steps, including
+repeated decryption keys. No weaker cryptographic assumption is substituted for
+the missing algebraic law.
+
+The original counterexample is now explicitly exercised in
+[`TheoryTests.Collapse`][symbolic-theory-tests]. The module proves the former
+renaming-only fields separately, including nontriviality and canonical-form
+support, without retaining an obsolete `EqTheory` record. `public-forgery`,
+`owned-forgery`, and `guard-accepts-forgery` witness the old attack.
+`collapse-not-subst-closed` and `collapse-not-EqTheory` show why that relation
+cannot satisfy or represent the new admissible contract.
+`TheoryTests.Supported` consumes E₀ deduction and `Role.Run.exec`: public
+guesses and another occurrence's fresh name are rejected, same-name equality
+still succeeds, and an actual fresh-emitting role consumes `emits≉fresh`.
+
+**Boundary retained:** the theorem requires literal absence from the
+exposed/received frame and lack of ownership. A key occurring inside a ciphertext
+is not literally absent. This is not ciphertext confidentiality, an IND-CPA/
+INT-CTXT reduction, or a quantitative guessing bound for a concrete nonce sampler.
+`Role.Own κ` still grants every counter at occurrence `κ`, including counters
+not yet allocated; the theorem protects an unseen name outside that conservative
+ownership approximation, not every future counter of the same role.
+
+### Stronger-class converse claim: UAR-038
+
+**Disposition: the unsupported impossibility claim is withdrawn for the
+substitution-closed class; the generic converse remains UNPROVED.**
+
+The historical cross-sort shared-name rewrite is not closed under the mandatory
+substitution above: occurrences of one raw code at distinct sorts may be sent to
+different names. The old normalizer distinction therefore cannot establish
+impossibility for admissible theories. The [symbolic plan](uc-setup-symbolic.md),
+§3.7, and corresponding [model presentation](uc-models.typ) now state this
+qualification instead of claiming the obstruction survives the stronger law.
+The old multisort obstruction was a source-derived semantic argument, not an
+Agda counterinstance; this disposition does not retroactively label it checked.
+
+`EqTheory.renˢ-cong` supplies `Deduction.SortBlind` for every admissible theory.
+The implemented converse is still the concrete
+[`Static.PairEnc.≈ℰ⇔≈ₛ`][symbolic-static-pairenc] theorem at E₀.
+Generalizing its tester and naming-recovery proof to arbitrary sorted signatures
+has not been done. Neither **proved generally** nor **impossible generally** is
+the correct status.
+
+### Representation and channel limitations that remain
+
+| Existing finding | Status after the strengthened contract |
+|---|---|
+| [UAR-029](#uar-029), names and ownership by raw code | **Unresolved, with a checked witness now available.** `TheoryTests.SortedOccurrences.free` is an admissible two-sort free theory; `split-first`/`split-second` exercise independent sorted substitution images and `owned-at-two-sorts` constructs recipes at both sorts from one raw ownership code. This is not a sorted-name representation migration. |
+| [UAR-033](#uar-033), public versus restricted frame names | **Unchanged.** Private-frame APIs still do not carry an independent restriction list. The new freshness law does not make a public name occurring in a frame available to recipes excluded by `Foreign`. |
+| [UAR-037](#uar-037), stochastic interface legs | **Unchanged.** The generic [`RelSim` API][symbolic-relsim-current] is still more general than a deterministic-projection coupling contract; checked pure-interface symbolic consumers do not resolve the generic qualification. |
+| [UAR-039](#uar-039), factorized channel | **Unchanged.** [`SecureChannel`][symbolic-channel-current] still supplies independent ciphertext/honest emitters for a fixed public message, not a receiver decrypting an adversarially delivered ciphertext. Its uniform encryption-of-zero opacity result remains useful. |
+| [UAR-030](#uar-030) and [UAR-031](#uar-031), `Simple` and operational correspondence | **Unchanged.** The theory repair does not strengthen the terminal-behavior predicate, add applied-pi races/replication, or prove a context/observational correspondence. |
+
+### Formal interpretation status and the separate computational review
+
+The checked [`sym≅→iso`][symbolic-machine] is a formal interpretation of fine
+coherence equality; it deliberately forgets global freshness and initialization.
+It is not preservation of the coarse `Sym` observation. The checked
+[`CertifiedSource.Sym≅ᶜ.StdSetup` and `fine→comp`][symbolic-computational]
+use a **distinct certificate-bearing syntactic source**. Its generators carry
+unit-free boundaries, positive constant-rate schedules, and direct certificates
+for the actual runtime at every parameter. This is an additional source setup
+beyond the 15 baseline instances, not a retroactive renaming of unrestricted
+`Sym≅`. Given a sort and an inhabitant of the scheme's `Bits` carrier,
+[`no-backwards-certificate`][symbolic-obstruction] rejects direct certificates
+at every natural rate for the backwards role, without claiming the stronger
+obstruction for `QB`'s machine-equivalence closure.
+
+The accompanying narrow correction in [uc-models.typ](uc-models.typ) moves these
+interpretations out of the designed-only paragraph, makes their diagram arrows
+solid, and gives the computational arrow its actual `Sym≅ᶜ` source. No
+unconditional `Sym≅ → PMᴺ` arrow is asserted. These formal morphisms are not a
+cryptographic reduction. [`Soundness.Derived`][symbolic-soundness] still requires
+an operational `Backtranslation`; `sound-≤UC` returns a symbolic dummy witness
+with feasible contextual agreement, not the target's canonical adversary-
+quantified UC order.
+
+The completed `ReviewSymbolicComputational` assessment of
+`fd212866d1ca3ff663e23019a401c1112e5c3f44` is incorporated in the
+[computational-symbolic supplement](#review-fd212866) below. Main identifies
+those source proofs with the ones integrated here. Its adversarial evidence
+remains separate from the green checks above: typechecking does not establish
+theory correspondence or resolve the remaining cryptographic prerequisites.
+
+[symbolic-theory-tests]: ../src/CategoricalCrypto/Symbolic/TheoryTests.agda
+[symbolic-static-pairenc]: ../src/CategoricalCrypto/Symbolic/Static/PairEnc.agda
+[symbolic-relsim-current]: ../src/CategoricalCrypto/Machines/Sim/Relational.agda
+[symbolic-channel-current]: ../src/CategoricalCrypto/Symbolic/Example/SecureChannel.agda
+[symbolic-machine]: ../src/CategoricalCrypto/Symbolic/Machine.agda
+[symbolic-computational]: ../src/CategoricalCrypto/Symbolic/Computational.agda
+[symbolic-obstruction]: ../src/CategoricalCrypto/Symbolic/Computational/Obstruction.agda
+[symbolic-soundness]: ../src/CategoricalCrypto/Symbolic/Soundness.agda
+
+<a id="pm-choice-leaf-disposition"></a>
+## Checked PM-choice leaf disposition — 63b3d702 (isolated)
+
+**Implementation evidence, not a new read-only-review claim.** The
+`PMChoiceInitialization` implementor reports green source commits `06f9de06`,
+`2fdb879c`, and `63b3d702`, based on the original `4c9bf3e1` baseline. The three
+new modules are `ND/PM/Choice/Initialization.agda`,
+`ND/PM/Choice/Initialization/Graded.agda`, and
+`ND/PM/Choice/Initialization/Example.agda`. Their declarations were inspected
+in the isolated implementation workspace. The implementor reports targeted
+`pagda -M3G -H1G` checks passing, an empty warning gate, and the escape-hatch
+baseline unchanged at 16. Its root-importer retry at 6G was still pending after
+a 3G dependency-memory exhaustion when this evidence was received. This
+paragraph does **not** report integrated-parent or completed root validation.
+
+### UAR-023: formal counterexample and correctly delimited replacement law
+
+The original unrestricted constant-pick claim remains false; its failure is
+now expressed at the actual public PM `NDB` UC boundary, not only by an
+operational sketch. `Example.half-initialization-≰UC-B` refutes emulation from
+the half-initialized branch to its singleton choice, at grades `(I, [])` and
+`(I, ⊤ ∷ [])`. The branch starts with mass 1/2 and returns true after activation.
+`Graded.B-emulation⇒closed-resolver` extracts **one arbitrary resolver** from a
+purported `NDB` emulation, using the public regrading equivalence, dummy
+completeness, and `FullAbstraction.≈ᵁ⇒≈ᴿ`. The same resolver must match both the
+zero-query and one-query strategies:
+
+- Matching the branch's zero-query verdict forces resolver initial mass at most
+  1/2 (`SameResolver.initial-mass≤½`).
+- A successful activation still requires the chosen branch's independent
+  half-initialization. The resulting true mass is at most 1/4
+  (`activated-mass≤¼`), whereas the original branch has mass 1/2.
+
+Thus the proof excludes every resolver, including partial, stateful ones. It
+does not assume an inert simulator or select a different simulator for each
+test.
+
+The replacement `Graded.constant-pick-≤UC-B` requires an explicit selected
+`s : S` and `Constant.TotalInitialization branches s`, defined as `ASTotal` of
+**that selected branch's initialization**. The branches have no further choice
+sites (`S → Proc⁺ [] A B`); no totality premise is imposed on unselected
+branches, and the theorem does not require all later transitions to terminate.
+It proves the public graded `NDB` emulation at `(I, [])` versus `(I, S ∷ [])`,
+via `Constant.constant-pick-≈ᴿ`. This is the delimited repair, not restoration
+of the unrestricted idempotence law.
+
+### UAR-034: actual PM-B security and stateful closed-run coverage
+
+`Example.stateful-≤UC-B` instantiates the positive theorem with a total Boolean
+toggle branch. On input `a` and retained state `t`, it emits `a xor t` and
+updates to `not t`. Starting from true, the two **distinct** activations false
+then true both return true. `stateful-closed-run` checks the actual
+`plugᴹ (constant-pick true)` execution; `stateful-observed-run` reaches the
+closed `cupᵒ`/`playᵒ`/`Obs` boundary and observes their conjunction as true.
+Reinitializing the branch before its second activation would instead make
+that conjunction false. These are genuine positive/negative `NDB` clients and
+a retained-state observation, improving the PM-B row of UAR-034.
+
+This does not supply a PM-A negative, PM A/B non-reflection, arbitrary
+sequential/tensor scheduling clients, or a repeated-request chooser. UAR-024,
+UAR-025, and UAR-026 remain model boundaries; the original global-abort
+observation in UAR-001 is not repaired.
+
+**Subsequent isolated closure and partial integration.** The implementor's final
+report includes docs commit `ff134350` and root-registration commit `226a4fbd`.
+After the 3G root and first 6G root attempts exhausted dependency memory, the
+documented `UC/Model/Family.agda` priming step passed at 6G, followed by the full
+isolated root at 6G with an empty complete-output warning gate. These are
+reported validation runs, not uncontended performance measurements. Main has
+integrated the three source commits as `f07a63a8`, `0595cf6d`, and `e70c33c3`
+and reports `Initialization/Example.agda` passing at `-M3G -H1G` in 14.63 s.
+That is an affected-client check, not a parent root check. The docs/root-
+registration commits and **parent integrated closure are still pending** at
+this append. This updates the earlier pending isolated-root status without
+conflating the two workspaces' checks.
+
+<a id="review-fd212866"></a>
+## Computational-symbolic adversarial findings — fd212866
+
+**Reviewed source snapshot:** `fd212866d1ca3ff663e23019a401c1112e5c3f44`
+(`fd212866`), the completed preserved workspace reviewed by
+`ReviewSymbolicComputational` (GPT-6-Astra). Main identifies these source proofs
+with those integrated through `d898f3f0`. Review evidence remains distinct from
+the integration checks recorded above.
+
+**Completed assessment:** the certificate-bearing setup and its formal
+interpretation are appropriately scoped. The operational `Backtranslation`
+contract nevertheless needs the uniform-error correction in UAR-040 before it
+can serve the intended cryptographic development. The counterexample refutes
+attainability of that premise under its stated conventional instantiation
+assumptions, not the checked conditional implication.
+
+There is **exactly one new setup schema**:
+`CertifiedSource sch .Sym≅ᶜ.StdSetup`. `ucSetupᴺ` is an existing target;
+`sym≅→iso` targets the existing relational-isomorphism setup; and
+`Execution.Fᶜ`, `FeasibleComparison`, and `Backtranslation` are interpretations,
+relations, or prerequisites, not further setup constructions needing another
+setup assessment. The three supporting reports' full relevant evidence is
+incorporated below. No Agda counterexample or execution check was run by these
+read-only reviewers.
+
+<a id="uar-040"></a>
+### UAR-040 — One extraction error cannot be uniform over every honest circuit
+
+**P1 · T, D · computational-symbolic operational prerequisite.**
+
+[`Extraction.error` and `Extraction.realizes`][symbolic-soundness] choose
+`error : ℕ → ℚ` and its negligibility proof **before** the honest circuit `f`.
+The resulting bound must hold for every `SimpleC f`, without a shared bound on
+circuit size, nonce draws, or runtime. Sharing the extracted context across
+systems is useful; requiring this one error to work for every system is a
+strictly stronger and generally unattainable requirement for the intended
+cryptographic instantiation.
+
+**Source-derived counterexample, not a new Agda theorem:** assume independent
+uniform `η`-bit nonce sampling with injective tags, and a feasibility class
+admitting the ordinary one-query verdict observer. Take a finite circuit with
+`N` simple testers. Each draws two fresh names, tests equality, and reports
+collision; a failing tester emits false and halts. A guard-free Boolean
+aggregator reports whether any pair collided. These components satisfy the
+actual `Simple` contract. Symbolically, fresh pairs are distinct, so every
+such circuit is kernel-equal to an always-false circuit. The admitted fixed
+one-query computational context instead observes true with probability
+
+```text
+1 - (1 - 2^(-η))^N .
+```
+
+The shared extracted contexts, exact `classifies` fields, and source kernel
+equality force the sampled symbolic results to agree. The two `realizes`
+bounds would therefore bound that real-world gap by `2 · error(η)`.
+Because the record ranges over **every finite `N` at each `η`**, take
+`N = 2^η`: the gap is at least 1/2, so `error(η) ≥ 1/4` for every `η`,
+contradicting negligibility. This does not require one exponential-time honest
+family to be admitted: each fixed-`N` circuit is finite and uses a constant
+number of draws; the contradiction exploits the bound being uniform over all
+of them simultaneously. Excluding all such one-query contexts would make the
+intended cryptographic comparison weaker rather than repair the quantifier.
+
+[Comon-Lundh–Cortier][clc08], Lemmas 24–25 (the
+[archived text](kb/sources/papers/comonlundhcortier2008.txt), lines 2005–2150),
+fixes the honest processes and uses process-dependent errors `ν₁,ν₂`.
+The repository's own [`NegligibleBound` discussion][approximate-bounds] likewise
+avoids a bound uniform over arbitrary budgets.
+
+**Action:** keep context extraction shared, but index the approximation error
+and its negligibility proof by the honest circuit or an explicitly fixed
+admissible polynomial resource budget. Derive the final comparison with the
+sum of the two applicable errors rather than necessarily twice one universal
+error. State the relevant honest-system admissibility and feasible-context
+quantifiers together.
+
+**Still valid:** `Derived.sound⁺` is a genuine derivation from the current
+strong `Backtranslation` hypothesis; no field simply assumes kernel
+preservation, and the checked implication is not refuted. The issue is that
+its operational prerequisite cannot be obtained from the intended finite-nonce
+cryptographic assumptions at this uniform scope. No actual `Backtranslation`
+instance or game-based reduction is thereby shown incorrect—none has been
+constructed. Source: the completed `ReviewSymbolicComputational` assessment
+and its previously published incremental finding.
+
+**Disposition at this append: NOT FIXED in the reviewed integration snapshot.**
+`ComputationalErrorResume` continues the error-contract repair; no checked
+repair is recorded here. Likewise, the terminal-behavior overclaim remains the
+existing UAR-030; its resumed implementation work is neither a new finding nor
+a recorded resolution.
+
+[approximate-bounds]: ../src/CategoricalCrypto/UC/Approximate.agda
+
+### Supplementary public-boundary inventory
+
+These are the implemented boundaries relevant to the computational review, not
+four interchangeable computational-security theorems.
+
+| Boundary | Actual source/target and evidence | What is not supplied |
+|---|---|---|
+| [`Machine.sym≅→iso`][symbolic-machine] | Unrestricted fine syntax to relational machine isomorphism; `InterpretationTests.relational-consumer` instantiates it at Σ₀/E₀. | Freshness or initial-state preservation, coarse observational-kernel preservation, or a tested Epi/Mono/UC-transfer result. |
+| [`Computational.Run.Execution`][symbolic-runtime] | Every role executes as an actual PM process; `Fᶜ η` extends it freely at each parameter. Guards use concrete equality, `new` samples independently, and no symbolic normalizer runs on bitstrings. | A family query-bound certificate, correct equations, injective/disjoint tags, uniform nonce sampling, PPT, or a game-security assumption merely from the `Scheme` record. |
+| [`CertifiedSource.fine→comp`][symbolic-computational] | The additional certificate-bearing `Sym≅ᶜ` source maps into `ucSetupᴺ`. `InterpretationTests.CertifiedForward` constructs a real forwarding generator and rate-one certificate for every scheme, pins its carried schedule, and consumes the backwards obstruction. | A certificate for every unrestricted role, a PPT source setup, or cryptographic soundness from the formal setup morphism. |
+| [`FeasibleComparison` and `Derived`][symbolic-soundness] | Honest systems are raw PM families. An externally supplied `Feasible` predicate restricts QB-admissible family tests/closures; comparison quantifies each feasible context and all spectator families. `sound⁺` and `sound-≤UC` consume `Backtranslation`. | A constructed feasible cryptographic instance or attacker-extraction reduction, closure under arbitrary computational adversaries, or the target setup's canonical UC order. UAR-040 additionally challenges the current prerequisite's uniform error scope. |
+
+The actual [`InterpretationTests`][symbolic-interpretation-tests] supplies
+`normalized-kernel` and `normalized-UC` for an E₀ echo versus a projected-pair
+echo. `ConditionalConsumer.normalized-output` and `normalized-dummy` consume
+these proofs, but remain parameterized by `Backtranslation`; they are not an
+instantiated confidentiality proof. The chosen symbolic dummy simulator is
+retained explicitly, and its `SimpleC` proof is required separately.
+
+The exact [`Deterministic.trace⇒bisim`][symbolic-deterministic] theorem uses
+total deterministic Mealy transitions and literal equality of output lists
+for every input list. Taking `Related = TraceEqual`, the head and tail of a
+nonempty trace establish output agreement and closure of related states.
+`ExactEcho.echo-determinate` is an actual role-transition consumer. This useful
+proof is not the missing CLC/applied-pi correspondence involving static-equivalent
+frames, contextual verdicts, or weak observational behavior.
+
+The derived soundness proof is not a circular field assuming its own conclusion:
+`classifies` handles one honest system at a time, `maybe-ext` recovers equality
+of sampled `Maybe Bool` outcomes from both verdict classifications, and the
+approximation bounds are then composed. Retaining `nothing` separately from
+`just false` matters. UAR-040 concerns the quantification of those bounds,
+not this conditional algebraic argument.
+
+<a id="uar-041"></a>
+### UAR-041 — Conventional projection errors need a source-eligibility contract
+
+**P2 · T, D · conditional realization boundary, not an additional defect in the
+stated conditional theorem.**
+
+The current `SimpleC` restriction permits the ground guard
+`π₁(c₀) = π₁(c₁)`. In E₀, projections of those distinct constants are distinct
+irreducible terms, so the symbolic guard is false. Ordinary concrete parsing
+can instead make the guard true: if the encodings of both constants are
+malformed as pairs and projection returns the **same error value** on both,
+their concrete projections compare equal.
+
+**Explicit assumptions for this source-derived, unformalized witness:**
+the two constant encodings are non-pairs; the concrete projection has that
+common-error behavior; the two Boolean reply branches are concretely
+distinguishable; the ground-guard role and its always-false reduction are
+eligible under `SimpleC`; and `Feasible` admits the ordinary one-query observer
+of that reply. Put true on the successful branch and false on a ground
+failure/halt branch. Symbolic execution always takes the latter, while the
+concrete guard takes the former. This gives a constant observation gap from
+the always-false reduction. No concrete `Scheme`, observer, or Agda
+counterexample for this pattern was constructed or checked in the review.
+
+This is not an attack on encryption. Primitive security and correct projection
+of *well-formed* pairs alone do not rule it out. A conventional realization
+needs a well-formedness/error-aware eligibility contract, or symbolic error
+semantics that matches concrete parsing, before claiming a backtranslation for
+all admitted source circuits. The unrestricted `Scheme` interface and the
+conditional implication never claim that such a realization exists. This
+boundary is distinct from UAR-040's error quantifier and UAR-030's terminal
+behavior; neither repair alone establishes this missing correspondence.
+
+### Resource certificates and the test-map boundary
+
+[`Certified c M`][symbolic-query-bound] is a direct potential certificate for
+the actual state, initialization and transition of `M`. Its potential starts
+at most at zero; a left/domain activation returning downwards requires a
+strict potential decrease, whereas a right/codomain activation receives the
+rate allowance. This measures interaction/query resources, **not** CPU time,
+bit complexity, or distinguishing advantage.
+
+`Generator` fixes one positive natural rate per role and supplies a direct
+certificate at **every** parameter; the certificate proof may depend on that
+parameter. `leafᶠ` installs a constant polynomial schedule and explicitly
+consumes the proof through `certified⇒QB` and `qbᵒ`. The free interpretation
+extends these generators to circuits. Family composition/tensor combine
+schedules multiplicatively, while hom-equality forgets their annotations.
+Thus rates are admissible upper bounds, not exact/minimal costs. Composite
+homs carry `QB`; no direct certificate for every displayed composite runtime
+is promised.
+
+`QB c M` permits a machine-equivalent representative with a direct certificate,
+so failure of `Certified c M` cannot silently be strengthened to failure of
+`QB c M`. The inhabited backwards theorem is already sufficient to exclude
+that role from this particular `Generator` interface. Its failure at parameter
+zero contradicts the generator's universal certificate requirement.
+
+The source test `(Y,T)` maps to `F(T)` closed with the query-certified
+`deadᶠ (FY)`. Naturality under source pullback is a genuine forward test-map
+law, **not** coverage of arbitrary target tests or an attacker backtranslation.
+There is no test-map Epi or observational/UC-security preservation artifact.
+The generic transfer route needs additional hypotheses, including test-map
+Epi and target grade stability. No extra silent-drop or certificate-consumption
+defect was found in the inspected codec/dispatch paths; that is read-only
+inspection evidence, not an execution test.
+
+### Feasibility, admitted schemes, and the exact conditional conclusion
+
+The [existing local-negligible target][symbolic-local-negligible] and the
+separate feasible raw-family comparison must not be merged. For a fixed pair
+of honest systems, the latter has quantifier order
+`∀ spectator W. ∀ feasible context c. ∃ negligible ε. ∀ η`.
+The error may depend on that context and pair. It is neither one error uniform
+over all contexts nor per-parameter unrelated witnesses. UAR-040 concerns the
+stronger honest-system uniformity imposed by `Extraction`.
+
+Family tests and closures are **QB-admissible** arrows, not necessarily direct
+`Certified` witnesses for their displayed runtime. The extra `Feasible`
+predicate is externally supplied; no current instance proves that it covers
+all PPT attackers. With the empty predicate there are no context values,
+`extract` can eliminate an impossible feasibility witness, and both premise
+and conclusion are vacuous. The supporting backtranslation review initially
+flagged this as a defect; the completed review classifies it instead as a
+transparent conditional theorem's **instantiation/coverage limitation**, not
+another implementation finding. A meaningful application must supply a
+nonvacuous, adequately covering feasibility class.
+
+A second **source-derived, unformalized** countermodel explains why arbitrary
+`Scheme` values cannot imply backtranslation: take `Bits = Bool`, identity
+tags, a nonce always returning false, `impl pair` always returning false and
+`impl fst` always returning true. The source-equal echo/projected-pair example
+then returns respectively false and true on input false. If `Feasible`
+admits the finite reply observer, the gap is constant. This deliberately
+equation-inconsistent interpretation is allowed by the bare interface; it is
+not a cryptographic instance or a defect in the conditional theorem. UAR-041
+is the stronger eligibility warning for otherwise conventional parsing.
+
+`sound-≤UC` retains **one source dummy simulator before all** spectator/feasible
+contexts, with a separate `SimpleC` obligation. It still lacks target-family
+honest/simulator arrows and a feasibility-closure argument absorbing arbitrary
+computational adversaries. It therefore does not establish
+`∀ target adversary. ∃ target simulator` UC security. The normalized E₀ source
+clients are substantive, but their computational consumers remain conditional
+on an unconstructed `Backtranslation`. `ExactEcho` applies the exact-trace
+theorem to one transition function compared with itself, not to a newly
+proved nontrivial cross-system trace equivalence.
+
+### Primary-theory correspondence: the bridges are not interchangeable
+
+| Primary result | Actual scope | What this slice does not establish |
+|---|---|---|
+| [Abadi–Rogaway, Theorem 1][ar02-text], archived lines 757–812 | Acyclic expressions under type-0 secure encryption; formal expression equivalence implies indistinguishable ensembles. | This is passive expression-level soundness, not active UC. `Scheme` supplies no type-0 game, key-generation/correctness laws, length model or acyclicity evidence. |
+| [Comon-Lundh–Cortier, Theorem 12][clc08], [archived text](kb/sources/papers/comonlundhcortier2008.txt), lines 1245–1248, 1303–1323, 2004–2155 | Restricted simple processes with key hierarchy and joint IND-CPA/INT-CTXT; applied-pi observational equivalence implies computational indistinguishability. Lemmas 15/19/24/25 use computation trees, concrete-attacker trace lifting and process-dependent errors. | E₀ shares the algebraic ingredients, but current verdict may-testing and `Role.Simple` have no checked translation to CLC's process class or equivalence. Exact traces/static equivalence alone are not the adaptive-attacker proof. |
+| [Canetti–Herzog][canetti-herzog06], pp. 394–395 | Restricted simple public-key protocols using ideal certified encryption `Fcpke`; concrete traces map to valid DY traces with negligible failure. | No `Fcpke`, PKE/certification/session machinery, protocol translation or trace-mapping lemma is constructed. The operational `Backtranslation` record is not this mapping lemma. |
+| [BPW, Theorem 7.1][bpw03-text], archived lines 1808–1811; [Böhl–Unruh][bu13], Definition 4.3 and Lemma 4.4 | A reactive cryptographic library/simulator for polynomial-time users and adversaries, and explicit symbolic simulation/UC quantifiers. | The required chosen-route primitives, reductions and arbitrary-adversary simulator are not supplied by a symbolic dummy with filtered contextual agreement. |
+
+For a selected literature route, the missing prerequisites include concrete
+primitive realization/correctness, tags and parsing, lengths and nonce
+security; appropriate key hierarchy/acyclicity and one-use randomness
+conditions; cryptographic games and attacker-extraction reductions; and a
+checked correspondence between the role/may-testing semantics and the chosen
+process/tree/frame semantics. CH/BPW routes require their additional library
+primitives rather than merely the current symmetric-encryption syntax.
+Nothing in the completed review treats these explicitly excluded results as
+defects of the narrower formal declarations. No concrete `Scheme`,
+nonvacuous `Backtranslation`, game reduction, or computational-UC
+acceptance/rejection client was found.
+
+### Completed-review provenance and documentation disposition
+
+The completed assessment incorporates `ReviewCertifiedComp` (certificates,
+actual test map, closure distinction and clients), `ReviewBacktranslation`
+(exact quantifiers, independent proof content, vacuity and realization
+countermodel), and `ReviewSymbolicLiterature` (primary-theory hypotheses and
+documentation status). The final assessment controls their classification:
+UAR-040 is the new contract defect; UAR-041 is a conditional eligibility
+boundary; empty feasibility is a limitation; the terminal claim is carried
+over as UAR-030. No old EqTheory-collapse finding is repeated.
+
+The pinned `uc-models.typ` computational edge/designed-only inventory and
+`README.md` computational-soundness headline were stale. The authorized
+documentation correction now distinguishes the formal `Sym≅ → Iso` map,
+the distinct certified `Sym≅ᶜ → ucSetupᴺ` map, and conditional raw-family
+soundness. It does not upgrade either map to cryptographic security transfer.
+The detailed symbolic plan's §4.2–4.3 and steps 11–13 already state these
+boundaries. This documentation correction resolves the stale presentation,
+**not UAR-030 or UAR-040**, whose implementation work remains separately
+assigned and unverified here.
+
+[symbolic-query-bound]: ../src/CategoricalCrypto/UC/QueryBound.agda
+[symbolic-local-negligible]: ../src/CategoricalCrypto/UC/Family/Negligible/Setup.agda
+[ar02-text]: kb/sources/papers/abadirogaway2002.txt
+[bpw03-text]: kb/sources/papers/backes2003library.txt
+
+[symbolic-runtime]: ../src/CategoricalCrypto/Symbolic/Computational/Run.agda
+[symbolic-interpretation-tests]: ../src/CategoricalCrypto/Symbolic/InterpretationTests.agda
+[symbolic-deterministic]: ../src/CategoricalCrypto/Symbolic/Soundness/Deterministic.agda

@@ -67,6 +67,7 @@
 #let CB = $sans("CB")$
 #let Sym = $sans("Sym")$
 #let Symiso = $sans("Sym")_≅$
+#let Symcert = $sans("Sym")_≅^sans("c")$
 #let NDA = $sans("ND")_sans("A")$
 #let NDB = $sans("ND")_sans("B")$
 #let Std = $sans("Std")$
@@ -1259,6 +1260,9 @@ Solid arrows are formal setup morphisms, dashed arrows designed ones, red dotted
 candidate maps shown _not_ to be morphisms (@sec:non-morphisms). Forgetting the error of a
 quantitative setup (#QPM to #PM, #QRS to #RS, the tiers to their quantitative families) is a change of
 kernel relation on one computational structure (@thm:refine), not drawn.
+The distinct syntactic source #Symcert carries direct query-bound certificates for its actual
+runtime; its arrow to #PMN is not an unconditional interpretation of #Symiso or a cryptographic
+soundness theorem.
 
 #figure(
   diagram(
@@ -1272,6 +1276,7 @@ kernel relation on one computational structure (@thm:refine), not drawn.
     node((2.6, 0), $Iso$, name: <iso>),
     node((3.9, 0), $ITMiso$, name: <itmiso>),
     node((0, 1), $PMN$, name: <pmn>),
+    node((1.3, 1), $Symcert$, name: <symcert>),
     node((2.6, 1), $PM$, name: <pm>),
     node((3.9, 1), $ITM$, name: <itm>),
     node((1.3, 2), $Wio$, name: <wio>),
@@ -1287,8 +1292,8 @@ kernel relation on one computational structure (@thm:refine), not drawn.
     node((2.6, 4), $IPDL$, name: <ipdl>),
     node((3.9, 4), $CB$, name: <cb>),
     edge(<symiso>, <sym>, "->", label: $mcoarse$, label-side: right),
-    edge(<symiso>, <iso>, "-->", label: $msym$),
-    edge(<symiso>, <pmn>, "-->", label: $mcs$),
+    edge(<symiso>, <iso>, "->", label: $msym$),
+    edge(<symcert>, <pmn>, "->", label: $mcs$),
     edge(<itmiso>, <iso>, "->", label: $mitmiso$, label-side: right),
     edge(<itm>, <pm>, "->", label: $mitm$),
     edge(<iso>, <pm>, "-->", label: $mdet$, label-side: right),
@@ -1426,6 +1431,33 @@ verdicts: identity on tests, Epi, so it carries every #Symiso emulation to #Sym 
 @thm:transport(2) with @thm:sym-kernel(1).
 #srcs(cc("Symbolic/Setup.agda", 154, "coarse"), cc("Symbolic/Setup.agda", 159, "coarse-epi"), cc("Symbolic/Setup.agda", 162, "fine→sym"))
 
+=== Formal symbolic interpretations
+
+*$msym : Symiso → Iso$.* #formal The free strong monoidal interpretation of role circuits into
+(reversed) relational machines is `Symbolic/Machine.sym≅→iso`. It respects source coherence,
+not #Sym's observational kernel: its relational execution deliberately forgets global freshness
+and initialization. No Epi/Mono or UC-security transfer result is asserted for this test map.
+#srcs(cc("Symbolic/Machine.agda", 115, "Fᴿ"), cc("Symbolic/Machine.agda", 188, "νᴿ"), cc("Symbolic/Machine.agda", 195, "sym≅→iso"))
+
+*$mcs : Symcert → PMN$.* #formal `CertifiedSource sch` is a distinct source setup, not an alias
+for unrestricted #Symiso. Each generator carries a role, unit-free endpoints, a positive natural
+rate and a direct `Certified` query-bound witness for its actual runtime at every parameter.
+The constant polynomial schedule embeds its execution in `Famᴹ`; free interpretation and the
+syntactic test map give `fine→comp : UCSetupMorphism Sym≅ᶜ.StdSetup ucSetupᴺ`.
+This certifies query admissibility, not PPT, correct cryptographic equations or game security.
+Given a sort and an inhabitant of the scheme's `Bits` carrier, `no-backwards-certificate` refutes
+direct certificates at every natural rate for the backwards role; it is not an obstruction theorem
+about `QB`'s machine-equivalence closure.
+#srcs(cc("Symbolic/Computational.agda", 100, "Generator"), cc("Symbolic/Computational.agda", 143, "Sym≅ᶜ"), cc("Symbolic/Computational.agda", 214, "fine→comp"), cc("Symbolic/Computational/Obstruction.agda", 67, "no-backwards-certificate"))
+
+`Soundness.Derived.sound⁺` separately derives feasible indistinguishability from an operational
+`Backtranslation` premise; no joint IND-CPA/INT-CTXT reduction constructing that premise is proved.
+`sound-≤UC` returns an explicit symbolic dummy simulator with feasible contextual agreement,
+not the target's adversary-quantified UC order. The missing feasibility closure and the weaker
+`Role.Simple` contract remain explicit in #plan("uc-setup-symbolic.md") §4.3. Neither formal
+interpretation supplies a morphism out of #Sym's observational quotient.
+#srcs(cc("Symbolic/Soundness.agda", 129, "sound⁺"), cc("Symbolic/Soundness.agda", 162, "sound-≤UC"), cc("Symbolic/InterpretationTests.agda", 54, "relational-consumer"), cc("Symbolic/InterpretationTests.agda", 86, "computational-consumer"))
+
 === The generic morphisms, instantiated
 
 Besides $mcoarse$ and the observation restriction @prop:Wrestriction, change of kernel $mck$ and
@@ -1441,12 +1473,6 @@ which is closed under composition, tensor and the graded-monad structure; and si
 Then $F$ runs a machine in $Dp$ from its initial state, and $ν(Y, E) = F E ∘ (opid ⊗ ⊥_Y) ∘ ρ^(-1)$
 closes the ancilla with the divergent process. Without the changes only the stateless deterministic
 fragment maps.
-
-*$msym : Symiso → Iso$, $mcs : Symiso → PMN$.* #design $msym$ is the free strong monoidal functor on
-roles into (reversed) relational machines. $mcs$ is a standard morphism into the
-negligible tier, unconditional; _computational soundness_ is then a separate theorem over it, under
-the usual side conditions (IND-CPA with INT-CTXT, or IND-CCA2 with EUF-CMA; typing and tagging) — the
-test map being Mono gives completeness, not soundness. Nothing leaves #Sym itself.
 
 *$mgr : sans("TM")_× → Rel$.* #design The cartesian reading of Turing machines (bitstring tuples under
 $×$, computable functions) maps strongly into #Rel: a function to its graph, a computable predicate to
@@ -1475,8 +1501,6 @@ None of the following is a setup morphism.
 + _#CB to or from any other setup._ An internal round of the G-construction costs at least one causal
   position, so $F(g ∘ f) = F g ∘ F f$ fails; Portmann's synchronous tensor has no image under
   interleaving. Causal boxes are reachable only laxly. #design
-+ _$Sym → RS$, $Sym → Iso$._ Names are guessed with positive probability, so exact soundness fails;
-  only the syntactic twin #Symiso maps. #design
 + _The reverse underlying-test inclusion $WW → Wio$._ Restricted-closure equality need not imply
   full-closure equality, so this representative inclusion is not a setoid map (@prop:Wrestriction).
 + _A morphism reflecting emulation from #NDB to #NDA._ The inclusion preserves $leUC$ and does not
@@ -1501,7 +1525,9 @@ None of the following is a setup morphism.
 + _#Iso into #PM:_ the three model changes behind $mdet$.
 + _The designed setups_ of @sec:designed, starting with #NDA (choice factors, relabellings,
   @prop:nd-incl).
-+ _Computational soundness_ over $mcs$: the side-conditioned theorem and its transport, which needs
-  a preservation hypothesis in place of Epi and grade stability.
++ _Computational soundness:_ construct the operational `Backtranslation` from game-based
+  assumptions, establish the literature correspondence for the honest-role restriction, and
+  supply feasibility closure for adversary-quantified UC transfer. The formal $mcs$ from #Symcert
+  and the derived conditional implication do not discharge these obligations.
 
 #bibliography("kb/refs.bib", title: [References])
