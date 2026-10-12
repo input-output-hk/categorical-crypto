@@ -150,6 +150,12 @@ planned work):
   realizes the message-leaking one, the ideal specification being permissive
   enough that the simulator can discard what it is given.  The converse
   non-realization is not proved.
+  `Examples.FaultFlag.UC` exercises the sealed random-systems quantitative setup:
+  a cached probabilistic fault flag, two genuine quarter-error security-only
+  constructions, a nonidentity version-translating simulator and its composition,
+  and a tight half-error bound rejected at every smaller error for every simulator.
+  Its scope and public theorem chain are in
+  [the RS plan](docs/uc-setup-random-systems.md#46-concrete-positive-error-construction).
 - `CategoricalCrypto` — the root module, re-exporting the public surface of
   this layer.
 

@@ -18,7 +18,7 @@ stay in place so the citation keeps resolving. Classified at `fa45eaf5`.
 | [uc-setup-adversarial-review.md](uc-setup-adversarial-review.md) | current | snapshot-pinned adversarial review of 15 UC setups and the symbolic static/channel extension: stable findings, theory boundaries, counterexamples, actual-target coverage, and append-only later review status |
 | [uc-models.typ](uc-models.typ) | current | the UC models as mathematics: the framework, one section per setup (formal and designed), the morphisms and non-morphisms between them, the major theorems, each linked to its Agda identifier |
 | [uc-setup-itm.md](uc-setup-itm.md) | current | plan: the interactive-Turing-machine setup `StdUC 𝕋ᴹ ℰᵀ` and its morphism into `𝔾ᵒ` |
-| [uc-setup-random-systems.md](uc-setup-random-systems.md) | current | plan: Maurer's random systems as the behavioural quotient `𝔾ᴿ` of `𝔾ᵒ`, with `rewrite⇒RS` |
+| [uc-setup-random-systems.md](uc-setup-random-systems.md) | current | plan: Maurer's random systems as the behavioural quotient `𝔾ᴿ` of `𝔾ᵒ`, with `rewrite⇒RS`; concrete `QSetupᴿ` fault-flag example with two quarter-error security-only steps, nonidentity simulators, composition and a tight half bound |
 | [uc-setup-ssp.md](uc-setup-ssp.md) | current | plan: state-separating proofs / the call-return interaction discipline as a standalone setup and its chain into the well-bracketed quotient of `𝔾ᵒ` |
 | [uc-setup-ipdl.md](uc-setup-ipdl.md) | current | plan: IPDL reaction networks as a setup; why it is an island |
 | [uc-setup-causal-boxes.md](uc-setup-causal-boxes.md) | current | plan: causal boxes as a setup; why no `UCSetupMorphism` reaches them |

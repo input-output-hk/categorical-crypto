@@ -124,6 +124,7 @@ import CategoricalCrypto.Examples.SSP.OneTimePad.Dist
 import CategoricalCrypto.Examples.SSP.OneTimePad.FullTests
 import CategoricalCrypto.Examples.SSP.OneTimePad.ObservationRestriction
 import CategoricalCrypto.Examples.SSP.OneTimePad.WB
+import CategoricalCrypto.Examples.FaultFlag.UC
 open import CategoricalCrypto.Examples.HashForward.Audit
 open import CategoricalCrypto.Examples.RelSetup
 import CategoricalCrypto.Examples.RegradeUnit

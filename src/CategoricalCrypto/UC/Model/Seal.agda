@@ -77,6 +77,9 @@ opaque
   unprocᵒ : {A B : Iface} → ifaceᵒ A G.⇒ ifaceᵒ B → Proc A B
   unprocᵒ f = f
 
+  procᵒ-unprocᵒ : {A B : Iface} (f : ifaceᵒ A G.⇒ ifaceᵒ B) → procᵒ (unprocᵒ f) G.≈ f
+  procᵒ-unprocᵒ _ = G.Equiv.refl
+
   ≈ᴹ⇒≈ᵒ : {A B : Iface} {f g : Proc A B} → 𝒢ₚ 0ℓ [ f ≈ g ] → procᵒ f G.≈ procᵒ g
   ≈ᴹ⇒≈ᵒ e = e
 
@@ -117,8 +120,6 @@ opaque
 
   -- …the same fact read the other way, which is what a machine-layer
   -- functoriality theorem has to cross to become a factoring INSIDE the seal
-  -- (`Protocol.Machine.Compose.morphismCompose`, `UC.Seam.Grounded.factorᵖ`).
-  -- Not derivable from `unprocᵒ-∘` outside: that would want `procᵒ ∘ unprocᵒ`.
   procᵒ-∘ : {A B C : Iface} (g : Proc B C) (f : Proc A B)
           → procᵒ (M._∘_ g f) G.≈ procᵒ g G.∘ procᵒ f
   procᵒ-∘ _ _ = G.Equiv.refl

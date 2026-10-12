@@ -5,8 +5,8 @@
 -- 𝔾ᵒ's readout space `spaceᴹ` is the open `_≈ₚ[_]_` and cannot descend to 𝔾ᴿ,
 -- whose hom equality is only the limit at zero; the closed one does, and then
 -- `≈ᵁ[ ε ]` IS Δ ≤ ε with no slack spent (`≈ᵁᴿ[]⇔∼ᴿ[]`), and the witness at ε
--- IS maurer2011cc Def 3 at ε (`≤UCᴿ[]⇔Constructs`).  Along `rewrite⇒RS` 𝔾ᴿ's
--- error is the slack closure of 𝔾ᵒ's, one simulator for every slack
+-- IS maurer2011cc Def 3 condition 2 at ε (`≤UCᴿ[]⇔Constructs`), SECURITY-ONLY.
+-- Along `rewrite⇒RS`, 𝔾ᴿ's error is the slack closure of 𝔾ᵒ's, one simulator for every slack
 -- (`≤UCᴿ[]⇔Witness⁺`).  Morphisms are passed explicitly, for `Construction`'s
 -- reason.  See docs/uc-setup-random-systems.md §4.4.
 --
@@ -89,7 +89,7 @@ open Observedᴿ public using () renaming (Q to Qᴿ; QSetup to QSetupᴿ; modul
   mk⇔ (≈ᵁᴿ[]⇒∼ᴿ[] {ε = ε} {f = f} {g = g}) (∼ᴿ[]⇒≈ᵁᴿ[] {ε = ε} {f = f} {g = g})
 
 ------------------------------------------------------------------------
--- The construction notion at ε
+-- Security-only construction at ε
 
 infix 4 _≤UCᴿ[_]_
 

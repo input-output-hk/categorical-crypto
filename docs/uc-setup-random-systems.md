@@ -613,6 +613,50 @@ Comparisons with Maurer 2002's normalized resources or CryptHOL's termination
 assumptions require those restrictions independently; adding availability does
 not remove them.
 
+### 4.6 Concrete positive-error construction
+
+`Examples/FaultFlag.agda` and `Examples/FaultFlag/UC.agda` exercise **QSetupᴿ**, starting
+from raw `Proc`s and crossing the opaque graded seal.  This is a SECURITY-ONLY construction,
+not a theorem of `SecurelyConstructs`: no designated no-adversary converters or availability
+proof are provided here.  The separate full predicate is described in §4.5.
+
+The resource is a persistent fault flag: initialization samples one Boolean, and every
+honest read returns that same bit.  The real resource samples `true` with probability `½`,
+the intermediate one with `¼`, and the ideal always answers `false`.  Repeating reads cannot
+amplify a single cached sample.  The adversary can independently request the resource's
+version tag (`original`, `previous`, `latest` respectively).  The simulator is a live
+stateless converter: it forwards the request and translates the returned tag by one
+revision.  On the relevant transactions it maps `latest → previous → original`; it is not
+an identity or an aborting scalar.  The two probabilistic initial laws have mass exactly
+one at depth 2 (`initialization-mass`).
+
+| module | public evidence |
+|---|---|
+| `Examples.FaultFlag` | `half-quarter-cache` and `quarter-false-cache`: uniform `≈ᴿ[¼]` bounds for every adaptive `Strat`, proved by finite cumulative-mass arithmetic and `cum-≤1`, with no security premise |
+| same | `cache-simulates`, `false-cache-clean`: actual machine equalities used only to place the version translator and remove the deterministic cached state; they do not supply the positive error |
+| same | `cache-read`, `clean-read`, `half-true`, `quarter-true`, `component-gap`: the honest event is “the returned fault bit is true”; its masses are `½`, `¼`, `0`, with a quarter gap at each step |
+| same | `simulator-reply`, `double-simulator-reply`, `simulator-not-identity`, `double-simulator-not-identity`: live request/reply executions and refutations of zero-error equality to the identity, including the composed simulator |
+| same | `simulated-clean-read`, `simulated-clean-no-true`: **every** raw simulator leaves honest true-mass zero, even if its initialization diverges; divergence can suppress a false reply but cannot manufacture a true one |
+| `Examples.FaultFlag.UC` | `first-security : realᵒ ≤UCᴿ[¼] middleᵒ`, `second-security : middleᵒ ≤UCᴿ[¼] idealᵒ`, `composed-security : realᵒ ≤UCᴿ[¼ + ¼] idealᵒ`, `half-security : realᵒ ≤UCᴿ[½] idealᵒ` |
+| same | `composed-simulator`, `composed-simulator-image`: the exported witness uses `simᵒ ∘ simᵒ`, whose raw image is `doubleSimulator` |
+| same | `security-condition : Constructs ½ realᵒ idealᵒ`; `no-small-construction` and `no-small-security`: for every rational `ε < ½`, no simulator establishes the corresponding construction or quantitative UC witness |
+
+Composition here is the transitive chain of **two imperfect construction steps**, using
+`Quantitative.≤UCᴿ[]-trans` (and hence the existing advantage/context-absorption triangle
+argument), not a claim about two independent parallel resources.  The composed half bound
+is tight over **all** simulators: one honest read has true-mass `½` in the real system and
+zero in every simulated ideal.  The smaller-bound rejection is a checked theorem, not a
+reviewer's source-derived counterexample.
+
+The witness quantifier is `∃ simulator, ∀ δ > 0, ∀ adaptive strategy`, with both verdict
+masses compared at `ε + δ`; `QUCᴿ` additionally states the equivalent agreement over all
+ancilla closing contexts.  The simulator is fixed before the slack and the strategy.
+`Composition.{procᵒ-≈ᴿ[],unprocᵒ-∼ᴿ[],gradedᵒ-≈ᴿ[],ungradedᵒ-∼ᴿ[]}` preserve the same
+error across the seal; `Model.Seal.procᵒ-unprocᵒ` makes the smaller-bound rejection apply
+to arbitrary sealed simulators, not just raw images chosen by the example author.
+The UC leaf is registered in `CategoricalCrypto.agda`.  No family tier, query-budget
+transformation, availability result or full-Maurer-construction claim is made by this example.
+
 ## 5. Hard parts and risks
 
 ### 5.1 The absorption proofs

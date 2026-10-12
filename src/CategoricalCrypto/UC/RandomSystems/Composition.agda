@@ -33,6 +33,7 @@ open import CategoricalCrypto.Approx.Rational
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Strategy
+open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Behaviour
 open import CategoricalCrypto.UC.Machine.Behaviour.Absorb hiding (module Approximation)
 open import CategoricalCrypto.UC.Machine.Behaviour.Congruence
@@ -125,7 +126,23 @@ approxᵒ {A} {B} = record
   where module R = Approximation (approxᴿ {Pos (objᵒ A) ⊎ Neg (objᵒ B)} {Neg (objᵒ A) ⊎ Pos (objᵒ B)})
 
 opaque
-  unfolding unhomᵒ
+  unfolding unhomᵒ procᵒ gradedᵒ
+
+  procᵒ-≈ᴿ[] : {A B : Iface} {f g : Proc A B}
+              → f ≈ᴿ[ ε ] g → procᵒ f ∼ᴿ[ ε ] procᵒ g
+  procᵒ-≈ᴿ[] e = e
+
+  unprocᵒ-∼ᴿ[] : {A B : Iface} {f g : ifaceᵒ A G.⇒ ifaceᵒ B}
+                 → f ∼ᴿ[ ε ] g → unprocᵒ f ≈ᴿ[ ε ] unprocᵒ g
+  unprocᵒ-∼ᴿ[] e = e
+
+  gradedᵒ-≈ᴿ[] : {A X B : Iface} {f g : Proc A (X ⊗ᴵ B)}
+                → f ≈ᴿ[ ε ] g → gradedᵒ f ∼ᴿ[ ε ] gradedᵒ g
+  gradedᵒ-≈ᴿ[] e = e
+
+  ungradedᵒ-∼ᴿ[] : {A X B : Iface} {f g : Proc A (X ⊗ᴵ B)}
+                  → gradedᵒ f ∼ᴿ[ ε ] gradedᵒ g → f ≈ᴿ[ ε ] g
+  ungradedᵒ-∼ᴿ[] e = e
 
   ∘-resp-∼ᴿ[] : {A B C : G.Obj} {f h : B G.⇒ C} {g i : A G.⇒ B}
               → f ∼ᴿ[ ε ] h → g ∼ᴿ[ δ ] i → (f G.∘ g) ∼ᴿ[ ε ℚ.+ δ ] (h G.∘ i)
