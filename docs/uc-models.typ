@@ -455,7 +455,7 @@ tensor, morphisms with their hom-equality — and the test presheaf. #design row
     [#formal #cc("UC/Quantitative/Observed.agda", 124, "QSetup"), at #PM: #cc("UC/Model/Quantitative.agda", 25, "QSetup to QSetupᵒ")],
     [#QRS \ quantitative #RS], [as #RS], [as #RS],
     [#RS's tests at a measured error, read through the _closed_ verdict slack],
-    [constructive cryptography with an exact $ε$ @maurer2011cc],
+    [constructive cryptography's security condition at exact $ε$ @maurer2011cc],
     [#formal #cc("UC/RandomSystems/Quantitative.agda", 74, "QSetupᴿ"), #cc("UC/RandomSystems/Quantitative.agda", 63, "qevaluationᴿ")],
     [#SSPd \ distributional #SSP], [as #SSP],
     [#SSP's packages under a distributional equality of call trees],
@@ -619,19 +619,19 @@ $eqR$, with every $C_i$ absorbable, then $f eqR^ε g$ gives $H_0 eqR^(n ε) H_n$
 #srcs(cc("Approx/Rational.agda", 95, "hybrid"), cc("UC/RandomSystems/Composition.agda", 78, "hybrid-absorbs"))
 ] <lem:hybrid>
 
-#definition(name: [construction])[
-$f$ _constructs_ $g$ within $ε$, $sans("Constructs")_ε (f, g)$, iff there is a simulator $s$ with
-$f eqR^ε opsub_s ∘ g$ — the security condition of constructive cryptography (@maurer2011cc §5.1,
-Def. 3), with every strategy as distinguisher.
+#definition(name: [security-only construction])[
+$f$ _security-only constructs_ $g$ within $ε$, $sans("Constructs")_ε (f, g)$, iff there is a simulator $s$ with
+$f eqR^ε opsub_s ∘ g$ — condition 2 of constructive cryptography (@maurer2011cc §5.1,
+Def. 3), with every strategy as distinguisher and no availability claim.
 #srcs(cc("UC/RandomSystems/Construction.agda", 76, "Constructs"))
 ] <def:constructs>
 
-#theorem(name: [construction is emulation])[
+#theorem(name: [security-only construction is emulation])[
 + For $f, g$ in #PM: $f leUC g$ in #PM $⟺ sans("Constructs")_0 (f, g) ⟺ mrs(f) leUC mrs(g)$ in #RS.
 + $Δ$ is the quantitative U-agreement of #QPM (@sec:qpm) up to slack: $f eqR^ε g$ iff
   $f eqU_(ε + δ) g$ for every $δ > 0$. Accordingly $sans("Constructs")_ε (f, g)$ iff one simulator
-  witnesses $eqU_(ε + δ)$ for every $δ > 0$, and a quantitative witness at $ε$ is a construction within $ε$.
-+ (@maurer2011cc Thm. 1) $sans("Constructs")_0 (f, f)$; $sans("Constructs")_ε (f, g)$ and
+  witnesses $eqU_(ε + δ)$ for every $δ > 0$, and a quantitative witness at $ε$ gives security-only construction within $ε$.
++ (@maurer2011cc Thm. 1, security obligations) $sans("Constructs")_0 (f, f)$; $sans("Constructs")_ε (f, g)$ and
   $sans("Constructs")_(ε') (g, h)$ give $sans("Constructs")_(ε + ε') (f, h)$ with the simulators composed;
   $sans("Constructs")_ε (f, g)$ and $sans("Constructs")_(ε') (u, v)$ give
   $sans("Constructs")_(ε' + ε) (u ∙ f, v ∙ g)$.
@@ -639,8 +639,35 @@ Def. 3), with every strategy as distinguisher.
 #srcs(cc("UC/RandomSystems/Construction.agda", 89, "≤UC⇔Constructs₀"), cc("UC/RandomSystems/Construction.agda", 114, "≤UCᴿ⇔Constructs₀"), cc("UC/RandomSystems/Construction.agda", 66, "∼ᴿ[]⇔≈ᵁ[]"), cc("UC/RandomSystems/Construction.agda", 120, "Witness⁺"), cc("UC/RandomSystems/Construction.agda", 130, "Constructs⇔Witness⁺"), cc("UC/RandomSystems/Construction.agda", 134, "Witness⇒Constructs"), cc("UC/RandomSystems/Construction.agda", 141, "constructs-refl"), cc("UC/RandomSystems/Construction.agda", 146, "constructs-trans"), cc("UC/RandomSystems/Construction.agda", 158, "constructs-∙"), cc("UC/RandomSystems/Construction.agda", 93, "≈ᵁᴿ⇒∼ᴿ"))
 ] <thm:constructs>
 
-Not covered #design: constructive cryptography's availability condition (a separate
-statement, since $leUC$ never fixes the simulator of the silent adversary); parallel composition of
+#definition(name: [full secure construction with designated modes])[
+For fixed converters $a : X → I$ and $b : Y → I$, let
+$sans("no-adversary")(a, f) := λ^(-1) ∘ opsub_a ∘ f : A → B$.
+$sans("SecurelyConstructs")_(ε_s, ε_a)(a, b, f, g)$ requires both
+$sans("Constructs")_(ε_s)(f, g)$ and
+$sans("no-adversary")(a, f) eqR^(ε_a) sans("no-adversary")(b, g)$.
+The honest protocol is already included in $f = πR$; the converters shield Eve's
+outside port and may answer internal mode queries. They are fixed before all
+distinguishers. Taking $ε_s = ε_a = ε$ and a shared designated converter $a = b = bot$
+at the same Eve interface gives both conditions of @maurer2011cc Def. 3 at the
+compiled honest boundary; distinct typed converters give resource-specific modes.
+The qualitative $sans("SecureConstruction")$
+uses behavioural equality for availability and $leUC$ for security, and is
+equivalent to the two-error predicate at $(0, 0)$.
+#srcs(cc("UC/RandomSystems/Availability.agda", 38, "no-adversary"), cc("UC/RandomSystems/Availability.agda", 55, "SecureConstruction"), cc("UC/RandomSystems/Availability.agda", 61, "SecurelyConstructs"), cc("UC/RandomSystems/Availability.agda", 67, "SecureConstruction⇔SecurelyConstructs₀"))
+] <def:full-constructs>
+
+Full replacement composition adds the security and availability errors separately,
+provided the two designated converters on the intermediate resource are behaviourally
+equal (`securely-constructs-trans`). A simulator factoring suffices when composing it
+with the real no-adversary converter preserves the designated ideal mode
+(`secure-construction-factor`). The mode-bit consumer proves a forced-true
+nonidentity simulator with the same designated mode on both sides, also proves
+compatibility for bit-flipping converters with resource-specific modes, exercises
+composition twice, and rejects full construction for a forced-false simulator,
+despite zero security error.
+#srcs(cc("UC/RandomSystems/Availability.agda", 94, "secure-construction-factor"), cc("UC/RandomSystems/Availability.agda", 118, "securely-constructs-trans"), cc("Examples/RandomSystems/Availability.agda", 206, "not-full₀"), cc("Examples/RandomSystems/Availability.agda", 210, "forced-true-full"), cc("Examples/RandomSystems/Availability.agda", 233, "twice-full₀"))
+
+Not covered #design: parallel composition of
 constructions, whose interchange $(X ⊗ B) ⊗ (X' ⊗ B') ≅ (X ⊗ X') ⊗ (B ⊗ B')$ is available from the
 sealed G-construction symmetry (#cc("UC/Model/Symmetric.agda", 37, "𝔾ˢ"), while the parallel
 construction theorem is not built); and amplification (@maurer2007), which needs conditional probabilities and minima of
@@ -1029,23 +1056,25 @@ $Obs(e ∘ m) scripts(≈̄)_ε Obs(e' ∘ m)$ for every closure $m$.
 #srcs(cc("Approx/Rational.agda", 49, "_≈̄[_]_"), cc("Approx/Rational.agda", 67, "closure"), cc("UC/RandomSystems/Quantitative.agda", 60, "spaceᴿ"), cc("UC/RandomSystems/Quantitative.agda", 63, "qevaluationᴿ"), cc("UC/RandomSystems/Quantitative.agda", 74, "QSetupᴿ"))
 ] <def:qrs>
 
-#theorem(name: [constructive cryptography at an exact $ε$])[
+#theorem(name: [security-only constructive cryptography at an exact $ε$])[
 For #PM protocols $f, g$, read in $𝔾^R$:
 + $f eqU_ε g$ in #QRS iff $f eqR^ε g$: the U-agreement of #QRS is the advantage bound, with no slack spent.
 + $g$ has a #QRS witness at $ε$ for $f$, written $f leUC^ε g$, iff $sans("Constructs")_ε (f, g)$
-  (@def:constructs; @maurer2011cc Def. 3 at $ε$).
+  (@def:constructs; @maurer2011cc Def. 3 condition 2 at $ε$).
 + _Along_ $mrs$: a #QPM agreement (witness) at $ε$ gives a #QRS agreement (witness) at $ε$; and
   $f eqU_ε g$ in #QRS iff $f eqU_(ε + δ) g$ in #QPM for every $δ > 0$, $f leUC^ε g$ in #QRS iff one
   simulator is a #QPM witness at every $ε + δ$.
 + At $ε = 0$ it is emulation in #RS: $mrs(f) leUC mrs(g)$ iff $f leUC^0 g$.
-+ (@maurer2011cc Thm. 1 at a slack.) $f leUC^0 f$; $f leUC^ε g leUC^(ε') h ⇒ f leUC^(ε + ε') h$; and
++ (@maurer2011cc Thm. 1, security obligations at a slack.) $f leUC^0 f$; $f leUC^ε g leUC^(ε') h ⇒ f leUC^(ε + ε') h$; and
   $f leUC^ε g$, $u leUC^(ε') v$ give $u ∙ f leUC^(ε' + ε) v ∙ g$.
 #srcs(cc("UC/RandomSystems/Quantitative.agda", 87, "≈ᵁᴿ[]⇔∼ᴿ[]"), cc("UC/RandomSystems/Quantitative.agda", 97, "_≤UCᴿ[_]_"), cc("UC/RandomSystems/Quantitative.agda", 106, "≤UCᴿ[]⇔Constructs"), cc("UC/RandomSystems/Quantitative.agda", 126, "≈ᵁ[]⇒≈ᵁᴿ[]"), cc("UC/RandomSystems/Quantitative.agda", 131, "Witness⇒≤UCᴿ[]"), cc("UC/RandomSystems/Quantitative.agda", 138, "≈ᵁᴿ[]⇔≈ᵁ[]⁺"), cc("UC/RandomSystems/Quantitative.agda", 144, "≤UCᴿ[]⇔Witness⁺"), cc("UC/RandomSystems/Quantitative.agda", 151, "≤UCᴿ⇔≤UCᴿ[0]"), cc("UC/RandomSystems/Quantitative.agda", 159, "≤UCᴿ[]-refl"), cc("UC/RandomSystems/Quantitative.agda", 162, "≤UCᴿ[]-trans"), cc("UC/RandomSystems/Quantitative.agda", 169, "≤UCᴿ[]-∙"))
 ] <thm:qrs>
 
-So the library's emulation order, kept quantitative over random systems, _is_ Maurer and Renner's
-construction notion at every $ε$, and its composition theorem is the generic one of
-@thm:qmetatheory(3). #PM's own $eqU_ε$ matches it only up to every positive slack (item 3).
+The quantitative emulation order is exactly the _security condition_ of
+@maurer2011cc Definition 3, not full secure construction. Its security composition
+is the generic one of @thm:qmetatheory(3). Full construction additionally fixes
+no-adversary converters and checks availability (@def:full-constructs).
+#PM's own $eqU_ε$ matches security only up to every positive slack (item 3).
 
 === #PMom and #PMN: the vanishing and the negligible tier
 

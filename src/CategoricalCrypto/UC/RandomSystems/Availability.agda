@@ -4,8 +4,8 @@
 -- in f = πR. The grade is Eve's interface; a designated converter X ⇒ I
 -- shields it, possibly answering internal mode queries. The honest boundary
 -- A ⇒ B is unchanged. These converters are parameters, not simulators chosen
--- after a test. Equal security/availability errors give Definition 3's ε;
--- separate errors retain the two bounds independently. See
+-- after a test. Equal errors and a shared designated converter specialize to
+-- Definition 3; distinct typed converters retain resource-specific modes. See
 -- docs/uc-setup-random-systems.md §4.5 for the model assumptions.
 
 open import Categories.Category.Monoidal.Bundle

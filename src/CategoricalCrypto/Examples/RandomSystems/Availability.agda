@@ -207,6 +207,14 @@ not-full₀ : ¬ SecurelyConstructs 0ℚ 0ℚ (mode true) (mode true) (adapted (
 not-full₀ c = not-full (Equivalence.from
   (SecureConstruction⇔SecurelyConstructs₀ {f = adapted (λ _ → false)} {g = ideal}) c)
 
+forced-true-full : SecureConstruction (mode true) (mode true) (adapted (λ _ → true)) ideal
+forced-true-full = secure-construction-factor {s = adaptᵒ (λ _ → true)}
+  {f = adapted (λ _ → true)} {g = ideal} G.Equiv.refl (mode-adapt true (λ _ → true))
+
+forced-true-full₀ : SecurelyConstructs 0ℚ 0ℚ (mode true) (mode true) (adapted (λ _ → true)) ideal
+forced-true-full₀ = Equivalence.to
+  (SecureConstruction⇔SecurelyConstructs₀ {f = adapted (λ _ → true)} {g = ideal}) forced-true-full
+
 flipped-full : SecureConstruction (mode false) (mode true) (adapted not) ideal
 flipped-full = secure-construction-factor {s = adaptᵒ not} G.Equiv.refl (mode-adapt false not)
 

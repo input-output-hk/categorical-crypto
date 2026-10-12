@@ -107,6 +107,7 @@ open import CategoricalCrypto.UC.Model.Quantitative
 open import CategoricalCrypto.UC.Quantitative.EventLift
 open import CategoricalCrypto.UC.QueryBound.Counting
 open import CategoricalCrypto.UC.Robust.Model
+import CategoricalCrypto.UC.RandomSystems.Availability
 import CategoricalCrypto.UC.RandomSystems.Construction
 import CategoricalCrypto.UC.RandomSystems.FullAbstraction
 import CategoricalCrypto.UC.RandomSystems.Morphism
@@ -116,6 +117,7 @@ import CategoricalCrypto.Examples.Channels
 open import CategoricalCrypto.Examples.Commitment
 open import CategoricalCrypto.Examples.Signatures
 open import CategoricalCrypto.Examples.RandomOracle
+import CategoricalCrypto.Examples.RandomSystems.Availability
 import CategoricalCrypto.Examples.SSP.OneTimePad.Dist
 import CategoricalCrypto.Examples.SSP.OneTimePad.WB
 open import CategoricalCrypto.Examples.HashForward.Audit

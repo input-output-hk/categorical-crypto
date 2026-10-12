@@ -2,7 +2,7 @@
 
 Plan, 2026-10-09.  §3–§5 are the design; steps 1–9 of §6 are implemented on branch
 `rs-quotient`, and §6 records what landed, under which names, and where it departs from the
-design; §4.4's toolkit (Δ, composition, hybrids, the construction notion) is on `rs-toolkit`.
+design; §4.4's toolkit (Δ, composition, hybrids, security-only construction) is on `rs-toolkit`.
 It refines `docs/uc-setup-landscape.md` §4 (random systems) and corrects its full-abstraction
 remark (§5.3).
 
@@ -433,7 +433,7 @@ hypothesis-free, and ν (`t ↦ (unit , t)`) stays `Mono` but stops being `Epi`.
 - **SSP** (`docs/uc-setup-ssp.md`): none.  `morphism wireᵖ` is not the G-identity under any
   distinguisher equality — a `Strat` may send an unsolicited answer (`Protocol/Machine.agda:14-19`).
 
-### 4.4 Toolkit: Δ, the composition theorem, hybrids, the construction notion
+### 4.4 Toolkit: Δ, composition, hybrids, security-only construction
 
 Branch `rs-toolkit`; all proved, `--safe`, no postulates.  New modules
 `Approx/Rational.agda` (generic), `UC/RandomSystems/{Advantage,Composition,Construction}.agda`;
@@ -509,8 +509,8 @@ uniformly, and on 𝔾ᵒ.  The hybrid argument proper, one replacement per step
 `hybrid-absorbs`: if hybrid i is ≈ᴿ-equal to `C i f` and hybrid i+1 to `C i g`, each `C i`
 absorbable, then `f ≈ᴿ[ ε ] g` gives `H zero ≈ᴿ[ ∑[ i < n ] ε ] H (fromℕ n)`.
 
-**The construction notion** (maurer2011cc §5.1 Def 3; Def 2 is the compatibility of §4.4 there).
-The security condition with d = Δ over every `Strat` (`Construction.agda`):
+**Security-only construction** (maurer2011cc §5.1 Def 3, condition 2;
+Def 2 is the compatibility of §4.4 there), with d = Δ over every `Strat` (`Construction.agda`):
 
 ```agda
 Constructs ε f g = Σ[ s ∈ Y ℐ.⇒ X ] f ∼ᴿ[ ε ] (sub s ∘ g)     -- f = π R, g = S, s = σ
@@ -522,11 +522,11 @@ Constructs ε f g = Σ[ s ∈ Y ℐ.⇒ X ] f ∼ᴿ[ ε ] (sub s ∘ g)     -- 
 | … and over 𝔾ᴿ along `rewrite⇒RS`: `(Transfer.G rewrite⇒RS f Sᴿ.≤UC Transfer.G rewrite⇒RS g) ⇔ Constructs 0ℚ f g` | `≤UCᴿ⇔Constructs₀` (via `≈ᵁᴿ⇒∼ᴿ`) |
 | Δ against `UC.Quantitative.Observed`'s `≈ᵁ[ε]` at 𝔾ᵒ (`UC.Model.Quantitative.QUCᵒ`): `(f ∼ᴿ[ ε ] g) ⇔ (∀ δ → 0ℚ < δ → f QUCᵒ.≈ᵁ[ ε + δ ] g)` | `≈ᵁ[]⇒∼ᴿ[]` (the cup, `play-cup`), `∼ᴿ[]⇒≈ᵁ[]` (`close-∼ᴿ[]`), `∼ᴿ[]⇔≈ᵁ[]` |
 | the ε-version: `Constructs ε f g ⇔ Witness⁺ ε f g`, `Witness⁺ ε f g = Σ[ s ] (∀ δ → 0ℚ < δ → QUCᵒ.At s (ε + δ) f g)`; `QUCᵒ.Witness ε f g → Constructs ε f g` | `Constructs⇔Witness⁺`, `Witness⇒Constructs` |
-| Thm 1: (iii); (i), simulators composed in fn. 15's order, error ε + ε′; serial composition (`UC-compose`), simulator `(id ⊗ t) ∘ (s ⊗ id)`, error ε′ + ε | `constructs-refl`, `constructs-trans`, `constructs-∙` |
+| Thm 1, security obligations: (iii); (i), simulators composed in fn. 15's order, error ε + ε′; serial composition (`UC-compose`), simulator `(id ⊗ t) ∘ (s ⊗ id)`, error ε′ + ε | `constructs-refl`, `constructs-trans`, `constructs-∙` |
 | exact, at 𝔾ᴿ (`UC/RandomSystems/Quantitative.agda`, `QUCᴿ` = Observed at 𝔾ᴿ read through `Verdict.closure`, `qevaluationᴿ`): `(f QUCᴿ.≈ᵁ[ ε ] g) ⇔ (f ∼ᴿ[ ε ] g)` | `≈ᵁᴿ[]⇒∼ᴿ[]` (the cup), `∼ᴿ[]⇒≈ᵁᴿ[]` (`close-∼ᴿ[]`), `≈ᵁᴿ[]⇔∼ᴿ[]` |
-| Def 3 at ε, exactly: `f ≤UCᴿ[ ε ] g = QUCᴿ.Witness ε f g`, `(f ≤UCᴿ[ ε ] g) ⇔ Constructs ε f g`; at zero `(G f Sᴿ.≤UC G g) ⇔ (f ≤UCᴿ[ 0ℚ ] g)` | `≤UCᴿ[]⇔Constructs`, `≤UCᴿ⇔≤UCᴿ[0]` |
+| Def 3 condition 2 at ε, exactly: `f ≤UCᴿ[ ε ] g = QUCᴿ.Witness ε f g`, `(f ≤UCᴿ[ ε ] g) ⇔ Constructs ε f g`; at zero `(G f Sᴿ.≤UC G g) ⇔ (f ≤UCᴿ[ 0ℚ ] g)` | `≤UCᴿ[]⇔Constructs`, `≤UCᴿ⇔≤UCᴿ[0]` |
 | along `rewrite⇒RS` (`G = Transfer.G rewrite⇒RS`), pointwise: 𝔾ᵒ's error crosses unchanged, `f QUCᵒ.≈ᵁ[ ε ] g → G f QUCᴿ.≈ᵁ[ ε ] G g` and `QUCᵒ.Witness ε f g → G f ≤UCᴿ[ ε ] G g`; 𝔾ᴿ's is the slack closure of 𝔾ᵒ's, `(G f QUCᴿ.≈ᵁ[ ε ] G g) ⇔ (∀ δ → 0ℚ < δ → f QUCᵒ.≈ᵁ[ ε + δ ] g)` and `(G f ≤UCᴿ[ ε ] G g) ⇔ Witness⁺ ε f g` | `≈ᵁ[]⇒≈ᵁᴿ[]`, `Witness⇒≤UCᴿ[]`, `≈ᵁᴿ[]⇔≈ᵁ[]⁺`, `≤UCᴿ[]⇔Witness⁺` (with `≈ᵁᴿ[]-G⇔`, `≤UCᴿ[]-G⇔`) |
-| Thm 1 at `≤UCᴿ[ ε ]`: errors 0, ε + ε′, ε′ + ε as above | `≤UCᴿ[]-refl`, `≤UCᴿ[]-trans`, `≤UCᴿ[]-∙` |
+| Thm 1's security obligations at `≤UCᴿ[ ε ]`: errors 0, ε + ε′, ε′ + ε as above | `≤UCᴿ[]-refl`, `≤UCᴿ[]-trans`, `≤UCᴿ[]-∙` |
 
 The levels permit the ε-version: `QUCᵒ.≈ᵁ[ε]` is `Set₁` (it quantifies over ancillas), Δ is
 `Set`, and the `⇔`s straddle them.  At 𝔾ᵒ it holds up to every positive slack, not at ε itself,
@@ -535,19 +535,83 @@ before the slack, `Witness₊`'s discipline (`UC/Quantitative/Bridge.agda`).  Th
 `QEvaluation` over 𝔾ᴿ: its zero error is `≈ₚ`, which 𝔾ᴿ's hom equality `∼ᴿ` does not imply
 (§3.1).  The closed one is: its zero error is `∼ᵃ` (`≈̄[0]⇔∼ᵃ`), which `∼ᴿ⇒Obs` reads off a
 closed `∼ᴿ`.  There the match is exact — `close-∼ᴿ[]` lands at `≈̄[ ε ]` and the cup reads it
-back — and so is Def 3 at ε.  `UC/Quantitative.agda` has no quantitative `UCSetupMorphism`, so
-the relation to `QUCᵒ` is stated pointwise.  Thm 1 at `≤UCᴿ[ ε ]` is `constructs-*` transported
-along `≤UCᴿ[]⇔Constructs`; `QUCᴿ.at-trans` and `QUCᴿ.at-compose` would give the same errors
-directly.  Not covered: Def 3's availability condition
-d(π⊥R, ⊥S) ≤ ε, a separate statement since `≤UC` never fixes the simulator of the silent adversary;
-and Thm 1 (ii), parallel composition, whose graded tensor of two emulations needs the interchange
-`(X ⊗ B) ⊗ (X′ ⊗ B′) ≅ (X ⊗ X′) ⊗ (B ⊗ B′)`, a braiding 𝔾ᵒ does not export (§5.1).
+back — and so is Def 3's security condition at ε. `UC/Quantitative.agda` has no
+quantitative `UCSetupMorphism`, so the relation to `QUCᵒ` is stated pointwise.
+Thm 1's security obligations at `≤UCᴿ[ ε ]` are `constructs-*` transported along
+`≤UCᴿ[]⇔Constructs`; `QUCᴿ.at-trans` and `QUCᴿ.at-compose` give the same errors
+directly. Availability is a separate obligation (§4.5); the emulation equivalences
+do not fix the designated no-adversary converters. Thm 1 (ii), parallel construction,
+still needs a graded tensor and the interchange
+`(X ⊗ B) ⊗ (X′ ⊗ B′) ≅ (X ⊗ X′) ⊗ (B ⊗ B′)`.
 
 **Amplification** (maurer2007 Thm 1, the product theorem): not attempted.  Its proof rests on
 Lemma 5 there, systems with a monotone binary output whose conditionals are
 `min(p^S_{Yⁱ|Xⁱ}, p^T_{Yⁱ|Xⁱ})` and differences of such, and on Δ being the statistical distance of
 transcripts (Def 12 there): conditionals, minima and differences of masses, which `Dₚ`'s lower
 reals do not form — the wall that rules out Lochbihler's `trace` (§3.1 (1)).
+
+### 4.5 Full secure construction with designated no-adversary modes
+
+`UC/RandomSystems/Availability.agda` implements both obligations of Maurer 2011
+§5.1 Definition 3 at an already-compiled honest boundary `f = πR`, `g = S`.
+The grade is the aggregate Eve interface; the remaining boundary `A ⇒ B`
+contains the honest interfaces. Fix `a : X ⇒ I` and `b : Y ⇒ I` in advance:
+their outside interfaces are empty, but they can answer internal queries that
+select a resource's no-adversary mode (the paper's cheating-bit example).
+Closing Eve is `no-adversary a f = unitorˡ.from ∘ (sub a ∘ f)`.
+
+```agda
+AvailableWithin εₐ a b f g = no-adversary a f ∼ᴿ[ εₐ ] no-adversary b g
+SecurelyConstructs εₛ εₐ a b f g
+  -- fields: security : Constructs εₛ f g
+  --         availability : AvailableWithin εₐ a b f g
+```
+
+Both bounds use the existing closed rational advantage over **every** adaptive
+well-founded `Strat`. The security simulator is one converter chosen before all
+strategies and all positive slacks; the availability converters are designated
+parameters, not existential simulators. With `εₛ = εₐ = ε` and a shared designated
+converter `a = b = ⊥` at the same Eve interface, these are Definition 3's two
+inequalities at this compiled boundary. Distinct typed converters give the
+resource-specific-mode generalization. The qualitative
+`SecureConstruction a b f g` uses `f ≤UC g` for security and behavioural
+`Available a b f g` for availability; `SecureConstruction⇔SecurelyConstructs₀`
+proves equivalence at `(0, 0)`. Record constructors introduce both obligations,
+and their `.security` / `.availability` projections expose them independently.
+
+`secure-construction-factor` derives both obligations from a machine factoring
+and explicit converter compatibility `a ∘ s ∼ᴿ b`: the simulator must preserve
+the designated ideal no-adversary mode. `securely-constructs-trans` adds the two
+security errors and the two availability errors separately, provided the
+intermediate designated converters are behaviourally equal. Its qualitative
+counterpart is `secure-construction-trans`. This is replacement composition at
+a fixed honest boundary, not an unproved full parallel-construction theorem or
+the full honest-protocol serial theorem of the paper.
+
+`Examples/RandomSystems/Availability.agda` proves the concrete counterexample:
+the ideal server asks Eve which bit to answer; the no-adversary converter answers
+`true`, while a forced-false simulator answers `false`. `security-only` gives
+zero-error `Constructs`, but `not-available`, `not-full`, and `not-full₀` reject
+the designated full construction. `mode-bit` and `bit-run` compute the two closed
+executions, and `tell` is the honest one-query separating strategy.
+`forced-true-full` / `forced-true-full₀` prove a nonidentity forced-true simulator
+with the **same** designated `mode true` on both sides, the literal shared-⊥
+specialization. A bit-flipping simulator with compatible resource-specific
+designated answers gives `flipped-full` / `flipped-full₀`; `twice-full` /
+`twice-full₀` exercise both composition entry points and return to a shared mode.
+No security or availability premise is assumed for these examples.
+`HashForwardConsumer.hash-security` also transports the existing inhabited-grade,
+three-state HashForward simulator through `≤UC⇒Constructs₀`, and `hash-rs`
+consumes `Constructs₀⇒≤UCᴿ`. This is security-only coverage: no availability
+theorem for arbitrary HashForward resources is claimed.
+
+The ambient model remains the effectful-machine quotient: initialization is
+eager and may diverge, and activation feedback may diverge. This predicate does
+not certify normalized random systems, probabilistic termination, per-query
+budgets, feasibility, or a separate syntactic Alice/Bob converter discipline.
+Comparisons with Maurer 2002's normalized resources or CryptHOL's termination
+assumptions require those restrictions independently; adding availability does
+not remove them.
 
 ## 5. Hard parts and risks
 

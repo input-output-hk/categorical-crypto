@@ -25,7 +25,7 @@ symbolic steps of `uc-setup-symbolic.md` §6; escape-hatch baseline unchanged):
 
 | setup | what exists | key exports |
 |---|---|---|
-| random systems `𝔾ᴿ` | `Categories/…/Construction/Quotient` (generic), `UC/Machine/Behaviour*` (`_≈ᴿ_`, congruence for G-composition and tensor), `UC/RandomSystems/{Seal,Setup,Morphism,FullAbstraction,Advantage,Composition,Construction,Quantitative}` | `rewrite⇒RS : UCSetupMorphism`, `≈ᴿ⇒≈ᵁ`, **`≈ᵁ⇒≈ᴿ`**, **`¬gradeStableᵒ`**, `≈ᴮ⇒≈ᴿ-fin`, `Δ`, `absorbs-Δ`, `hybrid`, `≤UC⇔Constructs₀`, `≤UCᴿ[]⇔Constructs` |
+| random systems `𝔾ᴿ` | `Categories/…/Construction/Quotient` (generic), `UC/Machine/Behaviour*` (`_≈ᴿ_`, congruence for G-composition and tensor), `UC/RandomSystems/{Seal,Setup,Morphism,FullAbstraction,Advantage,Composition,Construction,Quantitative,Availability}` | `rewrite⇒RS : UCSetupMorphism`, `≈ᴿ⇒≈ᵁ`, **`≈ᵁ⇒≈ᴿ`**, **`¬gradeStableᵒ`**, `≈ᴮ⇒≈ᴿ-fin`, `Δ`, `absorbs-Δ`, `hybrid`, security-only `≤UC⇔Constructs₀` / `≤UCᴿ[]⇔Constructs`, full `SecurelyConstructs` with designated modes |
 | ITM `𝕋ᴹ` | `ITM/{Core,Run,Functor,Setup,Relational}`, `FreeMonoidal.freeStrongMonoidal`, `Seal.unitᵒ` | `itm⇒prot` (`ν` Epi+Mono), `≈ℰ⇔`, `itm⇒iso` |
 | SSP (call/return) | `SSP/{Iface,Protocol,Protocol/Category,Protocol/Monoidal,Observation,Setup,Reduction,Compile,Semantics,Cut,Dense,Dense/Tests}`, `Standard2/UKernel`, `Protocol/{Sim,Machine/Resp,Machine/Oracle}`, `UC/Bracket{,/Category}` | `StdSetup`, `Protᴹ`/`Protˢ`, `toProtocol`, `morphism-resp`, `W`, `morphism-W`, `𝒲`, `ι`, **`games-dense`**, **`SSP→PM[wb]`**, **`preserves-≤UC`** |
 | symbolic `𝔻𝕐` (steps 3–8) | `Symbolic/{Term,Term/PairEnc,Deduction,Role,Fine,Semantics,Setup,Test}`, `FreeMonoidal/Decorated` | `Sym≅`, `Sym`, `fine→sym` (`coarse` Epi), **`grade-stable`** (hypothesis-free), `≈ᵁ⇔≈ℰ`, **`emit-≈E`** (E in the kernel), `eval-cong`, `⊢⇔⊢ᵢ`, `emits⊢`; steps 9–10 (`≈ℰ⇔≈ₛ`, `smt≤ideal`) blocked |
@@ -89,15 +89,19 @@ symbolic steps of `uc-setup-symbolic.md` §6; escape-hatch baseline unchanged):
    the two-setup version along a `UCSetupMorphism` (`robustᵁ-transfer` needs `ν.Epi` +
    target `GradeStable`; `robustᵁ-reflect` needs `ν.Mono` + full `Φ`); the
    outcome-only version is refuted (`Examples/RelSetup.agda:blind-incomplete`).
-7. **`≤UC` is constructive cryptography's construction notion**: at ε = 0
-   (`UC/RandomSystems/Construction.agda:≤UC⇔Constructs₀`) and **exactly at every ε**
+7. **`≤UC` is constructive cryptography's security-only emulation condition**:
+   Maurer 2011 Definition 3(2), at ε = 0
+   (`UC/RandomSystems/Construction.agda:≤UC⇔Constructs₀`) and exactly at every ε
    on the quantitative setup over `𝔾ᴿ` with the closed readout
-   (`UC/RandomSystems/Quantitative.agda:≤UCᴿ[]⇔Constructs`, `≈ᵁᴿ[]⇔∼ᴿ[]`, errors add
-   under composition); `𝔾ᵒ`'s own `≈ᵁ[ε]` matches up to every positive slack.  The random-systems
-   toolkit exists: advantage `Δ` with triangle inequality (`Advantage.agda`), Maurer's
-   composition theorem at slack ε and the hybrid lemma (`Composition.agda`,
-   `Approx/Rational.agda:hybrid`).  Amplification (`maurer2007`) is out of reach: `Dₚ`
-   masses are lower reals, no conditional probabilities.
+   (`Quantitative.agda:≤UCᴿ[]⇔Constructs`, `≈ᵁᴿ[]⇔∼ᴿ[]`). It is not the full
+   Definition 3: `Availability.agda:SecurelyConstructs` additionally compares
+   the executions under designated no-adversary converters, with a separate
+   availability error. Shared converters and equal errors specialize to the paper.
+   `Examples/RandomSystems/Availability.agda` proves a mode-bit security-only
+   counterexample and compatible full constructions. The toolkit includes Δ,
+   nonexpansive composition and hybrids; `𝔾ᵒ`'s own `≈ᵁ[ε]` matches up to every
+   positive slack. Amplification (`maurer2007`) is out of reach: `Dₚ` masses are
+   lower reals, with no conditional probabilities.
 8. **The one-time pad is proven in SSP** (`Examples/SSP/OneTimePad.agda:otp≤ideal`, and
    `leaky-not-secure` refuted via `≈ᵁ`), but **not by call-tree simulation**:
    `no-tree-simulation` shows syntactic `≈ᵖ` cannot move the key draw from `send` to
@@ -140,7 +144,7 @@ symbolic steps of `uc-setup-symbolic.md` §6; escape-hatch baseline unchanged):
 
 **In progress** (branches off `uc-setup-landscape`): `ssp-bridge` (𝒲 tensor,
 `SSP→PM[wb]`, transfer corollary; finished by `games-dense`), `rs-toolkit` (advantage Δ, composition theorem,
-hybrid lemma, CC construction notion), `otp-example` (one-time pad in SSP, transported),
+hybrid lemma, security-only CC emulation), `otp-example` (one-time pad in SSP, transported),
 `robust-lemma` (`≤UC ⇔ robust preservation`), plus the performance investigation.
 
 ## 1. What a morphism costs
