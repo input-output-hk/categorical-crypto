@@ -15,6 +15,7 @@ stay in place so the citation keeps resolving. Classified at `fa45eaf5`.
 | [state-event-contract.md](state-event-contract.md) | current | the state-event theorem contract: definitions, quantifier orders, operational counterparts |
 | [simplification-options.md](simplification-options.md) | current | the model's size by layer and the options for simplifying it |
 | [uc-setup-landscape.md](uc-setup-landscape.md) | current | the `UCSetup` landscape: the two setups in the tree, the eight planned ones, which `UCSetupMorphism`s exist or are blocked, and the construction order; entry point to the `uc-setup-*.md` plans |
+| [uc-setup-adversarial-review.md](uc-setup-adversarial-review.md) | current | snapshot-pinned adversarial review of 15 UC setups and the symbolic static/channel extension: stable findings, theory boundaries, counterexamples, actual-target coverage, and append-only later review status |
 | [uc-models.typ](uc-models.typ) | current | the UC models as mathematics: the framework, one section per setup (formal and designed), the morphisms and non-morphisms between them, the major theorems, each linked to its Agda identifier |
 | [uc-setup-itm.md](uc-setup-itm.md) | current | plan: the interactive-Turing-machine setup `StdUC 𝕋ᴹ ℰᵀ` and its morphism into `𝔾ᵒ` |
 | [uc-setup-random-systems.md](uc-setup-random-systems.md) | current | plan: Maurer's random systems as the behavioural quotient `𝔾ᴿ` of `𝔾ᵒ`, with `rewrite⇒RS` |
