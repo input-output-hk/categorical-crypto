@@ -12,6 +12,7 @@ open import Axiom.UniquenessOfIdentityProofs
 open import Data.Empty
 open import Data.List.Base using (List; []; _∷_; _++_)
 open import Data.List.Membership.Propositional
+open import Data.List.Membership.Propositional.Properties
 open import Data.List.Relation.Unary.All
 open import Data.List.Relation.Unary.Any using (here; there)
 open import Data.Maybe
@@ -19,6 +20,7 @@ open import Data.Maybe.Properties using (just-injective)
 open import Data.Nat
 open import Data.Product
 open import Data.Product.Properties
+open import Data.Sum.Base
 open import Data.Unit
 open import Function.Base
 open import Level
@@ -62,20 +64,28 @@ module Terms (𝔖 : Signature) where
   Frame : List Sort → Set
   Frame = All Tm
 
+  -- Each occurrence is substituted at its term sort; one raw code at two
+  -- sorts may therefore have different images (see docs/uc-setup-symbolic.md §3.2).
+  Substitution : Set
+  Substitution = ∀ {s} → Name → Tm s
+
+  substᵗ  : Substitution → Tm s → Tm s
+  substᵗ* : Substitution → All Tm ss → All Tm ss
+  substᵗ σ (name n)   = σ n
+  substᵗ σ (app f ts) = app f (substᵗ* σ ts)
+  substᵗ* σ []       = []
+  substᵗ* σ (t ∷ ts) = substᵗ σ t ∷ substᵗ* σ ts
+
   ren  : (Name → Name) → Tm s → Tm s
   ren* : (Name → Name) → All Tm ss → All Tm ss
-  ren ρ (name n)   = name (ρ n)
-  ren ρ (app f ts) = app f (ren* ρ ts)
-  ren* ρ []       = []
-  ren* ρ (t ∷ ts) = ren ρ t ∷ ren* ρ ts
+  ren ρ = substᵗ (λ n → name (ρ n))
+  ren* ρ = substᵗ* (λ n → name (ρ n))
 
   -- A renaming that may send one name to different names at different sorts.
   renˢ  : (Sort → Name → Name) → Tm s → Tm s
   renˢ* : (Sort → Name → Name) → All Tm ss → All Tm ss
-  renˢ ρ (name {s} n) = name (ρ s n)
-  renˢ ρ (app f ts)   = app f (renˢ* ρ ts)
-  renˢ* ρ []       = []
-  renˢ* ρ (t ∷ ts) = renˢ ρ t ∷ renˢ* ρ ts
+  renˢ ρ = substᵗ (λ {s} n → name (ρ s n))
+  renˢ* ρ = substᵗ* (λ {s} n → name (ρ s n))
 
   names  : Tm s → List Name
   names* : All Tm ss → List Name
@@ -83,6 +93,38 @@ module Terms (𝔖 : Signature) where
   names (app _ ts) = names* ts
   names* []       = []
   names* (t ∷ ts) = names t ++ names* ts
+
+  replaceName : Name → Tm s → Substitution
+  replaceName {s} n t {s′} m with s ≟ˢ s′ | n ≟ₙ m
+  ... | yes refl | yes _ = t
+  ... | _        | _     = name m
+
+  replaceName-same : ∀ n (t : Tm s) → replaceName n t n ≡ t
+  replaceName-same {s} n t with s ≟ˢ s | n ≟ₙ n
+  ... | yes p | yes _ rewrite Decidable⇒UIP.≡-irrelevant _≟ˢ_ p refl = refl
+  ... | no s≢s   | _     = ⊥-elim (s≢s refl)
+  ... | _        | no n≢n = ⊥-elim (n≢n refl)
+
+  replaceName-other : ∀ {s′} n (t : Tm s) m → n ≢ m → replaceName n t {s′} m ≡ name m
+  replaceName-other {s} {s′} n t m n≢m with s ≟ˢ s′ | n ≟ₙ m
+  ... | yes refl | yes n≡m = ⊥-elim (n≢m n≡m)
+  ... | no _     | _       = refl
+  ... | yes refl | no _    = refl
+
+  replaceName-fresh  : ∀ {s′} n (u : Tm s) (t : Tm s′)
+                    → n ∉ names t → substᵗ (replaceName n u) t ≡ t
+  replaceName-fresh* : ∀ n (u : Tm s) (ts : All Tm ss)
+                    → n ∉ names* ts → substᵗ* (replaceName n u) ts ≡ ts
+  replaceName-fresh n u (name m) fresh = replaceName-other n u m (λ e → fresh (here e))
+  replaceName-fresh n u (app f ts) fresh = cong (app f) (replaceName-fresh* n u ts fresh)
+  replaceName-fresh* n u [] _ = refl
+  replaceName-fresh* n u (t ∷ ts) fresh =
+    cong₂ _∷_ (replaceName-fresh n u t (fresh ∘ ∈-++⁺ˡ))
+              (replaceName-fresh* n u ts (fresh ∘ ∈-++⁺ʳ (names t)))
+
+  names-lookup : (φ : Frame Δ) (i : s ∈ Δ) {n : Name} → n ∈ names (lookup φ i) → n ∈ names* φ
+  names-lookup (t ∷ _) (here refl) p = ∈-++⁺ˡ p
+  names-lookup (t ∷ φ) (there i) p = ∈-++⁺ʳ (names t) (names-lookup φ i p)
 
   data Each (P : ∀ {s} → Tm s → Set) : ∀ {ss} → All Tm ss → Set where
     []  : Each P []
@@ -169,6 +211,18 @@ module Terms (𝔖 : Signature) where
   app f ζs ⟨ φ ⟩ = app f (ζs ⟨ φ ⟩*)
   []       ⟨ φ ⟩* = []
   (ζ ∷ ζs) ⟨ φ ⟩* = ζ ⟨ φ ⟩ ∷ ζs ⟨ φ ⟩*
+  recipe-names  : (ζ : Recipe Δ own s) (φ : Frame Δ) {n : Name}
+                → n ∈ names (ζ ⟨ φ ⟩) → n ∈ names* φ ⊎ own n
+  recipe-names* : (ζs : All (Recipe Δ own) ss) (φ : Frame Δ) {n : Name}
+                → n ∈ names* (ζs ⟨ φ ⟩*) → n ∈ names* φ ⊎ own n
+  recipe-names (var i) φ p = inj₁ (names-lookup φ i p)
+  recipe-names (mine _ q) _ (here refl) = inj₂ q
+  recipe-names (mine _ _) _ (there ())
+  recipe-names (app _ ζs) φ p = recipe-names* ζs φ p
+  recipe-names* [] _ ()
+  recipe-names* (ζ ∷ ζs) φ p =
+    [ recipe-names ζ φ , recipe-names* ζs φ ]′ (∈-++⁻ (names (ζ ⟨ φ ⟩)) p)
+
 
   bind  : (∀ {s} → s ∈ Δ → Recipe Δ′ own′ s) → own ⊆ own′ → Recipe Δ own s → Recipe Δ′ own′ s
   bind* : (∀ {s} → s ∈ Δ → Recipe Δ′ own′ s) → own ⊆ own′ → All (Recipe Δ own) ss → All (Recipe Δ′ own′) ss
@@ -204,12 +258,10 @@ module Terms (𝔖 : Signature) where
   Ground* (ζ ∷ ζs) = Ground ζ × Ground* ζs
 
 ------------------------------------------------------------------------
--- An equational theory (`abadi2018applied` §2.2 p. 6): a non-trivial
--- congruence closed under renaming.  Guards are computed, so it is decidable;
--- roles emit and store canonical forms (the normal forms of a convergent
--- theory), so that E-equal programs run alike (`Role.Run.exec-≈E`).  A
--- canonical form mentions no new name, as a normal form cannot: a frame of
--- canonical forms holds only the names it was computed from.
+-- Admissible DY equations are non-trivial congruences closed under
+-- sort-preserving name-to-term substitution (`abadi2018applied` §2.2 p. 6).
+-- Computed guards and canonical storage additionally require decidability,
+-- complete canonical forms, and canonicalization that invents no names.
 
 record EqTheory (𝔖 : Signature) : Set₁ where
   open Signature 𝔖
@@ -219,7 +271,7 @@ record EqTheory (𝔖 : Signature) : Set₁ where
     _≈E_       : ∀ {s} → Tm s → Tm s → Set
     isEquiv    : ∀ {s} → IsEquivalence (_≈E_ {s})
     app-cong   : ∀ f {ts us} → All₂ _≈E_ ts us → app f ts ≈E app f us
-    ren-cong   : ∀ ρ {s} {t u : Tm s} → t ≈E u → ren ρ t ≈E ren ρ u
+    subst-cong : ∀ (σ : Substitution) {s} {t u : Tm s} → t ≈E u → substᵗ σ t ≈E substᵗ σ u
     _≟E_       : ∀ {s} → Decidable (_≈E_ {s})
     nontrivial : ∀ s → ∃₂ λ (t u : Tm s) → ¬ t ≈E u
     canon      : ∀ {s} → Tm s → Tm s
@@ -228,6 +280,28 @@ record EqTheory (𝔖 : Signature) : Set₁ where
     canon-names : ∀ {s} (t : Tm s) {n} → n ∈ names (canon t) → n ∈ names t
 
   module ≈E {s} = IsEquivalence (isEquiv {s})
+
+  ren-cong : ∀ ρ {s} {t u : Tm s} → t ≈E u → ren ρ t ≈E ren ρ u
+  ren-cong ρ = subst-cong (λ n → name (ρ n))
+
+  renˢ-cong : ∀ ρ {s} {t u : Tm s} → t ≈E u → renˢ ρ t ≈E renˢ ρ u
+  renˢ-cong ρ = subst-cong (λ {s} n → name (ρ s n))
+
+  fresh-name : ∀ {s n} {t : Tm s} → n ∉ names t → ¬ name n ≈E t
+  fresh-name {s} {n} {t} fresh e =
+    case nontrivial s of λ { (u , v , separate) → separate (≈E.trans (to u) (≈E.sym (to v))) }
+    where
+    to : (w : Tm s) → w ≈E t
+    to w = subst₂ _≈E_ (replaceName-same n w) (replaceName-fresh n w t fresh)
+                      (subst-cong (replaceName n w) e)
+
+  name-injective : ∀ {s n m} → name {s} n ≈E name m → n ≡ m
+  name-injective {n = n} {m} e with n ≟ₙ m
+  ... | yes n≡m = n≡m
+  ... | no n≢m = ⊥-elim (fresh-name (λ { (here p) → n≢m p ; (there ()) }) e)
+
+  distinct-names : ∀ {s n m} → n ≢ m → ¬ name {s} n ≈E name m
+  distinct-names n≢m = n≢m ∘ name-injective
 
   Tm-setoid : Sort → Setoid 0ℓ 0ℓ
   Tm-setoid s = record { Carrier = Tm s ; _≈_ = _≈E_ ; isEquivalence = isEquiv }

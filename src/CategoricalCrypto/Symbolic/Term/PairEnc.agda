@@ -267,17 +267,17 @@ confluent {t} {u} {v} p q =
 -- The equational theory
 
 private
-  ⟶-ren  : ∀ ρ → t ⟶ u → ren ρ t ⟶ ren ρ u
-  ⟶ᵃ-ren : ∀ ρ → ts ⟶ᵃ us → ren* ρ ts ⟶ᵃ ren* ρ us
-  ⟶-ren ρ (root π₁⟨,⟩)   = root π₁⟨,⟩
-  ⟶-ren ρ (root π₂⟨,⟩)   = root π₂⟨,⟩
-  ⟶-ren ρ (root dec-enc) = root dec-enc
-  ⟶-ren ρ (arg a)        = arg (⟶ᵃ-ren ρ a)
-  ⟶ᵃ-ren ρ (here s)  = here (⟶-ren ρ s)
-  ⟶ᵃ-ren ρ (there a) = there (⟶ᵃ-ren ρ a)
+  ⟶-substᵗ  : ∀ (σ : Substitution) → t ⟶ u → substᵗ σ t ⟶ substᵗ σ u
+  ⟶ᵃ-substᵗ : ∀ (σ : Substitution) → ts ⟶ᵃ us → substᵗ* σ ts ⟶ᵃ substᵗ* σ us
+  ⟶-substᵗ σ (root π₁⟨,⟩) = root π₁⟨,⟩
+  ⟶-substᵗ σ (root π₂⟨,⟩) = root π₂⟨,⟩
+  ⟶-substᵗ σ (root dec-enc) = root dec-enc
+  ⟶-substᵗ σ (arg a) = arg (⟶ᵃ-substᵗ σ a)
+  ⟶ᵃ-substᵗ σ (here s) = here (⟶-substᵗ σ s)
+  ⟶ᵃ-substᵗ σ (there a) = there (⟶ᵃ-substᵗ σ a)
 
-  nf-ren : ∀ ρ t → nf (ren ρ t) ≡ nf (ren ρ (nf t))
-  nf-ren ρ t = ⟶*-nf (gmap (ren ρ) (⟶-ren ρ) (nf-reduces t))
+  nf-substᵗ : ∀ (σ : Substitution) t → nf (substᵗ σ t) ≡ nf (substᵗ σ (nf t))
+  nf-substᵗ σ t = ⟶*-nf (gmap (substᵗ σ) (⟶-substᵗ σ) (nf-reduces t))
 
   All₂-nf : All₂ (λ t u → nf t ≡ nf u) ts us → nf* ts ≡ nf* us
   All₂-nf []       = refl
@@ -310,8 +310,8 @@ E₀ = record
   { _≈E_       = λ t u → nf t ≡ nf u
   ; isEquiv    = record { refl = refl ; sym = sym ; trans = trans }
   ; app-cong   = λ f es → cong (app↓ f) (All₂-nf es)
-  ; ren-cong   = λ ρ {_} {t} {u} e →
-      trans (nf-ren ρ t) (trans (cong (nf ∘ ren ρ) e) (sym (nf-ren ρ u)))
+  ; subst-cong = λ σ {_} {t} {u} e →
+      trans (nf-substᵗ σ t) (trans (cong (nf ∘ substᵗ σ) e) (sym (nf-substᵗ σ u)))
   ; _≟E_       = λ t u → nf t ≟ᵗ nf u
   ; nontrivial = λ _ → name (0 , 0) , name (0 , 1) , λ ()
   ; canon      = nf

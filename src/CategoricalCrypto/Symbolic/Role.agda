@@ -355,6 +355,13 @@ module Run (E : EqTheory 𝔖) where
            → Known (received (inp ∷ hist) , Own κ) (proj₂ (step κ p (after hist) inp))
     emits⊢ hist (i ↦ v) = proj₂ (step⊢ κ p i v (after⊢ hist))
 
+    emits≉fresh : ∀ {m} {t : Tm s} (hist : List (Input x y)) (inp : Input x y)
+                (o : msg s ∈ Outs x y) → m ∉ names* (received (inp ∷ hist)) → ¬ Own κ m
+              → proj₂ (step κ p (after hist) inp) ≡ (o ↦ t) → ¬ t ≈E name m
+    emits≉fresh hist inp o fresh foreign output eq =
+      ⊬-fresh fresh foreign (⊢-conv
+        (subst (Known (received (inp ∷ hist) , Own κ)) output (emits⊢ hist inp)) eq)
+
   _≈ᵛ_ : ∀ {k} → Value k → Value k → Set
   _≈ᵛ_ {msg _} = _≈E_
   _≈ᵛ_ {flag}  = _≡_

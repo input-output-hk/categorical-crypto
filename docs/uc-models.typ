@@ -929,16 +929,16 @@ and the supplies are injective.
 (1) #Sym is grade-stable without hypotheses, so $f eqU g$ iff $f eqE g$. (2) Roles emit and store
 canonical forms of a convergent theory $E$, so two programs of one shape whose recipes agree modulo
 $E$ on every frame are $eqE$-equal generators.
-#srcs(cc("Symbolic/Setup.agda", 123, "grade-stable"), cc("Symbolic/Setup.agda", 129, "≈ᵁ⇔≈ℰ"), cc("Symbolic/Role.agda", 383, "exec-≈E"), cc("Symbolic/Setup.agda", 146, "emit-≈E"))
+#srcs(cc("Symbolic/Setup.agda", 123, "grade-stable"), cc("Symbolic/Setup.agda", 129, "≈ᵁ⇔≈ℰ"), cc("Symbolic/Role.agda", 390, "exec-≈E"), cc("Symbolic/Setup.agda", 146, "emit-≈E"))
 ] <thm:sym-kernel>
 
 The kernel of #Sym is Dolev–Yao trace (may-testing) equivalence (@dolevyao1983).
 
 #theorem(name: [static equivalence of frame emitters])[
-For every signature and convergent theory, statically equivalent frames have $eqE$-equal emitters.
+For every signature and admissible convergent theory, statically equivalent frames have $eqE$-equal emitters.
 For the single-sorted pairing/symmetric-encryption theory $E_0$, the converse also holds:
 two frame emitters are $eqE$-equal iff their frames are statically equivalent at every name supply.
-#srcs(cc("Symbolic/Static.agda", 175, "≈ₛ⇒≈ℰ"), cc("Symbolic/Static/PairEnc.agda", 37, "≈ℰ⇔≈ₛ"), cc("Symbolic/StaticTests.agda", 23, "empty-kernel"), cc("Symbolic/StaticTests.agda", 30, "two-port-kernel"))
+#srcs(cc("Symbolic/Static.agda", 175, "≈ₛ⇒≈ℰ"), cc("Symbolic/Static/PairEnc.agda", 28, "≈ℰ⇔≈ₛ"), cc("Symbolic/StaticTests.agda", 23, "empty-kernel"), cc("Symbolic/StaticTests.agda", 30, "two-port-kernel"))
 ] <thm:sym-static>
 
 #proofidea[The same-recipe relation is a span through an apex machine. Its point and step are
@@ -948,10 +948,11 @@ for the recipes' foreign names, and compares them. A non-injective renaming rest
 names after the possible run changes its existential naming.
 #srcs(cc("Machines/Sim/Relational.agda", 248, "RelSim"), cc("Machines/Sim/Relational.agda", 283, "trace-relsim"), cc("UC/Machine/Relational.agda", 251, "HSim-∘"), cc("Symbolic/Static/Distinguish/Run.agda", 160, "run"), cc("Symbolic/Static/Distinguish.agda", 146, "≈ℰ⇒≈ₛ"))]
 
-The unrestricted converse is false: names in this model are unsorted, so a static recipe can share
-one foreign name across two sorts, whereas fresh allocations in a role cannot. A theory can detect
-that sharing. The exact counterexample and scope are in #plan("uc-setup-symbolic.md") §3.7;
-the theorem above has no added assumption on $E_0$.
+The multi-sort converse is not established for admissible theories. Raw names and ownership remain
+unsorted, but `EqTheory.subst-cong` requires arbitrary sort-preserving name-to-term substitution.
+The historical cross-sort-sharing obstruction fails that closure and does not refute a converse for
+this class. The supported contract, checked fresh-name-collapse rejection, and exact remaining scope
+are in #plan("uc-setup-symbolic.md") §3.2 and §3.7; the theorem above has no added assumption on $E_0$.
 
 #theorem(name: [fixed-public-message symbolic channel])[
 For a public constant $n$, the protocol $"smt"(n)$ gives its honest receiver $n$ and Eve a

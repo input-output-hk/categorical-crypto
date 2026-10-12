@@ -15,7 +15,9 @@ open import Data.List.Membership.Propositional
 open import Data.List.Relation.Unary.All
 open import Data.List.Relation.Unary.Any using (there)
 open import Data.Product
+open import Data.Sum.Base
 open import Function.Bundles
+open import Relation.Nullary
 open import Relation.Unary using (_⊆_)
 
 open Signature 𝔖
@@ -82,6 +84,10 @@ private
 ⊢-owned : proj₂ K n → K ⊢ name {s} n
 ⊢-owned p = mine _ p , ≈E.refl
 
+⊬-fresh : n ∉ names* φ → ¬ own n → ¬ (φ , own) ⊢ name {s} n
+⊬-fresh {φ = φ} fresh not-owned (ζ , e) =
+  fresh-name (λ p → [ fresh , not-owned ]′ (recipe-names ζ φ p)) (≈E.sym e)
+
 bind-⟨⟩  : (σ : ∀ {s} → s ∈ Δ → Recipe Δ′ own′ s) (h : own ⊆ own′)
          → (∀ {s} (i : s ∈ Δ) → σ i ⟨ ψ ⟩ ≈E lookup φ i)
          → (ζ : Recipe Δ own s) → bind σ h ζ ⟨ ψ ⟩ ≈E ζ ⟨ φ ⟩
@@ -122,8 +128,7 @@ infix 4 _≈ₛ_
 _≈ₛ_ : Frame Δ → Frame Δ → Set
 φ ≈ₛ ψ = ∀ {s} (ζ ζ′ : Recipe _ (Foreign φ ψ) s) → (ζ ⟨ φ ⟩ ≈E ζ′ ⟨ φ ⟩) ⇔ (ζ ⟨ ψ ⟩ ≈E ζ′ ⟨ ψ ⟩)
 
--- `abadi2018applied` gives each name one sort; a recipe here may use a foreign
--- name at several sorts, which no role can replay (each `new` is a new name).
--- A theory blind to that leaves static equivalence observable by roles.
+-- This is a consequence of `EqTheory.subst-cong`, witnessed by `renˢ-cong`;
+-- raw name identity and recipe ownership nevertheless remain unsorted.
 SortBlind : Set
 SortBlind = ∀ (ρ : Sort → Name → Name) {s} {t u : Tm s} → t ≈E u → renˢ ρ t ≈E renˢ ρ u

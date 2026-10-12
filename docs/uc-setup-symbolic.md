@@ -104,7 +104,7 @@ strategies realize every trace) and `∃` over fresh names.
 ### 3.2 Signature, terms, equational theory, deducibility
 
 Built: `Symbolic/Term.agda`, `Symbolic/Term/PairEnc.agda`, `Symbolic/Deduction.agda`, all
-`--safe --without-K`, each about 4 s warm; `Symbolic/Test.agda` exercises them. Freshness uses
+`--safe --without-K`; `Symbolic/{Test,TheoryTests}.agda` exercise them. Freshness uses
 located names, as §5 risk 1 recommends: the occurrence bijections cost 24 cases in `Decorated`
 (§3.5).
 
@@ -120,6 +120,9 @@ module Terms (𝔖 : Signature) where              -- downstream: `open Terms �
     name : Name → Tm s
     app  : (f : Sym) → All Tm (dom f) → Tm (cod f)
   Frame = All Tm                                 -- every name of a frame is restricted
+  Substitution = ∀ {s} → Name → Tm s
+  substᵗ : Substitution → Tm s → Tm s            -- substᵗ*, on tuples
+  renˢ : (Sort → Name → Name) → Tm s → Tm s    -- sort-indexed name renaming
   ren : (Name → Name) → Tm s → Tm s ; names : Tm s → List Name   -- and ren*, names* on tuples
   data Each (P : ∀ {s} → Tm s → Set) : All Tm ss → Set            -- lookupᴱ, mapᴱ
   data All₂ (R : ∀ {s} → Tm s → Tm s → Set) : All Tm ss → All Tm ss → Set
@@ -135,7 +138,8 @@ record EqTheory (𝔖 : Signature) : Set₁ where   -- abadi2018applied §2.2 p.
   field _≈E_       : ∀ {s} → Tm s → Tm s → Set
         isEquiv    : ∀ {s} → IsEquivalence (_≈E_ {s})
         app-cong   : ∀ f {ts us} → All₂ _≈E_ ts us → app f ts ≈E app f us
-        ren-cong   : ∀ ρ {s} {t u : Tm s} → t ≈E u → ren ρ t ≈E ren ρ u
+        subst-cong : ∀ (σ : Substitution) {s} {t u : Tm s}
+                   → t ≈E u → substᵗ σ t ≈E substᵗ σ u
         _≟E_       : ∀ {s} → Decidable (_≈E_ {s})  -- guards are computed (§3.5)
         nontrivial : ∀ s → ∃₂ λ (t u : Tm s) → ¬ t ≈E u
         canon      : ∀ {s} → Tm s → Tm s           -- what roles emit and store (§3.3)
@@ -143,6 +147,11 @@ record EqTheory (𝔖 : Signature) : Set₁ where   -- abadi2018applied §2.2 p.
         ≈E⇒canon   : ∀ {s} {t u : Tm s} → t ≈E u → canon t ≡ canon u
         canon-names : ∀ {s} (t : Tm s) → names (canon t) ⊆ names t
   module ≈E {s} = IsEquivalence (isEquiv {s}) ; Tm-setoid : Sort → Setoid 0ℓ 0ℓ
+  ren-cong  : ∀ ρ {s} {t u : Tm s} → t ≈E u → ren ρ t ≈E ren ρ u
+  renˢ-cong : ∀ ρ {s} {t u : Tm s} → t ≈E u → renˢ ρ t ≈E renˢ ρ u
+  fresh-name : ∀ {s n} {t : Tm s} → n ∉ names t → ¬ name n ≈E t
+  name-injective : ∀ {s n m} → name {s} n ≈E name m → n ≡ m
+  distinct-names : ∀ {s n m} → n ≢ m → ¬ name {s} n ≈E name m
 
 -- CategoricalCrypto.Symbolic.Term.PairEnc: CLC Examples 3.1 and 3.3 (pp. 9–10)
 data Op : Set where pair fst snd enc dec : Op ; cst : ℕ → Op   -- enc: plaintext, key, coins
@@ -167,10 +176,55 @@ data _⊢ᵢ_ (K : Knowledge Δ) : Tm s → Set where  -- the rules of §2.3 p. 
 ⊢⇔⊢ᵢ : K ⊢ M ⇔ K ⊢ᵢ M
 ⊢-cut : Each (K ⊢_) φ → own ⊆ proj₂ K → (φ , own) ⊢ M → K ⊢ M   -- with ⊢-conv, ⊢-entry,
 ⊢-wk  : (φ , own) ⊢ M → (t ∷ φ , own) ⊢ M                      --   ⊢-owned, ⊢-own, bind-⟨⟩
+⊬-fresh : n ∉ names* φ → ¬ own n → ¬ (φ , own) ⊢ name {s} n
 Foreign φ ψ n = n ∉ names* φ × n ∉ names* ψ
 _≈ₛ_ : Frame Δ → Frame Δ → Set                 -- Def 2 p. 7; abadi2018applied Def 4.3
 φ ≈ₛ ψ = ∀ {s} (ζ ζ′ : Recipe _ (Foreign φ ψ) s) → (ζ ⟨ φ ⟩ ≈E ζ′ ⟨ φ ⟩) ⇔ (ζ ⟨ ψ ⟩ ≈E ζ′ ⟨ ψ ⟩)
 ```
+
+**Admissible theory contract.** The existing `EqTheory` is strengthened, rather than
+adding a parallel weak semantics or an optional admissibility wrapper. Its closure
+law substitutes a term of the occurrence's sort for each sorted name occurrence;
+the same raw code at two sorts may have independent images. Uniform `ren-cong` and
+sort-indexed `renˢ-cong` are derived laws, not additional fields. E₀ satisfies the
+stronger law: substitution preserves each pairing/decryption rewrite step, and
+substituting before or after normalization gives E-equal results. Every other E₀
+requirement, including `canon-names`, is retained.
+
+`fresh-name` follows from this closure and per-sort `nontrivial`: if `name n ≈E t`
+and `t` does not mention `n`, replace `n` at that sort by either of two inequivalent
+witness terms. Both substitutions fix `t`, forcing the witnesses equal. Hence
+distinct raw names at one sort are inequivalent. `Terms.recipe-names` says an
+evaluated recipe uses only frame names or names granted by `own`; `⊬-fresh` thus
+rules out public guessing of a name absent from the exposed frame and not owned.
+The absence premise is syntactic and conservative: it does not prove confidentiality
+of a secret already occurring inside an exposed ciphertext.
+`Role.Run.emits≉fresh` combines `⊬-fresh` with the unchanged `emits⊢` theorem:
+an emitted term cannot be E-equal to such an unreceived, unowned name.
+
+`TheoryTests.Collapse` checks the historical renaming-only counterinstance without
+retaining an obsolete `EqTheory` record. A one-sort signature has public constants
+`c₀,c₁`; canonicalization maps every name to `c₀` and keeps the constants distinct.
+Its equivalence, congruence, arbitrary-renaming closure, decidability, per-sort
+nontriviality, canonical-form laws, and no-invented-name law all hold. Its public
+constant recipe passes a fresh-name equality guard, and an owned name equals every
+other name. `collapse-not-subst-closed` disproves the stronger closure by substituting
+`c₁` for the secret; `collapse-not-EqTheory` rules out any admissible `EqTheory`
+representing that relation. `TheoryTests.Supported` exercises the actual E₀
+deduction API and `Role.Run.exec`: public guesses and another occurrence's fresh
+name are rejected, while equality with the same raw name still succeeds.
+
+**Representation limit.** Terms are sorted but `Name`, `own`, `Role.Own`, and
+`Foreign` still range over raw pairs of naturals. Ownership of a code grants
+`mine n` at every sort; `TheoryTests.SortedOccurrences.owned-at-two-sorts` is a checked
+witness. Its admissible two-sort free theory also demonstrates independent
+sort-preserving substitution images. This contract repair is not a sorted-name
+representation migration, nor a public/restricted-name redesign of private frames.
+`Role.Own κ` grants every counter with occurrence code `κ`, not just already
+allocated counters; it is a conservative deducibility overapproximation, not an
+exact allocated-name inventory. The non-guessability theorem requires `¬ Own κ n`,
+so it protects another occurrence's unseen name, not an unallocated future counter
+of the same occurrence under that overapproximation.
 
 Departures from the first draft, all forced:
 - `Signature` gains `_≟ᶠ_`: syntactic term equality, hence a decidable E, needs it. The sort
@@ -402,8 +456,8 @@ The kernel `f ≈ℰ g` holds iff every DY environment and closure sharing an an
 same verdicts; it is trace (may-testing) equivalence against DY contexts. Diff-equivalence
 implies `∼o`, which implies this kernel, so ProVerif proofs certify it `[INFERENCE: needs a
 translation of roles into applied-π]`. On frame emitters the kernel is static equivalence
-for E₀ (`Symbolic/Static/PairEnc.≈ℰ⇔≈ₛ`); the unrestricted converse has the sort/name
-obstruction of §3.7. `≤UC` is `bohlunruh2013` Def 4.3, and `≤UCᵈ⇔≤UC` is their
+for E₀ (`Symbolic/Static/PairEnc.≈ℰ⇔≈ₛ`); the multi-sort converse is not established
+under the admissible theory contract (§3.7). `≤UC` is `bohlunruh2013` Def 4.3, and `≤UCᵈ⇔≤UC` is their
 Lemma 4.4, here without hypotheses. The reflexivity concern of
 `delaune2009simulation` (p. 175) does not arise: `≤UC-refl` takes `s = a`.
 
@@ -467,33 +521,32 @@ empty and multi-port frames. If kernel equality changes the existential naming,
 a possibly non-injective renaming restores both the emitter's names and the
 recipe's foreign names. There is no additional hypothesis on E₀.
 
-**Why the unrestricted converse is false.** `Name = ℕ × ℕ` is unsorted:
-`mine n` may be used at two distinct sorts. A role, however, allocates a different
-counter for every `new s`; no recipe changes the sort of a bare name. Globally
-fresh supplies therefore cannot replay cross-sort sharing of one foreign name.
-The following is a semantic counterexample argument, not an Agda counterexample
-module: take distinct sorts `s₁, s₂, s_f, s_y, s_m, s_c`, public constants
-`c₁ ≠ c₂ : s_m`, and symbols
-`f : s₁ × s₂ → s_f`, `seal : s_m × s_y → s_c`,
-`open : s_c × s_f → s_m`. Normalize by the terminating rule
+**Multi-sort scope.** `Name = ℕ × ℕ` and recipe ownership remain unsorted:
+`mine n` can occur at two sorts, whereas roles allocate a new raw name at each
+`new s`. This is a representation limitation, not a demonstrated impossibility of
+the static converse for admissible `EqTheory`.
 
-```
-open(seal(x, y), f(name {s₁} n, name {s₂} n)) → x.
-```
+The historical renaming-only contract admitted a proposed obstruction with distinct
+sorts `s₁,s₂,s_f,s_y,s_m,s_c`, public `c₁ ≠ c₂ : s_m`,
+`f : s₁ × s₂ → s_f`, `seal : s_m × s_y → s_c`, and
+`open : s_c × s_f → s_m`, normalized by
+`open(seal(x,y),f(name {s₁} n,name {s₂} n)) → x`.
+Ordinary uniform name renaming preserves the shared raw code. Arbitrary
+sort-preserving name-to-term substitution does not: map the `s₁` occurrence to
+`name n₁` and the `s₂` occurrence to `name n₂`, where `n₁ ≠ n₂`. The substituted
+left side is irreducible under that rule while the substituted right side remains
+`x`. This semantic argument was not an Agda counterinstance; it is excluded by
+the stronger closure and cannot refute a generic converse for the supported class.
+Recipe-variable substitution alone is a different law and does not establish
+admissibility.
 
-The rule is stable under ordinary name renaming, and normalization discards but
-never invents names. The one-entry emitters `seal(c₁, a)` and `seal(c₂, a)` have
-indistinguishable role runs: no closed role circuit can construct the opening
-token `f(n, n)`. Yet the static recipe
-`open(var 0, f(mine n, mine n))`, compared with `c₁`, distinguishes them for a
-foreign `n`. Adding ordinary substitution closure does not repair this mismatch.
-
-`Deduction.SortBlind` records preservation of E under sort-indexed name renaming
-`Terms.renˢ`. It is proved for E₀ (`Static/PairEnc.sort-blind`), but is **not**
-an `EqTheory` field or an assumption disguising the unrestricted theorem.
-Obtaining a general equivalence requires changing the model (sorted names or
-sort-consistent static recipes), or an explicitly restricted class of theories.
-The computational steps 11–13 must use the actual E₀ theorem above.
+`Deduction.SortBlind` records preservation under `Terms.renˢ`; every admissible
+theory now has the witness `EqTheory.renˢ-cong`, including E₀'s existing
+`Static/PairEnc.sort-blind`. The checked converse remains the E₀ theorem above:
+generalizing its tester and naming-recovery proof to arbitrary sorted signatures
+is not implemented, and no impossibility theorem is claimed for that class.
+The computational steps 11–13 must use the actual E₀ theorem when they need this
+equivalence.
 
 ## 4. Morphisms
 
@@ -725,8 +778,9 @@ listed exports.
    **Built**, with `Static/{Emitter,Same,Relational,Distinguish}` and
    `Distinguish/{Tester,Run,Names}`. The functional case, feedback and G closure are
    in `Machines/Sim/Relational`, `UC/Machine/Relational`, `UC/Model/Relational`.
-   `Symbolic/StaticTests` exercises the public equivalence. The unrestricted
-   converse is false for the reason and counterexample of §3.7, not missing proof work.
+   `Symbolic/StaticTests` exercises the public equivalence. The multi-sort
+   converse for admissible theories remains unproved; the historical weak-contract
+   counterexample does not apply to the substitution-closed class (§3.7).
 10. `Symbolic/Example/SecureChannel.agda`: the compatible fixed-public-message E₀
     fragment has the Eve-only `real≈simulated`, `real≤simulated` and the full
     honest/Eve-port `smt≤ideal`. The real protocol is the tensor of the ciphertext
