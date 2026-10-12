@@ -26,7 +26,7 @@ symbolic steps of `uc-setup-symbolic.md` §6; escape-hatch baseline unchanged):
 | setup | what exists | key exports |
 |---|---|---|
 | random systems `𝔾ᴿ` | `Categories/…/Construction/Quotient` (generic), `UC/Machine/Behaviour*` (`_≈ᴿ_`, congruence for G-composition and tensor), `UC/RandomSystems/{Seal,Setup,Morphism,FullAbstraction,Advantage,Composition,Construction,Quantitative,Availability}` | `rewrite⇒RS : UCSetupMorphism`, `≈ᴿ⇒≈ᵁ`, **`≈ᵁ⇒≈ᴿ`**, **`¬gradeStableᵒ`**, `≈ᴮ⇒≈ᴿ-fin`, `Δ`, `absorbs-Δ`, `hybrid`, security-only `≤UC⇔Constructs₀` / `≤UCᴿ[]⇔Constructs`, full `SecurelyConstructs` with designated modes |
-| ITM `𝕋ᴹ` | `ITM/{Core,Run,Functor,Setup,Relational}`, `FreeMonoidal.freeStrongMonoidal`, `Seal.unitᵒ` | `itm⇒prot` (`ν` Epi+Mono), `≈ℰ⇔`, `itm⇒iso` |
+| ITM `𝕋ᴹ` | `ITM/{Core,Run,Functor,Setup,Relational,Relational/Tests}`, `Machine/Initialized`, `FreeMonoidal.freeStrongMonoidal`, `Seal.unitᵒ` | `itm⇒prot` (`ν` Epi+Mono), `≈ℰ⇔`, structural `Relational.Uninitialized.⇒iso`, `initializedLeaf`, same-table/different-start initialized trace separation |
 | SSP (call/return) | `SSP/{Iface,Protocol,Protocol/Category,Protocol/Monoidal,Observation,Setup,Reduction,Compile,Semantics,Cut,Dense,Dense/Tests}`, `Standard2/UKernel`, `Protocol/{Sim,Machine/Resp,Machine/Oracle}`, `UC/Bracket{,/Category}` | `StdSetup`, `Protᴹ`/`Protˢ`, `toProtocol`, `morphism-resp`, `W`, `morphism-W`, `𝒲`, `ι`, **`games-dense`**, **`SSP→PM[wb]`**, **`preserves-≤UC`** |
 | symbolic `𝔻𝕐` (steps 3–9; fixed-message step 10) | `Symbolic/{Term,Term/PairEnc,Deduction,Role,Fine,Semantics,Setup,Static,Static/PairEnc,Test,TheoryTests,StaticTests,Example/SecureChannel}`, `FreeMonoidal/Decorated`, `Machines/Sim/Relational`, `UC/{Machine,Model}/Relational` | `Sym≅`, `Sym`, `fine→sym` (`coarse` Epi), **`grade-stable`** (hypothesis-free), `≈ᵁ⇔≈ℰ`, **`emit-≈E`**, **generic `≈ₛ⇒≈ℰ`**, **E₀ `≈ℰ⇔≈ₛ`**; admissible `EqTheory` closes under sorted name-to-term substitution, with `fresh-name`, `distinct-names`, `⊬-fresh`; fixed-public-message **`smt≤ideal`** with a non-identity simulator, `real≈simulated`, `real≤simulated`; the admissible multi-sort static converse is unproved, and environment-selected interactive messages are not covered |
 | nondeterministic choice (over any symmetric 𝕄; at SSP and PM) | `Abstract2/Regrade{,/Pin,/Unit}`, `Categories/…/Construction/Transport` (`Closed`, `weaken`), `ND/{Grade,A,Relabel}`, `ND/SSP/{Choice,Choice/Compose,Choice/Pin,Choice/Dist,Setup,Laws,Reflect}`, `UC/Model/Symmetric`, `ND/PM/{Factor,Read,Relabel,Setup,Choice,Choice/Compose,Choice/Pin}` | `regraded`, `inclusion`, `𝔾ˢ`, `NDB`, `NDA`, **`A⇒B`**, `≤UC-B⇔≤UC`, `≤UC⇒relabel`, PM online request/resume and compilation laws; SSP `swap-ᵖ`, **`order-indep`**, **`¬reflect`** |
@@ -167,7 +167,7 @@ tensor), so the morphism shape is `Standard2/Morphism.agda:StdUCMorphism`: a
 The existing constructors are `changeKernel` (same 𝒞/ℐ/ℳ, new tests), `idᵁ`,
 `composeᵁ`, the epi/mono `Factorization`, `Abstract2/WideSubcategory` (restrict to a
 wide subcategory of admissible morphisms, pull tests back) and `StdUCMorphism`.  Concrete
-cross-model instances now in the tree: `rewrite⇒RS`, `itm⇒prot`, `itm⇒iso`, `ι⇒prot`
+cross-model instances now in the tree: `rewrite⇒RS`, `itm⇒prot`, `ITM.Relational.Uninitialized.⇒iso`, `ι⇒prot`
 (§0 table; the complete list with their data is `docs/uc-models.typ` §5).
 
 ## 2. The two concrete setups in the tree
@@ -255,9 +255,14 @@ definitional and `F-resp-≈` is the existing `⟦⟧-resp-≈`.  Corrections to
 draft: `WideSubcategory` fails not on identities but because `W-sub` must hold at every
 ambient adversary and `subSetup` keeps `ℐ`; runtime bounds (PPT) are not a category
 (`hofheinz2013` §1.5), so "feasible" is a side condition, not a sub-setup; the arrow
-`ITM → machine-iso` exists only from a second observation `ℰᴵˢᵒ = ℰ-tests ∘F Fᴿ.op`
-(module with K), and the triangle with `protocol-rewrite` commutes only on
-deterministic leaves, up to a mirror iso of wires.
+`ITM.Relational.Uninitialized.⇒iso` uses the second, all-state structural observation
+`Uninitialized.ℰ = ℰ-tests ∘F Uninitialized.F.op` (module with K); it is not an initialized
+or probability-sensitive security interpretation. Separately, `initializedLeaf` and
+`Machine.Initialized.Executes` retain `blank`/`start` and thread finite activation traces.
+`ITM.Relational.Tests` proves same-table/different-start output separation and positive
+one- and two-query executions. This execution boundary is not another `UCSetup`.
+A categorical comparison with `protocol-rewrite` needs additional initialization,
+deterministic realizers, and a mirror iso of wires; the trace API does not provide it.
 
 ## 4. Random systems, SSP, IPDL
 
@@ -392,7 +397,7 @@ Verdicts after the plans.  `──▶` = `StdUCMorphism`; `⇢` = restricted or 
 ```
 cartesian / one-shot        reactive / ⊎ world
 ─────────────────────       ──────────────────────────────────────────────────────────
-TM functions (×) ──▶ Rel    Sym≅ ──▶ machine-iso ◀── ITM(det, ℰᴵˢᵒ)
+TM functions (×) ──▶ Rel    Sym≅ ──▶ machine-iso ◀── ITM(uninitialized)
                              │             ⇢ (+ init, det. fragment)
                              │                   ▼
                              │   𝒲[ι*ℰᵒ] ──▶ protocol-rewrite 𝔾ᵒ ◀── ITM 𝕋ᴹ

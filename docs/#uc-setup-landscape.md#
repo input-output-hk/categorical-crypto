@@ -26,7 +26,7 @@ escape-hatch baseline unchanged):
 | setup | what exists | key exports |
 |---|---|---|
 | random systems `𝔾ᴿ` | `Categories/…/Construction/Quotient` (generic), `UC/Machine/Behaviour*` (`_≈ᴿ_`, congruence for G-composition and tensor), `UC/RandomSystems/{Seal,Setup,Morphism,FullAbstraction}` | `rewrite⇒RS : UCSetupMorphism`, `≈ᴿ⇒≈ᵁ`, **`≈ᵁ⇒≈ᴿ`**, **`¬gradeStableᵒ`**, `≈ᴮ⇒≈ᴿ-fin` |
-| ITM `𝕋ᴹ` | `ITM/{Core,Run,Functor,Setup,Relational}`, `FreeMonoidal.freeStrongMonoidal`, `Seal.unitᵒ` | `itm⇒prot` (`ν` Epi+Mono), `≈ℰ⇔`, `itm⇒iso` |
+| ITM `𝕋ᴹ` | `ITM/{Core,Run,Functor,Setup,Relational}`, `Machine/Initialized`, `FreeMonoidal.freeStrongMonoidal`, `Seal.unitᵒ` | `itm⇒prot` (`ν` Epi+Mono), `≈ℰ⇔`, structural `ITM.Relational.Uninitialized.⇒iso`, `initializedLeaf` finite traces |
 | SSP (call/return) | `SSP/{Iface,Protocol,Protocol/Category,Protocol/Monoidal,Observation,Setup,Reduction,Compile}`, `Standard2/UKernel`, `Protocol/{Sim,Machine/Resp}`, `UC/Bracket{,/Category}` | `StdSetup`, `Protᴹ`/`Protˢ`, `toProtocol`, `morphism-resp`, `W`, `morphism-W`, `𝒲`, `ι` |
 
 **Major findings** (all proven unless marked):
@@ -208,9 +208,11 @@ definitional and `F-resp-≈` is the existing `⟦⟧-resp-≈`.  Corrections to
 draft: `WideSubcategory` fails not on identities but because `W-sub` must hold at every
 ambient adversary and `subSetup` keeps `ℐ`; runtime bounds (PPT) are not a category
 (`hofheinz2013` §1.5), so "feasible" is a side condition, not a sub-setup; the arrow
-`ITM → machine-iso` exists only from a second observation `ℰᴵˢᵒ = ℰ-tests ∘F Fᴿ.op`
-(module with K), and the triangle with `protocol-rewrite` commutes only on
-deterministic leaves, up to a mirror iso of wires.
+`ITM.Relational.Uninitialized.⇒iso` uses a second all-state structural observation,
+`Uninitialized.ℰ = ℰ-tests ∘F Uninitialized.F.op` (module with K), not initialized
+or probability-sensitive security. Initialization-aware finite traces are separate
+(`uc-setup-itm.md` §4.2); a categorical comparison with `protocol-rewrite` requires
+additional initialization, deterministic realizers and a mirror iso of wires.
 
 ## 4. Random systems, SSP, IPDL
 
@@ -335,7 +337,7 @@ Verdicts after the plans.  `──▶` = `StdUCMorphism`; `⇢` = restricted or 
 ```
 cartesian / one-shot        reactive / ⊎ world
 ─────────────────────       ──────────────────────────────────────────────────────────
-TM functions (×) ──▶ Rel    Sym≅ ──▶ machine-iso ◀── ITM(det, ℰᴵˢᵒ)
+TM functions (×) ──▶ Rel    Sym≅ ──▶ machine-iso ◀── ITM(uninitialized)
                              │             ⇢ (+ init, det. fragment)
                              │                   ▼
                              │   𝒲[ι*ℰᵒ] ──▶ protocol-rewrite 𝔾ᵒ ◀── ITM 𝕋ᴹ
