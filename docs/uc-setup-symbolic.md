@@ -340,9 +340,11 @@ too. `Run.step-terminal` checks the actual control before executing a reaction: 
 `terminal` it returns `nothing`, without evaluating guards, drawing names, changing
 registers/counter, or emitting anything. `Run.run-terminal` executes finite input histories.
 `terminal-jump-exec` derives the fixed error, destination control and unchanged fresh counter;
-`terminal-no-further-behavior` proves every suffix at that control leaves the complete
-configuration unchanged with an empty output trace. `post-terminal-transition` applies
-that theorem after a transition reaches the designated terminal control.
+`terminal-jump-no-further-behavior` derives a silent suffix directly from that reaction shape.
+`terminal-no-further-behavior` proves every suffix at the terminal control leaves the complete
+configuration unchanged with an empty output trace. `post-terminal-transition` applies it
+after a transition reaches that control, and `terminal-transition-trace` proves the complete
+input history emits exactly the transition's one output, regardless of the suffix.
 
 This models the `cout(⊥) · 0` boundary in CLC §3.3, not a translation of all CLC basic
 processes. The generic total `Run.step` and `Fine` remain unrestricted and do **not**

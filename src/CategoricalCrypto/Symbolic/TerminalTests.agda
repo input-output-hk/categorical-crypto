@@ -81,8 +81,8 @@ verdict-terminal = record
 verdict-emitted-once : (suffix : List (Input (Var verdict) (Var verdict)))
   → run-terminal 7 verdict-once verdict-terminal (init verdict-once) ((here refl ↦ true) ∷ suffix)
     ≡ (config (suc zero) [] 0 , (there (here refl) ↦ true) ∷ [])
-verdict-emitted-once suffix rewrite terminal-no-further-behavior 7 verdict-once verdict-terminal
-  (config (suc zero) [] 0) suffix refl = refl
+verdict-emitted-once suffix = terminal-transition-trace 7 verdict-once verdict-terminal
+  (init verdict-once) (config (suc zero) [] 0) (here refl ↦ true) (there (here refl) ↦ true) suffix refl refl
 
 post-verdict-no-activation : (i : Input (Var verdict) (Var verdict))
   → step-terminal 7 verdict-once verdict-terminal (config (suc zero) [] 0) i ≡ nothing
@@ -120,8 +120,9 @@ failed-guard-stops : (suffix : List (Input wire (Var verdict)))
   → run-terminal 7 guarded-verdict guard-terminal (init guarded-verdict)
       ((here refl ↦ app (cst 1) []) ∷ suffix)
     ≡ (config (suc zero) [] 0 , (there (here refl) ↦ false) ∷ [])
-failed-guard-stops suffix rewrite terminal-no-further-behavior 7 guarded-verdict guard-terminal
-  (config (suc zero) [] 0) suffix refl = refl
+failed-guard-stops suffix = terminal-transition-trace 7 guarded-verdict guard-terminal
+  (init guarded-verdict) (config (suc zero) [] 0) (here refl ↦ app (cst 1) [])
+  (there (here refl) ↦ false) suffix refl refl
 
 successful-guard-verdict : step-terminal 7 guarded-verdict guard-terminal (init guarded-verdict)
   (here refl ↦ app (cst 0) []) ≡ just (config (suc zero) [] 0 , there (here refl) ↦ true)

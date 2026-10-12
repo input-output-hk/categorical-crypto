@@ -378,12 +378,29 @@ module Run (E : EqTheory 𝔖) where
   terminal-no-further-behavior κ p t cfg [] _ = refl
   terminal-no-further-behavior κ p t cfg (i ∷ is) e rewrite step-terminal-stopped κ p t cfg i e = refl
 
+  terminal-jump-no-further-behavior : (κ : ℕ) (p : Role x y) {err : TerminalOutput (Outs x y)}
+    (t : Terminal p err) (r : React (Role.n p) (Role.Γ p) (Outs x y) Δ)
+    → TerminalJump (Terminal.terminal t) err r → (φ : Frame Δ) (j : ℕ) (is : List (Input x y))
+    → let cfg = proj₁ (exec κ r φ j) in run-terminal κ p t cfg is ≡ (cfg , [])
+  terminal-jump-no-further-behavior κ p t r tj φ j is =
+    terminal-no-further-behavior κ p t (proj₁ (exec κ r φ j)) is
+      (proj₁ (terminal-jump-exec tj κ φ j))
+
   post-terminal-transition : (κ : ℕ) (p : Role x y) {err : TerminalOutput (Outs x y)}
     (t : Terminal p err) (cfg cfg′ : Config (Role.n p) (Role.Γ p))
     (i : Input x y) (o : Emission (Outs x y)) (is : List (Input x y))
     → step-terminal κ p t cfg i ≡ just (cfg′ , o)
     → control cfg′ ≡ Terminal.terminal t → run-terminal κ p t cfg′ is ≡ (cfg′ , [])
   post-terminal-transition κ p t cfg cfg′ i o is _ = terminal-no-further-behavior κ p t cfg′ is
+
+  terminal-transition-trace : (κ : ℕ) (p : Role x y) {err : TerminalOutput (Outs x y)}
+    (t : Terminal p err) (cfg cfg′ : Config (Role.n p) (Role.Γ p))
+    (i : Input x y) (o : Emission (Outs x y)) (is : List (Input x y))
+    → step-terminal κ p t cfg i ≡ just (cfg′ , o)
+    → control cfg′ ≡ Terminal.terminal t
+    → run-terminal κ p t cfg (i ∷ is) ≡ (cfg′ , o ∷ [])
+  terminal-transition-trace κ p t cfg cfg′ i o is e h
+    rewrite e | terminal-no-further-behavior κ p t cfg′ is h = refl
 
   -- An emitted term is deducible; a bit or a tick carries no term.
   Known : Knowledge Δ → Emission O → Set
