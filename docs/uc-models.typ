@@ -56,7 +56,7 @@
 #let SSP = $sans("SSP")$
 #let SSPd = $sans("SSP")^sans("d")$
 #let ITM = $sans("ITM")$
-#let ITMiso = $sans("ITM")_≅$
+#let ITMuninit = $sans("ITM")_sans("uninit")$
 #let Iso = $sans("Iso")$
 #let Rel = $sans("Rel")$
 #let PMom = $sans("PM")^omega$
@@ -75,7 +75,7 @@
 // Names of morphisms
 #let mrs = $sans("rs")$
 #let mitm = $sans("itm")$
-#let mitmiso = $sans("itm")_≅$
+#let mitmuninit = $sans("itm")_sans("uninit")$
 #let mq = $sans("q")$
 #let mwb = $sans("wb")$
 #let mdet = $sans("det")$
@@ -139,13 +139,13 @@ of #plan("uc-setup-adversarial-review.md") distinguish historical findings from 
 
 *Refresh boundary.* This account includes the checked W comparisons, distributional SSP clients,
 availability API, positive-error QRS example, PM-choice initialization repair, symbolic theory/static
-and certified layers, pure-interface simulation, opt-in terminal runtime, protocol-indexed errors
-and initialized probabilistic ITM security/observation clients. The integrated proof boundary is
-`63d03981` (ITM clients: `90911024`; preceding boundary: `ec1b6a17`; terminal: `b606503c`,
-`41f603b9`; purity: `84b408c8`; original five-item integration: `cf6653e6`).
-Initialized _relational_-ITM execution and an interactive symbolic transmission/decryption
-construction remain ongoing isolated work, not results claimed here. The proposed island
-connections in @sec:designed are research obligations, not newly checked edges.
+and certified layers, pure-interface simulation, opt-in terminal runtime, protocol-indexed errors,
+probabilistic ITM security clients and relational initialization/finite-trace consumers.
+The integrated proof boundary is `4c5ee9ca` (initialization: `35ef17c`; ITM clients: `63d03981`;
+preceding core: `ec1b6a17`; terminal: `b606503c`, `41f603b9`; purity: `84b408c8`;
+original five-item integration: `cf6653e6`). Only the interactive symbolic transmission/decryption
+construction remains ongoing isolated implementation work, not a result claimed here. The proposed
+island connections in @sec:designed are research obligations, not newly checked edges.
 
 #{
   set text(size: 8.7pt)
@@ -444,10 +444,10 @@ the grade category without restricting computations. #design rows are planned, n
     [#PM's tests of the interpreted interface],
     [static-port, always-reply ITM fragment; not full Canetti/IITM correspondence],
     [#formal #cc("ITM/Setup.agda", 39, "StdUC 𝕋ᴹ ℰᵀ"), #cc("ITM/Core.agda", 206, "𝕋ᴹ"), #cc("ITM/Setup.agda", 36, "ℰᵀ"); @thm:itm-client],
-    [#ITMiso \ uninitialized relational ITMs], [as #ITM], [as #ITM],
+    [#ITMuninit \ uninitialized relational ITMs], [as #ITM], [as #ITM],
     [arbitrary #Iso tests of all-state halting relations; whole-composite state isomorphism],
     [structural, unweighted transition interpretation; not initialized execution security],
-    [#formal #cc("ITM/Relational.agda", 125, "StdUC 𝕋ᴹ ℰᴵˢᵒ"), #cc("ITM/Relational.agda", 122, "ℰᴵˢᵒ")],
+    [#formal #cc("ITM/Relational.agda", 177, "Uninitialized.UC"), #cc("ITM/Relational.agda", 174, "Uninitialized.ℰ"); separate finite traces: @thm:itm-initialized],
     [#Sym, #Symiso \ Dolev–Yao], [trees of atoms: term ports, the verdict, the void; concatenation of trees],
     [free monoidal category on Dolev–Yao roles with unit-free boundaries; free monoidal congruence],
     [role circuits with an ancilla; #Sym: possible verdicts in fixed token-passing runs with globally fresh names; #Symiso: circuit syntax],
@@ -929,7 +929,7 @@ drop/corruption command. It does not establish general SSProve samplers, reentra
 asynchronous delivery control or resource-sensitive security. The unrestricted SSP/QRS bounds
 quantify all admitted tests, not a fixed query budget or an adversary-indexed advantage.
 
-== #ITM and #ITMiso: interactive Turing machines <sec:itm>
+== #ITM and #ITMuninit: interactive Turing machines <sec:itm>
 
 #definition(name: [#ITM])[
 A _port interface_ is a finite binary tree whose leaves are ports of polarity $+$ (answers going out) or
@@ -953,21 +953,47 @@ dynamic instances, SID routing and adaptive corruption are not instructions of t
 A change of test kernel or a wide subcategory alone cannot add these transitions, so no GNUC/iUC
 identification (@hofheinz2015gnuc; @camenisch2019iuc) is asserted.
 
-#definition(name: [#ITMiso])[
-$F^r : 𝕋 → Iso$ is the strict monoidal free functor into the relational machines of @sec:iso (whose
+#definition(name: [#ITMuninit])[
+$F^u : 𝕋 → Iso$ is the strict monoidal free functor into the relational machines of @sec:iso (whose
 tensor is reversed, so trees are read mirrored) that reads a leaf as its _halting relation_: from
 memory $m$ and input $x$ the activation can end with output $y$ in memory $m'$; coins become
 nondeterministic choice, divergence has no transition, and the initial memory is forgotten.
-$ITMiso := Std(𝕋, cal(E)^≅ ∘ (F^r)^"op")$.
-#srcs(cc("ITM/Relational.agda", 51, "Halts"), cc("ITM/Relational.agda", 113, "leafᴿ"), cc("ITM/Relational.agda", 117, "Fᴿ"), cc("ITM/Relational.agda", 122, "ℰᴵˢᵒ"), cc("ITM/Relational.agda", 125, "StdUC 𝕋ᴹ ℰᴵˢᵒ"))
-] <def:itmiso>
+$ITMuninit := Std(𝕋, cal(E)^≅ ∘ (F^u)^"op")$.
+The structural API is explicitly named `ITM.Relational.Uninitialized`; it has no initialized
+security interpretation or legacy aliases.
+#srcs(cc("ITM/Relational.agda", 49, "Halts"), cc("ITM/Relational.agda", 112, "Uninitialized.leaf"), cc("ITM/Relational.agda", 167, "Uninitialized.F"), cc("ITM/Relational.agda", 174, "Uninitialized.ℰ"), cc("ITM/Relational.agda", 177, "Uninitialized.UC"))
+] <def:itm-uninit>
 
-The two observations on $𝕋$ must remain distinct: #ITMiso forgets the start memory, probabilities
+The two observations on $𝕋$ must remain distinct: #ITMuninit forgets the start memory, probabilities
 and divergence mass, but retains unreachable and redundant states in whole-composite isomorphism.
 It is neither initialized trace security nor a probability-preserving abstraction of #ITM.
 The unrestricted claim that no natural map can relate the presheaves is too strong:
 mapping every test to an empty-state relational environment gives a degenerate constant natural
 map #design. That map is not Epi/Mono and supplies no useful security correspondence.
+
+*Initialized finite traces are separate.* #formal `InitializedMachine` adds a selected initial
+state to a relational machine. `Steps` threads states through a finite list of inputs and optional
+outputs; `Executes` starts that list at the selected state. `initializedLeaf M` selects `blank M`,
+including `TM.start`. An initialized isomorphism `_≅ⁱ_` must preserve the point, and `≅ⁱ⇒≈ᵗ`
+gives equality of finite possible traces. This boundary is not another UC setup, probability
+semantics or an initialized-security transfer theorem.
+#srcs(cc("Machine/Initialized.agda", 20, "InitializedMachine"), cc("Machine/Initialized.agda", 31, "Steps"), cc("Machine/Initialized.agda", 36, "Executes"), cc("Machine/Initialized.agda", 40, "_≅ⁱ_"), cc("Machine/Initialized.agda", 68, "≅ⁱ⇒≈ᵗ"), cc("ITM/Relational.agda", 212, "initializedLeaf"))
+
+#theorem(name: [initialization is observable in finite traces])[
+#formal Two four-state tables `zeroStart` and `oneStart` have the same transition table and
+different starts. Their uninitialized images are isomorphic, but their initialized executions
+reply respectively false and true. The checked two-query executions repeat their respective
+reply; either opposite first reply is impossible. Hence their initialized finite-trace sets
+differ and no initial-state-preserving isomorphism relates them.
+#srcs(cc("ITM/Relational/Tests.agda", 55, "same-table"), cc("ITM/Relational/Tests.agda", 58, "uninitialized-images-iso"), cc("ITM/Relational/Tests.agda", 78, "two-zero-replies"), cc("ITM/Relational/Tests.agda", 84, "two-one-replies"), cc("ITM/Relational/Tests.agda", 116, "zero-rejects-one"), cc("ITM/Relational/Tests.agda", 121, "one-rejects-zero"), cc("ITM/Relational/Tests.agda", 126, "initialized-traces-differ"), cc("ITM/Relational/Tests.agda", 131, "no-initialized-iso"))
+] <thm:itm-initialized>
+
+The positive `blankLatch` consumer replies false, changes its initially blank work cell to 1,
+then replies true on the next activation. Thus finite execution retains evolving memory
+instead of resetting it to `blank` before every query. The same-table pair also supplies actual
+_uninitialized_ source emulation and its #Iso transport (@prop:mitm-uninit), despite the distinct
+initialized traces; these statements must not be conflated.
+#srcs(cc("ITM/Relational/Tests.agda", 135, "blankLatch"), cc("ITM/Relational/Tests.agda", 144, "initialized-memory-evolves"))
 
 #theorem(name: [the kernel of #ITM is that of #PM])[
 For parallel $f, g$ in $𝕋$: $f eqE g$ in #ITM iff $F^p f eqE F^p g$ in #PM.
@@ -1010,8 +1036,8 @@ two independent fair draws.
 
 This is a finite static-table service under perfect, unrestricted PM-pullback tests, not
 encryption/secrecy, PPT or negligible security, dynamic ITI creation, adaptive corruption,
-or full IITM correspondence. It neither changes the always-reply instruction set nor
-completes the separately ongoing initialized _relational_ interpretation.
+or full IITM correspondence. It neither changes the always-reply instruction set nor turns the
+separate initialized relational finite-trace boundary into an initialized UC setup.
 
 == #Sym and #Symiso: the Dolev–Yao model <sec:sym>
 
@@ -1737,6 +1763,8 @@ Red dotted arrows marked × identify a _specific obstructed candidate_, not a un
 theorem. Quantitative forgetting and family refinements (@thm:refine) are omitted.
 The #Symcert source is distinct from #Symiso and #Sym; its solid arrow to #PMN certifies a
 formal query-admissible interpretation, not cryptographic soundness.
+The #ITMuninit arrow is structural/uninitialized; the checked initialized finite-trace API is
+not an additional setup node or an initialized-security bridge.
 
 #figure(
   diagram(
@@ -1748,7 +1776,7 @@ formal query-admissible interpretation, not cryptographic soundness.
     node((0, 0), $Sym$, name: <sym>),
     node((1.3, 0), $Symiso$, name: <symiso>),
     node((2.6, 0), $Iso$, name: <iso>),
-    node((3.9, 0), $ITMiso$, name: <itmiso>),
+    node((3.9, 0), $ITMuninit$, name: <itm-uninit>),
     node((0, 1), $PMN$, name: <pmn>),
     node((1.3, 1), $Symcert$, name: <symcert>),
     node((2.6, 1), $PM$, name: <pm>),
@@ -1765,7 +1793,7 @@ formal query-admissible interpretation, not cryptographic soundness.
     edge(<symiso>, <sym>, "->", label: $mcoarse$, label-side: right),
     edge(<symiso>, <iso>, "->", label: $msym$),
     edge(<symcert>, <pmn>, "->", label: $mcs$),
-    edge(<itmiso>, <iso>, "->", label: $mitmiso$, label-side: right),
+    edge(<itm-uninit>, <iso>, "->", label: $mitmuninit$, label-side: right),
     edge(<itm>, <pm>, "->", label: $mitm$),
     edge(<pm>, <rs>, "->", label: $mrs$),
     edge(<wio>, <pm>, "->", label: $miota$),
@@ -1842,15 +1870,22 @@ not grade-stable and $F^p$ is not full.
 #srcs(cc("ITM/Setup.agda", 54, "itm⇒prot"), cc("ITM/Functor.agda", 65, "Fᴾ"), cc("ITM/Setup.agda", 44, "νᵀ"), cc("ITM/Setup.agda", 48, "νᵀ-epi"), cc("ITM/Setup.agda", 51, "νᵀ-mono"), cc("ITM/Setup.agda", 57, "≈ℰ⇔"), ag("Categories/FreeMonoidal.agda", 519, "freeStrongMonoidal"))
 ] <prop:mitm>
 
-=== $mitmiso : ITMiso → Iso$
+=== $mitmuninit : ITMuninit → Iso$
 
-#proposition(name: [Turing machines as relations])[
-$mitmiso = (F^r, F^r, opid, ν^r)$ with $F^r$ the halting-relation interpretation of @def:itmiso and
-$ν^r$ Epi and Mono. #instance Since #Iso is grade-stable (@thm:iso-gs), @thm:transport(1)–(2) apply:
-$F^r$ preserves and reflects $eqE$, and $f leUC g$ in #ITMiso implies $F^r f leUC F^r g$ in #Iso, so an
-impossibility in #Iso is one in #ITMiso.
-#srcs(cc("ITM/Relational.agda", 138, "itm⇒iso"), cc("ITM/Relational.agda", 117, "Fᴿ"), cc("ITM/Relational.agda", 128, "νᴿ"), cc("ITM/Relational.agda", 132, "νᴿ-epi"), cc("ITM/Relational.agda", 135, "νᴿ-mono"), cc("Machine/UC.agda", 164, "grade-stable"), cc("Abstract2/Morphism.agda", 75, "transfer"))
-] <prop:mitmiso>
+#proposition(name: [uninitialized Turing machines as relations])[
+$mitmuninit = (F^u, F^u, opid, ν^u)$ with $F^u$ the halting-relation interpretation of
+@def:itm-uninit and $ν^u$ Epi and Mono. #instance Since #Iso is grade-stable (@thm:iso-gs),
+@thm:transport(1)–(2) apply: $F^u$ preserves and reflects $eqE$, and $f leUC g$ in #ITMuninit
+implies $F^u f leUC F^u g$ in #Iso. An impossibility in #Iso is therefore one in #ITMuninit,
+not an initialized or probability-sensitive security claim.
+#srcs(cc("ITM/Relational.agda", 191, "Uninitialized.⇒iso"), cc("ITM/Relational.agda", 167, "Uninitialized.F"), cc("ITM/Relational.agda", 180, "Uninitialized.ν"), cc("ITM/Relational.agda", 185, "Uninitialized.ν-epi"), cc("ITM/Relational.agda", 188, "Uninitialized.ν-mono"), cc("Machine/UC.agda", 164, "grade-stable"), cc("Abstract2/Morphism.agda", 75, "transfer"))
+] <prop:mitm-uninit>
+
+The same-table/different-start pair of @thm:itm-initialized exercises this boundary: its equal
+all-state images yield actual #ITMuninit source emulation, and a checked consumer invokes
+`Transfer.transfer` with `Uninitialized.⇒iso`, the epi test map and #Iso grade stability.
+Different initialized traces are compatible with this explicitly uninitialized transport.
+#srcs(cc("ITM/Relational.agda", 201, "Uninitialized.image-iso⇒≈ᵁ"), cc("ITM/Relational/Tests.agda", 166, "uninitialized-source-emulation"), cc("ITM/Relational/Tests.agda", 172, "transported-uninitialized-emulation"))
 
 This instantiates the grade-stable general transport theorem. The inclusion of #Wio below instead
 uses essential surjectivity of its computational functor. Any proposed triangle with a modified
@@ -2077,8 +2112,9 @@ The IPDL/causal arguments here are #design unless a linked existing theorem is e
   (@def:full-constructs); its serial/parallel honest-protocol composition remains open.
   The PM braiding is built. Amplification and an RS family tier still need conditional-probability
   and resource-grading infrastructure respectively.
-+ _Feasibility and native models._ Intrinsic computable ITM tests need a context/density theorem;
-  initialized execution, silent control transfer and computational validity are distinct issues.
++ _Feasibility and native models._ Intrinsic computable ITM tests need a context/density theorem.
+  The checked initialized finite traces do not supply silent control transfer, computational
+  validity or an initialized UC observation/transport theorem.
 + _The modified deterministic #Iso fragment:_ initialized, nonsilent execution and a useful test map
   behind $mdet$.
 + _Native island connections:_ the ranked concrete witnesses/linker squares of
@@ -2104,11 +2140,11 @@ This ledger records their current scope; absence of a public client is not nonex
   table(columns: (0.85fr, 2.5fr), inset: 4pt, stroke: 0.35pt + luma(65%),
     table.header([*Review IDs*], [*Current disposition*]),
     [001–002, 010–013], [Global partial initialization and unrestricted/readout-sensitive observation remain. Availability is separately built with designated modes, not inferred from security; finite-rational SSP and passive reliable OTP retain their restrictions.],
-    [003–009], [ITM structural/uninitialized versus probabilistic/perfect tests are explicitly separated. The unrestricted presheaf no-go is withdrawn. The probabilistic security/observation client is checked; initialized relational traces remain ongoing. Native silent-control/PPT/context correspondence remains open.],
+    [003–009], [The structural API is explicitly Uninitialized; same-table/different-start and evolving-work-cell finite traces are checked separately. Probabilistic source security and uninitialized structural transfer have actual clients. No initialized relational UC setup is added. The unrestricted presheaf no-go is withdrawn; native silent-control/PPT/context correspondence remains open.],
     [014–018], [W is conditional safety, not hostile enforcement or liveness; density is pointwise/cofinal. Both full-test forward bridges (016–017) are formal. Neither supplies reverse WB security.],
     [019–026, 036], [Choice payload/ownership, SSP preload/starvation, branch-permutation, PM lifetime and fail-stop boundaries remain. The selected-branch ASTotal repair and all-resolver half-init refutation (023) are formal; FIFO scaling is not a benchmark.],
     [027–033, 038], [Fine/coarse observations remain distinct. Sorted term substitution and fresh-name rejection (028) are formal; the older multisort impossibility is withdrawn (038). Raw names/public frames remain restricted. GroundGuarded and opt-in Terminal now separate the old terminal overclaim (030); general applied-pi/session correspondence is not proved.],
-    [034–035], [Actual SSPᵈ positive/negative reflection, W full/restricted positive transfers, RS security/full-construction consumers, QRS nonzero tight bound, PM-B clients and the probabilistic ITM simulator/observational negatives are integrated. The ITM negatives are not non-emulation. SSPᵈ is built; W/PM[wb] negatives, PM-A clients and full-context OTP confidentiality remain absent.],
+    [034–035], [Actual SSPᵈ reflection, W positive transfers, RS security/full-construction, tight QRS, PM-B and both ITM interpretations have checked consumers. ITM finite-trace/observational negatives are not non-emulation. SSPᵈ is built; W/PM[wb] negatives, PM-A clients and full-context OTP confidentiality remain absent.],
     [037, 039], [Pure interface legs are enforced (037). The checked channel remains fixed-public-message factorized opacity (039); interactive transmission/decryption is ongoing and not claimed here.],
     [040–041], [Protocol-indexed errors with shared extraction and closed finite-budget positive/negative experiments repair 040. Crypto backtranslation, target UC, and malformed-projection/error-aware eligibility (041) remain unproved.],
   )

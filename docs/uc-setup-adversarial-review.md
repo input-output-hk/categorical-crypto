@@ -1579,3 +1579,42 @@ encryption/secrecy, PPT/negligible guarantee, dynamic ITIs, adaptive corruption,
 silent-return extension or full Canetti/IITM correspondence is supplied.
 The initialized relational-ITM slice remains ongoing; UAR-003–009's distinct
 model-boundary obligations and the other unfilled UAR-034 targets remain.
+
+## Checked relational initialization and structural coverage: UAR-003/UAR-034 — 2026-10-12
+
+**Disposition: the uninitialized/initialized boundary is explicit and exercised.**
+Source commit `35ef17c` is integrated as `4c5ee9ca`; documentation commit
+`3b3761ec` is integrated as `f95135b2`. This supersedes the pending relational
+status in the preceding disposition, without rewriting the historical baseline.
+The structural API is now
+[`ITM.Relational.Uninitialized.{leaf,F,ℰ,UC,ν,ν-epi,ν-mono,⇒iso}`](../src/CategoricalCrypto/ITM/Relational.agda#L111),
+with no legacy aliases. Its observations and security transport still concern
+all-state uninitialized machines.
+
+Separately, [`InitializedMachine`, `Steps`, `Executes` and `_≅ⁱ_`](../src/CategoricalCrypto/Machine/Initialized.agda#L20)
+retain a selected initial state; initialized isomorphisms preserve finite traces.
+[`initializedLeaf`](../src/CategoricalCrypto/ITM/Relational.agda#L212) selects
+`blank`, including `TM.start`. The checked
+[`same-table`/different-start pair](../src/CategoricalCrypto/ITM/Relational/Tests.agda#L55)
+has isomorphic uninitialized images, but distinct false/true initialized replies,
+one- and two-query executions, rejection of the opposite first reply, unequal
+finite traces and no initialized isomorphism. The positive
+[`blankLatch`/`initialized-memory-evolves`](../src/CategoricalCrypto/ITM/Relational/Tests.agda#L135)
+consumer emits false then true by changing and retaining a work cell.
+
+UAR-034 also gains actual
+[`uninitialized-source-emulation` and `transported-uninitialized-emulation`](../src/CategoricalCrypto/ITM/Relational/Tests.agda#L166):
+the latter calls `Transfer.transfer` with the migrated morphism, epi test map and
+`Iso.grade-stable`. This is deliberately **uninitialized structural emulation**,
+compatible with the pair's differing initialized traces. The trace API is not a
+new UC setup, initialized-security transport, probability-sensitive semantics,
+PPT correspondence or all-simulator rejection theorem.
+
+**Validation.** Main reports integrated `ITM.Relational.Tests` at `-M3G -H1G`
+and full `CategoricalCrypto` root at `-M6G -H1G`, with no warnings (job `bg207`,
+36.31 s combined; not a benchmark). The implementor reports the escape-hatch
+baseline unchanged at 16. These are attributed checks, not documentation-worker
+Agda runs. UAR-003's hidden initialization issue is now named and witnessed;
+the independent state-representation, probability, scheduler and native-context
+limitations remain. The symbolic transmitting-channel implementation alone
+remains pending among these resumed implementation slices.
