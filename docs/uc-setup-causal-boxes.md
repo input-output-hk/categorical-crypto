@@ -401,18 +401,62 @@ something outside both factors activates the holder, i.e. a scheduler (§4.3).
   `docs/uc-setup-symbolic.md`: none designed here (a timed symbolic model would meet §4.4b's
   possibilistic image; that plan's call).
 
-**Why RSIM and task-PIOA land here and not in 𝔾ᵒ.** In RSIM "we have exactly one active machine
-at any time": outputs wait in buffers until the holder of a clock port schedules them, else the
-default scheduler X runs (`backes2007rsim` §3.5).  Task-PIOAs resolve choices by a scheduler
-σ : Frags*(P) → SubDisc(D) or an oblivious task schedule ρ = T₁T₂… (`canetti2006taskpioa` §2,
-Def. 1).  𝔾ᵒ composes by the ⊕-trace, which delivers an emitted letter to its unique recipient at
-once (procedure-call scheduling, the only schedule it expresses).  A message waiting on a third
-party's decision has no image, and that party (RSIM's current-scheduler variable, task-PIOA's ρ)
-ranges over the whole closed collection, not a morphism, so no functor carries it.  In causal
-boxes scheduling becomes timing: a buffer releases at the position an adversary signals, unknown
-scheduling is a family of boxes over all timings, secure for every member ("equivalent to
-considering the worst case scheduling … sound in a model with multiple adversaries", §1.4), and
-simultaneous deliveries are one product letter.
+**Explicit scheduling is not an impossibility theorem.** In RSIM "we have exactly one active
+machine at any time": outputs wait in buffers until the holder of a clock port schedules them,
+else the default scheduler X runs (`backes2007rsim` §3.5). A naked 𝔾ᵒ wire delivers immediately;
+an explicit buffered component is a different candidate interpretation. Neither this mismatch
+nor the existence of a global schedule proves that no converter/category interpretation exists.
+In causal boxes, scheduling can instead be represented by release positions and families of
+timed realizations (Portmann §1.4). These are distinct interpretations requiring their own
+composition and observation theorems.
+
+**Finite exact task-PIOA setup.** `CategoricalCrypto.TaskPIOA.Setup.UC.StdSetup` is an actual,
+independently constructed setup; it does not rely on an equivalence with native implementation
+or identify task-PIOAs with PM nondeterministic choice. Its scope is finite state/action/task
+types, normalized finite rational distributions (`Dist-ℚ`, equality `≈Mℚ`), and finite traces
+and task words. There is no PPT, approximate/negligible, infinite-execution, or fairness claim.
+
+* `TaskPIOA.Core` follows Canetti et al. §2: inputs have total transition kernels, a functional
+  kernel ensures transition determinism, and an owned partial action selector ensures action
+  determinism for each task. A surjective task assignment partitions locally controlled
+  output/internal actions. A disabled task returns the unchanged state with no trace event;
+  it neither kills the run nor discards the rest of the word.
+* `TaskPIOA.Product` uses split input-name embeddings into boundary inputs or the other
+  component's outputs. This prevents incompatible output ownership or multiple input
+  transitions of one component on a single action. Hidden actions are disjoint. A shared
+  output/input action draws the independent component kernels in one transition; the output
+  label occurs once. The resulting task alphabet is a tagged sum, and the joint word keeps
+  interleaving information. Adaptive environments and adversaries are explicit automata
+  (`Environment`, `AdversarialContext`), distinct from the precommitted word.
+* Automata are **resources**, not category arrows. The lawful free monoidal carrier consists
+  of typed installation and compatible-product wiring contexts. Tensor retains resource slots;
+  a `connect` generator performs native synchronization. Tests are actual closing wiring
+  contexts, a fixed finite word, and a rational trace reward. Equality compares their native
+  expected rewards on resource assignments. `plugging` proves substitution of wiring into a
+  test, and `native-correspondence` identifies an environment-closing test with the native
+  product's trace distribution. No target PM test family is pulled back.
+* `TaskPIOA.Security.Contextual` separately defines native finite inclusion with the order
+  **∀ environment E, ∀ real word ρ, ∃ ideal word ρ′**. `Comparable` fixes input/output ports
+  but permits different private states, hidden actions and task partitions. `Simulation`
+  is a stronger, task-preserving state-map/lumping criterion with initial-state, selector and
+  one-step kernel obligations. Its map is uniform in environments; product preservation and
+  finite-run induction prove `uniform⇒contextual`, not a conclusion-as-premise certificate.
+* The connection to the **exported ≤UC** is proved, with a precise boundary:
+  `simulation⇒≤UC` yields security for installed resources, and
+  `resource-≤UC⇒contextual` derives native inclusion for those resources at unit leakage and
+  the same action/task interface. A native closing test applied to ≤UC's dummy simulator
+  discards its empty leakage component; the same word supplies the ideal witness. This is a
+  uniform, task-preserving resource slice, not a characterization of native inclusion or of
+  arbitrary non-unit leakage converters. No converse or exchanged quantifiers are asserted.
+* `TaskPIOA.Tests.masked-output-secure` is a probabilistic positive consumer: a write-once
+  input bit masked with a private fair pad realizes a fresh uniform ciphertext resource,
+  against every admitted adaptive context and finite oblivious word. Repeated sends preserve
+  the sampled ciphertext. `masked-output-contextual` uses the actual ≤UC-to-native theorem.
+  Other checked witnesses cover disabled-then-enabled execution, a repeated task, synchronized
+  sender/receiver updates, and two words with identical component projections but different
+  trace distributions (`order-sensitive`).
+
+This supplies a setup node, not a UCSetupMorphism to PM, causal boxes, or another model.
 
 ### 4.4 Morphisms that exist (all inside causal boxes)
 
