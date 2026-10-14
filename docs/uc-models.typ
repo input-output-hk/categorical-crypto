@@ -144,14 +144,14 @@ of #plan("uc-setup-adversarial-review.md") distinguish historical findings from 
 availability API, positive-error QRS example, PM-choice initialization repair, symbolic theory/static
 and certified layers, pure-interface simulation, opt-in terminal runtime, protocol-indexed errors,
 probabilistic ITM security clients, relational initialization/finite-trace consumers, and a
-conservative environment-selected symbolic transmission/decryption construction. The latest
-additions are the finite IPDL API/linker witnesses, the independent #TaskPIOA setup, general
-ITM-to-PM preservation, and the descended SSPᵈ-to-PM[wb] compiler with its pointwise triangle.
-The integrated proof boundary is `9f9be2a89` (IPDL: `b7496ca5e`; #TaskPIOA: `630975487`;
-ITM transfer: `40c65a4be`; prior symbolic channel: `2d9741ef`). Historical proof boundaries
-remain recorded in the review dispositions. CSP implementation is in progress, not checked
-here; the other explicitly proposed native bridges remain research obligations. None of these
-results establishes computational cryptographic soundness or full native-model equivalence.
+conservative environment-selected symbolic transmission/decryption construction.
+The finite IPDL API/linker, native #TaskPIOA setup, general ITM-to-PM preservation and
+descended SSPᵈ-to-PM[wb] triangle were checked at `9f9be2a89`. CSP source `3c3e3caf7`
+now adds lawful typed networks, native observations, fragment correspondences and a
+quantified UC client. The current integrated root is `b535ea092`. Historical proof
+boundaries remain in the review dispositions. The explicitly proposed cross-model
+bridges remain obligations; no computational cryptographic soundness or full
+native-model equivalence is inferred from these results.
 
 #{
   set text(size: 8.7pt)
@@ -504,11 +504,11 @@ the grade category without restricting computations. #design rows are planned, n
     [proposed causal distinguishers; native correspondence open],
     [classical causal fragment @portmann2017],
     [#design #plan("uc-setup-causal-boxes.md"); @sec:causal-island],
-    [#CSP \ open-network design], [finite typed, polarised ports; disjoint union],
-    [port-confined `PTree` networks; structural wiring equality; plugging and transparent aliases proposed],
-    [proposed contextual trace/stable-failure/divergence observations],
-    [CSP component semantics, not native refinement identified with UC],
-    [#design viable construction, implementation in progress; @sec:csp-island],
+    [#CSP \ typed open networks], [finite typed, polarised interfaces; disjoint union],
+    [finite networks of guarded unit-returning processes; mutual structural embeddings; alias identity and flattened gluing],
+    [consumers $A → Ω$, equal on all resources $I → A$ by raw trace/stable-failure/exact-trace-divergence observations],
+    [typed-network CSP; not native refinement identified with UC],
+    [#formal #cc("CSP/Monoidal.agda", 94, "OpenCSPᴹ"), #cc("CSP/Testing.agda", 25, "ℰᶜˢᵖ"), #cc("CSP/Setup.agda", 13, "StdSetup"); @sec:csp-island],
     [$sans("RSIM")$], [typed service/clock ports with ownership; proposed disjoint union],
     [open buffered collections with default scheduling; gluing/identity laws unproved],
     [native honest views; test correspondence unproved],
@@ -1518,14 +1518,15 @@ The existing $mwb : SSP → PMwb$ carries pick-ahead compiled protocols into wel
 semantics, and $miota$ includes their computations in #PM. It retains the queued interaction
 discipline; it is not an equality with the separate on-demand #PM choice combinator.
 
-= Native finite models and bounded connections <sec:designed>
+= Native models and bounded connections <sec:designed>
 
 The finite IPDL API interpreter and its concrete linker witnesses are checked operational
 results, not an IPDL setup morphism. #TaskPIOA is an actual finite exact native setup with
-its own tests and a qualified UC-to-contextual theorem. The open IPDL, causal-box and RSIM
-setups and the cross-model bridges proposed below remain #design. The typed-network #CSP
-construction is viable and in progress, not a checked setup. “Island” means no checked
-bridge of the stated kind, not a classification or impossibility theorem for all morphisms.
+its own tests and a qualified UC-to-contextual theorem. #CSP is an actual typed-network
+setup with native observations and a quantified UC client; finite interfaces/networks
+can carry infinite guarded behavior and arbitrary internal branching. The open IPDL, causal-box and RSIM
+setups and proposed cross-model bridges remain #design. “Island” means no supplied bridge,
+not a classification or impossibility theorem for all morphisms.
 
 Three deliverables must be separated. An _operational interpretation_ proves agreement with a
 specified driver. A _setup morphism_ additionally provides $F, Φ, κ, ν$ and all laws of
@@ -1830,34 +1831,135 @@ Families of timed realizations (@portmann2017 §9) may support a different refin
 with new uniform-simulator obligations. Extending setup morphisms to lax/set-valued compilation
 merely to draw an arrow is not the next step; the concrete finite squares above are more informative.
 
-== #CSP: typed open networks, not raw operator interchange <sec:csp-island>
+== #CSP: typed open networks and native observations <sec:csp-island>
 
-#design A CSP-backed setup is viable as a concrete _typed open-network_ construction;
-implementation is in progress and no checked CSP setup or bridge is claimed here.
-Objects are finite typed, polarised interfaces. Arrows are networks of port-confined
-`PTree` components; resources have empty input boundary. Composition freshens private
-names and glues interfaces, identity is a transparent wire alias, and tensor is disjoint
-union. Only genuinely private wire classes are hidden: composing an identity must not
-hide a channel still attached to the boundary. Start with boundary-preserving network
-isomorphism, not an assumed native weak/FD quotient.
+#formal This is an actual independently implemented setup, not a conditional category
+record, an imported FD quotient or a bridge to #PM. The native source is a constructive
+port of the pinned `ret/sil/react` process core. Its reusable trees allow arbitrary
+return types; network components specifically return Unit.
+#srcs(cc("CSP/Process.agda", 7, "Process"), cc("CSP/Network.agda", 21, "Component"))
 
-The proposed operational semantics advances internal transitions and connected rendezvous,
-keeping external event labels. Its structural-invariance proof would support tests
-$t : A → Ω$, equal when every resource closure has the same finite traces, stable failures
-and divergence observations. Pullback is precomposition; the standard tensor grading then
-makes a simulator an actual network converter, not an `FSim` proof. Native observational
-correspondence is a further theorem, not a prerequisite for defining such a setup.
+#definition(name: [the typed-network carrier])[
+For a small set of sort codes $S$ and payload family $P : S → sans("Set")$, let
+$cal(N)$ be `OpenCSP`. Objects are finite shaped, typed, polarised interfaces. An arrow
+$A → B$ is a finite open network of guarded process boxes, typed private names,
+local wiring and aliases. Each box may have an arbitrary small internal branch type;
+neither finiteness of branching nor termination is assumed.
 
-The pinned library supplies real component semantics and bind laws, but returned-value bind
-is not interactive interface plugging. Its parallel/interleaving interchange has persistent
-alphabet-confinement, disjointness and separation premises; the shared-alphabet counterexample
-rejects unrestricted regrouping, not CSP categorification. Weak bisimulation equates
-divergence and deadlock and cannot simply be used for the richer tests above. FD hiding and
-several DR/FD liftings have explicit semantic or classical assumptions; an imported proof
-closure must be audited before reuse. No CSP-to-PM probabilities, UC transfer, or equality
-of native refinement with $leUC$ follows from this design.
+Hom equality $F ≅ G$ consists of mutual boundary- and incidence-preserving embeddings,
+inverse on boxes and inverse _up to connectivity_ on names. It retains box labels;
+it is not literal graph isomorphism or native observational equivalence.
+Identity has no boxes and only transparent aliases. Composition fresh-tags and flattens
+gluing; tensor is disjoint union, with the empty interface $I$ as unit.
+The actual `OpenCSPᴹ` supplies alias associators/unitors, both naturalities, triangle
+and pentagon; coherence is proved rather than assumed.
+#srcs(cc("CSP/Interface.agda", 64, "Interface"), cc("CSP/Network.agda", 38, "Network"), cc("CSP/Structure.agda", 44, "_≅_"), cc("CSP/Plugging.agda", 95, "_∘_"), cc("CSP/Plugging.agda", 116, "id"), cc("CSP/Plugging.agda", 182, "_⊗₁_"), cc("CSP/Category.agda", 43, "OpenCSP"), cc("CSP/Monoidal.agda", 77, "OpenCSP-Monoidal"), cc("CSP/Monoidal.agda", 94, "OpenCSPᴹ"))
+] <def:csp-carrier>
 
-Source evidence is pinned to `agda-cardano-common` commit `9a40d1de`:
+*Operational contract.* A `Gather` acts on a whole connected wiring class. It has
+inhabited support and selects one class port per incident box; it does not advance
+every incident port separately. A blocked incident box prevents the gather, even
+if the class reaches a visible boundary. Hidden steps additionally require a
+boundary-free class, a unique selected output box and a distinct input listener.
+Visible steps instead enforce boundary compatibility. Joint completion `√` needs a
+nonempty all-returned family and goes to a state with no transitions. Empty alias
+networks add no phantom step or completion participant; they are not native `Skip`.
+#srcs(cc("CSP/Operational.agda", 79, "Gather"), cc("CSP/Operational.agda", 67, "Private"), cc("CSP/Operational.agda", 113, "Handshake"), cc("CSP/Operational.agda", 140, "finish"))
+
+Write $Obs(F)$ for the three raw predicates: finite visible traces, stable failures
+after an exact trace, and silent divergence after an exact trace. Stability excludes
+both internal τ and a pending visible `√`, but not ordinary visible offers.
+$≈^O$ compares each predicate in both directions. This is not record equality,
+divergence-flooded FD chaos, or a weak-bisimulation quotient.
+#srcs(cc("CSP/Observation.agda", 25, "Executes"), cc("CSP/Observation.agda", 33, "Stable"), cc("CSP/Observation.agda", 39, "Failure"), cc("CSP/Observation.agda", 42, "Divergence"), cc("CSP/Observation.agda", 54, "NativeObservation"), cc("CSP/Observation.agda", 61, "_≈ᴼ_"))
+
+#theorem(name: [derived structural invariance])[
+With decidable equality of sort codes, $F ≅ G$ gives a two-way, exact-label operational
+transport and hence $Obs(F) ≈^O Obs(G)$. These implications are not converses.
+The proof handles every LTS constructor, including private gathers and joint
+completion. Only sort-code and finite shape/index paths use constructive UIP;
+payloads, branch types, processes and functions are not assumed proof-irrelevant.
+#srcs(cc("CSP/SemanticInvariance.agda", 319, "structural→operational"), cc("CSP/SemanticInvariance.agda", 341, "observations-respect"), cc("CSP/Coherence.agda", 22, "payload-coherent"))
+] <thm:csp-invariance>
+
+#definition(name: [the CSP setup])[
+Fix an observation interface $Ω$. A test is an actual consumer $t : A → Ω$, with
+$ t ≋ u ⇔ ∀ m : I → A, quad Obs(t ∘ m) ≈^O Obs(u ∘ m). $
+The native presheaf $cal(E)_sans("CSP")$ pulls consumers back by composition, using
+@thm:csp-invariance for congruence. The actual setup is
+$ CSP := Std(cal(N), cal(E)_sans("CSP")), quad T_X B = X ⊗ B, quad T_X(r) = opid_X ⊗ r. $
+It uses native observations after every resource closure, not tests pulled back from
+PM. Its simulators are actual typed network converters, not `FSim` witnesses.
+#srcs(cc("CSP/Testing.agda", 20, "evaluationᶜˢᵖ"), cc("CSP/Testing.agda", 25, "ℰᶜˢᵖ"), cc("CSP/Setup.agda", 13, "StdSetup"), cc("CSP/SetupTests.agda", 90, "public-setup-category"), cc("CSP/SetupTests.agda", 99, "public-grade-action"), cc("CSP/SetupTests.agda", 102, "public-grade-action-arrow"))
+] <def:csp>
+
+#proposition(name: [checked native CSP fragments])[
+The implemented source-process/network correspondences include:
+
++ a unit-returning open single box, with arbitrary branch type and two-way steps;
++ a nonempty finite one-port family on one common private channel, with arbitrary
+  payloads and branching, a unique producer and a distinct listener: nested all-sync
+  native parallel followed by all-hide corresponds to the closed network;
++ two namespaced single-box networks under disjoint tensor/native interleaving.
+
+The family and tensor correspondences retain joint completion and both directions
+of silent divergence. There are also concrete two-channel plugging/gather witnesses.
+These are finite _interface/box_ fragments, not finite-run restrictions and not a
+theorem for arbitrary wired networks.
+#srcs(cc("CSP/SingleBox.agda", 73, "native-step"), cc("CSP/SingleBox.agda", 101, "network-step"), cc("CSP/NativeCorrespondence.agda", 152, "Closed"), cc("CSP/NativeCorrespondence.agda", 325, "Closed.initial-correspondence"), cc("CSP/NativeDisjoint.agda", 448, "TensorPair.initial-correspondence"), cc("CSP/NativePlugging.agda", 60, "operational-interchange"))
+
+The four-process `Quad` additionally proves _strong, same-next-label_ interchange
+between outer all-synchronization of two interleavings and interleaving of the
+corresponding synchronizing pairs. Its four persistent `OffersOnly` hypotheses
+confine the processes to Boolean-disjoint namespaces; there is no separately
+supplied separation field. The exported hiding lifting is _all-hide_, not an
+arbitrary hiding congruence. The native operator retains its outside-synchronization
+post-event internal commitment; it has not been simplified to plain choice.
+#srcs(cc("CSP/NativeInterchange.agda", 31, "Quad"), cc("CSP/NativeInterchange.agda", 240, "interchange"), cc("CSP/NativeInterchange.agda", 316, "hidden-interchange"), cc("CSP/NativeOperators.agda", 83, "Par"))
+] <prop:csp-native>
+
+#theorem(name: [a quantified CSP converter client])[
+For the concrete real $f : I → X ⊗ B$, ideal $g : I → Y ⊗ B$, and converter
+$h : Y → X$, the actual #CSP relation satisfies $f leUC g$.
+For every arbitrary network adversary $a : X → X'$, the supplied simulator is
+$s_a := a ∘ h : Y → X'$, chosen before every test and ancillary grade context.
+Here $X$ has Bool challenge/response ports, $Y$ a Unit output, and $B$ a Bool output.
+The grades are propositionally unequal and both nonempty; the converter has a stateful
+box. No separate non-isomorphism theorem is asserted.
+#srcs(cc("CSP/Security.agda", 26, "simulator"), cc("CSP/Security.agda", 53, "f≤UCg"), cc("CSP/SetupTests.agda", 105, "public-quantified-security"), cc("CSP/SetupTests.agda", 109, "public-simulator-computation"), cc("CSP/SetupTests.agda", 113, "public-ancillary-security"), cc("CSP/SecurityNetwork.agda", 417, "grades-unequal"), cc("CSP/SecurityNetwork.agda", 426, "converter-has-box"))
+
+_Proof idea._ The real protocol is an independently written flat two-box network,
+not a name for the composite. Its structural flattening proves
+$f ≅ (h ⊗ opid_B) ∘ g$; the actual converter law extends this to every $a$.
+`≈C⇒≈ᵁ` then gives the full ancillary kernel, rather than equality for one chosen test.
+#srcs(cc("CSP/SecurityNetwork.agda", 109, "f"), cc("CSP/SecurityNetwork.agda", 149, "flattening"), cc("CSP/Security.agda", 30, "adversarial-flattening"))
+] <thm:csp-security>
+
+*Concrete native consumer.* The consumer sends a false challenge, reads response $r$
+and honest bit $b$, then emits $r ∧ ¬b$. An _exhibited_ execution has four private
+rendezvous (Unit token, false challenge, true response, false honest bit), followed
+by visible true and joint `√`. Both real and ideal experiments admit that visible
+trace and every terminal refusal after it. Their whole raw observation triples and
+resource-tested consumers agree; pullback along $f$ computes to the real experiment.
+This proves neither that the exhibited execution is unique nor a probabilistic success law.
+#srcs(cc("CSP/SetupTests.agda", 61, "public-consumer"), cc("CSP/SetupTests.agda", 64, "public-real-verdict"), cc("CSP/SetupTests.agda", 68, "public-ideal-verdict"), cc("CSP/SetupTests.agda", 72, "public-real-terminal-refusal"), cc("CSP/SetupTests.agda", 76, "public-ideal-terminal-refusal"), cc("CSP/SetupTests.agda", 80, "public-equal-triples"), cc("CSP/SetupTests.agda", 84, "public-pull-consumer"), cc("CSP/SetupTests.agda", 87, "public-contextual-equality"))
+
+*Representation and model boundaries.* `Network` and `PortIso` do not have
+definitional record η. Named constructor/projection β and the actual category,
+tensor and grade/action computations remain checked; opaque typing proofs may
+require explicit code-path payload transports. This is not an unchanged
+definitional API. The constructive closure imports no classical DR/FD postulates.
+#srcs(cc("CSP/Network.agda", 38, "Network"), cc("CSP/FiniteWires.agda", 18, "PortIso"), cc("CSP/Coherence.agda", 22, "payload-coherent"))
+
+No arbitrary-network native FD full abstraction, zero-box/`Skip` correspondence,
+all-return-type network parallel theorem, UC/native-refinement identification,
+unrestricted hiding/interchange, probability/PPT, fairness or CSP-to-PM/SSP bridge
+is supplied. The pinned library's returned-value bind is not interface plugging;
+its broader weak/DR/FD laws retain their own premises and assumptions. In particular
+weak divergence/deadlock collapse is not the observation theory used here.
+
+The source pin is `agda-cardano-common` commit `9a40d1de`. External comparison evidence
+(not classical axioms imported by this checked setup) remains:
 #link("https://github.com/input-output-hk/agda-cardano-common/blob/9a40d1de330f376c3a102e7c9f1282f4fa830a7e/src/ITree-CSP/Process_Trees.agda#L112")[`PTree`],
 #link("https://github.com/input-output-hk/agda-cardano-common/blob/9a40d1de330f376c3a102e7c9f1282f4fa830a7e/src/ITree-CSP/CSP/Laws/Bisim/BindCong.agda#L80")[weak bind congruence],
 #link("https://github.com/input-output-hk/agda-cardano-common/blob/9a40d1de330f376c3a102e7c9f1282f4fa830a7e/src/ITree-CSP/CSP/Laws/FD/ParallelInterchange.agda#L478")[restricted interchange],
@@ -1901,7 +2003,7 @@ Only the explicitly checked entries are implemented; the remaining rows are #des
     [E], [Synchronous causal histories], [High confidence for the stated finite product fragment. Delay-one/two and joint/independent ticks first; then prefix-causal two-round strong-monoidal square. Reflection needs causal grades.],
     [Later], [IPDL single-assignment quotient], [Medium confidence; only after API/linker experiments establish a closed interaction contract and legal-context density. WB alone is insufficient.],
     [Later], [Full classical causal converters → synchronized PM], [Moderate/low confidence; correct converter category, resource correspondence, barrier tensor and causal tests remain substantial.],
-    [In progress], [#CSP typed open networks], [Viable structural wiring/operational-test design; implementation underway, not checked. Native refinement correspondence and any model bridge remain separate; @sec:csp-island.],
+    [Checked], [#formal #CSP typed open networks], [Actual monoidal carrier, native tests, fragment correspondences and quantified UC consumer. Arbitrary-network native full abstraction and cross-model bridges remain separate; @sec:csp-island.],
     [Defer], [Timed realization families / quantum bridges], [Different refinement or quantum infrastructure and uniformity needed; no immediate UCSetupMorphism claim.],
   )
 }
@@ -1970,6 +2072,7 @@ the checked initialized finite-trace API is not another setup node or initialize
     node((3.9, 3), $NDA^(PM)$, name: <nda>),
     node((2.6, 4), [#Rel \ one-shot], name: <rel>),
     node((3.9, 4), [#TaskPIOA \ finite exact], name: <taskpioa>),
+    node((2.6, 3), [#CSP \ open networks], name: <csp>),
     edge(<symiso>, <sym>, "->>", label: $mcoarse$, label-side: right),
     edge(<symiso>, <iso>, "->", label: $msym$),
     edge(<symcert>, <pmn>, "->", label: $mcs$),
@@ -1990,8 +2093,8 @@ the checked initialized finite-trace API is not another setup node or initialize
   caption: [Implemented setup components and two candidate-specific obstructions. The SSP
     quotient/direct/descended compiler triangle agrees pointwise (@prop:dist-wb).
     The W arrows point from full tests to PM and to restricted W/PM[wb]; there is no directed
-    SSP-to-PM security path. #Rel and #TaskPIOA are actual separate components, not
-    impossibility classes.],
+    SSP-to-PM security path. #Rel, #TaskPIOA and #CSP are actual separate components,
+    not impossibility classes.],
 ) <fig:graph>
 
 *Implemented-edge qualifications.* The ND nodes are the #PM instances. Their preservation
@@ -2026,7 +2129,6 @@ query certificates do not prove general UC transfer.
     node((0, 3), [synchronous causal \ finite histories], name: <causal-source>),
     node((0, 4), [single-assignment \ IPDL], name: <sa-source>),
     node((1.5, 4), [legal SA \ quotient], name: <sa-target>),
-    node((3, 0), [#CSP \ typed networks \ in progress], name: <csp-proposed>),
     edge(<api>, <api-target>, "->", stroke: blue, label: [O: checked]),
     edge(<rsim-source>, <rsim-target>, "-->", stroke: blue, label: [O]),
     edge(<batch-source>, <kernel-target>, "-->>", stroke: blue, label: [M]),
@@ -2037,8 +2139,7 @@ query certificates do not prove general UC transfer.
   caption: [Bounded operational and proposed native connections. Only the solid blue O-edge
     is checked (@thm:ipdl-agreement); it is not an IPDL setup or UC-transfer arrow.
     Dashed double heads are proposed exact-UC preservation objectives, not checked theorems.
-    The CSP node is a viable design with implementation in progress, not a checked setup.
-    The actual #TaskPIOA node in @fig:graph has no supplied PM bridge.
+    The actual #TaskPIOA and #CSP nodes in @fig:graph have no supplied cross-model morphism.
     Support preserves only exact security and does not reflect probability-sensitive security.
     Causal-history reflection additionally needs prefix-causal simulators and
     reconstruction/fullness; no such hook is claimed. The single-assignment objective
@@ -2362,11 +2463,12 @@ The IPDL/causal arguments here are #design unless a linked existing theorem is e
   validity or an initialized UC observation/transport theorem.
 + _The modified deterministic #Iso fragment:_ initialized, nonsilent execution and a useful test map
   behind $mdet$.
-+ _Native island connections:_ extend the checked finite IPDL agreement/concrete linking and
-  #TaskPIOA unit-leakage result to the additional laws and quantifiers named in
-  @sec:island-experiments. CSP construction is in progress. These are not grounds to restore
-  the withdrawn raw arrows or assume a lax abstraction solves the semantic obligations.
-  #NDA/#NDB scheduler adequacy and remaining PM-A clients are separate.
++ _Native island connections:_ extend the checked finite IPDL linking and #TaskPIOA
+  unit-leakage result to the additional laws and quantifiers in @sec:island-experiments.
+  CSP's checked native fragments do not provide arbitrary-network native FD full
+  abstraction or UC/refinement identification. Neither setup alone supplies a cross-model
+  bridge or restores the withdrawn raw arrows; a lax abstraction does not discharge
+  those obligations. #NDA/#NDB scheduler adequacy and remaining PM-A clients are separate.
 + _Computational soundness:_ construct the operational `Backtranslation` from game-based
   assumptions, establish the literature correspondence for the honest-role restriction, and
   supply feasibility closure for adversary-quantified UC transfer. The formal $mcs$ from #Symcert
@@ -2394,7 +2496,8 @@ This ledger records their current scope; absence of a public client is not nonex
     [034–035], [General ITM-to-PM UC preservation and witness-conditioned reflection have clients. The SSPᵈ-to-PM[wb] compiler and full pointwise triangle feed categorical/security OTP consumers. Existing W, RS/QRS, PM-B and transmitting #Sym clients remain checked. Observational negatives are not all-simulator impossibility; W/PM[wb] negatives, PM-A clients and full-context OTP confidentiality remain absent.],
     [037, 039], [Pure interface legs are enforced (037). Fixed-public-message opacity is retained. The new one-send #Sym client accepts an environment-selected plaintext and decrypts/delivers only on the original ciphertext modulo E₀, with actual nonidentity-simulator UC security (039). This is conservative delivery/drop, not general active-channel or computational security; @thm:sym-transmitting.],
     [040–041], [Protocol-indexed errors with shared extraction and closed finite-budget positive/negative experiments repair 040. Crypto backtranslation, target UC, and malformed-projection/error-aware eligibility (041) remain unproved.],
-    [Native extensions], [Finite IPDL operational agreement/private coins and concrete linking are checked, not an IPDL UC setup. #TaskPIOA is an actual independent finite exact setup; its resource UC-to-native implication is same-signature/unit-leakage only. It does not repair PM scheduler behavior. CSP remains in progress/proposed; no checked setup or bridge is claimed.],
+    [Native extensions], [Finite IPDL operational agreement/private coins and concrete linking are checked, not an IPDL UC setup. #TaskPIOA is an actual independent finite exact setup; its resource UC-to-native implication is same-signature/unit-leakage only. It does not repair PM scheduler behavior.],
+    [CSP], [Actual monoidal typed-network setup, native observation presheaf, confined native correspondences and an all-adversary nonidentity-simulator UC consumer are checked. The raw observation triple is not divergence-flooded FD; no arbitrary-network native full abstraction, UC/refinement identification or cross-model bridge is claimed.],
   )
 }
 

@@ -33,6 +33,7 @@ symbolic steps of `uc-setup-symbolic.md` §6; escape-hatch baseline unchanged):
 | certified symbolic `𝔻𝕐ᶜ` | `Symbolic/Computational{,/Run,/Obstruction}`, `Symbolic/InterpretationTests` | distinct `CertifiedSource.Sym≅ᶜ.StdSetup`; `fine→comp : UCSetupMorphism` into `ucSetupᴺ` from per-generator query certificates; unrestricted rate-one certificates are refuted by `no-backwards-certificate`; no crypto soundness or PPT setup is asserted |
 | SSPᵈ | `SSP/Dist{,/Setup,/Compile}`, `Examples/SSP/OneTimePad/{Dist,WB}` | `ssp⇒dist` preserves/reflects UC; **`dist⇒PM[wb]`** preserves `≈ℰ`, `≈ᵁ`, `≤UC`; the actual `composeᵁ` triangle agrees pointwise, including return/ext/sub comparisons; categorical and security OTP consumers |
 | finite exact task-PIOA | `TaskPIOA/{Core,Product,Setup,Simulation,Security,Tests}`, `RationalDist/Product` | actual **`UC.StdSetup`**, native `plugging`/`native-correspondence`, `simulation⇒≤UC`, same-signature/unit-leakage **`resource-≤UC⇒contextual`**, `masked-output-secure`; no PM/causal-box bridge or general UC/native equivalence |
+| typed open-network CSP | `CSP/{Category,Monoidal,SemanticInvariance,Observation,Testing,Setup,Security,SecurityNetwork,SetupTests,MonoidalTests}` and constructive native fragments | actual **`OpenCSPᴹ`**, derived **`structural→operational`** / **`observations-respect`**, native **`ℰᶜˢᵖ`**, **`StdSetup`**, and all-adversary **`f≤UCg`** with simulator `a ∘ h`; independent setup, not native FD refinement or a PM/SSP bridge |
 | finite IPDL API interpreter — not a setup | `IPDL/{Syntax,Native,SSP,Tests,ReadOrder,Linker}` | `Correspondence.agreement` for finite adaptive Boolean-verdict strategies including private coins; persistent/read-order and correlation witnesses; concrete hidden-channel, copy and feedback squares |
 
 **Major findings** (proven unless marked; finding 3's raw-compiler obstruction is
@@ -66,8 +67,8 @@ argued in `Protocol/Machine.agda:14-19`'s header, not a universal no-morphism th
 4. **Native boundaries are not universal no-map theorems.** IPDL now has a checked
    finite Fig. 9 resource interpreter and concrete linking witnesses, but no source setup
    morphism. Finite task-PIOA is an independent implemented setup with no cross-model edge.
-   Causal-box/RSIM bridges remain proposals; typed CSP networks are a viable design with
-   implementation in progress. The certified symbolic source has its formal family
+   Causal-box/RSIM bridges remain proposals. Typed open-network CSP is now another
+   independent implemented setup, with no supplied cross-model edge. The certified symbolic source has its formal family
    interpretation, and `Sym≅` its relational interpretation. The old raw `SSP → 𝔾ᵒ`,
    `IPDL → RS` and `RS → causal boxes` arrows remain withdrawn for those candidates.
 5. **Nondeterminism** [built over any symmetric monoidal 𝕄 and at SSP and PM;
@@ -389,20 +390,57 @@ possibilistic, so only the deterministic fragment maps into RS (`det-≈ᴮ⇒�
   Synchronized/order-sensitive and adaptive-echo witnesses exercise the native semantics;
   their negatives separate named distributions, not all simulators or UC emulation.
   No PM/SSP/causal-box morphism, PPT, infinite-run or fairness result is supplied.
-- **CSP-backed typed open networks — viable, implementation in progress.**
-  At `agda-cardano-common` pin `9a40d1de330f376c3a102e7c9f1282f4fa830a7e`, coinductive
-  [`PTree` components](https://github.com/input-output-hk/agda-cardano-common/blob/9a40d1de330f376c3a102e7c9f1282f4fa830a7e/src/ITree-CSP/Process_Trees.agda#L112)
-  provide real operational material for typed networks. The proposed arrows are
-  open converters, composition freshens/glues private wiring, identities are transparent
-  aliases, and tensor is disjoint union. Start with structural network equality and
-  contextual trace/failure/divergence tests; a simulator is a network converter.
-  Semantic wiring invariance and the test presheaf must still be proved. Returned-value
-  bind is not interactive plugging; the native
-  [parallel interchange](https://github.com/input-output-hk/agda-cardano-common/blob/9a40d1de330f376c3a102e7c9f1282f4fa830a7e/src/ITree-CSP/CSP/Laws/FD/ParallelInterchange.agda#L478)
-  has confinement/disjointness/separation premises. Weak bisimulation, DR/FD refinement
-  and `FSim` have distinct observations and assumption boundaries. Their limitations
-  do not refute this construction. No checked CSP setup, PM bridge or equality of
-  native refinement with UC is claimed at the current proof boundary.
+- **CSP typed open networks — implemented and checked.** Source `3c3e3caf7`, registered
+  at root `b535ea092`, supplies the actual
+  [`OpenCSPᴹ`](../src/CategoricalCrypto/CSP/Monoidal.agda#L94).
+  Objects are finite typed/polarised interfaces; arrows are finite networks whose
+  guarded, unit-returning components may have arbitrary small payloads, arbitrary
+  internal branching and infinite behavior. Identities are transparent zero-box
+  aliases, composition is fresh-tagged flattened gluing, and tensor is disjoint union.
+  Hom [`_≅_`](../src/CategoricalCrypto/CSP/Structure.agda#L44) consists of mutual
+  boundary/incidence-preserving structural embeddings, inverse on boxes and up to
+  connectivity on names—not literal graph isomorphism or a native behavioral quotient.
+  The associator/unitors, naturality, triangle and pentagon are proved.
+  [`structural→operational`](../src/CategoricalCrypto/CSP/SemanticInvariance.agda#L319)
+  derives bidirectional LTS transport; `observations-respect` preserves raw finite
+  traces, stable failures and silent divergence after the **exact** trace.
+  Stability excludes both τ and pending joint completion; this is not
+  divergence-flooded FD chaos. A connected-class `Gather` has inhabited support and
+  one selected class port per incident box, so a blocked participant cannot be bypassed.
+  Hidden steps additionally require a boundary-free class, a unique selected output
+  box and a distinct input listener. Visible steps instead enforce boundary compatibility.
+  Nonempty all-returned families complete jointly once; empty aliases add neither
+  a completion participant nor a phantom step.
+  [`ℰᶜˢᵖ`](../src/CategoricalCrypto/CSP/Testing.agda#L25) compares consumers `A → Ω`
+  on **every actual resource** `I → A`, with composition as pullback.
+  [`Setup.StdSetup`](../src/CategoricalCrypto/CSP/Setup.agda#L13) is the actual
+  `Standard2.StdUC` instance, with `T₀ X B = X ⊗ B` and `T₁ X r = id X ⊗ r`.
+  [`Security.f≤UCg`](../src/CategoricalCrypto/CSP/Security.agda#L53) covers every
+  arbitrary actual adversary `a : Network X X′`; its simulator is `a ∘ h`, uniformly
+  before tests and ancillary contexts. The grades are unequal and nonempty:
+  `X` has Bool challenge/response ports, `Y` a Unit output. The independently defined
+  [flat two-box real network](../src/CategoricalCrypto/CSP/SecurityNetwork.agda#L111)
+  has a payload-reading Bool consumer with an exhibited four-private-rendezvous run,
+  visible true and joint completion; the ideal experiment has the same whole triple.
+  Native correspondence covers a unit-returning single box, nonempty finite
+  common-private-channel families with arbitrary payloads and a unique producer/
+  distinct listener, namespaced disjoint tensor pairs, and concrete plugging.
+  [Strong native interchange](../src/CategoricalCrypto/CSP/NativeInterchange.agda#L240)
+  is for four processes with persistent `OffersOnly` in Boolean-disjoint namespaces,
+  using all-sync/all-interleave operators and an all-hide lifting, not arbitrary hiding.
+  These are source-faithful to the `ret/sil/react` core at external pin
+  [`9a40d1de330f376c3a102e7c9f1282f4fa830a7e`](https://github.com/input-output-hk/agda-cardano-common/blob/9a40d1de330f376c3a102e7c9f1282f4fa830a7e/src/ITree-CSP/Process_Trees.agda#L112),
+  retaining the native outside-synchronization post-event commitment τ.
+  Supplied sort-code equality and local finite-index equality derive code/index-only
+  UIP, not arbitrary payload, branch, process or function UIP.
+  The constructive closure imports no classical DR/FD postulates. `Network` and
+  `PortIso` no longer have definitional record η; constructor/projection β and actual
+  category/tensor/grade computations remain checked, with explicit payload transports
+  where opaque typing proofs require them.
+  No arbitrary-network native FD full abstraction, zero-box/Skip correspondence,
+  all-return-type network parallel theorem, UC/native-refinement identification,
+  unrestricted FD hiding/interchange, probability/PPT, fairness or CSP→PM/SSP bridge
+  is supplied. The pinned library's broader weak/DR/FD limitations remain separate.
 - **Symbolic / Dolev–Yao** (plan: [uc-setup-symbolic.md](uc-setup-symbolic.md); steps 3–9
   and static/conservative transmitting step 10 built: `Sym≅`, `Sym`, `fine→sym`,
   relational frame emitters, original `smt≤ideal` and `Interactive.smt≤ideal`).
@@ -497,16 +535,16 @@ SSP ───┤                    ▼
 
 ND_A(PM) ──▶ ND_B(PM) ──▶ PM
 
-Separate implemented nodes: Rel; finite exact TaskPIOA
+Separate implemented nodes:
+  Rel; finite exact TaskPIOA; typed open-network CSP
 ```
 
 The SSP triangle agrees pointwise in target hom/test equality, not by bundled
 record equality. The checked finite-IPDL-API→SSPᵈ-resource connection is operational,
 not another setup-morphism edge. Native IPDL, RSIM and causal-box bridges remain
-proposals; CSP typed-network implementation is in progress and not checked here.
-There is no supplied cross-model morphism for TaskPIOA. The old raw `SSP → PM`,
-`IPDL → RS` and `RS → causal boxes` candidates remain withdrawn; this is not a
-universal impossibility theorem.
+proposals. TaskPIOA and CSP are implemented standalone setups without supplied
+cross-model morphisms. The old raw `SSP → PM`, `IPDL → RS` and `RS → causal boxes`
+candidates remain withdrawn; this is not a universal impossibility theorem.
 
 ## 7. Plans
 

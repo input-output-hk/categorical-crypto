@@ -1,5 +1,10 @@
 # Construction generality across the implemented UC landscape
 
+> **Historical research snapshot.** The original text and underlying 89 records
+> retain source boundary `9f9be2a89` and their original provenance. “CSP in progress”
+> describes that boundary. The [checked-CSP postscript](#postscript-checked-csp-after-the-research-snapshot)
+> records the later implementation without rewriting or reclassifying those records.
+
 ## Executive result
 
 This is a **completed read-only research deliverable within the explicit corpus below**, not an implementation or a claim to exhaust all literature. The source census covers every named implemented setup/view at the supplied proof boundary, keeps proof layers separate, and explicitly includes the actual IPDL interpreter and in-progress CSP work. Six parallel semantic reports contain **89 ten-field records: 88 construction/coverage records and one canonical-source-access record**. Those records are deliberately not 88 claims of novelty: many subtract already-existing generic machinery.
@@ -255,3 +260,27 @@ E is not used to hide a completed negative analysis; it records the following sp
 10. The universal free-actegory adjunction is explicitly a **Conjecture** in its source header. The coend category/action, displayed inverse maps and graded-Kleisli strong-equivalence bridge are actual implemented infrastructure; only the stated universal property is open.
 
 The strongest next mathematical work is therefore not another generic UC theorem. It is the small B cap package plus narrow, constructor-faithful C adapters and representation/coverage proofs, with the listed controls retained. This report itself contains no implementation request or promise, and reports no unexercised verification.
+
+## Postscript: checked CSP after the research snapshot
+
+Source `3c3e3caf7`, registered at root `b535ea092` on 2026-10-14, now supplies the
+actual [`OpenCSPᴹ`](../src/CategoricalCrypto/CSP/Monoidal.agda),
+derived structural-to-operational/observation invariance,
+[native consumer presheaf](../src/CategoricalCrypto/CSP/Testing.agda) and
+[`Setup.StdSetup`](../src/CategoricalCrypto/CSP/Setup.agda).
+Tests quantify over every resource closure and retain raw finite traces, stable
+failures and exact-trace silent divergence, rather than divergence-flooded FD.
+[`Security.f≤UCg`](../src/CategoricalCrypto/CSP/Security.agda) has every actual
+adversary `a` receive the simulator `a ∘ h`, uniformly before tests/ancillas, at
+unequal nonempty grades. The independent flat two-box real network has a genuine
+payload-reading Bool consumer with four private rendezvous, true verdict and joint
+completion; constructive native fragment correspondences are also checked.
+
+Only sort-code equality is assumed decidable; code-only UIP does not impose
+payload/branch/process UIP or finite internal branching. No classical DR/FD
+postulates, arbitrary-network native FD full abstraction, UC/native-refinement
+identification, probability/PPT, fairness or CSP→PM/SSP bridge follows.
+This updates the historical CSP implementation status, not the 89 records or the
+generic/shared R4 construction claim. Main reports all 44 modules rebuilt through
+the two 3-GiB acceptance leaves and the full 8-GiB root (`bg132`), warning-free;
+no new research-worker typecheck or performance measurement is asserted.

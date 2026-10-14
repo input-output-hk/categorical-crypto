@@ -1826,3 +1826,81 @@ The paired retry checked OTP/WB with Dist.Compile at 6 GiB and the full combined
 root at 8 GiB, successfully rebuilding the affected closure (`bg81`, 246.22 s
 combined, no warnings). These are attributed validation results, not new
 documentation-worker Agda runs or uncontended performance measurements.
+
+## Checked typed-open-network CSP — 2026-10-14
+
+**Source `3c3e3caf7`; integrated root `b535ea092`.** This supersedes the CSP
+implementation-status assessment at the earlier `9f9be2a89` snapshot, not its
+external-source caveats. The original review and the construction-generality
+reports' 89 historical records remain intact.
+
+**Actual model.** [`OpenCSPᴹ`](../src/CategoricalCrypto/CSP/Monoidal.agda#L94)
+is a lawful monoidal category of finite typed/polarised interfaces and finite open
+networks of guarded, unit-returning processes. Payloads and internal branch types
+may be arbitrary small sets; behavior may be infinite. Identity is an alias-only
+zero-box network, not `Ret`/`Skip`. Composition freshens and flattens gluing; tensor
+is disjoint union. The actual
+[`_≅_`](../src/CategoricalCrypto/CSP/Structure.agda#L44) is mutual structural
+embedding, inverse on boxes and up to connected classes on names, preserving
+boundary/local incidence. It is neither literal graph isomorphism nor an assumed
+native behavioral quotient. The wire associator/unitors and coherence laws are proved.
+
+**Operational observations and tests.**
+[`structural→operational`](../src/CategoricalCrypto/CSP/SemanticInvariance.agda#L319)
+derives bidirectional transport of every operational step; `observations-respect`
+then preserves the three raw predicates: finite visible traces, stable failures
+and silent divergence after the **exact** trace. This is not divergence-flooded FD.
+Stability excludes both τ and pending joint completion. A global connected-class
+`Gather` has inhabited support and one selected class port per incident box.
+Hidden steps additionally require a boundary-free class, a unique selected output
+box and a distinct input listener; visible steps instead use boundary compatibility.
+Neither can bypass an incident blocked box. Joint completion requires a nonempty
+all-returned family; empty aliases introduce no completion or phantom participant.
+[`ℰᶜˢᵖ`](../src/CategoricalCrypto/CSP/Testing.agda#L25) compares consumers `A → Ω`
+under every actual resource `I → A`, with composition as pullback.
+[`Setup.StdSetup`](../src/CategoricalCrypto/CSP/Setup.agda#L13) is the actual
+`Standard2.StdUC` instance, not a conditional record or assumed test naturality.
+
+**Quantified UC consumer.**
+[`f≤UCg`](../src/CategoricalCrypto/CSP/Security.agda#L53) is one-sided UC emulation:
+every arbitrary `a : Network X X′` receives the actual simulator `a ∘ h : Network Y X′`,
+uniformly before every test and ancillary grade context.
+The source `f` is an independently written flat two-box network with a checked
+flattening proof against `(h ⊗ id) ∘ g`, not an expression-only reflexivity example.
+The concrete `X` and `Y` are propositionally unequal and both nonempty, and `h`
+has a stateful box; no separate non-isomorphism theorem is claimed.
+A payload-reading Bool consumer has an **exhibited** run of four private rendezvous,
+visible true, then joint `√`. Both real and ideal experiments admit that trace and
+every terminal refusal after it, and their whole observation triples and
+[resource-tested consumers agree](../src/CategoricalCrypto/CSP/SetupTests.agda#L64).
+This is not an assertion that the exhibited execution is the only one.
+
+**Native and constructive boundary.** The source-faithful port at
+`agda-cardano-common` pin `9a40d1de330f376c3a102e7c9f1282f4fa830a7e` retains an
+arbitrary-return `ret/sil/react` core, while network components return Unit.
+Checked correspondences cover a unit-returning single box, nonempty finite
+common-private-channel families with arbitrary payloads and a unique producer/
+distinct listener, namespaced disjoint tensor pairs and concrete plugging.
+Strong native interchange is the four-process `Quad` with persistent `OffersOnly`
+in Boolean-disjoint namespaces, all-sync/all-interleave operators and an all-hide
+lifting. The native outside-sync post-event commitment τ is preserved.
+This does not prove arbitrary-network native FD full abstraction, zero-box/Skip
+correspondence, all-return-type network parallelism, or UC = native refinement.
+Supplied sort-code equality and local finite-index equality derive code/index-only
+UIP; no arbitrary payload/branch/process/function UIP assumption,
+finite-internal-branching assumption or classical DR/FD postulate is imported.
+Broader weak/DR/FD hiding/interchange limitations remain distinct.
+No CSP→PM/SSP bridge, probability/PPT or fairness theorem is supplied.
+
+**Representation compatibility.** `Network` and `PortIso` explicitly disable
+definitional record η. Named constructor/projection β and actual category, tensor
+and standard grade/action computations remain checked. Opaque wire-/alias-typing
+proofs can block payload-cast β; the native and Bool-consumer steps use explicit
+constructive code-path transports. The documentation does not claim an entirely
+unchanged definitional API.
+
+**Validation attribution.** Main reports `bg132` passed: all 44 CSP modules rebuilt
+through `MonoidalTests` and `SetupTests` at 3 GiB, then the full integrated root at
+8 GiB, with no warnings (182.41 s combined). The source implementor/coordinator
+reports CSP escape baseline 0 → 0. These are attributed checks, not new
+documentation-worker Agda runs or uncontended timing claims.
