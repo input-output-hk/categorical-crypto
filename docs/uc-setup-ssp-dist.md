@@ -98,3 +98,45 @@ general SSProve expressiveness, asynchronous delivery control, or corruption sem
 Initial implementation warm checks (2026-10-10, `+RTS -M3G -H1G`, one `Checking` line, warning gate
 empty): Kernel 492 lines 16 s, Dist 73 lines 10 s, Laws 76 lines 10 s, Setup 32 lines 12 s,
 OneTimePad/Dist 95 lines 10 s.
+
+## 6. Descending the compiler to PM[wb] (`SSP/Dist/Compile.agda`)
+
+`dist⇒PM[wb] : UCSetupMorphism SSPᵈ.StdSetup WB.StdSetup` is a lawful
+`StdUCMorphism`, not another compiler or another intermediate setup. Its strong
+monoidal functor `Fᵂᵈ` uses the existing `⟦_⟧ᵂ` on protocols and the existing
+`Fᵂ` identity, composition, tensor, unit and coherence laws; `νᵂᵈ` uses the
+existing `νᵂ` test map and naturality.
+
+The additional congruence `⟦⟧ᵂ-resp-≈ᵈ` evaluates `run≈ᵈ e Y Z` at both
+ancillas, applies `Dense.Tests.preserves-≈ℰ`, and uses `compile-pad` to replace
+compiled source padding with target padding. `compile-pad` uses the tensor
+comparison twice and the compiled-wire comparison on both sides. Rewrapping each
+bare-kernel component assembles **target categorical hom equality**. This does
+not assume that an arbitrary U-kernel is tensor-congruent.
+
+`preserves-≈ℰ`, `preserves-≈ᵁ` and `preserves-≤UC` have the exact `Transfer`
+types for `dist⇒PM[wb]`. U-preservation uses identity-on-objects coverage and
+bare-kernel preservation; security can also cross `dist≤⇒ssp≤` and the existing
+WB transfer, as the implementation does.
+
+The checked triangle is the actual composite
+`ssp-via-dist = composeᵁ dist⇒PM[wb] SSPᵈ.ssp⇒dist` compared with
+`Dense.SSP→PM[wb]`. `Triangle.objects`, `homs`, `tests`, `grade-objects`,
+`grade-homs`, `κ`, `tensor`, `unit` and `computations` provide coherent pointwise
+agreement, not propositional equality of bundled records. The object, hom and
+test representatives agree definitionally. The composite κ is
+`id ∘ ⟦ wireᵖ ⟧ᵂ`, and the composite tensor/unit comparisons are
+`⟦ wireᵖ ⟧ᵂ ∘ id`; their proofs use the respective target identity law and
+`wire≈σ`, rather than reflexivity of unrelated comparisons.
+
+`Examples/SSP/OneTimePad/WB.agda` consumes the descended congruence in
+`lazy≈realᵂ` and `otp≈idealᵂ`, transporting deferred sampling and the OTP
+simulator equation as categorical equalities. `otp≤ideal-distᵂ` consumes
+`preserves-≤UC` on `Dist.otp≤ideal-dist`; the existing `otp≤idealᵂ` public
+statement is retained using that result.
+
+The target remains PM[wb], with legal call/return tests and closures. The raw
+compiled wire still aborts on an unsolicited return while ordinary PM copycat
+forwards it. Neither ordinary-PM security transfer nor unconditional reflection
+of target security is claimed: observation density does not backtranslate every
+target simulator to a finite SSP protocol.

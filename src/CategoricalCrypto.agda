@@ -81,6 +81,7 @@ import CategoricalCrypto.Examples.ITM.Tests
 import CategoricalCrypto.Abstract2.Regrade.Pin
 import CategoricalCrypto.SSP.Compile
 import CategoricalCrypto.SSP.Dense.Tests
+import CategoricalCrypto.SSP.Dist.Compile
 import CategoricalCrypto.SSP.Dist.Setup
 import CategoricalCrypto.SSP.Pin
 import CategoricalCrypto.SSP.Reduction
