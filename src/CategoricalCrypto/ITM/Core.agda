@@ -48,6 +48,21 @@ Ports Bits : Set
 Ports = ObjTerm
 Bits  = List Bool
 
+swapPol : Pol → Pol
+swapPol ⁺ = ⁻
+swapPol ⁻ = ⁺
+
+dualPorts : Ports → Ports
+dualPorts unit = unit
+dualPorts (A ⊗₀ B) = dualPorts A ⊗₀ dualPorts B
+dualPorts (Var p) = Var (swapPol p)
+
+dualPorts-involutive : (A : Ports) → dualPorts (dualPorts A) ≡ A
+dualPorts-involutive unit = refl
+dualPorts-involutive (A ⊗₀ B) = cong₂ _⊗₀_ (dualPorts-involutive A) (dualPorts-involutive B)
+dualPorts-involutive (Var ⁺) = refl
+dualPorts-involutive (Var ⁻) = refl
+
 Port : Pol → Ports → Set
 Port p unit     = ⊥
 Port p (A ⊗₀ B) = Port p A ⊎ Port p B
@@ -63,6 +78,14 @@ Msg ⁺ (Var ⁺)  = Bits
 Msg ⁺ (Var ⁻)  = ⊥ₚ
 Msg ⁻ (Var ⁺)  = ⊥ₚ
 Msg ⁻ (Var ⁻)  = Bits
+
+Msg-dual : (p : Pol) (A : Ports) → Msg p (dualPorts A) ≡ Msg (swapPol p) A
+Msg-dual _ unit = refl
+Msg-dual p (A ⊗₀ B) = cong₂ _⊎_ (Msg-dual p A) (Msg-dual p B)
+Msg-dual ⁺ (Var ⁺) = refl
+Msg-dual ⁺ (Var ⁻) = refl
+Msg-dual ⁻ (Var ⁺) = refl
+Msg-dual ⁻ (Var ⁻) = refl
 
 ⟦_⟧ : Ports → Iface
 ⟦ A ⟧ = Msg ⁺ A ⇿ Msg ⁻ A
