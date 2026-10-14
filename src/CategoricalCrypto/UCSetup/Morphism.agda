@@ -31,7 +31,7 @@ module _ (𝕊 : UCSetup o₁ ℓ₁ e₁ o₁′ ℓ₁′ e₁′ cs ℓs)
   record UCSetupMorphism : Set (o₁ ⊔ ℓ₁ ⊔ e₁ ⊔ o₁′ ⊔ ℓ₁′ ⊔ e₁′
                                 ⊔ o₂ ⊔ ℓ₂ ⊔ e₂ ⊔ o₂′ ⊔ ℓ₂′ ⊔ e₂′ ⊔ cs ⊔ ℓs) where
     field
-      effect : GradedKleisliMorphism S.ℳ S′.ℳ
+      effect : GradedKleisliMorphism S.triple S′.triple
 
     open GradedKleisliMorphism effect public
 
@@ -42,13 +42,13 @@ module _ (𝕊 : UCSetup o₁ ℓ₁ e₁ o₁′ ℓ₁′ e₁′ cs ℓs)
 
 -- Keeping 𝒞, ℐ and ℳ and replacing ℰ by a presheaf that receives ℰ's tests
 module _ {𝒞 : Category o₁′ ℓ₁′ e₁′} {ℐ : MonoidalCategory o₁ ℓ₁ e₁}
-         {ℳ : GradedKleisliTriple ℐ 𝒞}
+         {ℳ : GradedMonad ℐ 𝒞}
          (ℰ ℰ′ : Presheaf 𝒞 (Setoids cs ℓs)) where
 
   changeKernel : PresheafMorphism idF ℰ ℰ′
                → UCSetupMorphism (record { 𝒞 = 𝒞 ; ℐ = ℐ ; ℳ = ℳ ; ℰ = ℰ })
                                  (record { 𝒞 = 𝒞 ; ℐ = ℐ ; ℳ = ℳ ; ℰ = ℰ′ })
-  changeKernel ν = record { effect = idMorphism 𝒞 ℐ ℳ ; ν = ν }
+  changeKernel ν = record { effect = idMorphism 𝒞 ℐ (GradedMonad⇒GradedKleisliTriple ℳ) ; ν = ν }
 
 ------------------------------------------------------------------------
 -- Identity and composition

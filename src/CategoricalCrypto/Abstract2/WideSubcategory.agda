@@ -5,8 +5,8 @@
 -- computational security" and "Dolev–Yao-definable morphisms ⇒ symbolic
 -- security".
 --
--- `SetupSubcategory` is the closure data that makes 𝒲 carry the graded-Kleisli
--- structure again; a `Restriction` is the observational kernel, supplied
+-- `SetupSubcategory` is the closure data that makes 𝒲 carry the graded monad
+-- again; a `Restriction` is the observational kernel, supplied
 -- independently as a test presheaf ℰ′ on 𝒲 together with ν, the presentation
 -- of ℰ′'s tests as ambient ones.
 
@@ -25,11 +25,13 @@ open import Categories.Category.Instance.Setoids
 open import Categories.Category.SubCategory (UCSetup.𝒞 𝕊)
 open import Categories.Functor renaming (id to idF)
 open import Categories.Functor.Construction.SubCategory (UCSetup.𝒞 𝕊)
+open import Categories.Functor.Monoidal
 open import Categories.Functor.Monoidal.Properties
 open import Categories.Functor.Presheaf
 open import Categories.Functor.Presheaf.Morphism
 import Categories.KernelCongruence.Reindex as KernelReindex
 open import Categories.Monad.Graded
+open import Categories.NaturalTransformation
 
 open import CategoricalCrypto.Abstract2
 open import CategoricalCrypto.Abstract2.Morphism
@@ -54,13 +56,11 @@ record SetupSubcategory (w : Level) : Set (o ⊔ ℓ ⊔ o′ ⊔ ℓ′ ⊔ suc
     W-∘      : {f : B 𝒞.⇒ C′} {g : A 𝒞.⇒ B} → W f → W g → W (f 𝒞.∘ g)
     W-return : W (return {A})
     W-sub    : (c : X ℐ.⇒ Y) → W (sub c {A})
-    W-ext    : (V : ℐ.Obj) {f : A 𝒞.⇒ T₀ X B} → W f → W (ext V f)
+    W-μ      : W (μ X Y {A})
+    W-T₁     : (V : ℐ.Obj) {f : A 𝒞.⇒ B} → W f → W (T₁ V f)
 
-  W-μ : W (μ X Y {A})
-  W-μ {X = X} = W-ext X W-id
-
-  W-T₁ : (V : ℐ.Obj) {f : A 𝒞.⇒ B} → W f → W (T₁ V f)
-  W-T₁ V wf = W-∘ (W-sub ρ⇒) (W-ext V (W-∘ W-return wf))
+  W-ext : (V : ℐ.Obj) {f : A 𝒞.⇒ T₀ X B} → W f → W (ext V f)
+  W-ext V wf = W-∘ W-μ (W-T₁ V wf)
 
   subCat : SubCat 𝒞.Obj
   subCat = record { U = λ A → A ; R = W ; Rid = W-id ; _∘R_ = W-∘ }
@@ -75,21 +75,22 @@ record SetupSubcategory (w : Level) : Set (o ⊔ ℓ ⊔ o′ ⊔ ℓ′ ⊔ suc
 
   module ι = Functor ι
 
-  ℳ|𝒲 : GradedKleisliTriple ℐ 𝒲
+  ℳ|𝒲 : GradedMonad ℐ 𝒲
   ℳ|𝒲 = record
-    { T₀               = T₀
-    ; ext              = λ V f → ext V (proj₁ f) , W-ext V (proj₂ f)
-    ; return           = return , W-return
-    ; sub              = λ c → sub c , W-sub c
-    ; ext-identityˡ    = ext-identityˡ
-    ; ext-identityʳ    = ext-identityʳ
-    ; ext-assoc        = ext-assoc
-    ; ext-resp-≈       = ext-resp-≈
-    ; sub-commute      = sub-commute
-    ; sub-identity     = sub-identity
-    ; sub-homomorphism = sub-homomorphism
-    ; sub-resp-≈       = sub-resp-≈
+    { F = record
+      { F₀ = λ u → record
+        { F₀ = T₀ u ; F₁ = λ (f , wf) → T₁ u f , W-T₁ u wf
+        ; identity = T-identity ; homomorphism = T-homomorphism ; F-resp-≈ = T-resp-≈ }
+      ; F₁ = λ c → ntHelper record { η = λ _ → sub c , W-sub c ; commute = λ _ → sub-commute′ }
+      ; identity = sub-identity ; homomorphism = sub-homomorphism ; F-resp-≈ = λ e → sub-resp-≈ e }
+    ; isMonoidal = record
+      { ε = ntHelper record { η = λ _ → return , W-return ; commute = λ _ → return-commute }
+      ; ⊗-homo = ntHelper record
+        { η = λ (u , v) → ntHelper record { η = λ _ → μ u v , W-μ ; commute = λ _ → μ-commute }
+        ; commute = λ _ → μ-sub-commute }
+      ; associativity = ℳ.associativity ; unitaryˡ = ℳ.unitaryˡ ; unitaryʳ = ℳ.unitaryʳ }
     }
+    where module ℳ = MonoidalFunctor ℳ
 
   -- The finest kernel 𝒲 may carry: the ambient tests, read along ι.
   ι*ℰ : Presheaf 𝒲 (Setoids cs ℓs)
@@ -191,7 +192,7 @@ module Trivial where
   everything : SetupSubcategory 0ℓ
   everything = record
     { W = λ _ → ⊤ ; W-id = tt ; W-∘ = λ _ _ → tt
-    ; W-return = tt ; W-sub = λ _ → tt ; W-ext = λ _ _ → tt }
+    ; W-return = tt ; W-sub = λ _ → tt ; W-μ = tt ; W-T₁ = λ _ _ → tt }
 
   open Fine everything
 
