@@ -61,22 +61,23 @@ module _ {o ℓ e o′ ℓ′ e′ cs ℓs : Level}
   module _ (ν : PresheafMorphism F.F ℰ ℰ′) where
     open Transfer (StdUCMorphism ν)
 
+    -- At an image ancilla the U-kernel component is `F` of the source's,
+    -- conjugated by the oplax structure.
+    at-image : ∀ {Y X A B} (h : A S.⇒ X S.⊗₀ B)
+          → α⇐ ∘ id {F.₀ Y} ⊗₁ (Op.δ ∘ F.₁ h) ≈ (Op.δ ⊗₁ id ∘ Op.δ) ∘ F.₁ (S.α⇐ S.∘ S.id S.⊗₁ h) ∘ Op.ψ
+    at-image h = ⟺ (begin
+      (Op.δ ⊗₁ id ∘ Op.δ) ∘ F.₁ (S.α⇐ S.∘ S.id S.⊗₁ h) ∘ Op.ψ    ≈⟨ refl⟩∘⟨ pushˡ F.homomorphism ⟩
+      (Op.δ ⊗₁ id ∘ Op.δ) ∘ F.₁ S.α⇐ ∘ F.₁ (S.id S.⊗₁ h) ∘ Op.ψ  ≈⟨ pullˡ (assoc ○ Op.δ-assoc) ⟩
+      (α⇐ ∘ id ⊗₁ Op.δ ∘ Op.δ) ∘ F.₁ (S.id S.⊗₁ h) ∘ Op.ψ       ≈⟨ assoc ○ (refl⟩∘⟨ assoc) ⟩
+      α⇐ ∘ id ⊗₁ Op.δ ∘ Op.δ ∘ F.₁ (S.id S.⊗₁ h) ∘ Op.ψ         ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pullˡ (Op.δ-commuteˡ h) ⟩
+      α⇐ ∘ id ⊗₁ Op.δ ∘ (id ⊗₁ F.₁ h ∘ Op.δ) ∘ Op.ψ             ≈⟨ refl⟩∘⟨ refl⟩∘⟨ cancelʳ Op.δψ ⟩
+      α⇐ ∘ id ⊗₁ Op.δ ∘ id ⊗₁ F.₁ h                            ≈⟨ refl⟩∘⟨ merge₂ʳ ⟩
+      α⇐ ∘ id ⊗₁ (Op.δ ∘ F.₁ h)                                ∎)
+
     private
       across : ∀ {A B} {u u′ v v′ : A ⇒ B} → u ≈ u′ → v ≈ v′ → u′ S′.≈ℰ v′ → u S′.≈ℰ v
       across p q r = S′.≈ℰ-trans (S′.≈C⇒≈ℰ p) (S′.≈ℰ-trans r (S′.≈ℰ-sym (S′.≈C⇒≈ℰ q)))
 
-      -- At an image ancilla the U-kernel component is `F` of the source's,
-      -- conjugated by the oplax structure.
-      at-image : ∀ {Y X A B} (h : A S.⇒ X S.⊗₀ B)
-            → α⇐ ∘ id {F.₀ Y} ⊗₁ (Op.δ ∘ F.₁ h) ≈ (Op.δ ⊗₁ id ∘ Op.δ) ∘ F.₁ (S.α⇐ S.∘ S.id S.⊗₁ h) ∘ Op.ψ
-      at-image h = ⟺ (begin
-        (Op.δ ⊗₁ id ∘ Op.δ) ∘ F.₁ (S.α⇐ S.∘ S.id S.⊗₁ h) ∘ Op.ψ    ≈⟨ refl⟩∘⟨ pushˡ F.homomorphism ⟩
-        (Op.δ ⊗₁ id ∘ Op.δ) ∘ F.₁ S.α⇐ ∘ F.₁ (S.id S.⊗₁ h) ∘ Op.ψ  ≈⟨ pullˡ (assoc ○ Op.δ-assoc) ⟩
-        (α⇐ ∘ id ⊗₁ Op.δ ∘ Op.δ) ∘ F.₁ (S.id S.⊗₁ h) ∘ Op.ψ       ≈⟨ assoc ○ (refl⟩∘⟨ assoc) ⟩
-        α⇐ ∘ id ⊗₁ Op.δ ∘ Op.δ ∘ F.₁ (S.id S.⊗₁ h) ∘ Op.ψ         ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pullˡ (Op.δ-commuteˡ h) ⟩
-        α⇐ ∘ id ⊗₁ Op.δ ∘ (id ⊗₁ F.₁ h ∘ Op.δ) ∘ Op.ψ             ≈⟨ refl⟩∘⟨ refl⟩∘⟨ cancelʳ Op.δψ ⟩
-        α⇐ ∘ id ⊗₁ Op.δ ∘ id ⊗₁ F.₁ h                            ≈⟨ refl⟩∘⟨ merge₂ʳ ⟩
-        α⇐ ∘ id ⊗₁ (Op.δ ∘ F.₁ h)                                ∎)
 
       -- An ancilla moved along an iso.
       conj : ∀ {Y Y′ P Q R} {u : Y ⇒ Y′} {u⁻ : Y′ ⇒ Y} → u ∘ u⁻ ≈ id → (k : P ⇒ Q ⊗₀ R)
