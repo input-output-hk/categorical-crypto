@@ -425,6 +425,14 @@ SSP→PM[wb] = StdUCMorphism Protᴹ PM[wb]ᴹ ℰᵖ ℰ[wb] Fᵂ νᵂ      --
 preserves-≤UC : Transfer.Preserves-≤UC SSP→PM[wb]             -- P ≤UC Q ⇒ Fᵂ P ≤UC Fᵂ Q
 ```
 
+`SSP/Dist/Compile.dist⇒PM[wb]` descends this same compiler through `≈ᵈ`,
+preserving `≈ℰ`, `≈ᵁ` and `≤UC`. Its actual composition with `ssp⇒dist`
+agrees pointwise with `SSP→PM[wb]` on objects, homs, tests, grades, κ,
+tensor/unit comparisons and graded return/ext/sub expressions. The OTP/WB
+client transports deferred sampling as target categorical equality and consumes
+the distributional setup's security theorem; see
+[uc-setup-ssp-dist.md §6](uc-setup-ssp-dist.md#6-descending-the-compiler-to-pmwb-sspdistcompileagda).
+
 | obligation | status | needs |
 |---|---|---|
 | `F-resp-≈` | true | `morphism-resp` → `≈ᴹ` → `∼` (`≈⇒∼`) |

@@ -129,6 +129,11 @@ test representatives agree definitionally. The composite κ is
 `⟦ wireᵖ ⟧ᵂ ∘ id`; their proofs use the respective target identity law and
 `wire≈σ`, rather than reflexivity of unrelated comparisons.
 
+`Triangle.return-comparison`, `ext-comparison` and `sub-comparison` also
+compare the actual graded-law right-hand sides pointwise. Their proofs pass
+through the mapped source operation using both morphisms' checked graded laws
+and `computations`; no equality of proof fields or bundled records is assumed.
+
 `Examples/SSP/OneTimePad/WB.agda` consumes the descended congruence in
 `lazy≈realᵂ` and `otp≈idealᵂ`, transporting deferred sampling and the OTP
 simulator equation as categorical equalities. `otp≤ideal-distᵂ` consumes

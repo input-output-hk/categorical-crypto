@@ -116,3 +116,25 @@ module Triangle where
   computations : (f : Protocol A (X ⊗ᴵ B))
                → Transfer.G ssp-via-dist f WB.≈ Transfer.G Dense.SSP→PM[wb] f
   computations f = WB.∘-resp-≈ κ (homs f)
+
+  return-comparison : WB.sub Via.Φ.ε WB.∘ WB.return {A}
+                      WB.≈ WB.sub Direct.Φ.ε WB.∘ WB.return {A}
+  return-comparison = WB.Equiv.sym Via.κ-return
+    ○ computations SSP.return ○ Direct.κ-return
+    where open WB.HomReasoning
+
+  ext-comparison : (f : Protocol A (Y ⊗ᴵ B))
+    → WB.sub (Via.Φ.⊗-homo.η (X , Y))
+        WB.∘ WB.ext (Via.Φ.₀ X) (Transfer.G ssp-via-dist f) WB.∘ Via.κ
+      WB.≈ WB.sub (Direct.Φ.⊗-homo.η (X , Y))
+        WB.∘ WB.ext (Direct.Φ.₀ X) (Transfer.G Dense.SSP→PM[wb] f) WB.∘ Direct.κ
+  ext-comparison {X = X} f = WB.Equiv.sym (Via.κ-ext f)
+    ○ computations (SSP.ext X f) ○ Direct.κ-ext f
+    where open WB.HomReasoning
+
+  sub-comparison : (s : Protocol X Y)
+    → WB.sub (Via.Φ.₁ s) WB.∘ Via.κ {X} {A}
+      WB.≈ WB.sub (Direct.Φ.₁ s) WB.∘ Direct.κ {X} {A}
+  sub-comparison s = WB.Equiv.sym (Via.κ-sub s)
+    ○ computations (SSP.sub s) ○ Direct.κ-sub s
+    where open WB.HomReasoning
