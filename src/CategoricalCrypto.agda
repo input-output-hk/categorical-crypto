@@ -96,6 +96,8 @@ import CategoricalCrypto.Symbolic.InterpretationTests
 import CategoricalCrypto.Symbolic.TheoryTests
 import CategoricalCrypto.Symbolic.Example.SecureChannel.Interactive
 import CategoricalCrypto.TaskPIOA.Tests
+import CategoricalCrypto.CSP.MonoidalTests
+import CategoricalCrypto.CSP.SetupTests
 import CategoricalCrypto.ND.SSP.Laws
 import CategoricalCrypto.ND.SSP.Reflect
 import CategoricalCrypto.ND.SSP.Setup
