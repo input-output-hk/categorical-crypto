@@ -22,9 +22,8 @@ open import CategoricalCrypto.TaskPIOA.Setup
 open import CategoricalCrypto.TaskPIOA.Simulation
 open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Product
-open import ProbabilisticLogic.Distribution.Uniform using (uniform-Bool)
+open import ProbabilisticLogic.Distribution.Uniform using (uniform-Bool; inv-pow-2)
 open import ProbabilisticLogic.Distribution.Uniform.Flip using (uniform-not)
-open import ProbabilisticLogic.Distribution.Uniform using (inv-pow-2)
 
 coinSignature : Finite → Signature
 coinSignature I = record

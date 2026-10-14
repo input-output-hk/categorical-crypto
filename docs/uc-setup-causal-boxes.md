@@ -452,9 +452,16 @@ and task words. There is no PPT, approximate/negligible, infinite-execution, or 
   input bit masked with a private fair pad realizes a fresh uniform ciphertext resource,
   against every admitted adaptive context and finite oblivious word. Repeated sends preserve
   the sampled ciphertext. `masked-output-contextual` uses the actual ≤UC-to-native theorem.
-  Other checked witnesses cover disabled-then-enabled execution, a repeated task, synchronized
-  sender/receiver updates, and two words with identical component projections but different
-  trace distributions (`order-sensitive`).
+  Operational witnesses cover disabled-then-enabled execution (`disabled-then-enabled`,
+  `disabled-does-not-stop`), repeated execution rather than deduplication (`repeated-task`,
+  `repetition-not-deduplication`), synchronized sender/receiver updates
+  (`synchronized-product`, `synchronization-not-interleaving-only`), and two words with
+  identical component projections but different trace distributions (`order-sensitive`).
+  `echoEnvironment` reacts to the random ciphertext while `adaptive-word` stays fixed;
+  `masked-adaptive-law` computes the entire correlated trace distribution,
+  `masked-ciphertext-fair` and `masked-not-deterministic` distinguish it from a deterministic
+  run, and `native-probabilistic-plugging` evaluates the actual installed resource through
+  the native closing test to probability 1/2.
 
 This supplies a setup node, not a UCSetupMorphism to PM, causal boxes, or another model.
 
