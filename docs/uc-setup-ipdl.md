@@ -1,8 +1,78 @@
 # IPDL as a UC setup
 
-Plan of 2026-10-09, refining `docs/uc-setup-landscape.md` §4–§5; nothing is typechecked. "IPDL" is
-gancher2023ipdl, whose numbering is used (appendices complete only in the archived
-`gancher2023ipdl-tech-report.pdf`); Coq files are those of github.com/ipdl/ipdl.
+The finite exact Fig. 9 resource interpretation below is implemented. Sections 1–6
+retain the 2026-10-09 categorical design plan, not an implemented native UC setup.
+“IPDL” refers to gancher2023ipdl; appendix numbering follows the archived technical
+report. Coq references are to github.com/ipdl/ipdl.
+
+## Implemented finite Fig. 9 interpretation
+
+All six modules under `src/CategoricalCrypto/IPDL/` use `--safe --without-K`.
+The value types are unit, Boolean and their finite products. Reactions are
+uniformly depth-bounded trees of returns, reads and rational Boolean sampling;
+Agda continuations express deterministic conditionals. A net has one reaction
+per output or hidden channel. This is finite exact semantics, not a PPT family,
+cryptographic axiom interpretation, or implementation of the categorical plan.
+
+| Module | Public entry points and checked obligations |
+|---|---|
+| `Syntax` | `Net`, `Rxn`, typed `Ren`/`rename`, write-once `assign-persistent` |
+| `Native` | persistent residual `Cell`s, `Residual.Quiet`, decreasing-work `quiesce`, typed `Input`, `Get`, `Step`, adaptive `Strategy` and `Experiment.run` |
+| `SSP` | `resource` in the actual `SSP.Dist.Setup`, `tester`, `Correspondence.agreement` |
+| `Tests` | delayed readiness/repeated input, initial Get, hidden bit read twice, conditional-feedback separator and all three marginal masses |
+| `ReadOrder` | `read-order` in SSP distributional equality and `all-strategies`; separate demand-exposing `pull-left`/`pull-right` counterexample |
+| `Linker` | independent paired saturation, hidden-channel square, native copy identity and seeded/blocked feedback squares |
+
+Each query first performs its Fig. 9 action and then saturates to quiescence.
+In particular `Get` observes the **pre-saturation** state, even in the first
+round; initialization does not secretly saturate the net. An absent output
+returns `nothing`, not SSP `dead`. Input assignment is persistent and repeated
+assignments are ignored. Hidden sampling updates a residual exactly once.
+`Residual.quiesce` returns a proof of `Quiet` for every leaf. Its fuel is the
+initial reaction-work bound, and every successful small step strictly reduces
+that bound; a blocked reaction is retained rather than treated as failure.
+
+`Correspondence.agreement N a` equates the compiled SSP verdict distribution
+with `Experiment.run N a` lifted to the repository's partial verdict carrier.
+It quantifies over **every finite typed adaptive Boolean-verdict strategy**,
+including privately randomized strategies, reply-dependent future queries,
+absence tests and repeated Input/Get/Step. The proof follows the interaction
+tree via `serve-coins`/`execution`, then the bind laws via `lift-run`; it is
+not an equality only for selected traces or a batch-only interpretation.
+
+The examples pin `Step; Get; Input(false); Get; Input(true); Get` to
+`(nothing, just false, just false)`, and two initial Gets of a constant net to
+`(nothing, just true)`. Opposite internal read orders agree under all adaptive
+strategies. Reading a shared hidden bit twice, then polling twice, preserves
+the joint distribution of identical pairs.
+
+The correlation separator really supplies Input conditionally on the first
+output being available. Its final `(true, false, undefined)` masses are
+`(1/2, 0, 1/2)` for the shared bit versus `(1/4, 1/4, 1/2)` for independent
+sampling. `correlated-needs-input`/`independent-needs-input` additionally pin
+the second output to absence when no Input is supplied: feedback is not
+replaced by a preselected marginal.
+
+`Linker.Paired` maintains **two separate residual components** sharing the
+global write-once store. It chooses and steps an enabled component and repeats
+until neither can step. Its `linked` resource is defined by this paired
+evaluator, not by `resource flat` or ordinary SSP package composition.
+`flat` is the distinct one-net representation with the middle Boolean hidden.
+`Shared.hidden-channel-square` equates the two resources in `≈ᵈ`, by simulations
+from a common persistent-bit resource, and `Shared.adaptive-square` gives the
+native-run equation for every adaptive strategy. `Identity.identity-square`
+equates two linked copy reactions with the native one-copy net; it is **not**
+an identification with SSP's `wireᵖ`. `Identity.flatten-square` checks its
+flattening too. `Feedback.seeded-feedback-square` covers a mutual dependency:
+a true external seed releases the cycle, while a false seed leaves both
+channels blocked (`seed-releases-cycle`/`unseeded-cycle-blocks`).
+
+These are concrete two-component linking/identity/feedback results, not a
+general composition, tensor, confluence or categorical identity theorem.
+No native IPDL category, test presheaf, ancilla closure, `UCSetupMorphism` or
+UC/security-transfer theorem is claimed. The pull-compiler obstructions in
+the design plan below apply to its demand-exposing encoding, **not** to the
+Fig. 9 API resource interpreter.
 
 ## 1. Summary
 
@@ -13,12 +83,11 @@ gancher2023ipdl, whose numbering is used (appendices complete only in the archiv
   inductive relation `_≐_`. Tests: IPDL protocols `A ⇒ⁿ Ωⁿ` (`Ωⁿ = [Bool] ⇌ []`) modulo IPDL
   closures, via `UC.Core.Evaluation`, read by lazy memoised evaluation into `Dₚ Bool`. Levels `suc 0ℓ`.
 - Closest existing setup: 𝔾ᵒ (𝕀 is the G-construction of unpolarised nets; `Ωⁿ` compiles to `Ωᴵ`).
-- **No `UCSetupMorphism` to or from any existing or planned setup.** The landscape's
-  `IPDL → random systems` (and `→ 𝔾ᵒ`) fails `F.identity` and `F-resp-≈`: IPDL's `exch` and
-  `unused` hold only against IPDL-shaped environments (§4.1: a closure with advantage 1).
-  `→ docs/uc-setup-causal-boxes.md`: none (§4 there). `docs/uc-setup-symbolic.md`: none.
-- What survives is a semifunctor: the pull compile preserves composites and closed runs, so attacks
-  transfer from 𝕀 to 𝔾ᵒ, security does not (§4.4, optional).
+- **No native `UCSetupMorphism` is implemented.** The demand-exposing pull
+  compiler proposed in §4 fails `F.identity` and `F-resp-≈`: it exposes internal
+  read order to an oracle, unlike the implemented Fig. 9 interpreter above.
+- The optional pull-compiler semifunctor in §4.4 remains a proposal. Its
+  obstructions do not establish that all possible native bridges are impossible.
 
 ## 2. The source model
 
@@ -317,7 +386,7 @@ on `Set`); no quotient (setoids; α is a constructor).
 
 ## 4. Morphisms
 
-### 4.1 `IPDL → random systems` and `→ 𝔾ᵒ` (landscape §4): blocked
+### 4.1 Demand-exposing pull compile to random systems or 𝔾ᵒ: blocked
 
 The landscape's F is the pull compile (an output request evaluates its reaction; an input read
 queries the left; replies and outputs are memoised), for unidirectional nets a call/return package:
@@ -403,8 +472,9 @@ conditional output distributions only: RS); **ctx** (equal only against IPDL-sha
 | category: identity | `alias`, `promote` | **fails** (§4.1.1) |
 | category: composition, ⊗, κ | α, wires | sim (unidirectional) |
 
-So no compilation target in the tree is reachable: RS is blocked by the ctx rows and the identity,
-𝔾ᵒ additionally by the beh row.
+Thus this demand-exposing pull compile does not give the proposed setup morphism:
+RS is blocked by the ctx rows and identity, and 𝔾ᵒ additionally by the beh row.
+This does not refute the operational Fig. 9 interpretation implemented above.
 
 ### 4.3 The other setups
 

@@ -4,7 +4,7 @@
 -- Both residuals consult the same persistent store before each small step.
 module CategoricalCrypto.IPDL.Linker where
 
-open import Data.Bool.Base
+open import Data.Bool.Base hiding (_<_; _≤_)
 open import Data.Empty
 open import Data.Fin.Base using (zero; suc)
 open import Data.List.Base using ([]; _∷_; _++_)
@@ -23,7 +23,7 @@ open import CategoricalCrypto.IPDL.SSP
 open import CategoricalCrypto.IPDL.Syntax
 open import CategoricalCrypto.SSP.Dist
 open import CategoricalCrypto.SSP.Dist.Kernel using (Coins; done; toss; coins)
-open import CategoricalCrypto.SSP.Iface
+open import CategoricalCrypto.SSP.Iface hiding (flat)
 open import CategoricalCrypto.SSP.Observation
 import CategoricalCrypto.SSP.Protocol as P
 import CategoricalCrypto.SSP.Protocol.Category as PC

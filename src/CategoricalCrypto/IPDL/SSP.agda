@@ -49,10 +49,15 @@ module Correspondence {I O} (N : Net I O) where
                 (k : Reply I O c → P.Calls (API I O) (P.St D × X))
               → evalC (P.mapᶜ proj₂ (P.serve D (resource N) k (coins κ)))
                 ≈Mℚ (sample κ >>=ᴹ λ (s , r) → evalC (P.mapᶜ proj₂ (P.graft D (resource N) (k r) s)))
-    serve-coins (done (s , r)) k = λ ξ → sym (>>=ᴹ-identityˡ (s , r) _ ξ)
+    serve-coins (done (s , r)) k = λ ξ → sym
+      (>>=ᴹ-identityˡ (s , r) (λ (s′ , r′) → evalC (P.mapᶜ proj₂ (P.graft D (resource N) (k r′) s′))) ξ)
     serve-coins (toss μ f) k ξ = trans
-      (>>=ᴹ-congˡ μ _ _ (λ b → serve-coins (f b) k) ξ)
-      (sym (>>=ᴹ-assoc μ (sample ∘ f) _ ξ))
+      (>>=ᴹ-congˡ μ
+        (λ b → evalC (P.mapᶜ proj₂ (P.serve D (resource N) k (coins (f b)))))
+        (λ b → sample (f b) >>=ᴹ λ (s , r) → evalC (P.mapᶜ proj₂ (P.graft D (resource N) (k r) s)))
+        (λ b → serve-coins (f b) k) ξ)
+      (sym (>>=ᴹ-assoc μ (sample ∘ f)
+        (λ (s , r) → evalC (P.mapᶜ proj₂ (P.graft D (resource N) (k r) s))) ξ))
 
     execution : (d : P.St D) (a : Strategy I O X) (s : State)
               → evalC (P.mapᶜ proj₂ (P.graft D (resource N) (compileTree d a) s))
@@ -60,17 +65,26 @@ module Correspondence {I O} (N : Net I O) where
     execution d (finish x) s = λ _ → refl
     execution d (ask c q k) s ξ = trans
       (serve-coins (turn s c q) (compileTree d ∘ k) ξ)
-      (>>=ᴹ-congˡ (sample (turn s c q)) _ _ (λ (s′ , r) → execution d (k r) s′) ξ)
-    execution d (random μ k) s = >>=ᴹ-congˡ μ _ _ λ b → execution d (k b) s
+      (>>=ᴹ-congˡ (sample (turn s c q))
+        (λ (s′ , r) → evalC (P.mapᶜ proj₂ (P.graft D (resource N) (compileTree d (k r)) s′)))
+        (λ (s′ , r) → runWith return⊥ (k r) s′)
+        (λ (s′ , r) → execution d (k r) s′) ξ)
+    execution d (random μ k) s = >>=ᴹ-congˡ μ
+      (λ b → evalC (P.mapᶜ proj₂ (P.graft D (resource N) (compileTree d (k b)) s)))
+      (λ b → runWith return⊥ (k b) s) λ b → execution d (k b) s
 
   lift-run : (a : Strategy I O X) (s : State)
            → runWith return⊥ a s ≈Mℚ (runWith return-ℚ a s >>=ᴹ return⊥)
   lift-run (finish x) s ξ = sym (>>=ᴹ-identityˡ x return⊥ ξ)
   lift-run (ask c q k) s ξ = trans
-    (>>=ᴹ-congˡ (sample (turn s c q)) _ _ (λ (s′ , r) → lift-run (k r) s′) ξ)
+    (>>=ᴹ-congˡ (sample (turn s c q))
+      (λ (s′ , r) → runWith return⊥ (k r) s′)
+      (λ (s′ , r) → runWith return-ℚ (k r) s′ >>=ᴹ return⊥)
+      (λ (s′ , r) → lift-run (k r) s′) ξ)
     (sym (>>=ᴹ-assoc (sample (turn s c q)) (λ (s′ , r) → runWith return-ℚ (k r) s′) return⊥ ξ))
   lift-run (random μ k) s ξ = trans
-    (>>=ᴹ-congˡ μ _ _ (λ b → lift-run (k b) s) ξ)
+    (>>=ᴹ-congˡ μ (λ b → runWith return⊥ (k b) s)
+      (λ b → runWith return-ℚ (k b) s >>=ᴹ return⊥) (λ b → lift-run (k b) s) ξ)
     (sym (>>=ᴹ-assoc μ (λ b → runWith return-ℚ (k b) s) return⊥ ξ))
 
   agreement : (a : Strategy I O Bool)

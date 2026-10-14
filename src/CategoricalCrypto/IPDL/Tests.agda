@@ -4,6 +4,7 @@ module CategoricalCrypto.IPDL.Tests where
 
 open import Data.Bool.Base
 open import Data.Fin.Base using (zero; suc)
+open import Data.Integer.Base using (+_)
 open import Data.List.Base using ([]; _∷_)
 open import Data.Maybe.Base
 open import Data.Product.Base
@@ -90,17 +91,45 @@ independent-feedback : entries (Experiment.run independent feedback-test)
                      ≡ entries (uniform-Bool >>=ᴹ λ b →
                          if b then uniform-Bool >>=ᴹ (return-ℚ ∘ just) else return-ℚ nothing)
 independent-feedback = refl
-  where open import Function.Base using (_∘_)
 
 maybe-indicator : Maybe Bool → ℚ
 maybe-indicator (just true) = 1ℚ
 maybe-indicator _ = 0ℚ
 
-correlated-true : lookupᴰℚ (entries (Experiment.run correlated feedback-test)) maybe-indicator ≡ 1 / 2
+correlated-true : lookupᴰℚ (entries (Experiment.run correlated feedback-test)) maybe-indicator ≡ + 1 / 2
 correlated-true = refl
 
-independent-true : lookupᴰℚ (entries (Experiment.run independent feedback-test)) maybe-indicator ≡ 1 / 4
+independent-true : lookupᴰℚ (entries (Experiment.run independent feedback-test)) maybe-indicator ≡ + 1 / 4
 independent-true = refl
+
+false-indicator undefined-indicator : Maybe Bool → ℚ
+false-indicator (just false) = 1ℚ
+false-indicator _ = 0ℚ
+undefined-indicator nothing = 1ℚ
+undefined-indicator _ = 0ℚ
+
+correlated-false : lookupᴰℚ (entries (Experiment.run correlated feedback-test)) false-indicator ≡ 0ℚ
+correlated-false = refl
+
+independent-false : lookupᴰℚ (entries (Experiment.run independent feedback-test)) false-indicator ≡ + 1 / 4
+independent-false = refl
+
+correlated-undefined : lookupᴰℚ (entries (Experiment.run correlated feedback-test)) undefined-indicator ≡ + 1 / 2
+correlated-undefined = refl
+
+independent-undefined : lookupᴰℚ (entries (Experiment.run independent feedback-test)) undefined-indicator ≡ + 1 / 2
+independent-undefined = refl
+
+without-input : Strategy Bit Both (Maybe Bool)
+without-input = ask Step tt λ _ → ask (Get (suc zero)) tt finish
+
+correlated-needs-input : entries (Experiment.run correlated without-input)
+                       ≡ entries (uniform-Bool >>=ᴹ λ _ → return-ℚ nothing)
+correlated-needs-input = refl
+
+independent-needs-input : entries (Experiment.run independent without-input)
+                        ≡ entries (uniform-Bool >>=ᴹ λ _ → return-ℚ nothing)
+independent-needs-input = refl
 
 separator : Strategy Bit Both Bool
 separator = ask Step tt λ _ → ask (Get zero) tt λ where

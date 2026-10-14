@@ -40,7 +40,7 @@ canonical = record
   { St = Store Inputs ; init = empty Inputs
   ; step = λ where
       s (Input c) q → P.ret (assign Inputs s c q , tt)
-      s (Get _) _ → P.ret (s , joint s)
+      s (Get zero) _ → P.ret (s , joint s)
       s Step _ → P.ret (s , tt) }
 
 realizeˡ : Store Inputs → Residual.State left

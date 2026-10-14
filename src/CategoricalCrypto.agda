@@ -125,6 +125,9 @@ import CategoricalCrypto.UC.RandomSystems.Construction
 import CategoricalCrypto.UC.RandomSystems.FullAbstraction
 import CategoricalCrypto.UC.RandomSystems.Morphism
 import CategoricalCrypto.UC.RandomSystems.Quantitative
+import CategoricalCrypto.IPDL.Linker
+import CategoricalCrypto.IPDL.ReadOrder
+import CategoricalCrypto.IPDL.Tests
 import CategoricalCrypto.Examples.ITM.Tests
 open import CategoricalCrypto.Examples.Basic
 import CategoricalCrypto.Examples.Channels
