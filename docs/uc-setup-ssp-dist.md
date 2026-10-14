@@ -145,3 +145,10 @@ compiled wire still aborts on an unsolicited return while ordinary PM copycat
 forwards it. Neither ordinary-PM security transfer nor unconditional reflection
 of target security is claimed: observation density does not backtranslate every
 target simulator to a finite SSP protocol.
+
+Targeted `pagda --useUntracked false check` results (2026-10-14, each file's
+own OPTIONS): `SSP/Dist/Compile` passed with `+RTS -M6G -H1G -RTS` after a
+3 GiB heap exhaustion; `Examples/SSP/OneTimePad/WB` and `FullTests` passed
+with `+RTS -M3G -H1G -RTS`. All three warning gates were empty. These are
+typechecking results, not uncontended performance measurements: the client
+runs reported Nix fetch/profile-lock contention.

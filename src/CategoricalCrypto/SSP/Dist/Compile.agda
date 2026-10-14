@@ -9,6 +9,9 @@ open import Categories.Category.Monoidal.Bundle
 open import Categories.Functor
 open import Categories.Functor.Monoidal
 open import Categories.Functor.Presheaf
+open import Categories.Functor.Presheaf.Morphism
+open import Categories.NaturalTransformation
+open import Categories.NaturalTransformation.NaturalIsomorphism using (niHelper)
 open import Data.Product.Base
 open import Function.Bundles
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
@@ -35,7 +38,7 @@ compile-pad : (P : Protocol A B)
             → ⟦ (wireᵖ {Y} ⊗ᵖ P) ⊗ᵖ wireᵖ {Z} ⟧ᵂ WB.≈ WB.pad {Y} {Z = Z} ⟦ P ⟧ᵂ
 compile-pad {Y = Y} {Z = Z} P =
   ⊗≈⊗ (wireᵖ {Y} ⊗ᵖ P) (wireᵖ {Z})
-  ○ WB.⊗.F-resp-≈ (⊗≈⊗ (wireᵖ {Y}) P ○ WB.⊗.F-resp-≈ (wire≈σ , WB.Equiv.refl) , wire≈σ)
+  ○ WB.⊗.F-resp-≈ ((⊗≈⊗ (wireᵖ {Y}) P ○ WB.⊗.F-resp-≈ (wire≈σ , WB.Equiv.refl)) , wire≈σ)
   where open WB.HomReasoning
 
 ⟦⟧ᵂ-resp-≈ᵈ : {P Q : Protocol A B} → P ≈ᵈ Q → ⟦ P ⟧ᵂ WB.≈ ⟦ Q ⟧ᵂ
@@ -53,19 +56,23 @@ Fᵂᵈ = record
     ; identity = F.identity ; homomorphism = F.homomorphism
     ; F-resp-≈ = ⟦⟧ᵂ-resp-≈ᵈ }
   ; isStrongMonoidal = record
-    { ε = F.ε ; ⊗-homo = F.⊗-homo
+    { ε = F.ε
+    ; ⊗-homo = niHelper record
+      { η = F.⊗-homo.⇒.η ; η⁻¹ = F.⊗-homo.⇐.η ; commute = F.⊗-homo.⇒.commute
+      ; iso = λ XY → record
+        { isoˡ = F.⊗-homo.iso.isoˡ XY ; isoʳ = F.⊗-homo.iso.isoʳ XY } }
     ; associativity = F.associativity ; unitaryˡ = F.unitaryˡ ; unitaryʳ = F.unitaryʳ } }
   where module F = StrongMonoidalFunctor Fᵂ
 
 νᵂᵈ : PresheafMorphism (StrongMonoidalFunctor.F Fᵂᵈ) SSPᵈ.ℰᵈ WB.ℰ[wb]
-νᵂᵈ = record { ν = νᵂ.ν }
+νᵂᵈ = record { ν = ntHelper record { η = νᵂ.η ; commute = νᵂ.commute } }
   where module νᵂ = PresheafMorphism Dense.νᵂ
 
 dist⇒PM[wb] : UCSetupMorphism SSPᵈ.StdSetup WB.StdSetup
 dist⇒PM[wb] = StdUCMorphism SSPᵈ.Protᵈ WB.PM[wb]ᴹ SSPᵈ.ℰᵈ WB.ℰ[wb] Fᵂᵈ νᵂᵈ
 
 preserves-≈ℰ : Transfer.Preserves-≈ℰ dist⇒PM[wb]
-preserves-≈ℰ = Tests.preserves-≈ℰ
+preserves-≈ℰ e = Tests.preserves-≈ℰ (SSP.KE.mk∼ λ {t} → SSPᵈ.KE.run∼ e {t})
 
 preserves-≈ᵁ : Transfer.Preserves-≈ᵁ dist⇒PM[wb]
 preserves-≈ᵁ = surjective⇒preserves-≈ᵁ SSPᵈ.Protᵈ WB.PM[wb]ᴹ SSPᵈ.ℰᵈ WB.ℰ[wb] Fᵂᵈ νᵂᵈ
@@ -93,7 +100,7 @@ module Triangle where
 
   tests : (D : Protocol A Ωᴵ)
         → Setoid._≈_ (Functor.₀ WB.ℰ[wb] A) (Via.ν.η A ⟨$⟩ D) (Direct.ν.η A ⟨$⟩ D)
-  tests {A} D = Setoid.refl (Functor.₀ WB.ℰ[wb] A)
+  tests {A} D = Setoid.refl (Functor.₀ WB.ℰ[wb] A) {Via.ν.η A ⟨$⟩ D}
 
   grade-objects : (X : Iface) → Via.Φ.₀ X ≡ Direct.Φ.₀ X
   grade-objects X = refl
