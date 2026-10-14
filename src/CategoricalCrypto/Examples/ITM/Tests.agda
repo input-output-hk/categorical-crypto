@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
 -- Finite static tables, perfect pulled-back tests, and initialized execution:
--- docs/uc-setup-itm.md §6.1. No PPT or general ITM→PM security transfer is used.
+-- docs/uc-setup-itm.md §6.1. Transport uses unrestricted pulled-back PM tests.
 
 module CategoricalCrypto.Examples.ITM.Tests where
 
@@ -29,6 +29,8 @@ open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Model.Seal
 
 import CategoricalCrypto.ITM.Setup as ITM
+import CategoricalCrypto.ITM.Transfer as Transport
+import CategoricalCrypto.UC.Model.Setup as PM
 
 private
   module T = FreeMonoidal itmData
@@ -43,6 +45,18 @@ explicit-simulator = ITM.≈ᴾ⇒≈ᵁ (G.Equiv.sym compiled-correct)
 
 secure : real ITM.≤UC ideal
 secure = ITM.dummy-complete (T.var simulator , explicit-simulator)
+
+transported-secure : Transport.G real PM.≤UC Transport.G ideal
+transported-secure = Transport.preserves-≤UC secure
+
+transported-simulator : Transport.G real PM.≈ᵁ Transport.G simulated
+transported-simulator = Transport.preserves-≈ᵁ explicit-simulator
+
+reflected-simulator : real ITM.≈ᵁ simulated
+reflected-simulator = Transport.reflects-≈ᵁ transported-simulator
+
+reflected-secure : real ITM.≤UC ideal
+reflected-secure = Transport.reflects-≤UC-image-witness (T.var simulator) transported-simulator
 
 markers-separated : ¬ (observation false real Ap.∼ᵃ observation false ideal)
 markers-separated e =

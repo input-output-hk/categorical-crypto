@@ -76,6 +76,8 @@ open import CategoricalCrypto.Approx.Small.Controlled
 open import CategoricalCrypto.ITM.Relational
 import CategoricalCrypto.ITM.Relational.Tests
 open import CategoricalCrypto.ITM.Setup
+import CategoricalCrypto.ITM.Transfer
+import CategoricalCrypto.Examples.ITM.Tests
 import CategoricalCrypto.Abstract2.Regrade.Pin
 import CategoricalCrypto.SSP.Compile
 import CategoricalCrypto.SSP.Dense.Tests

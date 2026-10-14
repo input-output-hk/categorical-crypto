@@ -285,14 +285,15 @@ well as all closures do. Classically that follows by finite approximation `[INFE
 | module | contents | OPTIONS |
 |---|---|---|
 | `Categories/FreeMonoidal.agda` (edit, shared with the symbolic plan) | `freeStrongMonoidal` | unchanged |
-| `CategoricalCrypto/ITM/Core.agda` | `Ports`, `⟦_⟧`, codec, `TM`, `Gen`, `Conf`, `δ-at`, `𝕋ᴹ` | `--safe --without-K` |
+| `CategoricalCrypto/ITM/Core.agda` | `Ports`, `dualPorts`, `Msg-dual`, `⟦_⟧`, codec, `TM`, `Gen`, `Conf`, `δ-at`, `𝕋ᴹ` | `--safe --without-K` |
 | `…/ITM/Run.agda` | `body`, `runᵀᴹ`, `runᴾ` | `+ --guardedness` (`Dₚ`) |
 | `…/ITM/Functor.agda` | `F₀≡`, `leafᵒ`, `Fᴾ` | `+ --guardedness`; never opens `StdUC` |
 | `…/ITM/Setup.agda` | `ℰᵀ`, `open StdUC … public`, `itm⇒prot` | `+ --guardedness` |
+| `…/ITM/Transfer.agda` | image-dual coverage, contextual preservation/reflection, security preservation and witness-conditioned reflection | `+ --guardedness` |
 | `…/ITM/Relational.agda` | `Halts`, `Uninitialized.{leaf,F,ℰ,UC,ν,ν-epi,ν-mono,⇒iso}`, `initializedLeaf` | `--safe` (K, no `Dₚ`) |
 | `…/Machine/Initialized.agda` | `InitializedMachine`, `Steps`, `Executes`, initial-state-preserving `_≅ⁱ_`, trace equality `_≈ᵗ_`, `≅ⁱ⇒≈ᵗ` | `--safe` |
 | `…/ITM/Relational/Tests.agda` | same-table/different-start counterexample and positive initialized one- and two-query traces | `--safe` |
-| `…/UC/Model/Seal.agda` (edit) | `unitᵒ : G.unit ≡ ifaceᵒ (⊥ₚ ⇿ ⊥ₚ)` | unchanged |
+| `…/UC/Model/Seal.agda` (edit) | `unitᵒ`, `objᵒ-ifaceᵒ` object round trip | unchanged |
 
 ## 4. Morphisms
 
@@ -313,13 +314,28 @@ itm⇒prot = StdUCMorphism 𝕋ᴹ 𝔾ᵒ ℰᵀ ℰᵒ Fᴾ (pullbackᵛ (Stro
 
 Reused: `StdUCMorphism`, `pullbackᵛ`, `Categories.FreeMonoidal` (`freeFunctor`, `⟦⟧-resp-≈`), `iterₚ`,
 `coinₚ`, `initˢ`, `procᵒ`, `⊗ᵒ`. New: `freeStrongMonoidal` (shared), `runᴾ`, `F₀≡`, `leafᵒ`, `unitᵒ`.
-`Transfer` (`Abstract2/Morphism.agda:26-100`) yields only
-reflection and preservation of `≈ℰ`. Its general `transfer` theorem needs target
-`GradeStable`, which **fails** at PM (`UC.RandomSystems.FullAbstraction.¬gradeStableᵒ`).
-`reflects-≤UC` needs `Full Φ`, which rightly fails: a `𝔾ᵒ` simulator need not be a TM system.
-A general forward `≤UC` transfer still needs "port ancillas suffice" (§6 step 9).
-The source clients in §6.1 instead ingest initialized **compiled hom equality**
-through `≈ᴾ⇒≈ᵁ`; they do not assume either missing transfer premise.
+`ITM.Transfer` supplies the contextual argument independently of generic
+`Transfer.transfer`: `dualPorts` exchanges port polarities without changing the
+tensor tree, and `image-dual` identifies its interpreted object with the PM dual
+of the interpreted domain. The source contextual component at that one ancilla
+crosses `≈ℰ⇔`; `Standard2.Morphism.at-image` removes the compiler comparisons,
+and cancelling the associator gives the premise of
+`FullAbstraction.T₁-≈ℰ⇒∼ᴿ`. Behavioral equality implies PM contextual equality,
+so `preserves-≈ᵁ` covers **every** target ancilla without claiming that all PM
+objects are in the compiler image. `reflects-≈ᵁ` evaluates at image ancillas,
+removes the comparisons, and crosses the monic pulled-back test map.
+
+`preserves-≤UC` applies `Transfer.transfer⁺` to this contextual theorem, including
+the actual protocol action `G f = κ ∘ F₁ f`. PM `GradeStable` is not assumed:
+`UC.RandomSystems.FullAbstraction.¬gradeStableᵒ` refutes it.
+`reflects-≤UC-witness` accepts a target dummy simulator `s′`, its contextual
+witness, and an explicitly supplied source grade morphism `s` with
+`F₁ s ≈ᴿ s′`. Behavioral tensor/composition congruence replaces the simulator,
+and contextual reflection yields the source dummy witness.
+`reflects-≤UC-image-witness` is the convenient case with an image simulator.
+Neither result asserts unrestricted simulator fullness/backtranslation.
+The observation is still the perfect, unrestricted PM test pullback, not
+intrinsic computable/PPT ITM tests or the uninitialized relational setup.
 
 ### 4.2 `Uninitialized.⇒iso`: structural interpretation and initialized traces
 
@@ -549,7 +565,7 @@ single-module wall clock at `+RTS -M3G -H1G`, of which about 9 s is startup and 
    `⟦ var (flatten t) ⟧₁ G.≈ ⟦ t ⟧₁`. The `∘` case follows `Protocol/Machine/Compose.agda`
    (reachable-configuration machine, two simulations, `Col.collapseᵀ`), plus `iterₚ-codiagonal`
    and `iter-transferₚ`.
-9. *(optional)* `ITM/Relay.agda`: `ports-suffice` and `≤UC-preserve : f ≤UC g → Fᴾ f Prot.≤UC Fᴾ g`.
+9. `ITM/Transfer.agda`: image-dual coverage, `preserves-≈ᵁ`, `reflects-≈ᵁ`, `preserves-≤UC`, and simulator-witness-conditioned reflection (§4.1).
 10. *(optional)* `ITM/Computable.agda`: `≤UC-refine` into `ℰᶜ`.
 11. *(blocked on `G`)* `ITM/Triangle.agda` (K, `--guardedness`): the §4.3 iso and `ν`-square.
 12. Correct `docs/uc-setup-landscape.md` §2–3 per §5.7, then run the closure check (`*Tests`,
@@ -579,6 +595,9 @@ rewrite the honest coin. This is observable work, not identity forwarding:
 |---|---|
 | `explicit-simulator` | `real ≈ᵁ (var simulator ⊗ id) ∘ ideal` in `ITM.Setup` |
 | `secure` | `real ≤UC ideal` in `ITM.Setup`, for every source adversary |
+| `transported-secure` | the actual general forward theorem transports `secure` to PM |
+| `transported-simulator`, `reflected-simulator` | contextual simulator agreement crosses the compiler in both directions |
+| `reflected-secure` | the explicit source simulator supplies the image-witness condition for security reflection |
 | `real-marker`, `ideal-marker`, `simulated-marker` | the actual closed marker observations are respectively `returnₚ true`, `returnₚ false`, and `returnₚ true`, up to `≈ₚ` |
 | `marker-environment`, `marker-pull-distinct` | a concrete environment in `ITM.Setup.Env` separates the two source `pull` actions |
 | `initialized-distinct`, `initialized-distinctᵁ` | the unsimulated source pair is neither `≈ℰ`- nor `≈ᵁ`-equivalent |
@@ -601,8 +620,9 @@ interpreter sends `id ⊗ f` to `id ⊗ Fᴾ f`, so target tensor congruence and
 `≈ℰ⇔` establish each prefixed source kernel equality. Thus the argument covers every
 pulled-back test and every closure those tests quantify over, not only the particular
 marker or coin clients. `dummy-complete` supplies the arbitrary-adversary source
-`≤UC` theorem. No PM `GradeStable`, fullness, ports-suffice theorem, or general
-ITM-to-PM `≤UC` transfer is assumed.
+`≤UC` theorem. `transported-secure` then calls the general forward theorem
+from §4.1; `reflected-secure` consumes its simulator-image reflection interface.
+No PM `GradeStable`, global fullness, or PPT-test premise is assumed.
 
 **Exact scope.** This is a static finite-table, perfect-information example: a randomized
 honest bit service with a public marker, not an encryption, secrecy, or computational
