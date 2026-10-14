@@ -1677,3 +1677,152 @@ the integrated public `Interactive` check at `-M3G -H1G` and the full
 warnings (job `bg227`, 51.00 s combined; not an isolated benchmark). The implementor
 reports the escape-hatch baseline unchanged at 16. These are attributed checks,
 not new documentation-worker Agda runs.
+
+## Checked finite native models and transfer closure — 2026-10-14
+
+**Integrated proof snapshot: `9f9be2a89`.** This disposition records the recovered
+IPDL interpreter/linker, finite TaskPIOA setup, general ITM transfer, and descended
+SSPᵈ compiler. It supersedes the corresponding pending/no-public-consumer claims,
+not the historical findings or the stronger native/computational obligations.
+
+### General ITM preservation: further UAR-034 disposition
+
+Commits `2fd18b889`, `92501d130` and `40c65a4be` supply
+[`image-dual`/`image-dual-iso`](../src/CategoricalCrypto/ITM/Transfer.agda#L40),
+[`preserves-≈ᵁ`](../src/CategoricalCrypto/ITM/Transfer.agda#L63),
+[`reflects-≈ᵁ`](../src/CategoricalCrypto/ITM/Transfer.agda#L77), and general
+[`preserves-≤UC`](../src/CategoricalCrypto/ITM/Transfer.agda#L82).
+The interpreted source-domain dual gives the target dual ancilla; that U-component
+implies behavioural equality and hence PM U-equivalence. `transfer⁺` converts this
+direct contextual result into general UC preservation, without PM grade stability.
+This supersedes the older disposition's absence of a general ITM-to-PM theorem.
+
+Reflection of U-equivalence does not backtranslate an arbitrary existential target
+simulator. [`reflects-≤UC-witness`](../src/CategoricalCrypto/ITM/Transfer.agda#L94)
+requires a supplied source simulator whose interpretation is behaviorally equal
+to the target witness. The actual
+[`transported-secure`/simulator/reflection clients](../src/CategoricalCrypto/Examples/ITM/Tests.agda#L49)
+exercise the general forward theorem and the correctly conditioned converse.
+Thus the graph has a preservation doublehead, not an unconditional reflection hook.
+The perfect unrestricted-PM-pullback observation boundary, intrinsic-computability,
+PPT, dynamic-ITI and native IITM limitations remain.
+
+### Descended SSPᵈ compiler: further UAR-034/UAR-035 disposition
+
+Commits `7ecc8d69e`, `c0cad20d4` and `9f9be2a89` implement
+[`dist⇒PM[wb]`](../src/CategoricalCrypto/SSP/Dist/Compile.agda#L71).
+The load-bearing
+[`⟦⟧ᵂ-resp-≈ᵈ`](../src/CategoricalCrypto/SSP/Dist/Compile.agda#L44)
+descends compiled protocols through distributional hom-equality. The morphism
+preserves [`≈ℰ`, `≈ᵁ` and `≤UC`](../src/CategoricalCrypto/SSP/Dist/Compile.agda#L74);
+no UC reflection is asserted. Its U-preservation uses object coverage rather than
+target grade stability.
+
+The actual [`ssp-via-dist = composeᵁ dist⇒PM[wb] ssp⇒dist`](../src/CategoricalCrypto/SSP/Dist/Compile.agda#L88)
+agrees pointwise with the existing direct `SSP→PM[wb]`: objects, homs, tests, grade
+objects/homs, κ, tensor/unit comparisons and induced computations.
+[`Triangle.return-comparison`, `ext-comparison`, and `sub-comparison`](../src/CategoricalCrypto/SSP/Dist/Compile.agda#L127)
+also compare the right-hand sides of both morphisms' actual graded-Kleisli laws.
+These are target hom/test equalities, **not equality or an isomorphism of bundled
+setup-morphism records**.
+
+The WB leaf now proves
+[`lazy≈realᵂ` and `otp≈idealᵂ`](../src/CategoricalCrypto/Examples/SSP/OneTimePad/WB.agda#L19)
+as categorical equalities through the descended compiler, and
+[`otp≤ideal-distᵂ`](../src/CategoricalCrypto/Examples/SSP/OneTimePad/WB.agda#L25)
+transports the actual quotient-target security theorem. The old public
+`otp≤idealᵂ` is retained through this route. This closes that target-consumer gap,
+not WB-to-PM security, a reflected WB rejection, or full-context OTP confidentiality.
+
+### Finite IPDL API and concrete linking
+
+Commits `d0a29bf2b` and `b7496ca5e` supply six modules, not an IPDL `UCSetup`.
+The [`resource`](../src/CategoricalCrypto/IPDL/SSP.agda#L29) interprets finite typed
+depth-bounded reactions through the Fig. 9 API. Inputs are persistent/write-once,
+`Get` reads before saturation, and absence preserves blocked state. A decreasing
+work measure proves quiescence after each query; reaction depth is not a bound on
+the total number of API requests.
+[`Correspondence.agreement`](../src/CategoricalCrypto/IPDL/SSP.agda#L90)
+covers every finite typed adaptive **Boolean-verdict** strategy, including private
+rational Boolean coins. Native exact execution is lifted by `return⊥` when
+compared with SSP's partial-verdict run.
+
+The checked
+[`read-order`/`all-strategies`](../src/CategoricalCrypto/IPDL/ReadOrder.agda#L100),
+[`delayed-readiness`/`get-before-quiescence`/shared-sample witnesses](../src/CategoricalCrypto/IPDL/Tests.agda#L40)
+and adaptive
+[`feedback-test`](../src/CategoricalCrypto/IPDL/Tests.agda#L81)
+exercise the real API. The latter's shared and independent three-way laws are
+`(true,false,undefined)=(1/2,0,1/2)` and `(1/4,1/4,1/2)`; these are not a separately
+stated Boolean-separator success probability. The demand-exposing pull encoding
+retains its own true/false separator and is not this interpreter.
+
+The two-residual linker is a separate saturation evaluator, not a definitionally
+flat resource or ordinary SSP composition. Fixed
+[`Shared.hidden-channel-square`](../src/CategoricalCrypto/IPDL/Linker.agda#L123),
+[`Identity.identity-square`](../src/CategoricalCrypto/IPDL/Linker.agda#L193), and
+[`Feedback.seeded-feedback-square`](../src/CategoricalCrypto/IPDL/Linker.agda#L257)
+prove distributional equality to their native flat/copy nets; releasing and blocked
+cycle examples are also checked. The copy result is **not SSP wire identity**.
+Arbitrary flattening, a general open functor, native closure/test correspondence and
+source UC transfer remain unproved. The graph's checked blue operational arrow is
+plain, not an epi-style security-preservation arrow.
+
+### TaskPIOA is a separate setup, not a repair of PM scheduling
+
+Commits `c57a23ad9` and `630975487` supply the actual
+[`TaskPIOA.Setup.UC.StdSetup`](../src/CategoricalCrypto/TaskPIOA/Setup.agda#L95).
+Its free non-symmetric monoidal category has typed installation/wiring terms;
+automata are native signature-slot values embedded by `install`, and `connect`
+performs compatible synchronized product. Hom equality is free monoidal congruence.
+Its own tests are closing wiring contexts, finite oblivious words and rational
+trace rewards, equal on every native resource assignment.
+[`plugging`/`native-correspondence`](../src/CategoricalCrypto/TaskPIOA/Setup.agda#L82)
+are direct native closing-test results, not a PM test pullback or a native category
+equivalence.
+
+[`Contextual`](../src/CategoricalCrypto/TaskPIOA/Security.agda#L33) separately has
+`∀ E, ∀ ρ, ∃ ρ′`; merely comparable automata can have different private task structures.
+A fixed same-signature state-map/lumping simulation separately implies same-word
+trace equality, native inclusion and
+[`simulation⇒≤UC`](../src/CategoricalCrypto/TaskPIOA/Security.agda#L78).
+The exported [`resource-≤UC⇒contextual`](../src/CategoricalCrypto/TaskPIOA/Security.agda#L84)
+is restricted to designated **same-signature, unit-leakage resources** and uses the
+same word. There is no native-inclusion-to-UC converse, general equivalence,
+quantifier exchange or non-unit theorem.
+
+[`masked-output-secure` and its contextual corollary](../src/CategoricalCrypto/TaskPIOA/Tests.agda#L125)
+are genuine probabilistic consumers. Repeated sends retain one sampled ciphertext.
+Disabled/repeated task, synchronized product and
+[`order-sensitive`](../src/CategoricalCrypto/TaskPIOA/Tests.agda#L226)
+witnesses retain full joint-word order; an
+[`adaptive echo environment`](../src/CategoricalCrypto/TaskPIOA/Tests.agda#L247)
+reacts to the ciphertext with a fixed word, and a
+[`native closing test`](../src/CategoricalCrypto/TaskPIOA/Tests.agda#L266)
+evaluates to probability 1/2. Their negative results are local distributional
+separators, not non-emulation or all-simulator impossibility. Historical UAR-022
+and UAR-024–026 remain findings about the different SSP/PM choice models.
+No PM/SSP/causal-box bridge, full literature equivalence, PPT/negligible,
+infinite-run or fairness claim is supplied.
+
+### CSP: positive model assessment, implementation not yet checked
+
+The assessment at external `agda-cardano-common` pin
+[`9a40d1de330f376c3a102e7c9f1282f4fa830a7e`](https://github.com/input-output-hk/agda-cardano-common/tree/9a40d1de330f376c3a102e7c9f1282f4fa830a7e/src/ITree-CSP)
+supports a viable typed open-network model: confined `PTree` components, gluing,
+transparent aliases, disjoint tensor, structural hom equality and contextual
+trace/failure/divergence observations. This is a concrete **proposed construction**,
+with implementation in progress, not a checked setup or bridge at this snapshot.
+Bind composition, restricted parallel interchange, weak/DR/FD equivalence and `FSim`
+do not by themselves supply that network category, observation invariance or a UC
+correspondence. Their semantic/classical assumption boundaries remain explicit;
+the native library's limitations are not a universal no-CSP-model theorem.
+
+**Validation attribution.** Main reports IPDL Linker/SSP/Tests and the integrated
+root passed (`bg78`), then TaskPIOA Tests at 3 GiB plus root at 6 GiB passed with all
+seven new modules rebuilt (`bg79`, 36.80 s combined). ITM example and relational
+tests passed in `bg80`; its 6 GiB root attempt exhausted the heap at Family.
+The paired retry checked OTP/WB with Dist.Compile at 6 GiB and the full combined
+root at 8 GiB, successfully rebuilding the affected closure (`bg81`, 246.22 s
+combined, no warnings). These are attributed validation results, not new
+documentation-worker Agda runs or uncontended performance measurements.

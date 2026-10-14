@@ -5,17 +5,17 @@ Findings of a 2026-10-09 study of the `UCSetup` instances that exist in the tree
 interactive Turing machines, random systems, state-separating proofs (SSP), IPDL,
 causal boxes, the symbolic model, nondeterministic choice, and robust compilation.
 The question throughout is which `UCSetupMorphism`s exist, which are blocked, and by
-what.  §1–§2 are checked against the tree; §3–§5 summarise the per-setup plans of §7,
-which are design documents — nothing in them is typechecked.
+what. Checked definitions and theorems below are linked to their implementation;
+the per-setup plans of §7 also contain explicitly unimplemented designs and obligations.
 
-**Provenance.** Branch `uc-setup-landscape` = `origin/protocol-rewrite` with
+**Historical provenance (2026-10-09).** Branch `uc-setup-landscape` = `origin/protocol-rewrite` with
 `origin/machine-iso` merged.  Two semantic conflicts beyond git's: `protocol-rewrite`'s
 solver refactor removed the symmetric variant `SymSolve`/`solveMorσ!`, so
 `Machine/Monoidal/Naturality.agda` now proves its two naturality laws by hand from
 `σ-natural`/`assoc-commute-from` and `Machine/UC/Kleisli.agda` passes its single
 crossing to the monoidal solver as an opaque generator; and `UCSetup`'s `T₁` became the
 graded monad's own action (`FromMonad`), so `Machine/UC.agda:T₁-⊗ʳ` is `≅ᴹ-refl`.  The
-root closure `src/CategoricalCrypto.agda` checks (353 modules, warning gate empty).
+root closure then checked (353 modules, warning gate empty).
 `docs/kb` is the knowledge base from branch `pagda`, extended by the plans' sources.
 
 ## 0. Status, major findings, decisions pending
@@ -26,22 +26,25 @@ symbolic steps of `uc-setup-symbolic.md` §6; escape-hatch baseline unchanged):
 | setup | what exists | key exports |
 |---|---|---|
 | random systems `𝔾ᴿ` | `Categories/…/Construction/Quotient` (generic), `UC/Machine/Behaviour*` (`_≈ᴿ_`, congruence for G-composition and tensor), `UC/RandomSystems/{Seal,Setup,Morphism,FullAbstraction,Advantage,Composition,Construction,Quantitative,Availability}` | `rewrite⇒RS : UCSetupMorphism`, `≈ᴿ⇒≈ᵁ`, **`≈ᵁ⇒≈ᴿ`**, **`¬gradeStableᵒ`**, `≈ᴮ⇒≈ᴿ-fin`, `Δ`, `absorbs-Δ`, `hybrid`, security-only `≤UC⇔Constructs₀` / `≤UCᴿ[]⇔Constructs`, full `SecurelyConstructs` with designated modes |
-| ITM `𝕋ᴹ` | `ITM/{Core,Run,Functor,Setup,Relational,Relational/Tests}`, `Machine/Initialized`, `FreeMonoidal.freeStrongMonoidal`, `Seal.unitᵒ` | `itm⇒prot` (`ν` Epi+Mono), `≈ℰ⇔`, structural `Relational.Uninitialized.⇒iso`, `initializedLeaf`, same-table/different-start initialized trace separation |
+| ITM `𝕋ᴹ` | `ITM/{Core,Run,Functor,Setup,Transfer,Relational,Relational/Tests}`, `Machine/Initialized`, `FreeMonoidal.freeStrongMonoidal`, `Seal.unitᵒ` | `itm⇒prot`, `≈ℰ⇔`, `image-dual`, **`preserves-≈ᵁ`**, **`reflects-≈ᵁ`**, **`preserves-≤UC`**; UC reflection only with a supplied simulator lift; structural `Relational.Uninitialized.⇒iso` and separate initialized trace consumers |
 | SSP (call/return) | `SSP/{Iface,Protocol,Protocol/Category,Protocol/Monoidal,Observation,Setup,Reduction,Compile,Semantics,Cut,Dense,Dense/Tests}`, `Standard2/UKernel`, `Protocol/{Sim,Machine/Resp,Machine/Oracle}`, `UC/Bracket{,/Category}` | `StdSetup`, `Protᴹ`/`Protˢ`, `toProtocol`, `morphism-resp`, `W`, `morphism-W`, `𝒲`, `ι`, **`games-dense`**, **`SSP→PM[wb]`**, **`preserves-≤UC`** |
 | symbolic `𝔻𝕐` (steps 3–9; static and conservative transmitting step 10) | `Symbolic/{Term,Term/PairEnc,Deduction,Role,Fine,Semantics,Setup,Static,Static/PairEnc,Test,TheoryTests,StaticTests,Example/SecureChannel,Example/SecureChannel/Interactive}`, `Symbolic/RunFollowing`, `FreeMonoidal/Decorated`, `Machines/Sim/{Relational,RunFollowing}`, `UC/{Machine,Model}/Relational` | `Sym≅`, `Sym`, `fine→sym` (`coarse` Epi), **`grade-stable`** (hypothesis-free), `≈ᵁ⇔≈ℰ`, **`emit-≈E`**, **generic `≈ₛ⇒≈ℰ`**, **E₀ `≈ℰ⇔≈ₛ`**; admissible `EqTheory` closes under sorted name-to-term substitution, with `fresh-name`, `distinct-names`, `⊬-fresh`; fixed-public-message **`smt≤ideal`** retained, plus **`Interactive.smt≤ideal`** for one environment-selected plaintext with conservative ciphertext-controlled delivery and actual decryption; `leaky≉real`/`leaky≉simulated` are observational separators, not all-simulator impossibility; no multi-sort static converse or computational-crypto theorem |
 | nondeterministic choice (over any symmetric 𝕄; at SSP and PM) | `Abstract2/Regrade{,/Pin,/Unit}`, `Categories/…/Construction/Transport` (`Closed`, `weaken`), `ND/{Grade,A,Relabel}`, `ND/SSP/{Choice,Choice/Compose,Choice/Pin,Choice/Dist,Setup,Laws,Reflect}`, `UC/Model/Symmetric`, `ND/PM/{Factor,Read,Relabel,Setup,Choice,Choice/Compose,Choice/Pin}` | `regraded`, `inclusion`, `𝔾ˢ`, `NDB`, `NDA`, **`A⇒B`**, `≤UC-B⇔≤UC`, `≤UC⇒relabel`, PM online request/resume and compilation laws; SSP `swap-ᵖ`, **`order-indep`**, **`¬reflect`** |
 | certified symbolic `𝔻𝕐ᶜ` | `Symbolic/Computational{,/Run,/Obstruction}`, `Symbolic/InterpretationTests` | distinct `CertifiedSource.Sym≅ᶜ.StdSetup`; `fine→comp : UCSetupMorphism` into `ucSetupᴺ` from per-generator query certificates; unrestricted rate-one certificates are refuted by `no-backwards-certificate`; no crypto soundness or PPT setup is asserted |
+| SSPᵈ | `SSP/Dist{,/Setup,/Compile}`, `Examples/SSP/OneTimePad/{Dist,WB}` | `ssp⇒dist` preserves/reflects UC; **`dist⇒PM[wb]`** preserves `≈ℰ`, `≈ᵁ`, `≤UC`; the actual `composeᵁ` triangle agrees pointwise, including return/ext/sub comparisons; categorical and security OTP consumers |
+| finite exact task-PIOA | `TaskPIOA/{Core,Product,Setup,Simulation,Security,Tests}`, `RationalDist/Product` | actual **`UC.StdSetup`**, native `plugging`/`native-correspondence`, `simulation⇒≤UC`, same-signature/unit-leakage **`resource-≤UC⇒contextual`**, `masked-output-secure`; no PM/causal-box bridge or general UC/native equivalence |
+| finite IPDL API interpreter — not a setup | `IPDL/{Syntax,Native,SSP,Tests,ReadOrder,Linker}` | `Correspondence.agreement` for finite adaptive Boolean-verdict strategies including private coins; persistent/read-order and correlation witnesses; concrete hidden-channel, copy and feedback squares |
 
-**Major findings** (proven unless marked; finding 3's non-existence claim is argued in
-`Protocol/Machine.agda:14-19`'s header, not a theorem):
+**Major findings** (proven unless marked; finding 3's raw-compiler obstruction is
+argued in `Protocol/Machine.agda:14-19`'s header, not a universal no-morphism theorem):
 
 1. **`≈ᵁ` at protocol-model IS behavioural equivalence of random systems**
    (`≈ᵁ⇒≈ᴿ` + `≈ᴿ⇒≈ᵁ`).  This fixes the meaning of the library's security notion.
 2. **`ℰᵒ` is not `GradeStable`** (`¬gradeStableᵒ`: a stateless reveal machine).
    `Abstract2.bridge` is unusable at protocol-model; `≈ᴿ⇒≈ᵁ` replaces it.
-3. **No direct `SSP → 𝔾ᵒ` morphism**: `morphism wireᵖ ≉ᴹ 𝒢.id` and the G-tensor
-   interleaves.  The call/return discipline reaches protocol-model only through the
-   well-bracketed quotient `PM[wb]` (§4).  Built: `W`, `𝒲ᴹ` with its tensor
+3. **The raw compiler does not supply an `SSP → 𝔾ᵒ` morphism**:
+   `morphism wireᵖ ≉ᴹ 𝒢.id` and the G-tensor interleaves. The implemented call/return
+   compiler targets the quotient `PM[wb]`, not full PM (§4). Built: `W`, `𝒲ᴹ` with its tensor
    (`UC/Bracket/{Tensor,Monoidal}`, generic `Construction/Transport`), `ιᴹ`,
    `ι⇒prot : UCSetupMorphism` into protocol-model, `PM[wb]`'s setup and the quotient
    morphism `q` (`UC/Bracket/Setup`), the monitor lemmas (`UC/Bracket/{Monitor,Relabel}`),
@@ -60,10 +63,13 @@ symbolic steps of `uc-setup-symbolic.md` §6; escape-hatch baseline unchanged):
    `Abstract2/Morphism.transfer⁺` applies without target grade stability.
    Its source retains **all PM tests and closures**, unlike `𝒲[ℰᵂ]` and `PM[wb]`;
    this is not a reflection theorem or a reverse transport of SSP's OTP security.
-4. **IPDL and causal boxes are islands** for `UCSetupMorphism` (design-level proofs in
-   their plans); the **certified symbolic** source reaches the negligible tier, and `Sym≅`
-   has a formal relational interpretation into machine-iso; the first-draft edges
-   `SSP → 𝔾ᵒ`, `IPDL → RS`, `RS → causal boxes` are withdrawn.
+4. **Native boundaries are not universal no-map theorems.** IPDL now has a checked
+   finite Fig. 9 resource interpreter and concrete linking witnesses, but no source setup
+   morphism. Finite task-PIOA is an independent implemented setup with no cross-model edge.
+   Causal-box/RSIM bridges remain proposals; typed CSP networks are a viable design with
+   implementation in progress. The certified symbolic source has its formal family
+   interpretation, and `Sym≅` its relational interpretation. The old raw `SSP → 𝔾ᵒ`,
+   `IPDL → RS` and `RS → causal boxes` arrows remain withdrawn for those candidates.
 5. **Nondeterminism** [built over any symmetric monoidal 𝕄 and at SSP and PM;
    plan [uc-setup-nondeterministic.md](uc-setup-nondeterministic.md)]: the scheduler is a choice factor of
    the *grade*, not an effect.  Model B (adversary-resolved, Canetti) is `Std(𝕄)` restricted to the
@@ -125,6 +131,14 @@ symbolic steps of `uc-setup-symbolic.md` §6; escape-hatch baseline unchanged):
     `otp≤idealᵈ` still names a source-setup result. The actual quotient is exercised by the
     target-qualified `otp≤ideal-dist` and `leaky-not-secure-dist`, with the concrete simulator
     under all adversaries, ancillas, tests and games, and reflection for the negative result.
+    The compiler now [descends to `SSPᵈ → PM[wb]`](../src/CategoricalCrypto/SSP/Dist/Compile.agda#L71),
+    preserving `≈ℰ`, `≈ᵁ` and `≤UC`. Its actual
+    [`composeᵁ` triangle](../src/CategoricalCrypto/SSP/Dist/Compile.agda#L88)
+    agrees with the direct bridge pointwise on objects/homs/tests, grades, κ,
+    tensor/unit comparisons, computations and return/ext/sub law expressions—not as
+    equality or an isomorphism of bundled morphism records.
+    [`lazy≈realᵂ`, `otp≈idealᵂ` and `otp≤ideal-distᵂ`](../src/CategoricalCrypto/Examples/SSP/OneTimePad/WB.agda#L19)
+    consume this categorical/security route. No UC reflection or full-PM security follows.
 
 **Decisions pending from the maintainer:**
 
@@ -264,6 +278,18 @@ one- and two-query executions. This execution boundary is not another `UCSetup`.
 A categorical comparison with `protocol-rewrite` needs additional initialization,
 deterministic realizers, and a mirror iso of wires; the trace API does not provide it.
 
+The separate [`ITM.Transfer`](../src/CategoricalCrypto/ITM/Transfer.agda#L40) now
+preserves and reflects U-kernel equality and
+[generally preserves `≤UC`](../src/CategoricalCrypto/ITM/Transfer.agda#L82).
+The source domain's dual-port ancilla interprets as its PM dual; that U-component
+gives target behavioural equality and hence target U-equivalence. `transfer⁺` then
+applies without the false PM grade-stability premise. Reflection of UC additionally
+needs a target dummy simulator with an explicitly supplied source lift up to
+[behavioural equality](../src/CategoricalCrypto/ITM/Transfer.agda#L94).
+[`transported-secure` and the reflection consumers](../src/CategoricalCrypto/Examples/ITM/Tests.agda#L49)
+exercise these exact contracts. U-kernel reflection alone is not unconditional
+simulator backtranslation or UC reflection.
+
 ## 4. Random systems, SSP, IPDL
 
 - **Random systems** (plan: [uc-setup-random-systems.md](uc-setup-random-systems.md)).
@@ -301,15 +327,25 @@ deterministic realizers, and a mirror iso of wires; the trace API does not provi
   `morphism (P ⊗ᵖ Q) ≈ morphism P ⊗ morphism Q` under well-bracketed environments.
   Escape hatch for asynchronous events: pollable state (`lochbihler2019cc` §IV-A,
   `maurer2011cc` §5.1).
-- **IPDL** (plan: [uc-setup-ipdl.md](uc-setup-ipdl.md)).  `StdUC 𝕀ᴹ ℰⁿ` with polarised
-  typed channel contexts, reaction networks in flat form, composition `new B in (f ∥ g)`,
-  hom-setoid = IPDL's exact theory as an inductive relation, tests = IPDL protocols into
-  `Ωⁿ` read by lazy memoised evaluation into `Dₚ Bool`.  **IPDL is an island**: the
-  compile into `𝔾ᵒ`/RS fails `F.identity` and `F-resp-≈` because `exch` and `unused`
-  hold only against IPDL-shaped environments (a closure with advantage 1, §4.1 there),
-  and the "probabilistic kernel per partial input assignment" semantics is not
-  compositional.  What survives is a semifunctor: attacks transfer from IPDL to `𝔾ᵒ`,
-  security does not.
+- **IPDL** (plan: [uc-setup-ipdl.md](uc-setup-ipdl.md)). The proposed open
+  `StdUC 𝕀ᴹ ℰⁿ` remains unimplemented. Separately, the finite typed Fig. 9 API is now
+  a checked [`SSPᵈ` resource interpretation](../src/CategoricalCrypto/IPDL/SSP.agda#L29):
+  inputs assign once, `Get` reads before saturation, absence is `None`, and blocked reads
+  retain their residual state. Each query reaches quiescence by decreasing work.
+  [`Correspondence.agreement`](../src/CategoricalCrypto/IPDL/SSP.agda#L90) covers every
+  finite typed adaptive **Boolean-verdict** strategy, including private rational coins,
+  comparing the native exact run lifted by `return⊥` with the SSP partial-verdict run.
+  [`ReadOrder.all-strategies`](../src/CategoricalCrypto/IPDL/ReadOrder.agda#L103)
+  hides internal read order, unlike the separately separated demand-exposing pull encoding.
+  Persistent shared samples and the three-way correlated/independent
+  [`feedback-test`](../src/CategoricalCrypto/IPDL/Tests.agda#L81) are checked.
+  The separate two-residual saturation linker proves fixed
+  [hidden-channel](../src/CategoricalCrypto/IPDL/Linker.agda#L123),
+  [copy-identity](../src/CategoricalCrypto/IPDL/Linker.agda#L193), and
+  [seeded/blocked feedback](../src/CategoricalCrypto/IPDL/Linker.agda#L257) witnesses.
+  The copy result is not SSP wire identity; there is no arbitrary flattening,
+  open-functor or source-UC transfer theorem. The target resources can use the descended
+  WB compiler without creating an IPDL source setup or repairing the old pull compiler.
 
 ### Coarser machine equalities go to random systems, not to `𝔾ᵒ`
 
@@ -322,16 +358,51 @@ possibilistic, so only the deterministic fragment maps into RS (`det-≈ᴮ⇒�
 ## 5. Causal boxes, symbolic, nondeterminism, and the other candidates
 
 - **Causal boxes** (plan: [uc-setup-causal-boxes.md](uc-setup-causal-boxes.md)).
-  Classical fragment, positions `ℕ`, one message per wire per position; objects `Face =
-  Pos ⇅ Neg` with `⊗ = ×` (Portmann Def. 6.1 concurrency), two-phase `Box` records
-  parametric in a `DiscreteMonad`, composition per position with no fixpoint or
-  coinduction, behavioural equality under adaptive environments, tests via `Evaluation`.
-  **Corrections:** `portmann2017` proves no SMC-with-trace theorem (the identity is not
-  causal); and **causal boxes are an island** — no `UCSetupMorphism` in either direction
-  with `𝔾ᵒ`, RS, `machine-iso`, SSP, IPDL, ITM or `Rel`: internal G-composition rounds cost
-  ≥1 causal-box position so `F (g ∘ f) ≈ F g ∘ F f` fails, and the synchronous `⊗` has no
-  image under interleaving.  Reachable only laxly (Portmann §9).  RSIM/task-PIOA live
-  here because the scheduler is a policy over the closed collection, not a morphism.
+  The classical two-phase `Box` design uses positions `ℕ`, slot-alphabet pairs and
+  product tensor. It is a proposed category of resource-preserving converters with
+  structural zero-delay wires, not the native strictly causal boxes: native identity
+  is not causal. Delay-sensitive sequential linking and synchronous product expose
+  candidate-specific obstructions to the old direct PM interpretations, not universal
+  no-map theorems. Resource correspondence, lawful plugging and observation transport
+  remain unproved. Explicit RSIM buffering is a separate operational design; the
+  now-built finite task-PIOA setup below is neither a causal-box submodel nor PM choice.
+- **Finite exact task-PIOA** (implemented; [plan §4.3](uc-setup-causal-boxes.md#43-other-setups-asynchronous-models)).
+  [`UC.StdSetup`](../src/CategoricalCrypto/TaskPIOA/Setup.agda#L95) uses a free
+  **non-symmetric monoidal** category of typed installation and compatible-product
+  wiring contexts. An automaton is a native value at a signature slot; `install`
+  embeds it as a generator and `connect` performs native synchronization. Hom equality
+  is free monoidal congruence, not native trace equivalence. Tests close these contexts
+  with a fixed finite task word and rational trace reward, comparing expected rewards
+  on every native assignment. [`plugging` and `native-correspondence`](../src/CategoricalCrypto/TaskPIOA/Setup.agda#L82)
+  connect them directly to native product runs, not pulled-back PM tests.
+  Native inputs are enabled, disabled tasks stutter, repeated tasks execute again,
+  and a joint tagged word retains order while environment automata adapt.
+  [`Contextual`](../src/CategoricalCrypto/TaskPIOA/Security.agda#L33) has
+  `∀ environment E, ∀ real word ρ, ∃ ideal word ρ′`; a fixed same-signature
+  state-map/lumping simulation separately implies equal traces, this inclusion and
+  [`simulation⇒≤UC`](../src/CategoricalCrypto/TaskPIOA/Security.agda#L78).
+  The reverse-facing [`resource-≤UC⇒contextual`](../src/CategoricalCrypto/TaskPIOA/Security.agda#L84)
+  is only for designated same-signature resources at unit leakage, with the same word.
+  No UC/native equivalence, contextual-to-UC converse or non-unit theorem is asserted.
+  [`masked-output-secure`](../src/CategoricalCrypto/TaskPIOA/Tests.agda#L125) is a
+  probabilistic positive; repeated sends share its one sampled ciphertext.
+  Synchronized/order-sensitive and adaptive-echo witnesses exercise the native semantics;
+  their negatives separate named distributions, not all simulators or UC emulation.
+  No PM/SSP/causal-box morphism, PPT, infinite-run or fairness result is supplied.
+- **CSP-backed typed open networks — viable, implementation in progress.**
+  At `agda-cardano-common` pin `9a40d1de330f376c3a102e7c9f1282f4fa830a7e`, coinductive
+  [`PTree` components](https://github.com/input-output-hk/agda-cardano-common/blob/9a40d1de330f376c3a102e7c9f1282f4fa830a7e/src/ITree-CSP/Process_Trees.agda#L112)
+  provide real operational material for typed networks. The proposed arrows are
+  open converters, composition freshens/glues private wiring, identities are transparent
+  aliases, and tensor is disjoint union. Start with structural network equality and
+  contextual trace/failure/divergence tests; a simulator is a network converter.
+  Semantic wiring invariance and the test presheaf must still be proved. Returned-value
+  bind is not interactive plugging; the native
+  [parallel interchange](https://github.com/input-output-hk/agda-cardano-common/blob/9a40d1de330f376c3a102e7c9f1282f4fa830a7e/src/ITree-CSP/CSP/Laws/FD/ParallelInterchange.agda#L478)
+  has confinement/disjointness/separation premises. Weak bisimulation, DR/FD refinement
+  and `FSim` have distinct observations and assumption boundaries. Their limitations
+  do not refute this construction. No checked CSP setup, PM bridge or equality of
+  native refinement with UC is claimed at the current proof boundary.
 - **Symbolic / Dolev–Yao** (plan: [uc-setup-symbolic.md](uc-setup-symbolic.md); steps 3–9
   and static/conservative transmitting step 10 built: `Sym≅`, `Sym`, `fine→sym`,
   relational frame emitters, original `smt≤ideal` and `Interactive.smt≤ideal`).
@@ -407,28 +478,35 @@ possibilistic, so only the deterministic fragment maps into RS (`det-≈ᴮ⇒�
 
 ## 6. The morphism graph
 
-Verdicts after the plans.  `──▶` = `StdUCMorphism`; `⇢` = restricted or conditional.
+This overview shows implemented setup-morphism existence only. The mono/epi-style
+**UC-transfer** decorations and qualifications are in `docs/uc-models.typ`: ITM→PM
+and SSPᵈ→PM[wb] preserve UC; neither gets an unconditional reflection hook.
 
+```text
+Sym≅ ──▶ Sym        Sym≅ ──▶ Iso ◀── ITM(uninitialized)
+Sym≅ᶜ ──▶ PMᴺ       ITM ──▶ PM ──▶ RS
+
+W(full tests) ──▶ PM
+      │
+      ▼
+W(restricted) ──▶ PM[wb]
+
+       ╭──q──▶ SSPᵈ ──wbᵈ──╮
+SSP ───┤                    ▼
+       ╰──────wb────────▶ PM[wb]
+
+ND_A(PM) ──▶ ND_B(PM) ──▶ PM
+
+Separate implemented nodes: Rel; finite exact TaskPIOA
 ```
-cartesian / one-shot        reactive / ⊎ world
-─────────────────────       ──────────────────────────────────────────────────────────
-TM functions (×) ──▶ Rel    Sym≅ ──▶ machine-iso ◀── ITM(uninitialized)
-                             │             ⇢ (+ init, det. fragment)
-                             │                   ▼
-                             │   𝒲[ι*ℰᵒ] ──▶ protocol-rewrite 𝔾ᵒ ◀── ITM 𝕋ᴹ
-                             │    ▲                   │
-                             │  SSP ──▶ PM[wb] ◀── 𝒲[ℰᵂ]           ▼
-                             │                               random systems 𝔾ᴿ ◀⇢ machine-category (det.)
-                             ▼
-                            Sym              Sym≅ᶜ ──▶ ucSetupᴺ (negligible tier over 𝔾ᵒ)
-                                                   ND_A ──▶ ND_B = Std(𝕄)  (built at SSP and PM)
 
-islands: IPDL;  causal boxes (RSIM / task-PIOA inside)
-```
-
-No `StdUCMorphism` crosses between the two worlds (the crossing is lax).  Three edges
-hypothesised in the first draft are **gone**: `SSP → 𝔾ᵒ` directly, `IPDL → RS`, and
-`RS → causal boxes`.
+The SSP triangle agrees pointwise in target hom/test equality, not by bundled
+record equality. The checked finite-IPDL-API→SSPᵈ-resource connection is operational,
+not another setup-morphism edge. Native IPDL, RSIM and causal-box bridges remain
+proposals; CSP typed-network implementation is in progress and not checked here.
+There is no supplied cross-model morphism for TaskPIOA. The old raw `SSP → PM`,
+`IPDL → RS` and `RS → causal boxes` candidates remain withdrawn; this is not a
+universal impossibility theorem.
 
 ## 7. Plans
 

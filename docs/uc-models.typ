@@ -65,6 +65,8 @@
 #let QRS = $sans("QRS")$
 #let IPDL = $sans("IPDL")$
 #let CB = $sans("CB")$
+#let TaskPIOA = $sans("TaskPIOA")$
+#let CSP = $sans("CSP")$
 #let Sym = $sans("Sym")$
 #let Symiso = $sans("Sym")_≅$
 #let Symcert = $sans("Sym")_≅^sans("c")$
@@ -78,6 +80,7 @@
 #let mitmuninit = $sans("itm")_sans("uninit")$
 #let mq = $sans("q")$
 #let mwb = $sans("wb")$
+#let mwbd = $sans("wb")^sans("d")$
 #let mdet = $sans("det")$
 #let mcoarse = $sans("coarse")$
 #let msym = $sans("sym")_≅$
@@ -115,7 +118,7 @@
   #v(1pt)
   #text(size: 12.5pt)[Setups, the morphisms between them, and the major theorems]
   #v(3pt)
-  Branch `uc-setup-landscape`, 12 October 2026
+  Branch `uc-setup-landscape`, 14 October 2026
 ]
 
 #v(6pt)
@@ -141,17 +144,18 @@ of #plan("uc-setup-adversarial-review.md") distinguish historical findings from 
 availability API, positive-error QRS example, PM-choice initialization repair, symbolic theory/static
 and certified layers, pure-interface simulation, opt-in terminal runtime, protocol-indexed errors,
 probabilistic ITM security clients, relational initialization/finite-trace consumers, and a
-conservative environment-selected symbolic transmission/decryption construction.
-The integrated proof boundary is `2d9741ef` (transmitting channel: `5cd63401`;
-initialization: `4c5ee9ca`; ITM clients: `63d03981`; preceding core: `ec1b6a17`;
-terminal: `b606503c`, `41f603b9`; purity: `84b408c8`; original five-item integration:
-`cf6653e6`). The new channel is a checked client of #Sym, not a new setup or a computational
-cryptography theorem. The proposed island connections in @sec:designed remain research
-obligations, not newly checked edges.
+conservative environment-selected symbolic transmission/decryption construction. The latest
+additions are the finite IPDL API/linker witnesses, the independent #TaskPIOA setup, general
+ITM-to-PM preservation, and the descended SSPᵈ-to-PM[wb] compiler with its pointwise triangle.
+The integrated proof boundary is `9f9be2a89` (IPDL: `b7496ca5e`; #TaskPIOA: `630975487`;
+ITM transfer: `40c65a4be`; prior symbolic channel: `2d9741ef`). Historical proof boundaries
+remain recorded in the review dispositions. CSP implementation is in progress, not checked
+here; the other explicitly proposed native bridges remain research obligations. None of these
+results establishes computational cryptographic soundness or full native-model equivalence.
 
 #{
   set text(size: 8.7pt)
-  set par(leading: 0.45em)
+  set par(leading: 0.3em)
   outline(depth: 2, indent: auto)
 }
 
@@ -489,27 +493,32 @@ the grade category without restricting computations. #design rows are planned, n
     [#SSPd \ distributional #SSP], [as #SSP],
     [#SSP packages modulo the two-sided contextual distributional kernel $scripts(≈)^sans("d")$],
     [#SSP's tests, descended], [deferred sampling as an equation; same security order],
-    [#formal #cc("SSP/Dist/Setup.agda", 26, "Protᵈ"), #cc("SSP/Dist/Setup.agda", 32, "StdUC Protᵈ ℰᵈ"); @prop:ssp-dist-morphism],
+    [#formal #cc("SSP/Dist/Setup.agda", 26, "Protᵈ"), #cc("SSP/Dist/Setup.agda", 32, "StdUC Protᵈ ℰᵈ"); quotient: @prop:ssp-dist-morphism; WB compiler: @prop:dist-wb],
     [#IPDL], [polarised typed channel contexts $"pos" ⇌ "neg"$; concatenation],
     [reaction networks; composition $"new" B "in" (f ∥ g)$; IPDL's exact equational theory],
     [IPDL protocols into $Ω$, identified modulo IPDL closures],
     [IPDL @gancher2023ipdl],
-    [#design #plan("uc-setup-ipdl.md")],
+    [#design open setup; checked finite API interpreter only: @thm:ipdl-agreement; #plan("uc-setup-ipdl.md")],
     [#CB \ causal converter design], [pairs of slot alphabets; $×$ (concurrency)],
     [proposed two-phase resource-preserving converters, including zero-delay wires; not all native strictly causal boxes],
     [proposed causal distinguishers; native correspondence open],
     [classical causal fragment @portmann2017],
     [#design #plan("uc-setup-causal-boxes.md"); @sec:causal-island],
+    [#CSP \ open-network design], [finite typed, polarised ports; disjoint union],
+    [port-confined `PTree` networks; structural wiring equality; plugging and transparent aliases proposed],
+    [proposed contextual trace/stable-failure/divergence observations],
+    [CSP component semantics, not native refinement identified with UC],
+    [#design viable construction, implementation in progress; @sec:csp-island],
     [$sans("RSIM")$], [typed service/clock ports with ownership; proposed disjoint union],
     [open buffered collections with default scheduling; gluing/identity laws unproved],
     [native honest views; test correspondence unproved],
     [@backes2007rsim],
     [#design proposed, no setup implementation; @sec:rsim-island],
-    [task-PIOA], [input-enabled automata and explicit oblivious scripts; proposed shuffle-aware tensor],
-    [scheduled probabilistic transitions; no implemented category or setup],
-    [environment-indexed sets of trace distributions],
-    [@canetti2006taskpioa],
-    [#design proposed, no setup implementation; @sec:task-island],
+    [#TaskPIOA \ finite exact task-PIOA], [trees of native signatures/resource slots; ordered tensor],
+    [free non-symmetric monoidal installation and compatible-product wiring contexts; free monoidal congruence],
+    [closing wiring context, fixed finite task word and rational trace reward; equality on every native resource assignment],
+    [finite exact native task schedules @canetti2006taskpioa],
+    [#formal #cc("TaskPIOA/Setup.agda", 53, "Wiringᴹ"), #cc("TaskPIOA/Setup.agda", 86, "ℰ-native"), #cc("TaskPIOA/Setup.agda", 95, "UC.StdSetup"); @sec:task-island],
     [#NDA, #NDB \ nondeterministic choice], [#PM's (or #SSP's) objects; grades $X ⊗ C_(S_1) ⊗ dots.c ⊗ C_(S_n)$ with choice factors $C_S = (1, S)$],
     [#PM's morphisms; grade morphisms: all of them between such grades (#NDB), or $u ⊗ ρ$ with $ρ$ a relabelling of choice factors (#NDA)],
     [the ambient tests],
@@ -997,9 +1006,13 @@ _uninitialized_ source emulation and its #Iso transport (@prop:mitm-uninit), des
 initialized traces; these statements must not be conflated.
 #srcs(cc("ITM/Relational/Tests.agda", 135, "blankLatch"), cc("ITM/Relational/Tests.agda", 144, "initialized-memory-evolves"))
 
-#theorem(name: [the kernel of #ITM is that of #PM])[
-For parallel $f, g$ in $𝕋$: $f eqE g$ in #ITM iff $F^p f eqE F^p g$ in #PM.
-#srcs(cc("ITM/Setup.agda", 57, "≈ℰ⇔"))
+#theorem(name: [#ITM kernels and forward security])[
+For parallel $f, g$ in $𝕋$, $f eqE g$ iff $F^p f eqE F^p g$ in #PM.
+At corresponding graded types, $f eqU g$ iff $G f eqU G g$, and
+$f leUC g ⇒ G f leUC G g$, where $G$ is the protocol translation of $mitm$.
+The UC implication is general and does not assume #PM grade stability; its proof and the
+simulator-lift boundary for the converse are in @prop:mitm.
+#srcs(cc("ITM/Setup.agda", 57, "≈ℰ⇔"), cc("ITM/Transfer.agda", 63, "preserves-≈ᵁ"), cc("ITM/Transfer.agda", 77, "reflects-≈ᵁ"), cc("ITM/Transfer.agda", 82, "preserves-≤UC"))
 ] <thm:itm-kernel>
 
 Here emulation is perfect and unbounded, despite each generator having a finite table. The pulled-back
@@ -1018,14 +1031,18 @@ the honest service untouched. In the actual #ITM setup,
 $ "real" eqU (s ⊗ opid) ∘ "ideal", quad "real" leUC "ideal". $
 The first claim uses this explicit simulator; dummy completeness gives the second for every
 source adversary, not merely for a chosen observation.
-#srcs(cc("Examples/ITM/Tables.agda", 81, "resource"), cc("Examples/ITM/Tables.agda", 169, "simulator"), cc("Examples/ITM/Tests.agda", 41, "explicit-simulator"), cc("Examples/ITM/Tests.agda", 44, "secure"))
+#srcs(cc("Examples/ITM/Tables.agda", 81, "resource"), cc("Examples/ITM/Tables.agda", 169, "simulator"), cc("Examples/ITM/Tests.agda", 43, "explicit-simulator"), cc("Examples/ITM/Tests.agda", 46, "secure"))
 ] <thm:itm-client>
 
 #proofidea[Point-preserving simulations relate the initialized table executions and their
 composite. The resulting compiled hom-equality survives every source prefix and every
-pulled-back test/closure by `≈ᴾ⇒≈ᵁ`. This route does not assume PM grade stability and does
-not establish a general security-transfer theorem from #ITM to #PM.
+pulled-back test/closure by `≈ᴾ⇒≈ᵁ`, without assuming PM grade stability.
 #srcs(cc("Examples/ITM/Tables.agda", 145, "resource-correct"), cc("Examples/ITM/Tables.agda", 203, "simulator-correct"), cc("Examples/ITM/Interpretation.agda", 62, "compiled-correct"), cc("ITM/Setup.agda", 63, "≈ᴾ⇒≈ᵁ"))]
+
+The client also invokes the new general theorem to obtain target #PM security,
+transports and reflects the simulator's U-kernel equality, and exercises UC reflection
+with the explicitly supplied source simulator. The latter is not unrestricted reflection.
+#srcs(cc("Examples/ITM/Tests.agda", 49, "transported-secure"), cc("Examples/ITM/Tests.agda", 52, "transported-simulator"), cc("Examples/ITM/Tests.agda", 55, "reflected-simulator"), cc("Examples/ITM/Tests.agda", 58, "reflected-secure"))
 
 A concrete source `Env` distinguishes the two unsimulated marker observations through `pull`:
 the closed real and ideal verdicts are respectively true and false. Thus
@@ -1034,7 +1051,7 @@ observations, and its source arrow is not identity. These are _observational neg
 not a no-simulator or non-emulation theorem: the positive $leUC$ result above holds.
 The honest consumers check one fair reply and a two-reply comparison with the law of
 two independent fair draws.
-#srcs(cc("Examples/ITM/Tests.agda", 38, "marker-environment"), cc("Examples/ITM/Tests.agda", 54, "marker-pull-distinct"), cc("Examples/ITM/Tests.agda", 58, "initialized-distinct"), cc("Examples/ITM/Tests.agda", 61, "initialized-distinctᵁ"), cc("Examples/ITM/Tests.agda", 64, "simulation-observable"), cc("Examples/ITM/Tests.agda", 67, "simulator-nonidentity"), cc("Examples/ITM/Interpretation.agda", 92, "honest-coin"), cc("Examples/ITM/Interpretation.agda", 95, "honest-independent"))
+#srcs(cc("Examples/ITM/Tests.agda", 40, "marker-environment"), cc("Examples/ITM/Tests.agda", 68, "marker-pull-distinct"), cc("Examples/ITM/Tests.agda", 72, "initialized-distinct"), cc("Examples/ITM/Tests.agda", 75, "initialized-distinctᵁ"), cc("Examples/ITM/Tests.agda", 78, "simulation-observable"), cc("Examples/ITM/Tests.agda", 81, "simulator-nonidentity"), cc("Examples/ITM/Interpretation.agda", 92, "honest-coin"), cc("Examples/ITM/Interpretation.agda", 95, "honest-independent"))
 
 This is a finite static-table service under perfect, unrestricted PM-pullback tests, not
 encryption/secrecy, PPT or negligible security, dynamic ITI creation, adaptive corruption,
@@ -1501,12 +1518,14 @@ The existing $mwb : SSP → PMwb$ carries pick-ahead compiled protocols into wel
 semantics, and $miota$ includes their computations in #PM. It retains the queued interaction
 discipline; it is not an equality with the separate on-demand #PM choice combinator.
 
-= Planned native models and bounded connections <sec:designed>
+= Native finite models and bounded connections <sec:designed>
 
-#design None of the IPDL, causal-box, RSIM or task-PIOA native categories, tests or bridges
-below is implemented. IPDL and causal boxes have detailed plans; RSIM and task-PIOA are
-proposed interpretations, not existing setup nodes. “Island” means _no implemented native
-bridge_, not a classification or impossibility theorem for all setup morphisms.
+The finite IPDL API interpreter and its concrete linker witnesses are checked operational
+results, not an IPDL setup morphism. #TaskPIOA is an actual finite exact native setup with
+its own tests and a qualified UC-to-contextual theorem. The open IPDL, causal-box and RSIM
+setups and the cross-model bridges proposed below remain #design. The typed-network #CSP
+construction is viable and in progress, not a checked setup. “Island” means no checked
+bridge of the stated kind, not a classification or impossibility theorem for all morphisms.
 
 Three deliverables must be separated. An _operational interpretation_ proves agreement with a
 specified driver. A _setup morphism_ additionally provides $F, Φ, κ, ν$ and all laws of
@@ -1526,38 +1545,54 @@ paper's operational distinguishers; it is not an already proved native kernel.
 
 === Push/poll resource interpretation
 
-The promising first target is a finite #SSPd _resource_, not yet an IPDL setup morphism.
-@gancher2023ipdl §4.2.2, Definitions 4.5–4.7 and Fig. 9 expose the adaptive API
+#formal The finite Fig. 9 interpreter implements an #SSPd _resource_, not an IPDL setup
+morphism. Its typed API follows @gancher2023ipdl §4.2.2, Definitions 4.5–4.7:
 $ "Input"_i : τ_i → 1, quad "Get"_o : 1 → "Maybe" τ_o, quad "Step" : 1 → 1. $
-`Input(i,v)` assigns once; further writes do nothing. `Get(o)` reads the current residual
-network _before that round's_ evaluation to quiescence; `Step` requests no observation.
-Quiescence follows every query. State contains residual reactions, persistent assignments and
-already sampled randomness, with pure initialization. Absence returns `None`, not `dead`, so
-later input can unblock an output.
+Inputs assign once, with later writes ignored. `Get` reads the residual network _before_
+that round's saturation; the initial state is unsaturated. A blocked read keeps waiting;
+absence returns `None`, not `dead`, so later input may unblock it. Residual work strictly
+decreases on enabled steps and proves quiescence after each query. Reaction continuation
+depth is bounded, but this is not a fixed bound on the number of API rounds.
+#srcs(cc("IPDL/Syntax.agda", 42, "Rxn"), cc("IPDL/Syntax.agda", 61, "Net"), cc("IPDL/Syntax.agda", 83, "assign-persistent"), cc("IPDL/Native.agda", 81, "Residual.quiesce"), cc("IPDL/Native.agda", 109, "Interaction.before"), cc("IPDL/Native.agda", 114, "Interaction.round"))
 
-This API hides internal read demands. The old plan's pull compiler instead exposes
-`read i; read j` versus `read j; read i` to an order-sensitive oracle. That separates _that
-compiler_, not Fig. 9 semantics: native exchange lemmas 4.18–4.19 already quantify arbitrary
-API distinguishers, including absence tests. Finite names/values and normalized rational
-sampling give a bounded exact/statistical experiment; no cryptographic axioms or PPT claim.
+#theorem(name: [finite adaptive IPDL API agreement])[
+For every implemented finite net and finite typed *Boolean-verdict* strategy, compiling
+the strategy's reply-dependent requests and private rational Boolean coins gives the same
+exact law as the native run, lifted to the SSP partial-verdict carrier by `return⊥`.
+The exported `Correspondence.agreement` compares
+`runᵖ (tester a ∘ᵖ resource N)` with `run a >>=ᴹ return⊥`.
+#srcs(cc("IPDL/Native.agda", 121, "Strategy"), cc("IPDL/SSP.agda", 29, "resource"), cc("IPDL/SSP.agda", 39, "tester"), cc("IPDL/SSP.agda", 90, "Correspondence.agreement"))
+] <thm:ipdl-agreement>
 
-The necessary witnesses are:
-+ `o := read i`, driven by `Step; Get o; Input(i,false); Get o; Input(i,true); Get o`,
-  must return `None, Some false, Some false`.
-+ Both read-order programs must agree against every finite legal API strategy, while the
-  demand-exposing encoding retains its separating oracle.
-+ A hidden sampled bit reused twice must remain one shared bit, not be redrawn on each `Get`.
-+ Retain the correlation separator from the plan: two nets agreeing under every independent
-  partial input assignment can be separated when a context supplies `i` only after reading `o`.
-  The final distributions $(1/2,0,1/2)$ and $(1/4,1/4,1/2)$ on (true, false, undefined) are
-  distinguished by `Step; Get(o); conditional Input(i,false); Get(o₂)`.
+*Checked experiments.* The delayed-readiness word
+`Step; Get o; Input(i,false); Get o; Input(i,true); Get o` returns
+`None, Some false, Some false`. A first `Get` sees absence even before a constant net
+saturates. Repeated reads of a hidden sampled bit retain one shared sample.
+The read-order programs are equal as #SSPd resources and agree for every finite typed
+adaptive Boolean-verdict strategy, while the separate demand-exposing pull compiler has
+a true/false separating oracle. The latter is not a counterexample to this API.
+#srcs(cc("IPDL/Tests.agda", 40, "delayed-readiness"), cc("IPDL/Tests.agda", 47, "get-before-quiescence"), cc("IPDL/Tests.agda", 60, "shared-sample-persistent"), cc("IPDL/ReadOrder.agda", 100, "read-order"), cc("IPDL/ReadOrder.agda", 103, "all-strategies"), cc("IPDL/ReadOrder.agda", 122, "pull-left"), cc("IPDL/ReadOrder.agda", 125, "pull-right"))
 
-A run-correspondence theorem would transport exact resource equations into #SSPd; its SSP
-presentation also has the existing #PMwb route. An open bridge additionally needs the
-_hidden-channel linker square_ for $"new" B "in" (P ∥ Q)$, preserving shared randomness and
-mutual dependencies, plus identity and context/test correspondence. Ordinary package
-composition is not automatically that linking operation. The plan's weaker test presentation
-must either be proved equivalent or replaced by an explicitly named Fig. 9 observation setup.
+The `feedback-test` supplies an input conditionally after observing the first output.
+Its laws on (true, false, undefined) are $(1/2,0,1/2)$ for shared randomness and
+$(1/4,1/4,1/2)$ for independent randomness. These are the `Maybe Bool` experiment's
+three-way masses, not a separately asserted success probability for the Boolean `separator`;
+that separator also has compiled/native agreement.
+#srcs(cc("IPDL/Tests.agda", 81, "feedback-test"), cc("IPDL/Tests.agda", 99, "correlated-true"), cc("IPDL/Tests.agda", 102, "independent-true"), cc("IPDL/Tests.agda", 111, "correlated-false"), cc("IPDL/Tests.agda", 134, "separator"))
+
+*Concrete linking, not a general linker law.* The two-residual evaluator shares a persistent
+input store and saturates enabled components. It is not ordinary SSP composition and is not
+defined by reusing the flat resource. Three fixed constructions prove distributional equality
+with their flat/native nets: a hidden shared bit, a copy-identity witness, and seeded feedback.
+The feedback net also distinguishes a releasing true seed from a blocked false seed.
+The copy result is equality to a native copy net, not to SSP's categorical wire. No theorem
+states that every paired network flattens, or proves all open identity/composition laws.
+#srcs(cc("IPDL/Linker.agda", 123, "Shared.hidden-channel-square"), cc("IPDL/Linker.agda", 126, "Shared.adaptive-square"), cc("IPDL/Linker.agda", 193, "Identity.identity-square"), cc("IPDL/Linker.agda", 257, "Feedback.seeded-feedback-square"), cc("IPDL/Linker.agda", 263, "Feedback.seed-releases-cycle"), cc("IPDL/Linker.agda", 266, "Feedback.unseeded-cycle-blocks"))
+
+The target #SSPd resources have the checked #PMwb compiler route (@prop:dist-wb), but this
+does not supply a source IPDL `UCSetup`, a general functor, a natural test map, or source UC
+security transfer. General hidden linking and native closure/test correspondence remain
+obligations. There is no PPT or cryptographic-axiom claim.
 
 === Single-assignment disciplined quotient
 
@@ -1650,39 +1685,73 @@ changes liveness unless the driver contract reproduces native scheduling. @def:f
 is a useful specification pattern, not an existing RSIM liveness theorem. No PPT correspondence
 is part of this first finite experiment.
 
-== Task-PIOA: schedules are not online choice <sec:task-island>
+== #TaskPIOA: a finite exact native task setup <sec:task-island>
 
-@canetti2006taskpioa §§1–2, Definition 1, separates an explicit adaptive adversarial automaton
-from a static/oblivious residual task sequence fixed independently of execution. Inputs are
-enabled; action/transition determinism gives at most one enabled transition for a task;
-a disabled task stutters. #NDA's public online picks and #PM's lifetime chooser do not supply
-these properties.
+@canetti2006taskpioa §§1–2 separates an adaptive environment automaton from an
+oblivious residual task word. The implemented fragment has finite state/action/task
+carriers, normalized rational distributions and finite words/traces. Inputs have total
+transition kernels; a functional kernel and an owned partial action selector give
+transition/action determinism. A disabled task stutters and execution continues; a repeated
+task executes again. Compatible product synchronizes an output with the other component's
+input, draws the independent kernels in one transition, and retains a single ordered word
+over tagged component tasks. Adaptive environments are explicit automata, not state-peeking
+schedulers. These are not #NDA's online picks or #PM's lifetime chooser.
+#srcs(cc("TaskPIOA/Core.agda", 36, "Signature"), cc("TaskPIOA/Core.agda", 49, "Automaton"), cc("TaskPIOA/Core.agda", 108, "disabled-stutters"), cc("TaskPIOA/Product.agda", 54, "product"), cc("TaskPIOA/Product.agda", 86, "Environment"), ag("ProbabilisticLogic/Distribution/RationalDist/Product.agda", 12, "independent"))
 
-Propose finite action-deterministic automata with an explicit finite task script and a
-`tick(task)`/external-input interface in #PM/#SSP. A disabled tick returns a no-action
-acknowledgement, never `botₚ`. Persistent scheduler state supports repeated visits to one task.
-In a product automaton, a selected output synchronizes matching input transitions; independent
-component kernels form one logical transition with its trace label.
-Tests are indexed by an environment automaton $E$ and an oblivious word $ρ$; unscheduled native
-semantics is a _set_ of scheduled distributions, not one distribution sampled by an attacker.
-Precommitted schedule grades may transform script structure but cannot inspect runtime state.
-Their tensor must retain interleaving/shuffle information, not merely two projected task words;
-monoidal closure and object/simulator coverage remain unproved.
+#definition(name: [#TaskPIOA])[
+The category $op("Wiring")$ is free _non-symmetric_ monoidal syntax on object trees
+$I$, $op("Var")(S)$ and $A ⊗ B$, where $S$ is a native signature. An automaton $M$ is a
+value at $op("Var")(S)$; `install M` embeds it as a resource generator, while `connect w`
+interprets a pair of resources by their compatible native product. Arrows are typed
+installation/wiring contexts, with free monoidal congruence as hom-equality, not native
+trace equivalence.
+A test consists of a closing wiring context, fixed finite task word and rational trace
+reward. Tests are equal when their expected rewards agree on every native resource assignment.
+The presheaf pulls back by context substitution; the actual setup is
+$TaskPIOA := Std(op("Wiring"), cal(E)_sans("native"))$, with standard grading $T_X B = X ⊗ B$.
+#srcs(cc("TaskPIOA/Setup.agda", 28, "Generator"), cc("TaskPIOA/Setup.agda", 43, "interpretGenerator"), cc("TaskPIOA/Setup.agda", 53, "Wiringᴹ"), cc("TaskPIOA/Setup.agda", 56, "Test"), cc("TaskPIOA/Setup.agda", 86, "ℰ-native"), cc("TaskPIOA/Setup.agda", 95, "UC.StdSetup"))
+] <def:taskpioa>
 
-The native security quantifiers (Definition 2) are
-$ ∀ E. quad "tdists"(T_1 ∥ E) ⊆ "tdists"(T_2 ∥ E). $
-The matching ideal schedule can depend on $E$ and the real schedule. This is not automatically
-one UC simulator fixed before every environment. The paper's schedule-prefix Skolem function
-and open-system corollary do not erase that distinction; §5 discusses local-scheduler uniformity.
-A native $scripts(≤)_0$–$leUC$ correspondence needs an explicit uniform-simulation theorem,
-possibly a stronger premise. Unrestricted PM simulators are too adaptive for automatic reflection.
+`plugging` proves that pulling a test through a wiring term equals evaluating it on the
+interpreted resource assignment. `native-correspondence` identifies the closing test
+`nativeTest E ρ P` with the expected reward $P$ of the actual native product run
+`observe M E ρ`. These are direct native-test results, not a PM test pullback or an
+equivalence between the free syntax and a category of native automata.
+#srcs(cc("TaskPIOA/Setup.agda", 82, "plugging"), cc("TaskPIOA/Setup.agda", 100, "nativeTest"), cc("TaskPIOA/Setup.agda", 108, "native-correspondence"))
 
-Bounded witnesses should cover disabled-then-enabled ticks, two visits to the same task,
-independent private-bit commutation when external effects commute, and an order-sensitive
-first-message-wins receiver. A scheduler-information separator is a hidden fair bit followed
-by tasks committing guess 0 or 1, then revelation: an oblivious schedule matches with probability
-$1/2$, while a state-peeking scheduler can match with probability 1. This is a proposed
-counterexample experiment, not a checked source theorem.
+#theorem(name: [task-preserving simulation and the unit-leakage boundary])[
+Native `Contextual` inclusion has quantifiers $∀ E. ∀ ρ. ∃ ρ'$ with equal exact trace
+distributions. `Comparable` fixes public input/output ports but may change private states,
+hidden actions and task partitions. A stronger same-signature `Simulation` supplies one
+state map preserving initialization, task selection and mapped input/local kernels.
+It separately proves equal same-word traces, native contextual inclusion, and
+$op("resource")(M) leUC op("resource")(N)$ in #TaskPIOA.
+Conversely, for the designated resources
+$op("resource")(M), op("resource")(N) : I → I ⊗ op("Var")(S)$ of the *same signature*,
+their actual exported $leUC$ implies native inclusion, with $ρ' = ρ$.
+#srcs(cc("TaskPIOA/Simulation.agda", 19, "Simulation"), cc("TaskPIOA/Simulation.agda", 57, "trace-match"), cc("TaskPIOA/Security.agda", 33, "Contextual"), cc("TaskPIOA/Security.agda", 39, "uniform⇒contextual"), cc("TaskPIOA/Security.agda", 78, "simulation⇒≤UC"), cc("TaskPIOA/Security.agda", 84, "resource-≤UC⇒contextual"))
+] <thm:taskpioa-security>
+
+#proofidea[Product preservation lifts the fixed state map through an arbitrary environment;
+finite-run induction gives equal trace laws. Syntax/test compatibility lifts it to the
+ancilla-closed kernel, then $eqU⇒leUC$ gives resource security. In the reverse-facing
+unit-leakage theorem, a native closing test discards the dummy simulator's empty component.
+No environment/simulator quantifiers are exchanged. This does not prove
+native inclusion iff UC, a native-inclusion-to-UC converse, or a non-unit-leakage theorem.]
+
+*Checked consumers.* A write-once input bit masked with one private fair pad realizes a
+uniform ciphertext resource at the actual $leUC$; repeated sends retain the sampled
+ciphertext. Its native contextual corollary uses the theorem above. An adaptive echo
+environment reacts to the random ciphertext while its word stays fixed; the checked full
+trace law and native closing test yield a first-ciphertext probability of $1/2$.
+Further witnesses distinguish disabled stuttering from stopping, repeated execution from
+deduplication, and two joint words with equal component projections but different traces.
+These negatives separate named distributions/words, not UC emulation or all simulators.
+#srcs(cc("TaskPIOA/Tests.agda", 125, "masked-output-secure"), cc("TaskPIOA/Tests.agda", 128, "masked-output-contextual"), cc("TaskPIOA/Tests.agda", 133, "real-repeats"), cc("TaskPIOA/Tests.agda", 167, "disabled-does-not-stop"), cc("TaskPIOA/Tests.agda", 171, "repetition-not-deduplication"), cc("TaskPIOA/Tests.agda", 203, "synchronized-product"), cc("TaskPIOA/Tests.agda", 226, "order-sensitive"), cc("TaskPIOA/Tests.agda", 247, "masked-adaptive-law"), cc("TaskPIOA/Tests.agda", 266, "native-probabilistic-plugging"))
+
+No setup morphism to PM/SSP/causal boxes, full literature equivalence, PPT/negligible
+security, infinite-run or fairness theorem is supplied. The earlier state-peeking
+guess-scheduler separator remains a proposed experiment, not one of these checked results.
 
 == Causal boxes: a category boundary and two restricted routes <sec:causal-island>
 
@@ -1761,6 +1830,41 @@ Families of timed realizations (@portmann2017 §9) may support a different refin
 with new uniform-simulator obligations. Extending setup morphisms to lax/set-valued compilation
 merely to draw an arrow is not the next step; the concrete finite squares above are more informative.
 
+== #CSP: typed open networks, not raw operator interchange <sec:csp-island>
+
+#design A CSP-backed setup is viable as a concrete _typed open-network_ construction;
+implementation is in progress and no checked CSP setup or bridge is claimed here.
+Objects are finite typed, polarised interfaces. Arrows are networks of port-confined
+`PTree` components; resources have empty input boundary. Composition freshens private
+names and glues interfaces, identity is a transparent wire alias, and tensor is disjoint
+union. Only genuinely private wire classes are hidden: composing an identity must not
+hide a channel still attached to the boundary. Start with boundary-preserving network
+isomorphism, not an assumed native weak/FD quotient.
+
+The proposed operational semantics advances internal transitions and connected rendezvous,
+keeping external event labels. Its structural-invariance proof would support tests
+$t : A → Ω$, equal when every resource closure has the same finite traces, stable failures
+and divergence observations. Pullback is precomposition; the standard tensor grading then
+makes a simulator an actual network converter, not an `FSim` proof. Native observational
+correspondence is a further theorem, not a prerequisite for defining such a setup.
+
+The pinned library supplies real component semantics and bind laws, but returned-value bind
+is not interactive interface plugging. Its parallel/interleaving interchange has persistent
+alphabet-confinement, disjointness and separation premises; the shared-alphabet counterexample
+rejects unrestricted regrouping, not CSP categorification. Weak bisimulation equates
+divergence and deadlock and cannot simply be used for the richer tests above. FD hiding and
+several DR/FD liftings have explicit semantic or classical assumptions; an imported proof
+closure must be audited before reuse. No CSP-to-PM probabilities, UC transfer, or equality
+of native refinement with $leUC$ follows from this design.
+
+Source evidence is pinned to `agda-cardano-common` commit `9a40d1de`:
+#link("https://github.com/input-output-hk/agda-cardano-common/blob/9a40d1de330f376c3a102e7c9f1282f4fa830a7e/src/ITree-CSP/Process_Trees.agda#L112")[`PTree`],
+#link("https://github.com/input-output-hk/agda-cardano-common/blob/9a40d1de330f376c3a102e7c9f1282f4fa830a7e/src/ITree-CSP/CSP/Laws/Bisim/BindCong.agda#L80")[weak bind congruence],
+#link("https://github.com/input-output-hk/agda-cardano-common/blob/9a40d1de330f376c3a102e7c9f1282f4fa830a7e/src/ITree-CSP/CSP/Laws/FD/ParallelInterchange.agda#L478")[restricted interchange],
+#link("https://github.com/input-output-hk/agda-cardano-common/blob/9a40d1de330f376c3a102e7c9f1282f4fa830a7e/src/ITree-CSP/Semantics/Failures.agda#L234")[weak divergence/deadlock example],
+#link("https://github.com/input-output-hk/agda-cardano-common/blob/9a40d1de330f376c3a102e7c9f1282f4fa830a7e/src/ITree-CSP/CSP/Laws/FD/HideMonoFD.agda#L265")[hiding boundary], and
+#link("https://github.com/input-output-hk/agda-cardano-common/blob/9a40d1de330f376c3a102e7c9f1282f4fa830a7e/src/ITree-CSP/Semantics/DRImpliesFD.agda#L64")[DR-to-FD assumptions].
+
 == Reuse and ranked experiments <sec:island-experiments>
 
 The existing machinery removes categorical boilerplate, not the semantic obligations:
@@ -1770,7 +1874,7 @@ The existing machinery removes categorical boilerplate, not the semantic obligat
   set par(justify: false)
   table(columns: (1fr, 1.25fr, 1.35fr), inset: 4pt, stroke: 0.35pt + luma(65%),
     table.header([*Mechanism*], [*Useful reuse*], [*Not supplied*]),
-    [#SSPd / SSP density], [finite probabilistic runs; deferred sampling; WB transfer], [IPDL hidden linking, RSIM gluing, unrestricted PM security],
+    [#SSPd / SSP density], [finite probabilistic runs; deferred sampling; WB transfer], [general IPDL hidden linking, RSIM gluing, unrestricted PM security],
     [W restriction / U-kernel quotient], [natural legal-driver coarsening; lawful contextual congruence], [reverse WB security, closure of a proposed legal test class],
     [`Transport` / `Regrade`], [closed typed carrier and real interface isomorphisms; ownership/simulator restrictions], [synchronous barrier, input enabling, fairness, lost timing],
     [`freeStrongMonoidal`], [initial compiler on explicit components], [native equations, behavioral full abstraction or native tests],
@@ -1782,21 +1886,22 @@ A finite rational sampler is not inherently uninterpretable in PM: rational coin
 operational implementation. The obligation is representation-independent equality at the chosen
 target, not necessarily a stronger monad morphism into fine tree equality.
 
-The ranking separates a small theorem demonstration from prospective reactive-security payoff.
-Every row remains #design; none is a promised or implemented graph edge.
+The ranking separates checked bounded results from prospective reactive-security payoff.
+Only the explicitly checked entries are implemented; the remaining rows are #design, not promises.
 
 #{
   set text(size: 8.3pt)
   set par(justify: false)
   table(columns: (0.32fr, 1.2fr, 1.8fr), inset: 4pt, stroke: 0.35pt + luma(65%),
-    table.header([*Order*], [*Bounded experiment / expected theorem*], [*Restrictions, success criterion and priority*]),
-    [A], [IPDL Fig. 9 → #SSPd resource], [High operational confidence; finite exact API agreement for every legal strategy and all four witnesses. Then one hidden-Boolean linker with identity and feedback. Best first IPDL experiment; open bridge only after linking/tests.],
+    table.header([*Order*], [*Bounded result / next construction*], [*Checked scope, remaining criterion and priority*]),
+    [A], [#formal IPDL Fig. 9 → #SSPd resource], [Finite adaptive Boolean-verdict agreement, private coins/read order, shared-coin and concrete hidden/copy/feedback linker witnesses are checked. General open laws and native test correspondence remain; @thm:ipdl-agreement.],
     [B], [RSIM buffers/default scheduler → legal-view PM], [High finite-interpreter, medium native-bridge confidence. First-delivery witness plus identity/gluing squares and ownership. Highest prospective reactive payoff; fairness/PPT excluded.],
     [C], [Batch IPDL → rational kernels → #Rel], [High restricted-morphism confidence. Supply $F, Φ, κ, ν$, direct U-preservation and target OTP, plus biased-pad nonreflection. Best small genuine new setup edge; heavy batch/support semantic loss.],
-    [D], [Task-PIOA scripted execution], [High operational, lower UC-correspondence confidence. Stuttering, repeated tasks, synchronized products, shuffle-aware scripts and scheduler separator; write uniform UC/native quantifiers before transfer.],
+    [D], [#formal #TaskPIOA native finite setup], [Own wiring category/tests, simulation and unit-leakage UC-to-native inclusion, probabilistic and schedule consumers are checked. No converse, non-unit theorem or PM bridge; @thm:taskpioa-security.],
     [E], [Synchronous causal histories], [High confidence for the stated finite product fragment. Delay-one/two and joint/independent ticks first; then prefix-causal two-round strong-monoidal square. Reflection needs causal grades.],
     [Later], [IPDL single-assignment quotient], [Medium confidence; only after API/linker experiments establish a closed interaction contract and legal-context density. WB alone is insufficient.],
     [Later], [Full classical causal converters → synchronized PM], [Moderate/low confidence; correct converter category, resource correspondence, barrier tensor and causal tests remain substantial.],
+    [In progress], [#CSP typed open networks], [Viable structural wiring/operational-test design; implementation underway, not checked. Native refinement correspondence and any model bridge remain separate; @sec:csp-island.],
     [Defer], [Timed realization families / quantum bridges], [Different refinement or quantum infrastructure and uniformity needed; no immediate UCSetupMorphism claim.],
   )
 }
@@ -1805,9 +1910,10 @@ Every row remains #design; none is a promised or implemented graph edge.
 = Morphisms between the setups <sec:morphisms>
 
 *Diagram legend: line style and UC-transfer shape are independent.* Solid black edges are
-implemented setup morphisms. Blue dashed edges are proposed constructions: `O` is only an
-operational interpretation; `M` is a proposed setup morphism. Red dotted edges marked ×
-identify a _specific obstructed candidate_, not a universal no-map theorem.
+implemented setup morphisms. A solid blue `O` edge is checked operational agreement only,
+not a setup morphism or UC transfer. Blue dashed edges are proposed constructions:
+`O` is an operational interpretation; `M` a proposed setup morphism. Red dotted edges
+marked × identify a _specific obstructed candidate_, not a universal no-map theorem.
 
 In these two figures, for $𝕄 : 𝕊 → 𝕊'$ write $G(f) := κ ∘ F(f)$ for the translated protocol
 (@def:morphism). For every well-typed source protocol pair $f, g$, the decorations mean:
@@ -1863,25 +1969,29 @@ the checked initialized finite-trace API is not another setup node or initialize
     node((1.3, 3), $WW$, name: <ww>),
     node((3.9, 3), $NDA^(PM)$, name: <nda>),
     node((2.6, 4), [#Rel \ one-shot], name: <rel>),
+    node((3.9, 4), [#TaskPIOA \ finite exact], name: <taskpioa>),
     edge(<symiso>, <sym>, "->>", label: $mcoarse$, label-side: right),
     edge(<symiso>, <iso>, "->", label: $msym$),
     edge(<symcert>, <pmn>, "->", label: $mcs$),
     edge(<itm-uninit>, <iso>, "->>", label: $mitmuninit$, label-side: right),
-    edge(<itm>, <pm>, "->", label: $mitm$),
+    edge(<itm>, <pm>, "->>", label: $mitm$),
     edge(<pm>, <rs>, "hook->>", label: $mrs$),
     edge(<wio>, <pm>, "->>", label: $miota$),
     edge(<wio>, <ww>, "->>", label: $mck_(ν_W)$, label-side: right),
     edge(<ssp>, <pmwb>, "->>", label: $mwb$, label-side: right),
     edge(<ssp>, <sspd>, "hook->>", label: $mq$, label-side: right),
+    edge(<sspd>, <pmwb>, "->>", label: $mwbd$),
     edge(<ww>, <pmwb>, "hook->>", label: $mq$),
     edge(<nda>, <ndb>, "->>", label: $mincl$, label-side: right),
     edge(<ndb>, <pm>, "hook->>", label: $mincl$, label-side: right),
     edge(<ssp>, <pm>, "..>", stroke: red + 0.6pt, bend: -35deg, label: text(fill: red)[$mcomp$ ×]),
     edge(<pm>, <iso>, "..>", stroke: red + 0.6pt, label: text(fill: red)[state-retaining ×], label-side: right),
   ),
-  caption: [Implemented setup components and two candidate-specific obstructions. The W arrows
-    point from full tests to PM and to restricted W/PM[wb]; there is no directed SSP-to-PM
-    security path. #Rel is an actual separate component, not an impossibility class.],
+  caption: [Implemented setup components and two candidate-specific obstructions. The SSP
+    quotient/direct/descended compiler triangle agrees pointwise (@prop:dist-wb).
+    The W arrows point from full tests to PM and to restricted W/PM[wb]; there is no directed
+    SSP-to-PM security path. #Rel and #TaskPIOA are actual separate components, not
+    impossibility classes.],
 ) <fig:graph>
 
 *Implemented-edge qualifications.* The ND nodes are the #PM instances. Their preservation
@@ -1893,9 +2003,10 @@ the separate copying counterexample refutes reflection at #SSP, not at #PM (@pro
 
 The restricted-W quotient's two-way decoration is the definition-level derivation in
 @sec:wb-quotient-transfer, not a separately exported q-security theorem. The full-test W
-coarsening and inclusion claim preservation only. Plain symbolic/ITM interpretation arrows
-remain useful morphisms; bare-kernel agreement, certificates or individual clients do not
-by themselves prove their general UC-transfer directions.
+coarsening and inclusion claim preservation only. The #ITM arrow now preserves UC generally;
+its converse needs an explicitly lifted target simulator, so it has no unconditional hook.
+Plain symbolic interpretation arrows remain useful morphisms, but bare-kernel agreement or
+query certificates do not prove general UC transfer.
 
 #figure(
   diagram(
@@ -1909,29 +2020,29 @@ by themselves prove their general UC-transfer directions.
     node((1.5, 0), [#SSPd resource], name: <api-target>),
     node((0, 1), [finite RSIM \ explicit buffers], name: <rsim-source>),
     node((1.5, 1), [PM legal \ finite views], name: <rsim-target>),
-    node((0, 2), [finite task-PIOA \ oblivious script], name: <task-source>),
-    node((1.5, 2), [scheduled \ PM resource], name: <task-target>),
-    node((0, 3), [batch IPDL], name: <batch-source>),
-    node((1.5, 3), [finite rational \ kernels], name: <kernel-target>),
-    node((3, 3), $Rel$, name: <support-target>),
-    node((0, 4), [synchronous causal \ finite histories], name: <causal-source>),
-    node((0, 5), [single-assignment \ IPDL], name: <sa-source>),
-    node((1.5, 5), [legal SA \ quotient], name: <sa-target>),
-    edge(<api>, <api-target>, "-->", stroke: blue, label: [O]),
+    node((0, 2), [batch IPDL], name: <batch-source>),
+    node((1.5, 2), [finite rational \ kernels], name: <kernel-target>),
+    node((3, 2), $Rel$, name: <support-target>),
+    node((0, 3), [synchronous causal \ finite histories], name: <causal-source>),
+    node((0, 4), [single-assignment \ IPDL], name: <sa-source>),
+    node((1.5, 4), [legal SA \ quotient], name: <sa-target>),
+    node((3, 0), [#CSP \ typed networks \ in progress], name: <csp-proposed>),
+    edge(<api>, <api-target>, "->", stroke: blue, label: [O: checked]),
     edge(<rsim-source>, <rsim-target>, "-->", stroke: blue, label: [O]),
-    edge(<task-source>, <task-target>, "-->", stroke: blue, label: [O]),
     edge(<batch-source>, <kernel-target>, "-->>", stroke: blue, label: [M]),
     edge(<kernel-target>, <support-target>, "-->>", stroke: blue, label: [M: support]),
     edge(<causal-source>, <kernel-target>, "-->>", stroke: blue, label: [M], label-side: right),
     edge(<sa-source>, <sa-target>, "-->>", stroke: blue, label: [M]),
   ),
-  caption: [Proposed bounded connections, all unformalised. Dashed double heads are
-    exact-UC preservation objectives under @sec:designed's stated hypotheses, not checked
-    transfer theorems. Operational O-edges remain plain: they supply no open linking/gluing
-    or uniform UC simulation. Support preservation is exact-only and does not reflect
-    probability-sensitive security. Causal-history reflection would additionally need
-    prefix-causal simulators and reconstruction/fullness; no such hook is claimed.
-    The single-assignment objective requires a closed lawful carrier, linker and legal-test density.],
+  caption: [Bounded operational and proposed native connections. Only the solid blue O-edge
+    is checked (@thm:ipdl-agreement); it is not an IPDL setup or UC-transfer arrow.
+    Dashed double heads are proposed exact-UC preservation objectives, not checked theorems.
+    The CSP node is a viable design with implementation in progress, not a checked setup.
+    The actual #TaskPIOA node in @fig:graph has no supplied PM bridge.
+    Support preserves only exact security and does not reflect probability-sensitive security.
+    Causal-history reflection additionally needs prefix-causal simulators and
+    reconstruction/fullness; no such hook is claimed. The single-assignment objective
+    still needs a closed lawful carrier, general linker and legal-test density.],
 ) <fig:proposed>
 
 == Formal morphisms <sec:formal-morphisms>
@@ -1955,9 +2066,16 @@ explicit characterisation by constructions, which holds on both sides.
 #proposition(name: [interpreting Turing machines])[
 $mitm = (F^p, F^p, opid, ν^T)$ with $F^p$ the strict monoidal interpretation of @def:itm and
 $ν^T$ the identity on tests (the tests of #ITM are #PM's, pulled back), Epi and Mono. Hence $F^p$
-preserves and reflects $eqE$ (@thm:itm-kernel). Neither half of @thm:transport(2)–(3) applies: #PM is
-not grade-stable and $F^p$ is not full.
+preserves and reflects $eqE$ (@thm:itm-kernel). Although the generic grade-stability/fullness
+routes do not apply, the source domain's dual-port ancilla maps to its #PM dual.
+That source U-component gives target behavioral equality, hence target U-equivalence;
+`transfer⁺` then proves general $leUC$ preservation without the false #PM grade-stability
+premise. U-equivalence also reflects by restricting to image ancillas.
+UC reflection is different: a target dummy simulator $s'$ must come with a source $s$
+whose interpretation is behaviorally equal to $s'$. The exported witness-conditioned theorem
+does not assert that every target simulator has such a lift.
 #srcs(cc("ITM/Setup.agda", 54, "itm⇒prot"), cc("ITM/Functor.agda", 65, "Fᴾ"), cc("ITM/Setup.agda", 44, "νᵀ"), cc("ITM/Setup.agda", 48, "νᵀ-epi"), cc("ITM/Setup.agda", 51, "νᵀ-mono"), cc("ITM/Setup.agda", 57, "≈ℰ⇔"), ag("Categories/FreeMonoidal.agda", 519, "freeStrongMonoidal"))
+#srcs(cc("ITM/Transfer.agda", 40, "image-dual"), cc("ITM/Transfer.agda", 45, "image-dual-iso"), cc("ITM/Transfer.agda", 63, "preserves-≈ᵁ"), cc("ITM/Transfer.agda", 77, "reflects-≈ᵁ"), cc("ITM/Transfer.agda", 82, "preserves-≤UC"), cc("ITM/Transfer.agda", 94, "reflects-≤UC-witness"), cc("ITM/Transfer.agda", 102, "reflects-≤UC-image-witness"))
 ] <prop:mitm>
 
 === $mitmuninit : ITMuninit → Iso$
@@ -2026,7 +2144,7 @@ from each state, its steps cut at finite depth, is an SSP game. Approximation is
 for each fixed finite-depth test observation, not uniform over every test. Compiled distinguishers are likewise dense
 among well-bracketed tests, so $mwb$ preserves $eqE$, and since $mwb$ is the identity on objects it
 preserves $leUC$ without grade stability. In particular the one-time pad (@thm:otp) holds in #PMwb.
-#srcs(cc("SSP/Semantics.agda", 151, "Fᵂ"), cc("SSP/Semantics.agda", 110, "wire≈σ"), cc("SSP/Semantics.agda", 131, "⊗≈⊗"), cc("Protocol/Machine/Oracle.agda", 113, "oracle≈∘"), cc("SSP/Dense.agda", 365, "games-dense"), cc("SSP/Dense.agda", 381, "SSP→PM[wb]"), cc("SSP/Dense/Tests.agda", 460, "tests-dense"), cc("SSP/Dense/Tests.agda", 474, "preserves-≈ℰ"), cc("SSP/Dense/Tests.agda", 489, "preserves-≤UC"), cc("Standard2/Morphism.agda", 97, "surjective⇒preserves-≈ᵁ"), cc("Examples/SSP/OneTimePad/WB.agda", 15, "otp≤idealᵂ"))
+#srcs(cc("SSP/Semantics.agda", 151, "Fᵂ"), cc("SSP/Semantics.agda", 110, "wire≈σ"), cc("SSP/Semantics.agda", 131, "⊗≈⊗"), cc("Protocol/Machine/Oracle.agda", 113, "oracle≈∘"), cc("SSP/Dense.agda", 365, "games-dense"), cc("SSP/Dense.agda", 381, "SSP→PM[wb]"), cc("SSP/Dense/Tests.agda", 460, "tests-dense"), cc("SSP/Dense/Tests.agda", 474, "preserves-≈ℰ"), cc("SSP/Dense/Tests.agda", 489, "preserves-≤UC"), cc("Standard2/Morphism.agda", 97, "surjective⇒preserves-≈ᵁ"), cc("Examples/SSP/OneTimePad/WB.agda", 28, "otp≤idealᵂ"))
 ] <def:mwb>
 
 The test map is not known to be Epi, and likely is not: a well-bracketed test can carry an
@@ -2051,6 +2169,33 @@ protocol identifies this comparison with the original representatives. Reflectio
 inverse functor at hom-equality: it does not say $scripts(≈)^sans("d") ⇒ eqP$.
 #srcs(cc("SSP/Dist/Setup.agda", 34, "ssp⇒dist"), cc("SSP/Dist/Setup.agda", 49, "preserves-≤UC"), cc("SSP/Dist/Setup.agda", 56, "ssp≤⇒dist≤"), cc("SSP/Dist/Setup.agda", 62, "dist≈ᵁ⇒ssp≈ᵁ"), cc("SSP/Dist/Setup.agda", 67, "dist≤⇒ssp≤"), cc("SSP/Dist/Setup.agda", 71, "reflects-≤UC"), cc("Examples/SSP/OneTimePad/Dist.agda", 109, "otp≤ideal-image-dist"))
 ] <prop:ssp-dist-morphism>
+
+=== $mwbd : SSPd → PMwb$
+
+#proposition(name: [the descended WB compiler and its triangle])[
+The existing compiled protocol map respects the stronger distributional hom-equality:
+$P scripts(≈)^sans("d") Q ⇒ op("compile")(P) simW op("compile")(Q)$ in #PMwb.
+It therefore defines the strong monoidal functor `Fᵂᵈ`, with identity action on interface
+objects, the existing grade comparisons and descended test map `νᵂᵈ`. The actual
+`dist⇒PM[wb]` preserves $eqE$, $eqU$ and $leUC$. No UC reflection is claimed.
+U-preservation uses object coverage, not target grade stability; the public UC proof
+also reuses quotient reflection followed by the direct SSP-to-WB security theorem.
+#srcs(cc("SSP/Dist/Compile.agda", 44, "⟦⟧ᵂ-resp-≈ᵈ"), cc("SSP/Dist/Compile.agda", 52, "Fᵂᵈ"), cc("SSP/Dist/Compile.agda", 67, "νᵂᵈ"), cc("SSP/Dist/Compile.agda", 71, "dist⇒PM[wb]"), cc("SSP/Dist/Compile.agda", 74, "preserves-≈ℰ"), cc("SSP/Dist/Compile.agda", 77, "preserves-≈ᵁ"), cc("SSP/Dist/Compile.agda", 81, "preserves-≤UC"))
+
+The actual `composeᵁ dist⇒PM[wb] ssp⇒dist` agrees _pointwise_ with `SSP→PM[wb]`:
+on objects, homs, tests, grade objects/homs, $κ$, tensor and unit comparisons, and induced
+computations $G$. Objects agree propositionally; morphisms and comparisons agree in #PMwb
+hom-equality, and tests in the target test setoid. The return/ext/sub comparison theorems
+also compare the right-hand sides of the two actual graded-Kleisli laws.
+This is not equality or an isomorphism of bundled setup-morphism records.
+#srcs(cc("SSP/Dist/Compile.agda", 88, "ssp-via-dist"), cc("SSP/Dist/Compile.agda", 91, "Triangle"), cc("SSP/Dist/Compile.agda", 123, "Triangle.computations"), cc("SSP/Dist/Compile.agda", 127, "Triangle.return-comparison"), cc("SSP/Dist/Compile.agda", 133, "Triangle.ext-comparison"), cc("SSP/Dist/Compile.agda", 142, "Triangle.sub-comparison"))
+] <prop:dist-wb>
+
+The WB OTP clients now consume this compiler: `lazy≈realᵂ` and `otp≈idealᵂ` are categorical
+equalities obtained from distributional source equations; `otp≤ideal-distᵂ` transports the
+actual #SSPd security theorem. The existing public `otp≤idealᵂ` is retained through this route.
+This is WB-context security, not unrestricted PM security or a reflected WB negative.
+#srcs(cc("Examples/SSP/OneTimePad/WB.agda", 19, "lazy≈realᵂ"), cc("Examples/SSP/OneTimePad/WB.agda", 22, "otp≈idealᵂ"), cc("Examples/SSP/OneTimePad/WB.agda", 25, "otp≤ideal-distᵂ"), cc("Examples/SSP/OneTimePad/WB.agda", 28, "otp≤idealᵂ"))
 
 === $mq : WW → PMwb$ <sec:wb-quotient-transfer>
 
@@ -2217,9 +2362,11 @@ The IPDL/causal arguments here are #design unless a linked existing theorem is e
   validity or an initialized UC observation/transport theorem.
 + _The modified deterministic #Iso fragment:_ initialized, nonsilent execution and a useful test map
   behind $mdet$.
-+ _Native island connections:_ the ranked concrete witnesses/linker squares of
-  @sec:island-experiments, not a new lax abstraction or reinstatement of the withdrawn raw arrows.
-  #NDA/#NDB are already built; their scheduler-adequacy and remaining PM-A clients are separate.
++ _Native island connections:_ extend the checked finite IPDL agreement/concrete linking and
+  #TaskPIOA unit-leakage result to the additional laws and quantifiers named in
+  @sec:island-experiments. CSP construction is in progress. These are not grounds to restore
+  the withdrawn raw arrows or assume a lax abstraction solves the semantic obligations.
+  #NDA/#NDB scheduler adequacy and remaining PM-A clients are separate.
 + _Computational soundness:_ construct the operational `Backtranslation` from game-based
   assumptions, establish the literature correspondence for the honest-role restriction, and
   supply feasibility closure for adversary-quantified UC transfer. The formal $mcs$ from #Symcert
@@ -2244,9 +2391,10 @@ This ledger records their current scope; absence of a public client is not nonex
     [014–018], [W is conditional safety, not hostile enforcement or liveness; density is pointwise/cofinal. Both full-test forward bridges (016–017) are formal. Neither supplies reverse WB security.],
     [019–026, 036], [Choice payload/ownership, SSP preload/starvation, branch-permutation, PM lifetime and fail-stop boundaries remain. The selected-branch ASTotal repair and all-resolver half-init refutation (023) are formal; FIFO scaling is not a benchmark.],
     [027–033, 038], [Fine/coarse observations remain distinct. Sorted term substitution and fresh-name rejection (028) are formal; the older multisort impossibility is withdrawn (038). Raw names/public frames remain restricted. GroundGuarded and opt-in Terminal now separate the old terminal overclaim (030); general applied-pi/session correspondence is not proved.],
-    [034–035], [Actual SSPᵈ reflection, W positive transfers, RS security/full-construction, tight QRS, PM-B, both ITM interpretations and the transmitting #Sym channel have checked consumers. ITM trace/observational negatives and symbolic leakage separators are not all-simulator impossibility. SSPᵈ is built; W/PM[wb] negatives, PM-A clients and full-context OTP confidentiality remain absent.],
+    [034–035], [General ITM-to-PM UC preservation and witness-conditioned reflection have clients. The SSPᵈ-to-PM[wb] compiler and full pointwise triangle feed categorical/security OTP consumers. Existing W, RS/QRS, PM-B and transmitting #Sym clients remain checked. Observational negatives are not all-simulator impossibility; W/PM[wb] negatives, PM-A clients and full-context OTP confidentiality remain absent.],
     [037, 039], [Pure interface legs are enforced (037). Fixed-public-message opacity is retained. The new one-send #Sym client accepts an environment-selected plaintext and decrypts/delivers only on the original ciphertext modulo E₀, with actual nonidentity-simulator UC security (039). This is conservative delivery/drop, not general active-channel or computational security; @thm:sym-transmitting.],
     [040–041], [Protocol-indexed errors with shared extraction and closed finite-budget positive/negative experiments repair 040. Crypto backtranslation, target UC, and malformed-projection/error-aware eligibility (041) remain unproved.],
+    [Native extensions], [Finite IPDL operational agreement/private coins and concrete linking are checked, not an IPDL UC setup. #TaskPIOA is an actual independent finite exact setup; its resource UC-to-native implication is same-signature/unit-leakage only. It does not repair PM scheduler behavior. CSP remains in progress/proposed; no checked setup or bridge is claimed.],
   )
 }
 
