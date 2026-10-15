@@ -1,8 +1,8 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- Unbounded finite branching is permitted by Process. Raw observation
--- inclusion does not imply hiding congruence: finite paths are not an
--- infinite path. No compactness or choice principle is used here.
+-- Process permits countably infinite root branching into finite paths of
+-- unbounded length. Raw observation inclusion does not imply hiding
+-- congruence. No compactness or choice principle is used here.
 module CategoricalCrypto.CSP.RawHidingBoundary where
 
 open import Data.Bool.Base
