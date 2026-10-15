@@ -74,24 +74,22 @@ module _ {o ℓ e o′ ℓ′ e′ cs ℓs : Level}
       α⇐ ∘ id ⊗₁ Op.δ ∘ id ⊗₁ F.₁ h                            ≈⟨ refl⟩∘⟨ merge₂ʳ ⟩
       α⇐ ∘ id ⊗₁ (Op.δ ∘ F.₁ h)                                ∎)
 
-    private
-      across : ∀ {A B} {u u′ v v′ : A ⇒ B} → u ≈ u′ → v ≈ v′ → u′ S′.≈ℰ v′ → u S′.≈ℰ v
-      across p q r = S′.≈ℰ-trans (S′.≈C⇒≈ℰ p) (S′.≈ℰ-trans r (S′.≈ℰ-sym (S′.≈C⇒≈ℰ q)))
+    across : ∀ {A B} {u u′ v v′ : A ⇒ B} → u ≈ u′ → v ≈ v′ → u′ S′.≈ℰ v′ → u S′.≈ℰ v
+    across p q r = S′.≈ℰ-trans (S′.≈C⇒≈ℰ p) (S′.≈ℰ-trans r (S′.≈ℰ-sym (S′.≈C⇒≈ℰ q)))
 
-
-      -- An ancilla moved along an iso.
-      conj : ∀ {Y Y′ P Q R} {u : Y ⇒ Y′} {u⁻ : Y′ ⇒ Y} → u ∘ u⁻ ≈ id → (k : P ⇒ Q ⊗₀ R)
-           → α⇐ ∘ id ⊗₁ k ≈ ((u ⊗₁ id) ⊗₁ id) ∘ (α⇐ ∘ id ⊗₁ k) ∘ u⁻ ⊗₁ id
-      conj {u = u} {u⁻} inv k = ⟺ (begin
-        ((u ⊗₁ id) ⊗₁ id) ∘ (α⇐ ∘ id ⊗₁ k) ∘ u⁻ ⊗₁ id
-          ≈⟨ refl⟩∘⟨ pullʳ (merge₁ʳ ○ (identityˡ ⟩⊗⟨refl) ○ serialize₁₂) ⟩
-        ((u ⊗₁ id) ⊗₁ id) ∘ α⇐ ∘ u⁻ ⊗₁ id ∘ id ⊗₁ k
-          ≈⟨ refl⟩∘⟨ pullˡ ((refl⟩∘⟨ (refl⟩⊗⟨ ⟺ ⊗.identity)) ○ assoc-commute-to) ⟩
-        ((u ⊗₁ id) ⊗₁ id) ∘ ((u⁻ ⊗₁ id) ⊗₁ id ∘ α⇐) ∘ id ⊗₁ k
-          ≈⟨ refl⟩∘⟨ assoc ⟩
-        ((u ⊗₁ id) ⊗₁ id) ∘ (u⁻ ⊗₁ id) ⊗₁ id ∘ α⇐ ∘ id ⊗₁ k
-          ≈⟨ cancelˡ (merge₁ˡ ○ ((merge₁ˡ ○ (inv ⟩⊗⟨refl) ○ ⊗.identity) ⟩⊗⟨refl) ○ ⊗.identity) ⟩
-        α⇐ ∘ id ⊗₁ k ∎)
+    -- An ancilla moved along an iso.
+    conj : ∀ {Y Y′ P Q R} {u : Y ⇒ Y′} {u⁻ : Y′ ⇒ Y} → u ∘ u⁻ ≈ id → (k : P ⇒ Q ⊗₀ R)
+         → α⇐ ∘ id ⊗₁ k ≈ ((u ⊗₁ id) ⊗₁ id) ∘ (α⇐ ∘ id ⊗₁ k) ∘ u⁻ ⊗₁ id
+    conj {u = u} {u⁻} inv k = ⟺ (begin
+      ((u ⊗₁ id) ⊗₁ id) ∘ (α⇐ ∘ id ⊗₁ k) ∘ u⁻ ⊗₁ id
+        ≈⟨ refl⟩∘⟨ pullʳ (merge₁ʳ ○ (identityˡ ⟩⊗⟨refl) ○ serialize₁₂) ⟩
+      ((u ⊗₁ id) ⊗₁ id) ∘ α⇐ ∘ u⁻ ⊗₁ id ∘ id ⊗₁ k
+        ≈⟨ refl⟩∘⟨ pullˡ ((refl⟩∘⟨ (refl⟩⊗⟨ ⟺ ⊗.identity)) ○ assoc-commute-to) ⟩
+      ((u ⊗₁ id) ⊗₁ id) ∘ ((u⁻ ⊗₁ id) ⊗₁ id ∘ α⇐) ∘ id ⊗₁ k
+        ≈⟨ refl⟩∘⟨ assoc ⟩
+      ((u ⊗₁ id) ⊗₁ id) ∘ (u⁻ ⊗₁ id) ⊗₁ id ∘ α⇐ ∘ id ⊗₁ k
+        ≈⟨ cancelˡ (merge₁ˡ ○ ((merge₁ˡ ○ (inv ⟩⊗⟨refl) ○ ⊗.identity) ⟩⊗⟨refl) ○ ⊗.identity) ⟩
+      α⇐ ∘ id ⊗₁ k ∎)
 
     -- Every target ancilla is an image up to iso, so `≈ℰ` crossing suffices
     -- without the target's `GradeStable`.

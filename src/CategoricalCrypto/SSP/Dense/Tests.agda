@@ -57,6 +57,7 @@ open import CategoricalCrypto.UC.Bracket.Setup
 open import CategoricalCrypto.UC.Machine hiding (Ωᴵ)
 open import CategoricalCrypto.UC.Model.Observation
 open import CategoricalCrypto.UC.Model.Seal
+open import CategoricalCrypto.UCSetup.Coverage
 
 import CategoricalCrypto.Machines.Collapse as Col
 import CategoricalCrypto.Machines.Core as Core
@@ -471,19 +472,22 @@ private
   obsᵂ-resp _ _ e = obs-resp (refl⟩∘⟨ (e ⟩∘⟨refl))
     where open G.HomReasoning
 
-preserves-≈ℰ : Transfer.Preserves-≈ℰ SSP→PM[wb]
-preserves-≈ℰ {A} {B} {f} {g} e = KE.mk∼ λ {T} m ε pos →
-  ≈ₚ[]-resp (obsᵂ-resp (T 𝒲ᵂ.∘ (⟦ f ⟧ᵂ 𝒲ᵂ.∘ m)) ((T 𝒲ᵂ.∘ ⟦ f ⟧ᵂ) 𝒲ᵂ.∘ m) G.sym-assoc)
-            (obsᵂ-resp (T 𝒲ᵂ.∘ (⟦ g ⟧ᵂ 𝒲ᵂ.∘ m)) ((T 𝒲ᵂ.∘ ⟦ g ⟧ᵂ) 𝒲ᵂ.∘ m) G.sym-assoc)
-    (tests-dense T {⟦ f ⟧ᵂ 𝒲ᵂ.∘ m} {⟦ g ⟧ᵂ 𝒲ᵂ.∘ m} (λ D δ p →
-      ≈ₚ[]-resp (obsᵂ-resp (⟦ D ∘ᵖ f ⟧ᵂ 𝒲ᵂ.∘ m) (⟦ D ⟧ᵂ 𝒲ᵂ.∘ (⟦ f ⟧ᵂ 𝒲ᵂ.∘ m)) (assoc⟦⟧ D f m))
-                (obsᵂ-resp (⟦ D ∘ᵖ g ⟧ᵂ 𝒲ᵂ.∘ m) (⟦ D ⟧ᵂ 𝒲ᵂ.∘ (⟦ g ⟧ᵂ 𝒲ᵂ.∘ m)) (assoc⟦⟧ D g m))
-                (games-dense (SSP.KE.run∼ e {D}) m δ p)) ε pos)
+test-coverage : TestCoverage SSP→PM[wb]
+test-coverage = record { complete = complete }
   where
-  open G.HomReasoning
-  assoc⟦⟧ : (D : Protocol B Ωᴵ) (h : Protocol A B) (m : unitᴵ 𝒲ᵂ.⇒ A)
-          → proj₁ (⟦ D ∘ᵖ h ⟧ᵂ 𝒲ᵂ.∘ m) G.≈ proj₁ (⟦ D ⟧ᵂ 𝒲ᵂ.∘ (⟦ h ⟧ᵂ 𝒲ᵂ.∘ m))
-  assoc⟦⟧ D h m = (⟦⟧ᵂ-∘ D h ⟩∘⟨refl) ○ G.assoc
+  complete : ∀ {A B} {h k : A 𝒲ᵂ.⇒ B}
+    → ((D : Protocol B Ωᴵ) → (⟦ D ⟧ᵂ 𝒲ᵂ.∘ h) ≋ (⟦ D ⟧ᵂ 𝒲ᵂ.∘ k))
+    → (T : B 𝒲ᵂ.⇒ Ωᴵ) → (T 𝒲ᵂ.∘ h) ≋ (T 𝒲ᵂ.∘ k)
+  complete {h = h} {k} agree T m ε pos =
+    ≈ₚ[]-resp (obsᵂ-resp (T 𝒲ᵂ.∘ (h 𝒲ᵂ.∘ m)) ((T 𝒲ᵂ.∘ h) 𝒲ᵂ.∘ m) G.sym-assoc)
+              (obsᵂ-resp (T 𝒲ᵂ.∘ (k 𝒲ᵂ.∘ m)) ((T 𝒲ᵂ.∘ k) 𝒲ᵂ.∘ m) G.sym-assoc)
+      (tests-dense T {h 𝒲ᵂ.∘ m} {k 𝒲ᵂ.∘ m} (λ D δ p →
+        ≈ₚ[]-resp (obsᵂ-resp ((⟦ D ⟧ᵂ 𝒲ᵂ.∘ h) 𝒲ᵂ.∘ m) (⟦ D ⟧ᵂ 𝒲ᵂ.∘ (h 𝒲ᵂ.∘ m)) G.assoc)
+                  (obsᵂ-resp ((⟦ D ⟧ᵂ 𝒲ᵂ.∘ k) 𝒲ᵂ.∘ m) (⟦ D ⟧ᵂ 𝒲ᵂ.∘ (k 𝒲ᵂ.∘ m)) G.assoc)
+                  (agree D m δ p)) ε pos)
+
+preserves-≈ℰ : Transfer.Preserves-≈ℰ SSP→PM[wb]
+preserves-≈ℰ = covered-≈ℰ SSP→PM[wb] test-coverage
 
 -- `P ≤UC Q ⇒ Fᵂ P ≤UC Fᵂ Q`.
 preserves-≤UC : Transfer.Preserves-≤UC SSP→PM[wb]

@@ -23,7 +23,9 @@ open import CategoricalCrypto.SSP.Dist
 open import CategoricalCrypto.SSP.Iface
 open import CategoricalCrypto.SSP.Protocol
 open import CategoricalCrypto.SSP.Semantics
+import CategoricalCrypto.Standard2.Coverage as Coverage
 open import CategoricalCrypto.Standard2.Morphism
+open import CategoricalCrypto.UCSetup.Coverage
 open import CategoricalCrypto.UCSetup.Morphism
 
 import CategoricalCrypto.SSP.Dense as Dense
@@ -71,15 +73,23 @@ Fᵂᵈ = record
 dist⇒PM[wb] : UCSetupMorphism SSPᵈ.StdSetup WB.StdSetup
 dist⇒PM[wb] = StdUCMorphism SSPᵈ.Protᵈ WB.PM[wb]ᴹ SSPᵈ.ℰᵈ WB.ℰ[wb] Fᵂᵈ νᵂᵈ
 
+module Coverageᵈ = Coverage.Coverage SSPᵈ.Protᵈ WB.PM[wb]ᴹ SSPᵈ.ℰᵈ WB.ℰ[wb] Fᵂᵈ νᵂᵈ
+
+test-coverage : TestCoverage dist⇒PM[wb]
+test-coverage = record { complete = TestCoverage.complete Tests.test-coverage }
+
+ancilla-coverage : Coverageᵈ.AncillaCoverage
+ancilla-coverage = Coverageᵈ.essentiallySurjective⇒AncillaCoverage
+  (λ A → A , Mor.≅.refl (MonoidalCategory.U WB.PM[wb]ᴹ))
+
 preserves-≈ℰ : Transfer.Preserves-≈ℰ dist⇒PM[wb]
-preserves-≈ℰ e = Tests.preserves-≈ℰ (SSP.KE.mk∼ λ {t} → SSPᵈ.KE.run∼ e {t})
+preserves-≈ℰ = covered-≈ℰ dist⇒PM[wb] test-coverage
 
 preserves-≈ᵁ : Transfer.Preserves-≈ᵁ dist⇒PM[wb]
-preserves-≈ᵁ = surjective⇒preserves-≈ᵁ SSPᵈ.Protᵈ WB.PM[wb]ᴹ SSPᵈ.ℰᵈ WB.ℰ[wb] Fᵂᵈ νᵂᵈ
-  (λ A → A , Mor.≅.refl (MonoidalCategory.U WB.PM[wb]ᴹ)) preserves-≈ℰ
+preserves-≈ᵁ = Coverageᵈ.covered-≈ᵁ test-coverage ancilla-coverage
 
 preserves-≤UC : Transfer.Preserves-≤UC dist⇒PM[wb]
-preserves-≤UC le = Tests.preserves-≤UC (SSPᵈ.dist≤⇒ssp≤ le)
+preserves-≤UC = Coverageᵈ.covered-≤UC test-coverage ancilla-coverage
 
 ------------------------------------------------------------------------
 -- Pointwise agreement of the actual composed setup morphisms
