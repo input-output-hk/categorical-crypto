@@ -14,7 +14,7 @@ open import Data.Unit.Base
 import Data.Unit.Polymorphic as Unit
 open import Relation.Binary.PropositionalEquality
 
-open import CategoricalCrypto.SSP.Dist.Kernel using (done; toss; sample; _≈ᵏ_)
+open import CategoricalCrypto.SSP.Dist.Kernel using (sample; _≈ᵏ_)
 open import CategoricalCrypto.SSP.Iface using (unitᴵ)
 open import CategoricalCrypto.SSP.Observation using (evalC)
 import CategoricalCrypto.SSP.Protocol as P
@@ -28,6 +28,7 @@ open import CategoricalCrypto.TaskPIOA.NativeSSP.Core
 open import CategoricalCrypto.TaskPIOA.NativeSSP.Product
 import CategoricalCrypto.TaskPIOA.NativeSSP.Protocol as Native
 import CategoricalCrypto.TaskPIOA.NativeSSP.ProtocolTests
+open import CategoricalCrypto.TaskPIOA.NativeSSP.ReflectionTests using (noncanonical)
 import CategoricalCrypto.TaskPIOA.NativeSSP.Setup as N
 open import CategoricalCrypto.TaskPIOA.NativeSSP.Morphism
 open import CategoricalCrypto.TaskPIOA.NativeSSP.Security
@@ -69,13 +70,6 @@ disabled-successfully-stutters : lookupᴰℚ (entries
   (evalC (P.step (protocol (compile Examples.pulse)) false (inj₂ true) tt)))
   (maybeℚ (λ where (false , nothing) → 1ℚ ; _ → 0ℚ)) ≡ 1ℚ
 disabled-successfully-stutters = refl
-
-noncanonical : Machine (Examples.coinSignature empty)
-noncanonical = record
-  { memory = bit ; start = false ; deliver = λ ()
-  ; select = λ where q false → just (inj₂ tt) ; q true → just (inj₁ q)
-  ; owned = λ where q false a refl → refl ; q true a refl → refl
-  ; transition = λ where (inj₂ _) _ → toss Rational.biased done ; (inj₁ _) q → done q }
 
 correlation-reward : List Bool → ℚ
 correlation-reward (false ∷ false ∷ []) = 1ℚ

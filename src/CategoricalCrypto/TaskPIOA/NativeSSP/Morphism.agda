@@ -85,6 +85,16 @@ sample-values-related unit x = tt
 sample-values-related (Var S) M = identity-simulation (sampleMachine M) , identity-simulation (sampleMachine M)
 sample-values-related (A ⊗₀ B) (a , b) = sample-values-related A a , sample-values-related B b
 
+compileValues : ∀ A → S.Values.⟦ A ⟧₀ → N.Values.⟦ A ⟧₀
+compileValues unit _ = Unit.tt
+compileValues (Var S) M = compile M
+compileValues (A ⊗₀ B) (a , b) = compileValues A a , compileValues B b
+
+compile-values-related : ∀ A x → Cross A (compileValues A x) x
+compile-values-related unit x = tt
+compile-values-related (Var S) M = compile-simulation M , sample-compile-simulation M
+compile-values-related (A ⊗₀ B) (a , b) = compile-values-related A a , compile-values-related B b
+
 cross-connect : ∀ {A B J} (w : Wiring A B J) {M M′ N N′}
   → Cross (Var A) M M′ → Cross (Var B) N N′
   → Cross (Var (productSignature A B J)) (connect w M N) (SP.product w M′ N′)
@@ -134,6 +144,14 @@ compile-evaluate {A} t x = trans (N.evaluate-trace (compileTest t) x)
   (trans (trace-sample (N.Interpretation.⟦ compileContext (S.context t) ⟧₁ x) (S.schedule t) (S.reward t))
     (trace-match (proj₁ (compile-correct (S.context t) (sample-values-related A x))) (S.schedule t) (S.reward t)))
 
+compile-source-evaluate : ∀ {A} (t : S.Test A) x
+  → N.evaluate (compileTest t) (compileValues A x) ≡ S.evaluate t x
+compile-source-evaluate {A} t x = trans (N.evaluate-trace (compileTest t) (compileValues A x))
+  (trans (trace-sample (N.Interpretation.⟦ compileContext (S.context t) ⟧₁ (compileValues A x))
+    (S.schedule t) (S.reward t))
+    (trace-match (proj₁ (compile-correct (S.context t) (compile-values-related A x)))
+      (S.schedule t) (S.reward t)))
+
 sample-evaluate : ∀ {A} (t : N.Test A) x
   → N.evaluate t x ≡ S.evaluate (sampleTest t) (sampleValues A x)
 sample-evaluate {A} t x = trans (N.evaluate-trace t x)
@@ -151,12 +169,37 @@ sample-evaluate {A} t x = trans (N.evaluate-trace t x)
 ν-epi : PresheafMorphism.Epi ν
 ν-epi t = sampleTest t , λ x → trans (compile-evaluate (sampleTest t) x) (sym (sample-evaluate t x))
 
+ν-mono : PresheafMorphism.Mono ν
+ν-mono {A} {t} {u} eq x = trans (sym (compile-source-evaluate t x))
+  (trans (eq (compileValues A x)) (compile-source-evaluate u x))
+
 bridge : UCSetupMorphism S.UC.StdSetup N.UC.StdSetup
 bridge = StdUCMorphism S.Wiringᴹ N.Wiringᴹ S.ℰ-native N.ℰ-native compiler ν
 
 native-roundtrip : ∀ {S} (M : Machine S)
   → N.Syntax.var (N.install (compile (sampleMachine M))) N.∼ N.Syntax.var (N.install M)
 native-roundtrip M _ = compile-simulation (sampleMachine M) , sample-compile-simulation (sampleMachine M)
+
+native-context-roundtrip : ∀ {A B} (f : N.Syntax.HomTerm A B)
+  → compileContext (sampleContext f) N.∼ f
+native-context-roundtrip (N.Syntax.var (N.install M)) = native-roundtrip M
+native-context-roundtrip {B = B} (N.Syntax.var (N.wire w)) x =
+  N.related-refl B (N.Interpretation.⟦ N.Syntax.var (N.wire w) ⟧₁ x)
+native-context-roundtrip N.Syntax.id x = N.related-refl _ x
+native-context-roundtrip {B = B} (f N.Syntax.∘ g) x = N.related-trans B
+  (N.wiring-preserves (compileContext (sampleContext f)) (native-context-roundtrip g x))
+  (native-context-roundtrip f (N.Interpretation.⟦ g ⟧₁ x))
+native-context-roundtrip (f N.Syntax.⊗₁ g) (x , y) =
+  native-context-roundtrip f x , native-context-roundtrip g y
+native-context-roundtrip N.Syntax.λ⇒ (x , y) = N.related-refl _ y
+native-context-roundtrip N.Syntax.λ⇐ x = tt , N.related-refl _ x
+native-context-roundtrip N.Syntax.ρ⇒ (x , y) = N.related-refl _ x
+native-context-roundtrip N.Syntax.ρ⇐ x = N.related-refl _ x , tt
+native-context-roundtrip N.Syntax.α⇒ ((x , y) , z) =
+  N.related-refl _ x , N.related-refl _ y , N.related-refl _ z
+native-context-roundtrip N.Syntax.α⇐ (x , y , z) =
+  (N.related-refl _ x , N.related-refl _ y) , N.related-refl _ z
+native-context-roundtrip (N.Syntax.σ ⦃ () ⦄)
 
 compile-connect : ∀ {A B J} (w : Wiring A B J) (M : Automaton A) (N : Automaton B)
   → N.Related (Var (productSignature A B J)) (compile (SP.product w M N)) (connect w (compile M) (compile N))
