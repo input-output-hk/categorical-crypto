@@ -103,6 +103,8 @@ import CategoricalCrypto.TaskPIOA.MarkerTests
 import CategoricalCrypto.TaskPIOA.NativeSSP.Tests
 import CategoricalCrypto.CSP.MonoidalTests
 import CategoricalCrypto.CSP.NativeRefinementTests
+import CategoricalCrypto.CSP.ExtensionalHidingTests
+import CategoricalCrypto.CSP.FiniteBranchingHidingBoundaryTests
 import CategoricalCrypto.CSP.SetupTests
 import CategoricalCrypto.CSP.Trace.Tests
 import CategoricalCrypto.ND.SSP.Laws
@@ -142,6 +144,7 @@ import CategoricalCrypto.UC.RandomSystems.Quantitative
 import CategoricalCrypto.IPDL.Linker
 import CategoricalCrypto.IPDL.ReadOrder
 import CategoricalCrypto.IPDL.Tests
+import CategoricalCrypto.IPDL.SchedulerInformationTests
 import CategoricalCrypto.Examples.ITM.Tests
 open import CategoricalCrypto.Examples.Basic
 import CategoricalCrypto.Examples.Channels
@@ -150,6 +153,7 @@ open import CategoricalCrypto.Examples.Signatures
 open import CategoricalCrypto.Examples.RandomOracle
 import CategoricalCrypto.Examples.RandomSystems.Availability
 import CategoricalCrypto.Examples.RandomSystems.Delivery
+import CategoricalCrypto.Examples.AvailabilityComposition.PM
 import CategoricalCrypto.Examples.SSP.OneTimePad.Dist
 import CategoricalCrypto.Examples.SSP.OneTimePad.FullTests
 import CategoricalCrypto.Examples.SSP.OneTimePad.ObservationRestriction
