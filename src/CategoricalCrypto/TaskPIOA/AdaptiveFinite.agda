@@ -4,28 +4,26 @@
 -- including hidden and disabled activations.
 module CategoricalCrypto.TaskPIOA.AdaptiveFinite where
 
+open import Class.DecEq
 open import Data.List.Base using (List; []; _∷_)
-open import Data.Maybe.Base using (Maybe; just; nothing)
-import Data.Maybe.Base as Maybe
+open import Data.Maybe.Base as Maybe using (Maybe; just; nothing)
 open import Data.Product.Base
-open import Data.Rational.Base using (ℚ)
 open import Data.Unit.Base
 open import Function.Base using (_∘_)
 open import Function.Bundles using (_⇔_; mk⇔)
 open import Relation.Binary.PropositionalEquality
 
+import CategoricalCrypto.SSP.Dist.FiniteTesting as F
+open import CategoricalCrypto.SSP.Dist.Kernel using (Oracle; ⟦_⟧; _·_; none)
+open import CategoricalCrypto.SSP.Iface using (unitᴵ; Ωᴵ)
+open import CategoricalCrypto.SSP.Observation using (runᵖ)
+import CategoricalCrypto.SSP.Protocol as P
 open import CategoricalCrypto.TaskPIOA.Core
 open import CategoricalCrypto.TaskPIOA.SSPAdapter using
   (Tick; tickOracle; finite-dec; resource; all-calls-agreement)
-import CategoricalCrypto.SSP.Protocol as P
-open import CategoricalCrypto.SSP.Dist.Kernel using (Oracle; ⟦_⟧; _·_; none)
-import CategoricalCrypto.SSP.Dist.FiniteTesting as F
-open import CategoricalCrypto.SSP.Iface using (unitᴵ; Ωᴵ)
-open import CategoricalCrypto.SSP.Observation using (runᵖ)
 open import ProbabilisticLogic.Distribution.RationalDist
-open import Class.DecEq
-open import ProbabilisticLogic.Distribution.RationalDist.Partial
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation using (E; E-bind)
+open import ProbabilisticLogic.Distribution.RationalDist.Partial
 
 paddedReplyRun : ∀ {S} (M : Automaton S) → Schedule S → State M
   → Dist-ℚ (List (Maybe (Output S)))

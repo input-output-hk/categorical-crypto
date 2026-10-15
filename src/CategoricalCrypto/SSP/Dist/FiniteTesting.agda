@@ -11,28 +11,28 @@ open import Data.Empty using (⊥-elim)
 open import Data.List.Base as List hiding (sum)
 open import Data.List.Membership.Propositional
 import Data.List.Membership.Propositional.Properties as Mem
-open import Data.List.Relation.Unary.Any using (here; there)
-open import Data.List.Relation.Unary.Unique.Propositional
-import Data.List.Relation.Unary.Unique.DecPropositional.Properties as Uniq
 import Data.List.NonEmpty as NE
+open import Data.List.Relation.Unary.Any using (here; there)
+import Data.List.Relation.Unary.Unique.DecPropositional.Properties as Uniq
+open import Data.List.Relation.Unary.Unique.Propositional
 open import Data.Maybe.Base
 open import Data.Product.Base
 open import Data.Rational.Base
 open import Data.Rational.Properties
+open import Data.Unit.Base
 open import Function.Base using (_∘_)
 open import Relation.Binary.Definitions using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary.Decidable using (yes; no)
 
-open import Data.Unit.Base
+open import CategoricalCrypto.SSP.Dist.Kernel using
+  (Oracle; ⟦_⟧; _·_; none; evalC-⟦⟧; ⟦mapᶜ⟧; ⟦graft⟧; regraft)
+open import CategoricalCrypto.SSP.Iface using (Iface; unitᴵ; Ωᴵ)
+open import CategoricalCrypto.SSP.Observation using (runᵖ)
+import CategoricalCrypto.SSP.Protocol as P
 import ProbabilisticLogic.Distribution.Linearity as Linearity
 open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation using (E; E-bind)
-open import CategoricalCrypto.SSP.Iface using (Iface; unitᴵ; Ωᴵ)
-import CategoricalCrypto.SSP.Protocol as P
-open import CategoricalCrypto.SSP.Dist.Kernel using
-  (Oracle; ⟦_⟧; _·_; none; evalC-⟦⟧; ⟦mapᶜ⟧; ⟦graft⟧; regraft)
-open import CategoricalCrypto.SSP.Observation using (runᵖ)
 open import ProbabilisticLogic.Distribution.RationalDist.Partial
 
 module Lin = Linearity (CommutativeRing.commutativeSemiring +-*-commutativeRing)
