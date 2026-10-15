@@ -90,14 +90,17 @@ import CategoricalCrypto.ND.SSP.Choice.Compose
 import CategoricalCrypto.ND.SSP.Choice.Dist
 import CategoricalCrypto.ND.SSP.Choice.Pin
 import CategoricalCrypto.Symbolic.Test
+import CategoricalCrypto.Symbolic.ErasureTests
 import CategoricalCrypto.Symbolic.TerminalTests
 import CategoricalCrypto.Symbolic.StaticTests
 import CategoricalCrypto.Symbolic.InterpretationTests
 import CategoricalCrypto.Symbolic.TheoryTests
 import CategoricalCrypto.Symbolic.Example.SecureChannel.Interactive
 import CategoricalCrypto.TaskPIOA.Tests
+import CategoricalCrypto.TaskPIOA.SSPAdapterTests
 import CategoricalCrypto.CSP.MonoidalTests
 import CategoricalCrypto.CSP.SetupTests
+import CategoricalCrypto.CSP.Trace.Tests
 import CategoricalCrypto.ND.SSP.Laws
 import CategoricalCrypto.ND.SSP.Reflect
 import CategoricalCrypto.ND.SSP.Setup
@@ -111,6 +114,7 @@ import CategoricalCrypto.UC.Machine.Wire.Kleisli
 import ProbabilisticLogic.Dp.Det
 open import CategoricalCrypto.UC.Approximate.LocalTests
 open import CategoricalCrypto.UC.Family.Negligible.Quantitative
+import CategoricalCrypto.UC.Family.Negligible.Tests
 open import CategoricalCrypto.UC.Family.Quantitative
 open import CategoricalCrypto.UC.Machine.EventBounds.Transport
 open import CategoricalCrypto.UC.Machine.MonitorTests
