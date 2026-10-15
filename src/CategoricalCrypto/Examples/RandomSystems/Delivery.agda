@@ -12,7 +12,7 @@ open import Categories.Category.Monoidal.Construction.Quotient
 open import Data.Bool.Base
 open import Data.Empty
 open import Data.Product.Base
-open import Data.Rational as ℚ using (0ℚ; ½)
+open import Data.Rational as ℚ using (0ℚ; 1ℚ; ½)
 open import Data.Rational.Properties
 open import Data.Rational.Properties.Ext
 open import Data.Sum.Base
@@ -30,6 +30,7 @@ open import ProbabilisticLogic.Dp.Advantage
 open import ProbabilisticLogic.Dp.Iter
 open import ProbabilisticLogic.Dp.Reasoning
 
+open import CategoricalCrypto.Approx.Error
 open import CategoricalCrypto.Examples.RandomSystems.Availability
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
@@ -44,6 +45,7 @@ open import CategoricalCrypto.UC.Model.Enrichment
 open import CategoricalCrypto.UC.Model.Graded
 open import CategoricalCrypto.UC.Model.Seal
 open import CategoricalCrypto.UC.RandomSystems.Availability
+open import CategoricalCrypto.UC.RandomSystems.Availability.Composition
 open import CategoricalCrypto.UC.RandomSystems.Composition
 open import CategoricalCrypto.UC.RandomSystems.Construction
 open import CategoricalCrypto.UC.RandomSystems.Quantitative
@@ -201,3 +203,88 @@ opaque
   reliable-reply = runˢ-resp-≈ᴹ
     (≈ᵒ⇒≈ᴹ (G.Equiv.trans (close-flip true (adapted not))
       (G.Equiv.trans (close-flip false ideal) (mode-bit true)))) tell ⟨≈⟩ bit-run true
+
+------------------------------------------------------------------------
+-- An honest output converter, rather than a resource replacement
+------------------------------------------------------------------------
+
+honest-flipᴹ : Proc Ωᴵ Ωᴵ
+honest-flipᴹ = wireᴹ not (λ x → x)
+
+honest-flip : ifaceᵒ Ωᴵ G.⇒ PM.T₀ G.unit (ifaceᵒ Ωᴵ)
+honest-flip = PM.return G.∘ procᵒ honest-flipᴹ
+
+honest-real honest-ideal : ifaceᵒ unitᴵ G.⇒ PM.T₀ (ifaceᵒ Eve G.⊗₀ G.unit) (ifaceᵒ Ωᴵ)
+honest-real = honest-flip PM.∙ adapted not
+honest-ideal = honest-flip PM.∙ ideal
+
+honest-flip-full : SecurelyConstructs 0ℚ 0ℚ G.id G.id honest-flip honest-flip
+honest-flip-full = securely-constructs (constructs-refl honest-flip)
+  (Approximation.≈[]-refl approxᵒ)
+
+honest-composition-full : SecurelyConstructs 0ℚ 0ℚ
+  (cap-compose (mode false) G.id) (cap-compose (mode true) G.id) honest-real honest-ideal
+honest-composition-full = securely-constructs-compose
+  {f = adapted not} {g = ideal} {u = honest-flip} {v = honest-flip} flipped-full₀ honest-flip-full
+
+honest-independent-real : ifaceᵒ unitᴵ G.⇒ PM.T₀ (ifaceᵒ Eve G.⊗₀ G.unit) (ifaceᵒ Ωᴵ)
+honest-independent-real = honest-flip PM.∙ adapted (λ _ → false)
+
+honest-independent-full : SecurelyConstructs (0ℚ ℚ.+ 0ℚ) (0ℚ ℚ.+ 1ℚ)
+  (cap-compose (mode true) G.id) (cap-compose (mode true) G.id) honest-independent-real honest-ideal
+honest-independent-full = securely-constructs-compose
+  {f = adapted (λ _ → false)} {g = ideal} {u = honest-flip} {v = honest-flip}
+  (Equivalence.to (SecureAvailable⇔SecurelyConstructs
+    {f = adapted (λ _ → false)} {g = ideal}) independent-budgets) honest-flip-full
+
+private
+  honest-flip-closed : no-adversary G.id honest-flip G.≈ procᵒ honest-flipᴹ
+  honest-flip-closed = G.Equiv.trans (G.∘-resp-≈ʳ (PM.sub-identityˡ honest-flip))
+    (G.Equiv.trans G.sym-assoc
+      (G.Equiv.trans (G.∘-resp-≈ˡ G.unitorˡ.isoʳ) G.identityˡ))
+
+  honest-flip-bit : (b : Bool) → (procᵒ honest-flipᴹ G.∘ procᵒ (bitᴹ b)) G.≈ procᵒ (bitᴹ (not b))
+  honest-flip-bit b = G.Equiv.trans (G.Equiv.sym (procᵒ-∘ honest-flipᴹ (bitᴹ b)))
+    (≈ᴹ⇒≈ᵒ (wire-∘ᴹ {unitᴵ} {Ωᴵ} {Ωᴵ} not (λ x → x) (bitᴹ b)
+      S.○ᴹ S.≲⇒≈ᴹ (S.mk-cong λ where
+        (_ , inj₁ ())
+        (s , inj₂ tt) → >>=ₚ-identityˡ (s , inj₂ b) _)))
+
+  honest-real-closed : (b : Bool)
+                    → no-adversary (cap-compose (mode b) G.id) honest-real G.≈ procᵒ (bitᴹ (not (not b)))
+  honest-real-closed b = G.Equiv.trans (no-adversary-compose (mode b) G.id (adapted not) honest-flip)
+    (G.Equiv.trans
+      (G.∘-resp-≈ honest-flip-closed (G.Equiv.trans (close-flip b ideal) (mode-bit (not b))))
+      (honest-flip-bit (not b)))
+
+  honest-ideal-closed : (b : Bool)
+                     → no-adversary (cap-compose (mode b) G.id) honest-ideal G.≈ procᵒ (bitᴹ (not b))
+  honest-ideal-closed b = G.Equiv.trans (no-adversary-compose (mode b) G.id ideal honest-flip)
+    (G.Equiv.trans (G.∘-resp-≈ honest-flip-closed (mode-bit b)) (honest-flip-bit b))
+
+opaque
+  unfolding procᵒ unprocᵒ
+
+  honest-composed-reply : runˢ (unprocᵒ (no-adversary (cap-compose (mode false) G.id) honest-real)) tell
+                       ≈ₚ returnₚ false
+  honest-composed-reply = runˢ-resp-≈ᴹ (≈ᵒ⇒≈ᴹ (honest-real-closed false)) tell ⟨≈⟩ bit-run false
+
+-- Perfect component availability does not justify changing the composite cap.
+honest-composition-wrong-cap : ¬ Available
+  (cap-compose (mode false) G.id) (cap-compose (mode false) G.id) honest-real honest-ideal
+honest-composition-wrong-cap e = bits-separated
+  (Q.∼.trans (Q.∼.sym (Q.≈⇒∼ (honest-ideal-closed false)))
+    (Q.∼.trans (Q.∼.sym e) (Q.≈⇒∼ (honest-real-closed false))))
+
+honest-composition-wrong-cap₀ : ¬ SecurelyConstructs 0ℚ 0ℚ
+  (cap-compose (mode false) G.id) (cap-compose (mode false) G.id) honest-real honest-ideal
+honest-composition-wrong-cap₀ c = honest-composition-wrong-cap
+  (Equivalence.from (Available⇔AvailableWithin₀ {f = honest-real} {g = honest-ideal})
+    (SecurelyConstructs.availability c))
+
+honest-composite-cap-incompatible : ¬ ((cap-compose (mode false) G.id) Q.∼ (cap-compose (mode true) G.id))
+honest-composite-cap-incompatible e = honest-composition-wrong-cap
+  (Q.∼.trans
+    (Equivalence.from (Available⇔AvailableWithin₀ {f = honest-real} {g = honest-ideal})
+      (SecurelyConstructs.availability honest-composition-full))
+    (no-adversary-resp-converter honest-ideal (Q.∼.sym e)))
