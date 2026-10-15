@@ -11,7 +11,7 @@ open import Data.Product.Base hiding (map)
 open import Data.Rational as ℚ using (0ℚ; ½)
 open import Data.Rational.Properties
 open import Data.Sum.Base hiding (map)
-open import Data.Sum.Properties using (inj₁-injective; inj₂-injective)
+open import Data.Sum.Properties using (inj₁-injective)
 open import Data.Unit.Base
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary.Decidable.Core using (toWitness)
@@ -44,10 +44,6 @@ two-sound (hit false pos eq) = inj₂ (inj₁-injective eq)
 two-sound (delay true e pos () rest)
 two-sound (delay false e pos () rest)
 
-no-bottom : ∀ {A : Set} {x : A} → Positive botₚ x → ⊥
-no-bottom (hit c pos ())
-no-bottom (delay c e pos eq rest) with inj₂-injective eq
-... | refl = no-bottom rest
 
 data SendState : Set where
   ready returned done : SendState
@@ -113,11 +109,11 @@ opaque
   ... | refl = relay-returned
   send-sound SendState.returned (inj₁ S.finish) path with positive-return-reflect path
   ... | refl = SendStep.terminate
-  send-sound SendState.ready (inj₁ S.leftτ) path = ⊥-elim (no-bottom path)
-  send-sound SendState.ready (inj₁ S.finish) path = ⊥-elim (no-bottom path)
-  send-sound SendState.returned (inj₁ S.leftτ) path = ⊥-elim (no-bottom path)
-  send-sound SendState.returned (inj₁ S.sync) path = ⊥-elim (no-bottom path)
-  send-sound SendState.done i path = ⊥-elim (no-bottom path)
+  send-sound SendState.ready (inj₁ S.leftτ) path = ⊥-elim (positive-bot path)
+  send-sound SendState.ready (inj₁ S.finish) path = ⊥-elim (positive-bot path)
+  send-sound SendState.returned (inj₁ S.leftτ) path = ⊥-elim (positive-bot path)
+  send-sound SendState.returned (inj₁ S.sync) path = ⊥-elim (positive-bot path)
+  send-sound SendState.done i path = ⊥-elim (positive-bot path)
 
   send-complete : ∀ {s i o s′} → SendStep s i (just o) s′
     → Positive (send-distribution s (C.destruct-⊗ {m = C.In} i)) (s′ , o)
@@ -149,13 +145,13 @@ opaque
   ... | refl = loop
   receive-sound ReceiveState.returned (inj₁ S.finish) path with positive-return-reflect path
   ... | refl = ReceiveStep.terminate
-  receive-sound ReceiveState.ready (inj₁ S.rightτ) path = ⊥-elim (no-bottom path)
-  receive-sound ReceiveState.ready (inj₁ S.finish) path = ⊥-elim (no-bottom path)
-  receive-sound ReceiveState.returned (inj₁ (S.offer x)) path = ⊥-elim (no-bottom path)
-  receive-sound ReceiveState.returned (inj₁ S.rightτ) path = ⊥-elim (no-bottom path)
-  receive-sound ReceiveState.looping (inj₁ (S.offer x)) path = ⊥-elim (no-bottom path)
-  receive-sound ReceiveState.looping (inj₁ S.finish) path = ⊥-elim (no-bottom path)
-  receive-sound ReceiveState.done i path = ⊥-elim (no-bottom path)
+  receive-sound ReceiveState.ready (inj₁ S.rightτ) path = ⊥-elim (positive-bot path)
+  receive-sound ReceiveState.ready (inj₁ S.finish) path = ⊥-elim (positive-bot path)
+  receive-sound ReceiveState.returned (inj₁ (S.offer x)) path = ⊥-elim (positive-bot path)
+  receive-sound ReceiveState.returned (inj₁ S.rightτ) path = ⊥-elim (positive-bot path)
+  receive-sound ReceiveState.looping (inj₁ (S.offer x)) path = ⊥-elim (positive-bot path)
+  receive-sound ReceiveState.looping (inj₁ S.finish) path = ⊥-elim (positive-bot path)
+  receive-sound ReceiveState.done i path = ⊥-elim (positive-bot path)
 
   receive-complete : ∀ {s i o s′} → ReceiveStep s i (just o) s′
     → Positive (receive-distribution s (C.destruct-⊗ {m = C.In} i)) (s′ , o)

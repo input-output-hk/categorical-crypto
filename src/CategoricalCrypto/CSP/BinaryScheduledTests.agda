@@ -176,7 +176,7 @@ opaque
   ... | refl = ContextStep.exchange
   context-sound true (inj₁ S.√) path with positive-return-reflect path
   ... | refl = ContextStep.finish
-  context-sound false (inj₁ S.√) path = ⊥-elim (no-bottom path)
+  context-sound false (inj₁ S.√) path = ⊥-elim (positive-bot path)
   context-sound _ (inj₂ ()) path
 
   context-complete : ∀ {s i o s′} → ContextStep s i (just o) s′
