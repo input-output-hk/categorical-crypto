@@ -107,6 +107,13 @@ import CategoricalCrypto.CSP.ExtensionalHidingTests
 import CategoricalCrypto.CSP.FiniteBranchingHidingBoundaryTests
 import CategoricalCrypto.CSP.SetupTests
 import CategoricalCrypto.CSP.Trace.Tests
+import CategoricalCrypto.CSP.BinaryScheduledTests
+import CategoricalCrypto.CSP.BinaryPositiveTests
+import CategoricalCrypto.CSP.Relational
+import CategoricalCrypto.CSP.ScheduledMachineBoundary
+import CategoricalCrypto.Machines.Positive.Setup
+import CategoricalCrypto.Machines.Positive.Tensor.Tests
+import CategoricalCrypto.Machine.Relational.Presentation.Feedback.Tests
 import CategoricalCrypto.ND.SSP.Laws
 import CategoricalCrypto.ND.SSP.Reflect
 import CategoricalCrypto.ND.SSP.Setup
