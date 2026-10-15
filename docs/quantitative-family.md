@@ -2840,3 +2840,56 @@ checking line, warning gates are empty and assigned-scope escape matches zero.
 The preceding native serial3G heap-exhaustion attempt is not a pass.
 Exact source/log attribution is retained in the construction report; these
 are not documentation-worker Agda checks or uncontended performance measurements.
+
+## 19. Positive finite-may PM erasure is not a quantitative forgetting
+
+The later initialized positive-may endpoint is deliberately distinct from
+the zero/all-positive error forgettings and computational family tiers above.
+[`PositiveTest d P`](../src/ProbabilisticLogic/Dp/Positive.agda#L66) means
+`Σ n. 0 < cum n d P`; `≈₊` compares every nonnegative rational test.
+It applies to **all coinductive `Dₚ`**, through actual bind/Elgot congruence,
+not merely finite probability tables. Finite positive paths exclude
+zero-weight branches. They are representative witnesses, not an assumed
+literal-point-support quotient on arbitrary types:
+[`literal-support-congruence⇒stable-equality`](../src/ProbabilisticLogic/Dp/Positive.agda#L61)
+proves that stronger demand would imply stable equality, **not an internal
+impossibility theorem**.
+
+[`Machines.Positive.Model.𝔾₊`](../src/CategoricalCrypto/Machines/Positive/Model.agda#L64)
+is an actual monoidal quotient of original sealed PM by positive
+pure-simulation closure. The strong `forget-probabilities` respects actual
+G composition/tensor and feedback. `Machine.Iso` is unchanged; the separate
+common relational interface has an initial predicate and genuine two-way
+state bisimulation, with concrete presentation data where used.
+
+Original qualitative PM observation compares both verdict masses at **every
+positive slack**. [`all-slacks⇒may`](../src/ProbabilisticLogic/Dp/Positive/Observation.agda#L59)
+uses slack below a positive prefix witness, giving the natural
+[`tests`](../src/CategoricalCrypto/Machines/Positive/Setup.agda#L77).
+Epi test coverage and genuine identity-object ancillary isomorphisms prove
+[`original PM U/UC preservation`](../src/CategoricalCrypto/Machines/Positive/Setup.agda#L99)
+for `PM→positive`, without grade stability or source-kernel replacement.
+This is **not** a fixed-positive-ε `QPreserves-≤UC` theorem, an availability
+budget transport, or an identification of this endpoint with the earlier
+all-positive-error setup. A single nonzero error can erase a rare positive
+event; the all-slack premise is essential to the stated proof.
+
+Actual public [`half/quarter full-machine erasure`](../src/CategoricalCrypto/Machines/Positive/Tests.agda#L58)
+forgets bias while original PM AllPositive readout separates it.
+[`zero-versus-positive`](../src/CategoricalCrypto/Machines/Positive/Tests.agda#L90)
+uses the actual setup observation congruence, and real `HitTests.erase`
+checks noninjective hidden-state erasure. Public two-port/two-ask tensor
+and state-changing hidden-feedback experiments prove both Bool verdicts
+positive, not equal weighted laws or error bounds.
+No native quarter-error RS result or direct raw-`Dₚ` bound is relabelled.
+
+CSP's independently compiled finite presented binary communication/context
+consumer executes in the **same public positive quotient**, via actual
+composition/normalized feedback coherence and quotient-stable `Run.Model`.
+The unrestricted full-label relational shadow separately retains exact
+divergence/refusals; those observations do not automatically descend to
+finite-positive may. No full-CSP setup morphism, target-context/UC coverage,
+arbitrary-relation presentation, FD/infinite-path semantics, probability
+magnitude, almost-sure termination, fairness or security reflection is claimed.
+Final source/importer/root evidence is attributed in the construction-report
+postscript, not rerun by the documentation worker.

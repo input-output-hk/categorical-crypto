@@ -48,6 +48,7 @@
 
 // Names of setups (fixed throughout)
 #let PM = $sans("PM")$
+#let PMmay = $sans("PM")_sans("may")$
 #let RS = $sans("RS")$
 #let PMwb = $sans("PM")[sans("wb")]$
 #let Wsub = $cal(W)$
@@ -96,6 +97,7 @@
 #let mvan = $sans("van")$
 #let mtrace = $sans("tr")$
 #let mnative = $sans("native")$
+#let mpositive = $sans("may")$
 #let miota = $iota$
 
 // Relations and operators
@@ -184,9 +186,12 @@ negative, implementation-rank/residual-infinite positives and legal-word floodin
 classification. Their exact hypotheses and attributed checks are later postscripts,
 not new literature-census records or a completion of unrestricted native bridges.
 
-Historical proof boundaries remain in the review dispositions. Remaining proposed
-cross-model bridges are obligations; no computational cryptographic soundness,
-full-SSPᵈ Task bridge or full native-model equivalence is inferred.
+The original #PM → #PMmay bridge has proved U/UC preservation, with #Iso unchanged.
+CSP's exact initialized full-label shadow and independently compiled presented
+binary/stateful-context consumer reach the same positive endpoint, not a full-CSP
+setup morphism or FD/infinite-path abstraction. Historical proof boundaries remain
+in the review dispositions; no computational cryptographic soundness, full-SSPᵈ
+Task bridge or full native-model equivalence is inferred.
 
 #pagebreak()
 
@@ -491,7 +496,7 @@ the grade category without restricting computations. #design rows are planned, n
   table(
     columns: (auto, 1.55fr, 2.5fr, 2.0fr, 1.25fr, 1.75fr),
     stroke: 0.4pt + luma(62%),
-    inset: 3.2pt,
+    inset: (x: 3.2pt, y: 2.5pt),
     align: left + top,
     table.header([*Name*], [*Objects; $⊗$*], [*Morphisms; hom-equality*], [*Tests $cal(E)(A)$*], [*Model of*], [*Status; source*]),
     [#PM \ protocol model], [interfaces $A = (A^+, A^-)$, pairs of sets; componentwise $+$],
@@ -499,6 +504,11 @@ the grade category without restricting computations. #design rows are planned, n
     [tests $e : A → Ω$, identified when $Obs(e ∘ m) simA Obs(e' ∘ m)$ for every closure $m : 0 → A$],
     [UC @canetti2020uc],
     [#formal #cc("UC/Model/Setup.agda", 25, "StdUC 𝔾ᵒ ℰᵒ"), #cc("UC/Model/Seal.agda", 43, "𝔾ᵒ"), #cc("UC/Model/Setup.agda", 24, "ℰᵒ")],
+    [#PMmay \ positive finite-may PM], [as #PM],
+    [the same sealed PM arrows, quotiented by the actual positive-base pure-simulation equivalence closure; initial laws retained up to positive observations],
+    [the same presented verdict tests and closures, compared by every nonnegative rational positive finite-cumulative event],
+    [initialized probabilistic presentations with weights forgotten; not #Iso or arbitrary relations],
+    [#formal #cc("Machines/Positive/Model.agda", 64, "𝔾₊"), #cc("Machines/Positive/Setup.agda", 75, "Target.StdSetup"); @sec:pm-positive],
     [#RS \ random systems], [as #PM],
     [#PM's globally initialized partial machines; behavioural equivalence $eqR$: equal verdict laws against every adaptive distinguisher],
     [#PM's tests, descended],
@@ -689,6 +699,116 @@ Consequently @prop:bridge(i) is unavailable in #PM: a fact proved at $eqE$ reach
 behavioural equality (@thm:fullabs) instead, and the target hypothesis of @thm:transport(2) never holds
 with #PM as target. Emulation in #PM is invariant under behavioural equality of either side
 #srcs(cc("UC/RandomSystems/Morphism.agda", 38, "≤UC-resp-≈ᴿ")).
+
+== #PMmay: initialized positive finite-may machines <sec:pm-positive>
+
+#definition(name: [positive finite-cumulative observation])[
+For any coinductive $d : Dp A$ and nonnegative rational test $P : A → ℚ$, put
+$ op("Pos")(d,P) :⟺ ∃ n ∈ ℕ. thin 0 < op("cum")(n,d,P), $
+and $d ≈_(+) e$ iff these propositions are equivalent for every such $P$.
+This is `PositiveTest`/`≈₊`: it applies to _all_ $Dp$, not only finite
+distributions, and forgets probability magnitudes without admitting zero-weight
+branches. Literal finite positive paths are exact witnesses on a fixed
+representation; `positive-extract`/`positive-witness` prove their equivalence
+with a positive rational event. Delays and infinite behavior may remain in a
+representative, but only a finite successful event is observed.
+#srcs(ag("ProbabilisticLogic/Dp/Positive.agda", 29, "Positive"), ag("ProbabilisticLogic/Dp/Positive.agda", 66, "PositiveTest"), ag("ProbabilisticLogic/Dp/Positive/Monad.agda", 27, "_≈₊_"), ag("ProbabilisticLogic/Dp/Positive/Paths.agda", 59, "positive-extract"), ag("ProbabilisticLogic/Dp/Positive/Paths.agda", 88, "positive-witness"))
+] <def:positive-may>
+
+*Why not literal support?* Syntactic support is not an $apx_p$-stable abstraction.
+Even congruence of _exact positive singleton paths_ on every set would imply
+stable equality: $¬¬(x=y) ⇒ x=y$. The checked `return-double-negation` and
+`literal-support-congruence⇒stable-equality` prove this sharp constructive
+consequence, _not_ an internal impossibility theorem. The rational-test quotient
+requires no such principle, decidable equality on arbitrary sets or coupling
+axiom. Its general bind, iteration congruence and iteration-transfer proofs
+support the actual categorical construction, rather than a representative-only
+support map.
+#srcs(ag("ProbabilisticLogic/Dp/Positive.agda", 51, "return-double-negation"), ag("ProbabilisticLogic/Dp/Positive.agda", 61, "literal-support-congruence⇒stable-equality"), ag("ProbabilisticLogic/Dp/Positive/Monad.agda", 30, "≈ₚ⇒≈₊"), ag("ProbabilisticLogic/Dp/Positive/Iteration.agda", 45, "iter-cong"), ag("ProbabilisticLogic/Dp/Positive/Transfer.agda", 72, "iter-transfer"))
+
+#definition(name: [the positive initialized protocol setup])[
+The positive base has an actual discrete monad, Kleisli symmetric monoidal
+category, pure maps, Elgot iteration, traced Mealy category and G-construction.
+Machine equality is the genuine equivalence closure of pure-state simulations
+over $≈_(+)$, _not_ an initial-state bijection or arbitrary relational
+bisimilarity. Repacking transports original probabilistic simulations and
+their closure; actual G-composition/tensor and feedback compatibility are proved.
+The public category `Model.𝔾₊` is the existing monoidal quotient of #PM's sealed
+$𝔾^o$ by this positive hom congruence. `forget-probabilities` is an actual
+strong monoidal functor on the _original_ category; `pack-positive` and its
+composition/tensor laws connect generic positive machines to this same seal.
+The observable presheaf compares closed verdict laws by $≈_(+)$ and
+$PMmay := Std(𝔾_+, cal(E)_+)$.
+#srcs(cc("Machines/Positive/Base.agda", 40, "D₊-DiscreteMonad"), cc("Machines/Positive/Base.agda", 108, "Elgot₊"), cc("Machines/Positive/Bridge.agda", 25, "repack-compose"), cc("Machines/Positive/Bridge.agda", 44, "repack-tensor"), cc("Machines/Positive/Model.agda", 41, "positive-congruence"), cc("Machines/Positive/Model.agda", 64, "𝔾₊"), cc("Machines/Positive/Model.agda", 67, "forget-probabilities"), cc("Machines/Positive/Model.agda", 72, "pack-positive"), cc("Machines/Positive/Model.agda", 92, "pack-positive-compose"), cc("Machines/Positive/Model.agda", 103, "pack-positive-tensor"), cc("Machines/Positive/Setup.agda", 62, "evaluation₊"), cc("Machines/Positive/Setup.agda", 72, "ℰ₊"), cc("Machines/Positive/Setup.agda", 75, "Target.StdSetup"))
+] <def:pm-positive>
+
+#theorem(name: [original PM security survives positive erasure])[
+There is an actual setup morphism $mpositive : PM → PMmay$.
+Original #PM observation compares both Bool masses at _every positive rational
+slack_. This preserves strict positive finite events by choosing slack below
+an actual positive prefix witness. The natural test map `tests` repacks the
+same presented test carrier; `tests-epi` gives test coverage, not coverage of
+uncountably branching arbitrary relation tests. The identity-object quotient
+functor and genuine reflexive isomorphisms give total ancillary coverage.
+Consequently, for every well-typed original source pair,
+$ f eqU g ⇒ G f eqU G g, quad f leUC g ⇒ G f leUC G g. $
+Neither source nor target grade stability is assumed. The source is the
+_original_ qualitative PM setup, not a weakened `changeKernel` replacement.
+No reflection, equivalence or fixed-positive-error quantitative transfer is
+asserted.
+#srcs(ag("ProbabilisticLogic/Dp/Positive/Observation.agda", 59, "all-slacks⇒may"), cc("Machines/Positive/Setup.agda", 77, "tests"), cc("Machines/Positive/Setup.agda", 83, "tests-epi"), cc("Machines/Positive/Setup.agda", 86, "PM→positive"), cc("Machines/Positive/Setup.agda", 92, "test-coverage"), cc("Machines/Positive/Setup.agda", 95, "ancilla-coverage"), cc("Machines/Positive/Setup.agda", 99, "preserves-≈ᵁ"), cc("Machines/Positive/Setup.agda", 102, "preserves-≤UC"))
+] <thm:pm-positive>
+
+*Initialization and the common relational interface.* `Machine.Relational.Initialized`
+has an arbitrary predicate on states, not just a chosen point. Its $≈^R$ is
+forward/backward relational bisimulation preserving initial predicates and
+exact input/optional-output labels; native wiring congruences are proved.
+A `Presentation R` supplies actual $Dp$ initializer/step laws with finite
+positive-path soundness _and completeness_, plus no successful unlabelled
+response. Not every arbitrary relation is claimed presentable.
+`toPositive`/`toQuotient` reach the actual generic/public positive target;
+`toPositive-compose`/`toQuotient-compose` prove real target composition
+coherence. The normalized feedback laws use explicit Channel tensor-port
+bijections, original probabilistic state-swap/iteration proofs and the
+sealed public feedback operator. Mere equality of operational shadows is
+not substituted for these laws, nor is arbitrary bisimulation called a
+probabilistic coupling.
+#srcs(cc("Machine/Relational.agda", 17, "Initialized"), cc("Machine/Relational.agda", 27, "_≈ᴿ_"), cc("Machine/Relational/Presentation.agda", 19, "Presentation"), cc("Machine/Relational/Presentation/Positive.agda", 52, "toPositive"), cc("Machine/Relational/Presentation/Positive.agda", 76, "toQuotient"), cc("Machine/Relational/Presentation/Coherence.agda", 137, "toPositive-compose"), cc("Machine/Relational/Presentation/Coherence.agda", 146, "toQuotient-compose"), cc("Machine/Relational/Presentation/Feedback.agda", 57, "tensor-positive"), cc("Machine/Relational/Presentation/Feedback.agda", 182, "toPositive-trace"), cc("Machine/Relational/Presentation/Feedback.agda", 188, "toQuotient-trace"), cc("Machines/Positive/Feedback/Model.agda", 39, "feedback-resp"), cc("Machines/Positive/Run/Model.agda", 32, "run-resp"))
+
+*Measured information loss.* A fair Bool law and the law with true mass $1/4$
+and false mass $3/4$ have the same positive observations, while exact
+probabilistic equality and original all-positive-slack observation distinguish
+them (already at slack $1/8$). A zero-weight true branch supplies no positive
+true event and remains distinguishable from the fair law.
+These are checked observation losses, not a UC-nonreflection theorem.
+#srcs(ag("ProbabilisticLogic/Dp/Positive/Examples.agda", 58, "half≈quarter"), ag("ProbabilisticLogic/Dp/Positive/Examples.agda", 66, "half-cum"), ag("ProbabilisticLogic/Dp/Positive/Examples.agda", 61, "quarter-cum"), ag("ProbabilisticLogic/Dp/Positive/Examples.agda", 76, "half≉quarter"), ag("ProbabilisticLogic/Dp/Positive/Examples.agda", 81, "half≁quarter"), ag("ProbabilisticLogic/Dp/Positive/Examples.agda", 92, "zero-excluded"), ag("ProbabilisticLogic/Dp/Positive/Examples.agda", 97, "positive-distinguished"))
+
+#Iso's uninitialized state-isomorphism equality is unchanged (@sec:iso).
+This separate initialized, $Dp$-presented positive model supplies neither
+all-relations/uncountable semantics nor refusals, FD, infinite-path observations,
+almost-sure termination, fairness or preservation of probability magnitudes.
+Its CSP connection has the explicit operational/presentation scope of
+@sec:csp-positive-connection.
+
+*Public machine consumers.* `ghost-forgotten` invokes the actual functor's
+hom-respect on the real noninjective `HitTests.erase`, not an isomorphic
+surrogate. Full Bool-state machines retain probabilistic initializers with
+both states reachable; their public `weight-erasure`/`forgetful-coins`
+equations erase the half/quarter bias. The actual original PM readout
+still separates those machines at all-positive-slack observation.
+`zero-versus-positive` uses `Setup.observation-resp` to distinguish the
+public zero-weight example from the fair one.
+#srcs(cc("Machines/Positive/Tests.agda", 45, "ghost-forgotten"), cc("Machines/Positive/Tests.agda", 58, "weight-erasure"), cc("Machines/Positive/Tests.agda", 65, "forgetful-coins"), cc("Machines/Positive/Tests.agda", 69, "both-initial-states"), cc("Machines/Positive/Tests.agda", 78, "original-observation-separates"), cc("Machines/Positive/Tests.agda", 90, "zero-versus-positive"))
+
+The actual public tensor of the two biased machines has a two-port,
+two-ask `left ∧ not right` experiment: both Bool verdicts are positive.
+Its proof uses actual G tensor normalization, `pack-positive-tensor` and
+the quotient-stable public runner. An independent public native-feedback
+consumer has immediate true versus false after a state-changing hidden
+relay. Both verdicts are positive through the real sealed feedback,
+normalized native trace coherence and `Run.Model`, not a no-op loop or
+an asserted representative readout.
+#srcs(cc("Machines/Positive/Tensor/Tests.agda", 139, "tensor-may"), cc("Machine/Relational/Presentation/Feedback/Tests.agda", 133, "feedback-may"))
 
 == #RS: random systems <sec:rs>
 
@@ -1784,9 +1904,10 @@ to #SSPd and a proved U/UC-preserving-and-reflecting setup morphism to the disti
 #CSP is an actual typed-network setup with native observations, a quantified UC client,
 a trace-observed setup, ready/linking fragments and constructive extensional-hiding positives with a total-finite-branching exact-prefix negative.
 Finite CSP interfaces/networks can carry infinite guarded behavior and arbitrary internal branching.
-The open IPDL, causal-box and RSIM setups and remaining cross-model bridges are #design.
-An unbridged proposal is an “island”, not a classification or impossibility theorem;
-the checked #TaskPIOA → #NativeSSP edge is the precisely bounded exception above.
+The open IPDL, causal-box and RSIM setups and remaining unrestricted cross-model
+bridges are #design. The exact CSP operational shadow and presented binary route
+to #PMmay below are checked connections, not a full-CSP setup morphism.
+An unbridged proposal is an “island”, not an impossibility classification.
 
 Three deliverables must be separated. An _operational interpretation_ proves agreement with a
 specified driver. A _setup morphism_ additionally provides $F, Φ, κ, ν$ and all laws of
@@ -2666,7 +2787,7 @@ definitional API. The constructive closure imports no classical DR/FD postulates
 No arbitrary-network native FD full abstraction, zero-box/`Skip` correspondence,
 all-return-type network parallel theorem, UC/native-refinement identification,
 unseparated overlapping-`Par`/arbitrary-fan-in interchange, probability/PPT, fairness
-or CSP-to-PM/SSP bridge is supplied. Arbitrary-mask hiding is checked for strong
+or unrestricted CSP-to-PM/SSP setup bridge is supplied. Arbitrary-mask hiding is checked for strong
 ready simulation and under the independent progress/richer-observation hypotheses
 of @thm:csp-extensional-hiding, not for raw-triple inclusion alone.
 The pinned library's returned-value bind is not interface plugging; its broader
@@ -2681,6 +2802,77 @@ The source pin is `agda-cardano-common` commit `9a40d1de`. External comparison e
 #link("https://github.com/input-output-hk/agda-cardano-common/blob/9a40d1de330f376c3a102e7c9f1282f4fa830a7e/src/ITree-CSP/Semantics/Failures.agda#L234")[weak divergence/deadlock example],
 #link("https://github.com/input-output-hk/agda-cardano-common/blob/9a40d1de330f376c3a102e7c9f1282f4fa830a7e/src/ITree-CSP/CSP/Laws/FD/HideMonoFD.agda#L265")[hiding boundary], and
 #link("https://github.com/input-output-hk/agda-cardano-common/blob/9a40d1de330f376c3a102e7c9f1282f4fa830a7e/src/ITree-CSP/Semantics/DRImpliesFD.agda#L64")[DR-to-FD assumptions].
+
+=== Exact relational shadow and a presented binary connection <sec:csp-positive-connection>
+
+#theorem(name: [full-label CSP execution has an initialized relational shadow])[
+For every native network, `Scheduled` retains its exact configuration,
+initial configuration, whole atomic Gather steps and every label, including
+`τ` and `√`. The independently clocked `ScheduledMachine` consumes one
+activation and returns `just` the _entire label_; `τ` is not erased into a
+successful absent output. `Relational.interpret` is its singleton-initialized
+instance of the common relational carrier. Finite encoded full-label runs
+are preserved and reflected; native operational transport and structural
+isomorphism respect initialized bisimilarity. Exact visible-prefix plus
+infinite silent-path correspondence stays an _operational_ fact.
+#srcs(cc("CSP/Relational.agda", 19, "interpret"), cc("CSP/Relational.agda", 22, "initialized-exact-to"), cc("CSP/Relational.agda", 28, "initialized-exact-from"), cc("CSP/Relational.agda", 33, "transport-respects"), cc("CSP/Relational.agda", 58, "structural-respects"))
+] <thm:csp-relational-shadow>
+
+This interpreter changes interfaces and is not a full-CSP strong monoidal
+functor or setup morphism. The checked `no-closed-step-encoder` uses an
+actual initial three-party atomic Gather: a native closed network can
+advance, but every original-interface `Machine I I` has empty input and
+cannot take even one activation. This refutes that transition-preserving
+closed encoder, _not every possible functor_. Merely pointing #Iso would
+not prove probabilistic erasure or repair native wiring/activation.
+#srcs(cc("CSP/ScheduledMachineBoundary.agda", 53, "no-closed-step-encoder"))
+
+#theorem(name: [independently compiled binary communication reaches native wiring])[
+The genuine fragment has exactly two native boxes, one private class,
+one producer, one distinct listener and no external boundary; payloads,
+branching and local tree depth remain unrestricted. Independently compiled
+sender/receiver machines implement commands `leftTau`, `rightTau`, `sync`,
+`finish`. Synchronization jointly selects an accepted payload; an outer
+composition step commits both participants, not a prepared sender alone.
+Finish requires both returns and emits `√`. `joint-to-compiled` and
+`compiled-to-joint` compare the actual Core receiver-after-sender composition;
+`native-components-correct` gives initialized strong relational
+bisimilarity with the actual source network. A native silent divergence
+corresponds constructively to _some infinite command sequence_ returning
+silent labels, not autonomous target divergence or every scheduler.
+#srcs(cc("CSP/BinaryScheduled.agda", 97, "joint-to-compiled"), cc("CSP/BinaryScheduled.agda", 112, "compiled-to-joint"), cc("CSP/BinaryOperational.agda", 65, "scheduled-correct"), cc("CSP/BinaryOperational.agda", 72, "wiring-correct"), cc("CSP/BinaryOperational.agda", 94, "native-components-correct"), cc("CSP/BinaryDivergence.agda", 53, "schedule-divergence"), cc("CSP/BinaryDivergence.agda", 60, "compile-divergence"), cc("CSP/BinaryDivergence.agda", 68, "uncompile-divergence"))
+] <thm:csp-binary-wiring>
+
+*The shared positive endpoint is actually exercised.* Finite Bool
+sender/receiver controls have checked $Dp$ presentations, Dirac initial
+states and strictly positive half-weight offers. Disabled commands are
+bottom, never successful `nothing`. False communication permits joint
+finish; true communication instead enables a silent loop. A stopped
+listener blocks a prepared sync, and a real local-left silent move is
+separately tested. `BinaryPositive` compiles the components independently
+to generic positive machines, with bidirectional native-step decoders.
+The separately presented Bool-state context is nontrivial: `τ` arms it
+and produces an acknowledgement; only a later `√` produces `finished`.
+#srcs(cc("CSP/BinaryScheduledTests.agda", 42, "source-and-presented-wiring"), cc("CSP/BinaryScheduledTests.agda", 62, "context-respects-presented-wiring"), cc("CSP/BinaryScheduledTests.agda", 68, "false-exchange"), cc("CSP/BinaryScheduledTests.agda", 73, "true-exchange"), cc("CSP/BinaryScheduledTests.agda", 148, "native-communication-controlled-divergence"), cc("CSP/BinaryScheduledTests.agda", 197, "blocked-listener-cannot-leak"), cc("CSP/BinaryPositive.agda", 23, "positive-sender"), cc("CSP/BinaryPositive.agda", 26, "positive-receiver"), cc("CSP/BinaryPositive.agda", 29, "positive-context"), cc("CSP/BinaryPositive.agda", 38, "sender-positive-to-native"), cc("CSP/BinaryPositive.agda", 45, "sender-native-to-positive"), cc("CSP/BinaryPositive.agda", 53, "receiver-positive-to-native"), cc("CSP/BinaryPositive.agda", 60, "receiver-native-to-positive"))
+
+The output-checking `exchange-then-finish` strategy asks at most twice.
+`BinaryPositiveTests` invokes the proved common composition coherence to
+identify independently composed sender/receiver/context with the composed
+presentation, first in the generic positive G-category and then in the
+_same public_ `Model.𝔾₊` as #PMmay. `Run.run-resp` and public
+`Run.Model.run-resp` transport its accepting rational-positive finite
+experiment through those real target equalities.
+The final `sealed-independently-composed-positive-test` is an observation
+of the actual independently composed sealed arrow, not an arbitrary
+state predicate on a relational shadow.
+#srcs(cc("CSP/BinaryPositiveObservation.agda", 47, "exchange-then-finish"), cc("CSP/BinaryPositiveObservation.agda", 50, "test-asks-at-most-two"), cc("CSP/BinaryPositiveObservation.agda", 76, "sealed-presented-positive-test"), cc("CSP/BinaryPositiveTests.agda", 33, "positive-composition"), cc("CSP/BinaryPositiveTests.agda", 36, "positive-context-composition"), cc("CSP/BinaryPositiveTests.agda", 41, "quotient-composition"), cc("CSP/BinaryPositiveTests.agda", 45, "quotient-context-composition"), cc("CSP/BinaryPositiveTests.agda", 52, "independently-composed-positive-test"), cc("CSP/BinaryPositiveTests.agda", 60, "sealed-independently-composed-positive-test"))
+
+This is a schedulerized binary operational/presented connection, not a
+black setup edge from full #CSP. Arbitrary multiparty Gather is not
+silently serialized, arbitrary relations are not claimed $Dp$-presentable,
+and the exact divergence/refusal shadow does not automatically descend
+to positive finite-may observations. No CSP target-context coverage,
+UC transfer, FD abstraction, fairness or all-schedules claim follows.
 
 == Reuse and ranked experiments <sec:island-experiments>
 
@@ -2756,7 +2948,8 @@ alone do not establish UC transfer. Decorations on solid edges use the specific 
 results and discharged premises below; on dashed edges they state only the restricted
 _proposed transfer objective_, not a theorem. Missing decorations never assert a negative result.
 
-Quantitative forgetting is omitted; the family refinement $PMN → PMom$ is included.
+Quantitative error-forgetting arrows are omitted; the family refinement
+$PMN → PMom$ and qualitative positive-may abstraction $PM → PMmay$ are included.
 The plain #Symcert arrows to #PMN and #Symiso respectively certify a query-admissible
 interpretation and erase generator certificates; neither supplies a UC-security direction.
 The #ITMuninit arrow is structural/uninitialized; the checked initialized finite-trace API is
@@ -2775,7 +2968,8 @@ not another setup node or initialized-security bridge.
     node((2.6, 0), $Iso$, name: <iso>),
     node((3.9, 0), $ITMuninit$, name: <itm-uninit>),
     node((0, 1), $PMN$, name: <pmn>),
-    node((1.3, 1), $Symcert$, name: <symcert>),
+    node((1.3, 0.55), $Symcert$, name: <symcert>),
+    node((1.3, 1), $PMmay$, name: <pmmay>),
     node((2.6, 1), $PM$, name: <pm>),
     node((3.9, 1), $ITM$, name: <itm>),
     node((0, 2), $PMom$, name: <pmomega>),
@@ -2802,6 +2996,7 @@ not another setup node or initialized-security bridge.
     edge(<itm-uninit>, <iso>, "->>", label: $mitmuninit$, label-side: right),
     edge(<itm>, <pm>, "->>", label: $mitm$),
     edge(<pm>, <rs>, "hook->>", label: $mrs$),
+    edge(<pm>, <pmmay>, "->>", label: $mpositive$),
     edge(<wio>, <pm>, "->>", label: $miota$),
     edge(<wio>, <ww>, "->>", label: $mck_(ν_W)$, label-side: right),
     edge(<ssp>, <pmwb>, "->>", label: $mwb$, label-side: right),
@@ -2818,8 +3013,10 @@ not another setup node or initialized-security bridge.
     The W arrows point from full tests to PM and to restricted W/PM[wb]; there is no directed
     SSP-to-PM security path. #Rel remains separate; #TaskPIOA now maps to the distinct
     scheduled #NativeSSP endpoint, not full #SSPd. #CSP and #CSPtrace form an
-    observation-refinement component, not a PM/SSP bridge.
-    Separate components are not impossibility classes.],
+    observation-refinement component, not a full PM/SSP setup bridge.
+    The #PM → #PMmay edge preserves UC without a reflection hook;
+    CSP's presented binary connection to that endpoint is operational prose,
+    not an extra black setup edge. Separate components are not impossibility classes.],
 ) <fig:graph>
 
 *Implemented-edge qualifications.* The ND nodes are the #PM instances. Their preservation
@@ -2905,6 +3102,17 @@ No quotient-respecting backward functor or categorical equivalence is proved.
 The actual tensor-plus-connector implementation theorem of @thm:task-native-connector
 does not enlarge the endpoint's scheduled tests to all SSP consumers.
 #srcs(cc("TaskPIOA/NativeSSP/Morphism.agda", 176, "bridge"), cc("TaskPIOA/NativeSSP/Security.agda", 32, "preserves-≈ℰ"), cc("TaskPIOA/NativeSSP/Security.agda", 35, "preserves-≈ᵁ"), cc("TaskPIOA/NativeSSP/Security.agda", 38, "preserves-≤UC"), cc("TaskPIOA/NativeSSP/Security.agda", 47, "reflects-≈ℰ"), cc("TaskPIOA/NativeSSP/Security.agda", 50, "reflects-≈ᵁ"), cc("TaskPIOA/NativeSSP/Security.agda", 72, "reflects-≤UC"), cc("TaskPIOA/NativeSSP/Security.agda", 76, "≈ᵁ-iff"), cc("TaskPIOA/NativeSSP/Security.agda", 80, "≤UC-iff"))
+
+=== $mpositive : PM → PMmay$
+
+The actual strong quotient functor `forget-probabilities` and natural,
+epi test map define `PM→positive` from the original #PM standard setup.
+Test and total ancillary coverage prove U/UC preservation
+(@thm:pm-positive), without grade stability. The arrow has a double head
+and _no hook_: the public half/quarter and zero-weight consumers record
+precisely which finite-positive information is retained or lost, not
+security reflection. Neither #Iso nor the full CSP setup is this endpoint.
+#srcs(cc("Machines/Positive/Model.agda", 67, "forget-probabilities"), cc("Machines/Positive/Setup.agda", 86, "PM→positive"), cc("Machines/Positive/Setup.agda", 99, "preserves-≈ᵁ"), cc("Machines/Positive/Setup.agda", 102, "preserves-≤UC"))
 
 === $mvan : PMN → PMom$
 
@@ -3250,10 +3458,10 @@ The IPDL/causal arguments here are #design unless a linked existing theorem is e
   (@sec:robust).
 + _Uniformisation_ in the negligible tier: local negligibility implies a uniform negligible witness?
   (@thm:tiers(3)).
-+ _Construction beyond replacement._ Availability is built with designated compatible modes
-  (@def:full-constructs); its serial/parallel honest-protocol composition remains open.
-  The PM braiding is built. Amplification and an RS family tier still need conditional-probability
-  and resource-grading infrastructure respectively.
++ _Beyond supported honest composition._ Designated-cap serial composition and
+  the supported parallel structural class are proved (@def:full-constructs).
+  Unsupported pairings remain outside that theorem; amplification and an RS
+  family tier still need conditional-probability/resource-grading infrastructure.
 + _Feasibility and native models._ Intrinsic computable ITM tests need a context/density theorem.
   The checked initialized finite traces do not supply silent control transfer, computational
   validity or an initialized UC observation/transport theorem.
@@ -3286,7 +3494,7 @@ This ledger records their current scope; absence of a public client is not nonex
   table(columns: (0.85fr, 2.5fr), inset: 4pt, stroke: 0.35pt + luma(65%),
     table.header([*Review IDs*], [*Current disposition*]),
     [001–002, 010–013], [Global partial initialization and unrestricted/readout-sensitive observation remain. Availability is separately built with designated modes, not inferred from security; finite-rational SSP and passive reliable OTP retain their restrictions.],
-    [003–009], [The structural API is explicitly Uninitialized; same-table/different-start and evolving-work-cell finite traces are checked separately. Probabilistic source security and uninitialized structural transfer have actual clients. No initialized relational UC setup is added. The unrestricted presheaf no-go is withdrawn; native silent-control/PPT/context correspondence remains open.],
+    [003–009], [The structural API remains explicitly Uninitialized; same-table/different-start and evolving-work-cell finite traces remain separate. #Iso and its equality are unchanged. The new predicate-initialized relational carrier and separately proved $Dp$-presented #PMmay setup are not a pointed-Iso repair or initialized ITM silent-control/PPT/context transfer. The unrestricted presheaf no-go remains withdrawn.],
     [014–018], [W is conditional safety, not hostile enforcement or liveness; density is pointwise/cofinal. Both full-test forward bridges (016–017) are formal. Neither supplies reverse WB security.],
     [019–026, 036], [Choice payload/ownership, SSP preload/starvation, branch-permutation, PM lifetime and fail-stop boundaries remain. The selected-branch ASTotal repair and all-resolver half-init refutation (023) are formal; FIFO scaling is not a benchmark.],
     [027–033, 038], [Fine/coarse observations remain distinct. Sorted term substitution and fresh-name rejection (028) are formal; the older multisort impossibility is withdrawn (038). Raw names/public frames remain restricted. GroundGuarded and opt-in Terminal now separate the old terminal overclaim (030); general applied-pi/session correspondence is not proved.],
@@ -3294,7 +3502,8 @@ This ledger records their current scope; absence of a public client is not nonex
     [037, 039], [Pure interface legs are enforced (037). Fixed-public-message opacity is retained. The new one-send #Sym client accepts an environment-selected plaintext and decrypts/delivers only on the original ciphertext modulo E₀, with actual nonidentity-simulator UC security (039). This is conservative delivery/drop, not general active-channel or computational security; @thm:sym-transmitting.],
     [040–041], [Protocol-indexed errors with shared extraction and closed finite-budget positive/negative experiments repair 040. Crypto backtranslation, target UC, and malformed-projection/error-aware eligibility (041) remain unproved.],
     [Native extensions], [Finite IPDL operational agreement/private coins and concrete linking remain checked, not an IPDL UC setup. #TaskPIOA has unconditional U/UC preservation and reflection at the distinct scheduled #NativeSSP endpoint, via test injectivity and representation of every native wiring simulator; actual SSP tensor/connector semantics and exact padded/adaptive Tick comparison remain. Its older resource UC-to-native inclusion is still same-signature/unit-leakage only; no full SSPᵈ, categorical equivalence, PPT or fairness bridge is inferred.],
-    [CSP], [Actual typed-network setup, observations and all-adversary UC consumer remain. Ready refinement supports the stated Hide/Par/linking fragments. A new total-finitely-branching binary τ selector refutes raw hiding congruence; independent implementation rank and correlated residual infinite-label rules give constructive positives with genuine native readouts. Legal-word flooding preserves the entire new pair's flooded triple, not its exact divergence. No arbitrary-network/ancillary full abstraction, UC/refinement identification or cross-model bridge follows.],
+    [CSP], [Actual typed-network setup/UC clients and ready Hide/Par/linking fragments remain. The total-finitely-branching binary τ selector refutes raw hiding congruence; independent implementation-rank/residual-infinite rules and legal-word flooding retain their exact scopes. A full-label initialized relational shadow and independently compiled presented binary/stateful-context route reach the shared positive endpoint, not a full-CSP setup morphism. No arbitrary-network full abstraction, UC/refinement identification or FD abstraction follows.],
+    [Positive-may connection], [The original qualitative #PM setup maps to #PMmay by an actual strong quotient functor, natural epi tests and total ancillary coverage, preserving U/UC. All $Dp$ is supported through rational-positive finite observations; literal-support congruence implies stable equality, not an internal impossibility theorem. Public ghost/initializer/half-quarter/zero controls and actual CSP composed finite tests reach the same sealed target. No categorical equivalence, security reflection or quantitative-error preservation is claimed.],
   )
 }
 

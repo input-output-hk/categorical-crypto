@@ -824,6 +824,67 @@ rc0, 49.70 s combined, no warnings. The isolated generic/native/Rewrite/consumer
 checks have an unchanged zero escape baseline and empty warning gate. These are
 attributed check results, not an uncontended performance measurement.
 
+### 4.7 A distinct positive finite-may quotient of the original PM setup
+
+This later quotient is **not RS/QRS**, not either quantitative forgetting
+above, and not a modification of `Machine.Iso`.
+[`PositiveTest d P`](../src/ProbabilisticLogic/Dp/Positive.agda#L66) is an
+actual finite witness `Σ n. 0 < cum n d P`; `≈₊` compares these observations
+for every nonnegative rational test. The construction uses **all coinductive
+`Dₚ`**, including arbitrary delay/iteration, not only finite distributions.
+Zero-weight branches are excluded; magnitudes are forgotten. Literal positive
+paths remain witnesses on a chosen representation, but exact singleton support
+on arbitrary types is not silently made an `≈ₚ`-stable relation.
+[`literal-support-congruence⇒stable-equality`](../src/ProbabilisticLogic/Dp/Positive.agda#L61)
+proves the sharp consequence of that stronger requirement, not an internal
+impossibility theorem or a need to assume stable equality for this model.
+
+The actual positive discrete monad, pure maps, Elgot iteration and Mealy/G
+machinery support a genuine pure-simulation equivalence closure.
+[`Model.𝔾₊`](../src/CategoricalCrypto/Machines/Positive/Model.agda#L64)
+is the existing monoidal quotient of **the original sealed PM category** by
+that positive hom congruence.
+[`forget-probabilities`](../src/CategoricalCrypto/Machines/Positive/Model.agda#L67)
+is a real strong monoidal functor; checked G composition/tensor and public
+feedback laws, not representative-only support equations, justify its use.
+`pack-positive` connects generic positive machines to the same public seal.
+
+Original qualitative PM observation is **AllPositive slack**: both verdict
+masses are compared at every positive rational error.
+[`all-slacks⇒may`](../src/ProbabilisticLogic/Dp/Positive/Observation.agda#L59)
+chooses slack below an actual positive prefix witness.
+[`Setup.tests`](../src/CategoricalCrypto/Machines/Positive/Setup.agda#L77)
+therefore gives a natural test morphism on the **same presented test carrier**.
+Its epi proof supplies test coverage; identity-object quotient isomorphisms
+supply total ancillary coverage. The actual
+[`PM→positive`](../src/CategoricalCrypto/Machines/Positive/Setup.agda#L86)
+preserves **U and UC from the original PM StdSetup**, without a weakened source
+kernel or source/target grade-stability premise.
+This is not coverage of arbitrary relational tests, security reflection,
+equivalence, or fixed-ε quantitative/availability preservation.
+
+Public [`Machines.Positive.Tests`](../src/CategoricalCrypto/Machines/Positive/Tests.agda#L45)
+uses the real noninjective `HitTests.erase` through the actual functor,
+probabilistic initialization with both Bool states, and fair/quarter-biased
+full-machine equality in the target while original AllPositive observation
+separates their readouts. Zero-weight true branches remain distinguished.
+The actual public tensor of the two biased machines has a two-port/two-ask
+`left ∧ not right` experiment with
+[`both verdicts positive`](../src/CategoricalCrypto/Machines/Positive/Tensor/Tests.agda#L139).
+An independent
+[`public native-feedback experiment`](../src/CategoricalCrypto/Machine/Relational/Presentation/Feedback/Tests.agda#L133)
+has immediate true and false after a state-changing hidden relay; both verdicts
+are positive through the real sealed feedback operator/runner.
+Neither is a declaration-only wiring example or a quantitative bound.
+
+The common predicate-initialized relational carrier and checked `Presentation`
+data support composition and explicitly port-normalized feedback into this
+same target. Independently compiled finite CSP sender/receiver and a stateful
+context consume that route; arbitrary full CSP/relations are not claimed
+presentable, and exact divergence/refusals do not become target observations.
+The later construction-report postscript separates that operational connection
+from the original PM setup morphism and records its integrated closure.
+
 ## 5. Hard parts and risks
 
 ### 5.1 The absorption proofs

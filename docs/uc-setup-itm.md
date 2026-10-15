@@ -641,6 +641,38 @@ security parameter, negligible bound, dynamic ITI creation, adaptive corruption,
 scheduling/silent-return extension. The client does not close any of those gaps or turn
 the uninitialized relational interpretation into an initialized UC setup.
 
+### 6.2 A separate initialized positive-may model, not a change to Iso
+
+The later checked [`Machine.Relational.Initialized`](../src/CategoricalCrypto/Machine/Relational.agda#L17)
+has an arbitrary initial-state **predicate** and
+[`_≈ᴿ_`](../src/CategoricalCrypto/Machine/Relational.agda#L27) is two-way relational
+state bisimulation preserving that predicate and exact optional-output labels.
+Native wiring respects it. This is separate from both the selected-point
+`Machine.Initialized` helper above and the unchanged state-bijection equality
+of `Machine.Iso`. Adding a point alone would not make PM pure simulations into
+state isomorphisms.
+
+The actual probabilistic erasure route is instead the new
+[`Machines.Positive.Model.𝔾₊`](../src/CategoricalCrypto/Machines/Positive/Model.agda#L64),
+with positive pure-simulation closure on the existing PM seal.
+[`forget-probabilities`](../src/CategoricalCrypto/Machines/Positive/Model.agda#L67)
+is an actual strong monoidal quotient functor; the original qualitative
+[`PM→positive`](../src/CategoricalCrypto/Machines/Positive/Setup.agda#L86)
+has natural epi tests and ancillary coverage proving U/UC preservation.
+It handles **all coinductive `Dₚ`** through rational-positive finite-cumulative
+observations, not arbitrary all-relations or infinite-path semantics.
+The real [`ghost-forgotten`](../src/CategoricalCrypto/Machines/Positive/Tests.agda#L45)
+uses noninjective `HitTests.erase`; public probabilistic-initializer,
+half/quarter-bias and zero-positive controls exercise the actual seal.
+
+[`Literal support congruence implies stable equality`](../src/ProbabilisticLogic/Dp/Positive.agda#L61)
+is a checked constructive implication on arbitrary types, **not an internal
+impossibility theorem**. No such principle or arbitrary-state decidable equality
+is assumed by the positive quotient. The new PM arrow does not alter
+`Uninitialized.⇒iso`, supply its missing initialized silent-control/PPT/context
+correspondence, or assert security reflection. The precise common/CSP scope is
+in the later construction-report postscript.
+
 ## 7. Sources
 
 **Used:** `canetti2020uc` (section numbers via `chevalier2026` §4), `chevalier2026`,

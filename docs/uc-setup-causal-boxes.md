@@ -651,6 +651,50 @@ earlier pre-Agda ENOSPC attempt is not counted as success. Isolated warning gate
 were empty and escape baselines stayed zero. This is attributed integration
 evidence, not an uncontended performance measurement.
 
+#### Checked CSP/common-positive connection — not a causal-box bridge
+
+The later initialized relational/positive-may construction is another
+**separately scoped connection**, not a realization of the causal-box
+sketches above. `Machine.Iso` and its uninitialized state-isomorphism equality
+are unchanged. The original PM standard setup has an actual
+[`PM→positive`](../src/CategoricalCrypto/Machines/Positive/Setup.agda#L86)
+into the public positive quotient, with natural epi tests and total ancillary
+coverage proving U/UC preservation, not reflection. Rational-positive finite
+events apply to all `Dₚ`; no probability magnitude, FD or infinite-path
+observation theory is inferred.
+
+CSP's unrestricted
+[`Relational.interpret`](../src/CategoricalCrypto/CSP/Relational.agda#L19)
+retains exact initial configuration, full labels including τ/√, and whole
+globally atomic Gather transitions. It is an externally clocked initialized
+relational shadow, **not an original-interface monoidal/setup functor**.
+[`no-closed-step-encoder`](../src/CategoricalCrypto/CSP/ScheduledMachineBoundary.agda#L53)
+uses an actual initial three-party communication to refute the specified
+closed `Machine I I` encoder: that machine has no input activation.
+This does not prohibit arbitrary functors.
+
+The genuine native wiring theorem instead concerns the closed two-box
+unique-producer/distinct-listener fragment.
+[`native-components-correct`](../src/CategoricalCrypto/CSP/BinaryOperational.agda#L94)
+compares independently compiled sender/receiver Core composition with the
+actual native network. A stopped listener cannot leak a prepared sync.
+Exact silent divergence has a constructive correspondence with **some**
+infinite command sequence, not autonomous divergence, every schedule or
+fairness. Finite Bool controls give checked actual `Dₚ` presentations; disabled
+commands are bottom, not successful absence.
+
+The components and nontrivial armed-state context really reach the **same**
+public `Machines.Positive.Model.𝔾₊` endpoint as PM:
+[`quotient-context-composition`](../src/CategoricalCrypto/CSP/BinaryPositiveTests.agda#L45)
+uses the proved common native-to-positive composition coherence, and
+[`sealed-independently-composed-positive-test`](../src/CategoricalCrypto/CSP/BinaryPositiveTests.agda#L60)
+runs the accepting output-checking two-ask experiment through the actual
+independently composed sealed arrow. This is stronger than just a global
+relational shadow, but not a full-CSP setup morphism or a causal-box theorem.
+Arbitrary CSP relations are not claimed `Dₚ`-presentable; exact divergence and
+refusals do not automatically descend to finite-positive observations.
+The construction-report postscript records the final checked APIs/evidence.
+
 ### 4.4 Morphisms that exist (all inside causal boxes)
 
 **(a) `regrade` (generic; built: `Abstract2/Regrade.agda`).**  For a setup 𝕊 and a lax monoidal

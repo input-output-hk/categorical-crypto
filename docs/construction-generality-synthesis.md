@@ -433,3 +433,86 @@ All four final durable logs have explicit exit-zero trailers; the root has an
 actual checking line, and all assigned-scope escape matches are zero.
 These are parent-attributed integrated results, not documentation-worker builds
 or uncontended performance claims; exact revisions/log names are in the addendum.
+
+## Postscript: initialized relational machines, positive-may PM and the CSP connection
+
+This further source postscript follows the checked four-track baseline
+`8a9194038`. The original **89** research records/source boundary and all
+prior construction results remain unchanged; these are not new census rows.
+
+The actual initialized operational carrier
+[`Machine.Relational.Initialized`](../src/CategoricalCrypto/Machine/Relational.agda#L17)
+uses an arbitrary initial-state **predicate**, with genuine two-way state
+bisimulation preserving the predicate and exact optional-output labels.
+It does **not** modify Iso or turn PM simulations into state bijections.
+The actual positive-may setup instead uses
+[`Model.𝔾₊`](../src/CategoricalCrypto/Machines/Positive/Model.agda#L64),
+the existing monoidal quotient of **original sealed PM** by positive
+pure-simulation EqClosure, backed by a real discrete monad, Elgot iteration,
+Mealy/G composition, tensor and feedback.
+
+For all coinductive `Dₚ`,
+[`PositiveTest d P`](../src/ProbabilisticLogic/Dp/Positive.agda#L66)
+is `Σ n. 0 < cum n d P`, compared for every nonnegative rational test.
+Weights are forgotten and zero branches excluded, not divergence/delay
+invented away. Exact literal singleton-support congruence would imply
+[`stable equality`](../src/ProbabilisticLogic/Dp/Positive.agda#L61)
+on all types; that checked consequence is **not an internal impossibility
+theorem**. No such principle, arbitrary-state DecEq or coupling axiom is used.
+
+| Checked boundary | Actual result | Not inferred |
+|---|---|---|
+| Original PM → positive-may PM | Strong `forget-probabilities`, natural epi tests on the same presented test carrier, genuine total ancillary isomorphisms, **U/UC preservation** | Weakened source kernel, GradeStable, security reflection/equivalence or fixed-ε statistical transfer |
+| Presented initialized native wiring | Actual `Dₚ` initializer/kernel data with two-way finite positive-path correctness/no-refusal; real native-to-generic/public composition and explicitly port-normalized feedback coherence | Arbitrary-relation presentability, arbitrary-bisim⇒coupling or mere standalone-shadow equality called a functor |
+| Unrestricted CSP | Exact initialized full-label clocked shadow, atomic Gather retained, exact finite/silent-path correspondence | Original-interface full-CSP monoidal/setup functor; the actual closed-unit step encoder is refuted, not all functors |
+| Genuine binary CSP | Independent native sender/receiver Core wiring for the closed unique-producer/distinct-listener fragment; finite Bool presentations and actual stateful context reach the **same public positive endpoint** | Arbitrary multiparty serialization, all schedules/fairness, target-context/UC coverage or automatic divergence/refusal/FD descent |
+
+The original setup arrow
+[`PM→positive`](../src/CategoricalCrypto/Machines/Positive/Setup.agda#L86)
+is not a may-only replacement of PM.
+[`all-slacks⇒may`](../src/ProbabilisticLogic/Dp/Positive/Observation.agda#L59)
+uses original AllPositive comparison of **both** verdict masses to preserve
+a strict positive finite prefix event.
+Epi test coverage plus identity-object ancillary coverage prove
+[`preserves-≈ᵁ` / `preserves-≤UC`](../src/CategoricalCrypto/Machines/Positive/Setup.agda#L99).
+The new graph endpoint therefore has a preservation double head and
+**no reflection hook**, while Iso stays unchanged.
+
+Actual public clients include the real
+[`noninjective ghost erasure`](../src/CategoricalCrypto/Machines/Positive/Tests.agda#L45),
+probabilistic initialization with both Bool states, fair/quarter-biased
+full-machine equality with **original AllPositive readout separation**,
+and public zero-positive distinction.
+[`tensor-may`](../src/CategoricalCrypto/Machines/Positive/Tensor/Tests.agda#L139)
+queries both actual public tensor ports and computes `left ∧ not right`;
+[`feedback-may`](../src/CategoricalCrypto/Machine/Relational/Presentation/Feedback/Tests.agda#L133)
+observes immediate true versus false after a state-changing hidden relay.
+Both prove both Bool verdicts positive through actual public operators/runners,
+not only scalar/internal examples or quantitative bounds.
+
+CSP's
+[`native-components-correct`](../src/CategoricalCrypto/CSP/BinaryOperational.agda#L94)
+is actual independent target wiring, with a blocked-listener negative;
+its silent-divergence correspondence is existential in an infinite
+command sequence, not autonomous target divergence.
+The nontrivial context is armed by τ before acknowledging √.
+[`quotient-context-composition`](../src/CategoricalCrypto/CSP/BinaryPositiveTests.agda#L45)
+uses real common coherence, and
+[`sealed-independently-composed-positive-test`](../src/CategoricalCrypto/CSP/BinaryPositiveTests.agda#L60)
+executes the accepting output-checking two-ask test on the actual
+independently composed **public** quotient arrow. No black full-CSP-to-PM
+setup edge is drawn.
+
+Main's four CSP leaves passed paired3G/H1G, 120.39 s combined, rebuilding
+41 new modules including common dependencies, with empty warning gates.
+Final public tensor/native-feedback leaves passed paired3G/H1G, then the
+registered full `CategoricalCrypto` root paired8G/H1G: all rc0, 75.46 s
+combined and 13 Checking lines including actual Setup/root rebuilding.
+All seven durable logs have explicit exit-zero trailers; root registration
+is committed at `a133df971`, source complete through `cfc75a3b4`.
+Common/CSP escape baselines remain zero. These are attributed integrated
+checks, not documentation-worker builds or uncontended performance claims.
+The full report retains exact source/API/log/capacity distinctions,
+including failed/storage/dependency retries rather than counting them as
+successes.
+

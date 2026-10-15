@@ -4572,3 +4572,300 @@ root checking line; it ran no Agda build/test. The full root is an independently
 observed integrated success, not inferred from isolated checks or a cache receipt.
 The original 89 research records/source boundary and prior four construction
 results remain intact.
+
+## Postscript: initialized relational machines, positive-may PM and the CSP connection
+
+This is a later **checked-source** postscript, after the four-track update
+committed at `8a9194038`. It does not recensus or rewrite the original
+89 ten-field research records, their `9f9be2a89` boundary, primary-source
+provenance, the prior 13-module update or the four construction results.
+The new common source and the CSP connection are complete; the registered
+integrated root is `a133df971`.
+
+### What the new endpoint is, and what stays unchanged
+
+`Machine.Iso`, its uninitialized all-state carrier and its state-bijection
+equality are **unchanged**. Pointing it would not turn possibly noninjective
+PM simulations into state isomorphisms. The checked alternative separates:
+
+| Layer | Actual checked carrier/equality or observation | Boundary |
+|---|---|---|
+| Initialized relational operational carrier | [`Machine.Relational.Initialized`](../src/CategoricalCrypto/Machine/Relational.agda#L17), arbitrary initial predicate; [`_≈ᴿ_`](../src/CategoricalCrypto/Machine/Relational.agda#L27), forward/backward state bisimulation preserving initial predicates and exact input/Maybe-output labels | Not a selected-point Iso repair or an identification with arbitrary-state positive process equality |
+| Positive finite-may base and generic machines | [`PositiveTest`](../src/ProbabilisticLogic/Dp/Positive.agda#L66), every nonnegative rational finite-cumulative event; [`_≈₊_`](../src/ProbabilisticLogic/Dp/Positive/Monad.agda#L27), actual monad/Elgot and pure-simulation EqClosure | All coinductive `Dₚ`, not only finite `Dist⊥`; not arbitrary all-relations, FD or infinite-path semantics |
+| Public categorical/setup endpoint | [`Model.𝔾₊`](../src/CategoricalCrypto/Machines/Positive/Model.agda#L64), existing monoidal quotient of original sealed PM; [`Target.StdSetup`](../src/CategoricalCrypto/Machines/Positive/Setup.agda#L75) | Actual common positive endpoint, not a second surrogate target or a change to the original PM equality |
+| PM setup bridge | [`PM→positive`](../src/CategoricalCrypto/Machines/Positive/Setup.agda#L86), actual strong functor/natural tests and covered transfer from **original** PM | U/UC preservation, not security reflection, categorical equivalence or fixed-ε statistical transfer |
+| CSP connection | Full-label initialized shadow; independently compiled closed binary wiring; finite presented sender/receiver/stateful context in the **same** public `Model.𝔾₊` | Operational/presented connection, not a full-CSP strong monoidal/setup functor or target-context/UC coverage theorem |
+
+### Positive rational events, not an assumed literal support quotient
+
+For any `d : Dₚ A`, `PositiveTest d P = Σ n. 0 < cum n d P`.
+`d ≈₊ e` means equivalent existence of those witnesses for **every**
+nonnegative rational test `P`. Nonzero magnitudes are forgotten, zero-weight
+branches excluded, and arbitrary delay/divergent initialization or steps
+remain representable without inventing a finite successful event.
+[`positive-extract`](../src/ProbabilisticLogic/Dp/Positive/Paths.agda#L59)
+and [`positive-witness`](../src/ProbabilisticLogic/Dp/Positive/Paths.agda#L88)
+connect rational-positive observations to strictly positive finite paths
+on a fixed representation.
+
+Syntactic support is not silently made `≈ₚ`-stable. The checked
+[`return-double-negation`](../src/ProbabilisticLogic/Dp/Positive.agda#L51)
+and
+[`literal-support-congruence⇒stable-equality`](../src/ProbabilisticLogic/Dp/Positive.agda#L61)
+prove the sharp generic consequence: exact literal singleton-support
+congruence on every carrier would imply `¬¬(x ≡ y) → x ≡ y` on every carrier.
+This is **not an internal impossibility theorem**. The positive rational-test
+quotient assumes neither that extra constructive principle nor arbitrary-set
+decidable equality, a Pairing axiom or a probabilistic coupling axiom.
+Actual [`≈ₚ⇒≈₊`](../src/ProbabilisticLogic/Dp/Positive/Monad.agda#L30),
+bind/map congruence,
+[`iter-cong`](../src/ProbabilisticLogic/Dp/Positive/Iteration.agda#L45)
+and [`iter-transfer`](../src/ProbabilisticLogic/Dp/Positive/Transfer.agda#L72)
+justify the operations on the quotient; this is not a support map defined
+only on syntax representatives.
+
+[`D₊-DiscreteMonad`](../src/CategoricalCrypto/Machines/Positive/Base.agda#L40)
+and [`Elgot₊`](../src/CategoricalCrypto/Machines/Positive/Base.agda#L108)
+give the actual Kleisli symmetric monoidal/pure/Mealy/trace/G machinery.
+The target uses its real `is-fn` pure class. Its machine equality is the
+genuine EqClosure of exact pure-state simulation squares over `≈₊`, not
+state isomorphism and not an asserted arbitrary-bisimulation/coupling
+equivalence. `Repack.repack-sim`/`repack-resp` transport the original pure
+simulations and closure, including noninvertible state maps.
+[`repack-compose`](../src/CategoricalCrypto/Machines/Positive/Bridge.agda#L25)
+and [`repack-tensor`](../src/CategoricalCrypto/Machines/Positive/Bridge.agda#L44)
+compare the actual G operations.
+
+The public
+[`forget-probabilities`](../src/CategoricalCrypto/Machines/Positive/Model.agda#L67)
+is the **existing `quotientF`**, an actual `StrongMonoidalFunctor` from
+`UC.Model.Seal.𝔾ᵒ` to `Model.𝔾₊`, backed by the proved monoidal congruence.
+[`pack-positive`](../src/CategoricalCrypto/Machines/Positive/Model.agda#L72)
+and its
+[`compose`](../src/CategoricalCrypto/Machines/Positive/Model.agda#L92) /
+[`tensor`](../src/CategoricalCrypto/Machines/Positive/Model.agda#L103)
+laws make generic positive machines agree with **this same sealed target**.
+`tensor-at` uses the existing seal's propositional tensor-interface equations,
+not a newly reassembled monoidal bundle.
+[`Feedback.Model`](../src/CategoricalCrypto/Machines/Positive/Feedback/Model.agda#L28)
+has actual source/target feedback congruence, pack compatibility and functor
+preservation, built from real port relabelling and Mealy/Elgot trace.
+[`Run.Model.run-resp` / `pack-run`](../src/CategoricalCrypto/Machines/Positive/Run/Model.agda#L32)
+make finite adaptive experiments well-defined on public target arrows.
+Arbitrary private-state `StateTest`s are not thereby descended.
+
+### Original qualitative PM setup and justified security directions
+
+The source really is the **original** `UC.Model.Setup.StdSetup`. Its
+qualitative observation is AllPositive slack for **both Bool verdicts**,
+not one fixed error and not a replacement may-only source kernel.
+[`all-slacks⇒may`](../src/ProbabilisticLogic/Dp/Positive/Observation.agda#L59)
+halves an actual positive finite prefix witness to rule out zero on the
+other side. The actual
+[`tests : PresheafMorphism`](../src/CategoricalCrypto/Machines/Positive/Setup.agda#L77)
+therefore has a well-defined natural transformation; it reuses the
+**same presented categorical-test carrier**. Its
+[`tests-epi`](../src/CategoricalCrypto/Machines/Positive/Setup.agda#L83)
+is not an uncountably branching arbitrary-relation test-coverage claim.
+
+[`test-coverage`](../src/CategoricalCrypto/Machines/Positive/Setup.agda#L92)
+comes from that epi; total
+[`ancilla-coverage`](../src/CategoricalCrypto/Machines/Positive/Setup.agda#L95)
+uses the identity-object quotient functor and genuine reflexive isomorphisms.
+Existing `covered-≈ᵁ` / `covered-≤UC` then prove
+[`preserves-≈ᵁ`](../src/CategoricalCrypto/Machines/Positive/Setup.agda#L99)
+and [`preserves-≤UC`](../src/CategoricalCrypto/Machines/Positive/Setup.agda#L102)
+without source/target GradeStable. No original PM `changeKernel` weakening,
+fixed-positive-ε quantitative/availability transport, reflection or
+equivalence is asserted. The graph's new **PM → positive-may PM** arrow
+has preservation's double head and **no reflection hook**.
+
+### Presented native wiring is proved, not assumed as a field
+
+[`Presentation`](../src/CategoricalCrypto/Machine/Relational/Presentation.agda#L19)
+contains actual `Dₚ` initial/step data, positive finite-path soundness and
+completeness in both directions, and a proof ruling out a successful
+unlabelled response. These are concrete representation data discharged
+by compilers, **not functor laws assumed as fields**. Arbitrary relations
+are not claimed presentable.
+[`shadow` / `presentation-correct`](../src/CategoricalCrypto/Machine/Relational/Presentation.agda#L33)
+connect them to exact initialized Core execution; native pair/reindex/
+tensor/trace/compose presentations and wiring congruences are checked.
+[`toPositive`](../src/CategoricalCrypto/Machine/Relational/Presentation/Positive.agda#L52)
+and [`toQuotient`](../src/CategoricalCrypto/Machine/Relational/Presentation/Positive.agda#L76)
+reach the generic and actual public positive targets.
+
+The real
+[`toPositive-compose`](../src/CategoricalCrypto/Machine/Relational/Presentation/Coherence.agda#L137)
+and
+[`toQuotient-compose`](../src/CategoricalCrypto/Machine/Relational/Presentation/Coherence.agda#L146)
+prove componentwise composition coherence, not merely equality of a
+standalone shadow. The proof is already at **original `≈ₚ`**: pure state
+swap, independent-initializer commutativity, the native probability-kernel
+body equation, genuine iteration transfer and existing Collapse normalization.
+It does not turn arbitrary strong bisimulation into a probabilistic coupling.
+
+For feedback,
+[`tensor-positive`](../src/CategoricalCrypto/Machine/Relational/Presentation/Feedback.agda#L57)
+uses explicit Channel construct/destruct tensor-port bijections.
+[`toPositive-trace`](../src/CategoricalCrypto/Machine/Relational/Presentation/Feedback.agda#L182)
+and [`toQuotient-trace`](../src/CategoricalCrypto/Machine/Relational/Presentation/Feedback.agda#L188)
+compare the native finite relay with real generic/sealed feedback after
+that normalization. Opaque tensor ports are not pretended definitionally
+equal in theorem statements. This route supplies neither an arbitrary
+relational quotient functor nor FD/infinite-path semantics.
+
+### CSP: full-label shadow, actual binary compiler, common public experiment
+
+The unrestricted
+[`CSP.Relational.interpret`](../src/CategoricalCrypto/CSP/Relational.agda#L19)
+retains the exact configuration/initializer, every label including τ and √,
+and each **whole globally atomic Gather**. The driver explicitly asks for
+one activation; every successful reply is `just` the complete label, never
+τ relabelled as successful absent output.
+[`initialized-exact-to` / `initialized-exact-from`](../src/CategoricalCrypto/CSP/Relational.agda#L22)
+preserve and reflect finite encoded full-label executions.
+Operational transport/structural isomorphism respect initialized
+bisimilarity without a bijection or functional extensionality on the
+function-valued configuration carrier. Exact silent-path correspondence
+stays operational.
+
+That clocked shadow changes interfaces and is **not** a full-CSP setup
+functor. The actual
+[`no-closed-step-encoder`](../src/CategoricalCrypto/CSP/ScheduledMachineBoundary.agda#L53)
+uses an initial three-party atomic communication: a closed CSP network
+steps, whereas original-interface `Machine I I` has empty input and
+cannot activate. It refutes that transition-preserving encoder, not
+all possible categorical abstractions.
+
+The genuine native wiring fragment instead has two boxes, one private
+alias class, a unique producer and distinct listener, with unrestricted
+payload/branching/local-tree depth. Independently compiled sender/receiver
+implement `leftTau`, `rightTau`, `sync`, `finish`.
+[`joint-to-compiled` / `compiled-to-joint`](../src/CategoricalCrypto/CSP/BinaryScheduled.agda#L97)
+use **actual Core receiver-after-sender composition**. Synchronization
+selects a jointly accepted payload and commits both participants in the
+outer step; a prepared sender cannot leak past a stopped receiver.
+[`native-components-correct`](../src/CategoricalCrypto/CSP/BinaryOperational.agda#L94)
+relates actual source configurations and independently initialized native
+components by strong relational bisimulation.
+[`BinaryDivergence`](../src/CategoricalCrypto/CSP/BinaryDivergence.agda#L53)
+gives constructive two-way exact silent-divergence correspondence with
+**some infinite sequence of commands**. This is not autonomous target
+divergence, all schedules, fairness or an appeal to choice.
+
+The finite Bool controls have Dirac initialization and strictly positive
+half-weight offers; disabled commands are `Dₚ` bottom, not successful
+`nothing`. False communication permits joint termination; true
+communication enables a genuine silent loop.
+[`source-and-presented-wiring`](../src/CategoricalCrypto/CSP/BinaryScheduledTests.agda#L42),
+the two exchanges, blocked-listener/no-resynchronization controls, local
+left silent move and
+[`native-communication-controlled-divergence`](../src/CategoricalCrypto/CSP/BinaryScheduledTests.agda#L148)
+are native execution clients. A separately presented Bool-state context
+is armed by τ and acknowledges it; only a later √ emits `finished`,
+with an unsolicited-completion negative.
+
+[`BinaryPositive`](../src/CategoricalCrypto/CSP/BinaryPositive.agda#L23)
+contains the actual independent generic-positive sender/receiver/context,
+with bidirectional native-step decoders and positive initial/payload paths.
+[`exchange-then-finish`](../src/CategoricalCrypto/CSP/BinaryPositiveObservation.agda#L47)
+is output-checking and asks at most twice.
+[`positive-composition` / `positive-context-composition`](../src/CategoricalCrypto/CSP/BinaryPositiveTests.agda#L33)
+invoke the proved common coherence to compare **actual independent
+generic-G compositions** with the composed presentation.
+[`quotient-composition` / `quotient-context-composition`](../src/CategoricalCrypto/CSP/BinaryPositiveTests.agda#L41)
+do the same in the **actual public sealed `Model.𝔾₊`**.
+Finally,
+[`sealed-independently-composed-positive-test`](../src/CategoricalCrypto/CSP/BinaryPositiveTests.agda#L60)
+uses public `Run.Model.run-resp` on that independently composed arrow;
+it is not a state predicate on a representative or merely a literal
+global relational-shadow equality.
+
+Arbitrary multiparty Gather is not silently serialized by the binary
+protocol, and arbitrary CSP relations are not declared `Dₚ`-presentable.
+Exact divergence/refusals do not automatically descend to finite-positive
+may observations. No full-CSP strong monoidal/setup morphism, arbitrary
+target-context/UC transfer, FD abstraction, all-scheduler or fairness
+claim follows; the graph deliberately draws **no full-CSP-to-positive
+black setup edge**.
+
+### Public controls and classification without a new census
+
+| Checked public consumer | Observable work and exact consequence |
+|---|---|
+| [`ghost-forgotten`](../src/CategoricalCrypto/Machines/Positive/Tests.agda#L45) | Actual functor hom-respect applied to real `HitTests.ghost/erased/erase`, a noninjective pure state simulation, not Iso or a surrogate |
+| [`weight-erasure` / `forgetful-coins`](../src/CategoricalCrypto/Machines/Positive/Tests.agda#L58) | Full Bool-state machines with probabilistic initializers become equal in the public target; both initial states have positive paths |
+| [`original-observation-separates`](../src/CategoricalCrypto/Machines/Positive/Tests.agda#L78) | Original PM AllPositive readout separates those same fair/quarter-biased machines; scalar exact masses and slack ⅛ are separately checked, not a UC-nonreflection theorem |
+| [`zero-versus-positive`](../src/CategoricalCrypto/Machines/Positive/Tests.agda#L90) | Actual `Setup.observation-resp` refutes equality of zero-weight and positive possibilities in the public target |
+| [`tensor-may`](../src/CategoricalCrypto/Machines/Positive/Tensor/Tests.agda#L139) | Actual public `Model.tensor-at` of half/quarter machines, real two-port/two-ask `left ∧ not right`, independent initializer sampling, actual G normal form/pack law and public runner; both Bool verdicts positive |
+| [`feedback-may`](../src/CategoricalCrypto/Machine/Relational/Presentation/Feedback/Tests.agda#L133) | Actual public feedback and normalized native trace; immediate true versus false after a state-changing hidden send/re-entry; both verdicts positive |
+| [`sealed-independently-composed-positive-test`](../src/CategoricalCrypto/CSP/BinaryPositiveTests.agda#L60) | Actual independently compiled CSP sender/receiver and nontrivial stateful context, with native-to-generic and actual sealed composition laws, then a quotient-stable accepting two-ask finite experiment |
+
+In the earlier classification language, the actual positive algebra,
+monoidal quotient and original-PM setup bridge are checked **A** instances;
+the concrete presented operational route is a proved **C** class, not a
+theorem about arbitrary relations. The named closed-interface step encoder
+is **D**, as is the earlier state-retaining PM-to-Iso candidate at its own
+state-bijection boundary. Literal-support congruence's constructive
+consequence is **not** relabelled as an impossibility. Unrestricted CSP
+setup functor/coverage, reflection and FD/infinite-path identification
+remain unproved, not silently substituted by the bounded consumers.
+
+### Exact source and final integrated evidence
+
+The common implementor returned **23 clean source commits / 38 new assigned
+Agda files**, through `eb6b4d930`, from base `8a9194038`. Existing Iso,
+original PM source/equality, root and shared docs were not modified by
+that implementor. The actual public category/setup/coherence chain is
+`ae7987776`, `118d08116`, `e1fecc161`, `17c38de69`, followed by public
+consumers `858571a9a` and `eb6b4d930`.
+CSP's final owned positive-consumer chain ends `63cd95fd6` after
+`9c73b7815`, `4669e3e3c` and `cdf74cf67`; its full-label and native
+binary source tranche remains part of the integrated result.
+Main integrated all source through `cfc75a3b4` and committed **seven**
+new public root imports at `a133df971`.
+
+| Parent exercised integrated check | Observed accepted result |
+|---|---|
+| `CSP.BinaryPositiveTests`, `BinaryScheduledTests`, `Relational`, `ScheduledMachineBoundary` | All four paired `-M3G -H1G`, rc0, reported 120.39 s combined and 41 new module Checking lines including much of the common positive core; fresh warning gate empty |
+| `Machines.Positive.Tensor.Tests` | Paired `-M3G -H1G`, rc0, actual public tensor/Positive.Tests/Setup dependencies rebuilt |
+| `Machine.Relational.Presentation.Feedback.Tests` | Paired `-M3G -H1G`, rc0, actual public native-feedback/Canonical/sealed-feedback dependencies rebuilt |
+| Registered `CategoricalCrypto.agda` root | Paired `-M8G -H1G`, rc0 with an actual `Checking CategoricalCrypto` line; final two public leaves plus root 75.46 s combined, 13 Checking lines including Setup/root, warning gate empty |
+
+All seven fresh script logs under `.omp-check-evidence/` end
+`COMMAND_EXIT_CODE="0"`:
+`relational-csp-positive-integrated.log`,
+`relational-csp-scheduled-integrated.log`,
+`relational-csp-full-label-integrated.log`,
+`relational-csp-boundary-integrated.log`,
+`relational-pm-public-tensor-integrated.log`,
+`relational-pm-public-feedback-integrated.log`,
+`relational-pm-csp-root-integrated.log`.
+The documentation worker read those exit trailers and the actual root
+checking line; it ran **no Agda build/test**. Times above are attributed
+wall observations, **not uncontended performance benchmarks**.
+
+The isolated implementor additionally reported bounded warm canonical
+`-M3G -H1G` single-Checking successes: Raw 109 LOC, 32.542 s under 87.25 s;
+Bridge 57 LOC, 33.260 s under 74.25 s; Model 113 LOC, 11.879 s under
+88.25 s; original Setup 103 LOC, 13.863 s under 85.75 s; actual composition
+15.167 s under 98 s; normalized native feedback 14.753 s under 108.25 s;
+public ghost/init/weight/zero Tests 19.996 s under 83.25 s; public tensor
+15.881 s under 96 s; public native-feedback 13.533 s under 94.25 s.
+Every listed final log had exit0 and an empty warning gate.
+Queued/concurrent/refetch times are not asserted isolated compute.
+The rejected Raw≈723 s conversion defect and earlier timed failures were
+fixed by matching the real construction argument spines and nominal
+raw/projected boundaries, not a larger warm allowance or suppressed check.
+Existing CurriedTensor/UC.Family.Vanishing cold dependency heap failures
+needed documented paired6G/H1G dependency rebuilds; final own warm modules
+passed3G. ENOSPC/storage attempts and failed source gates remain failures,
+not counted as passes; Main authorized storage GC before released retries.
+
+All 38 common files retain `--safe`, generic `--without-K`/guardedness and
+existing native Core option boundaries where applicable. Final common
+and CSP owned-scope escape scans are empty, **baseline0 → final0**;
+no source theorem weakening or unsafe option was used. Previous
+four-track results and original research/source boundaries remain intact.
+

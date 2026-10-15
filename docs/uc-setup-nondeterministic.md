@@ -49,6 +49,33 @@ site-free part, read by the same tests.
 and both instantiate A and B. Relabellings are partial injections and choices have designated sites.
 G1 lives in `Abstract2/Regrade.agda`, also used by the causal-boxes plan.
 
+**Separate checked positive-may abstraction.** The A/B ownership construction
+above remains unchanged. A later, different model quotients the **original PM**
+probabilistic semantics by
+[`PositiveTest`](../src/ProbabilisticLogic/Dp/Positive.agda#L66), an actually
+positive finite rational cumulative observation, for all coinductive `Dₚ`.
+Its genuine positive monad/Elgot/Mealy machinery and
+[`strong quotient functor`](../src/CategoricalCrypto/Machines/Positive/Model.agda#L67)
+are not a distributive law combining independent probability and powerset
+effects, not a new A/B regrading, and not an identification of scheduler
+ownership. The original
+[`PM→positive`](../src/CategoricalCrypto/Machines/Positive/Setup.agda#L86)
+preserves U/UC via natural epi tests and ancillary coverage; reflection,
+probability magnitudes and fixed-error bounds are not claimed.
+
+The new initialized relational carrier uses an initial **predicate** and
+two-way bisimulation, while `Machine.Iso` stays unchanged.
+Literal exact-support congruence on arbitrary types would imply stable
+equality; the checked implication is **not an internal impossibility theorem**.
+CSP's actual schedulerized binary sender/receiver and presented stateful
+context reach the same public positive quotient through proved composition
+coherence and a
+[`sealed finite positive experiment`](../src/CategoricalCrypto/CSP/BinaryPositiveTests.agda#L60).
+The unrestricted full-label CSP interpreter remains an operational shadow,
+not a full-CSP setup morphism or an all-scheduler/fairness theorem.
+Neither this connection nor its exact silent-divergence facts supplies
+arbitrary-relation, FD or infinite-path semantics for the positive quotient.
+
 ## 1. The generic construction: restriction along a monoidal functor of grades
 
 ### 1.1 The restricted setup
