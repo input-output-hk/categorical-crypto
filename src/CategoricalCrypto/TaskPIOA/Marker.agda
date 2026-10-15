@@ -14,9 +14,13 @@ open import Data.Unit.Base
 open import Function.Base using (_∘_)
 open import Relation.Binary.PropositionalEquality
 
+open import CategoricalCrypto.SSP.Iface using (Ωᴵ)
+open import CategoricalCrypto.SSP.Observation using (runᵖ)
+import CategoricalCrypto.SSP.Protocol as P
 open import CategoricalCrypto.TaskPIOA.AdaptiveFinite
 open import CategoricalCrypto.TaskPIOA.Core
 open import CategoricalCrypto.TaskPIOA.Product
+open import CategoricalCrypto.TaskPIOA.SSPAdapter using (Tick; resource)
 import CategoricalCrypto.TaskPIOA.Setup as Source
 open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Product
@@ -169,3 +173,17 @@ module _ {S : Signature} where
     → ∀ ρ → paddedReplyRun M ρ (initial M) ≈Mℚ paddedReplyRun N ρ (initial N)
   source-tests-imply-padded M N equal ρ P = trans (sym (marker-test-agreement M ρ P))
     (trans (equal (markerTest ρ P)) (marker-test-agreement N ρ P))
+
+  source-tests-imply-adaptive : ∀ {X : Set} (M N : Automaton S)
+    → (∀ (T : Source.Test (Source.Syntax.Var S)) → Source.evaluate T M ≡ Source.evaluate T N)
+    → (c : P.Calls (Tick S) X)
+    → finiteResult M c (initial M) ≈Mℚ finiteResult N c (initial N)
+  source-tests-imply-adaptive M N equal =
+    padded-implies-finite-calls M N (initial M) (initial N) (source-tests-imply-padded M N equal)
+
+  source-tests-imply-consumers : (M N : Automaton S)
+    → (∀ (T : Source.Test (Source.Syntax.Var S)) → Source.evaluate T M ≡ Source.evaluate T N)
+    → (D : P.Protocol (Tick S) Ωᴵ)
+    → runᵖ (D P.∘ᵖ resource M) ≈Mℚ runᵖ (D P.∘ᵖ resource N)
+  source-tests-imply-consumers M N equal =
+    padded-implies-consumers M N (source-tests-imply-padded M N equal)
