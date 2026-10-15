@@ -1,10 +1,11 @@
 # Random systems as a UC setup
 
-Plan, 2026-10-09.  §3–§5 are the design; steps 1–9 of §6 are implemented on branch
-`rs-quotient`, and §6 records what landed, under which names, and where it departs from the
-design; §4.4's toolkit (Δ, composition, hybrids, security-only construction) is on `rs-toolkit`.
-It refines `docs/uc-setup-landscape.md` §4 (random systems) and corrects its full-abstraction
-remark (§5.3).
+Original plan, 2026-10-09. The original representation/comparison proposals retain that design
+boundary; §6 records the original `rs-quotient` landing and its departures.
+§4.4's checked toolkit (Δ, composition, hybrids, security-only construction) is on
+`rs-toolkit`; §§4.5–4.6 include the later checked generic/native designated-mode
+availability and nonzero-error consumers. This document refines
+`docs/uc-setup-landscape.md` §4 and corrects its full-abstraction remark (§5.3).
 
 ## 1. Summary
 
@@ -600,7 +601,85 @@ specialization. A bit-flipping simulator with compatible resource-specific
 designated answers gives `flipped-full` / `flipped-full₀`; `twice-full` /
 `twice-full₀` exercise both composition entry points and return to a shared mode.
 No security or availability premise is assumed for these examples.
-`HashForwardConsumer.hash-security` also transports the existing inhabited-grade,
+
+#### Checked generic designated-cap package and native identification (2026-10-15)
+
+[`UC.Quantitative.Availability.Designated`](../src/CategoricalCrypto/UC/Quantitative/Availability.agda#L23)
+now packages this idea for **arbitrary QUC setups**, not just random systems:
+
+```text
+close a f = sub a ∘ f : A ⇒ T₀ I B
+Availability εa a b f g = close a f ≈ᵁ[εa] close b g
+SecureAvailable εs εa a b f g
+  = security : Witness εs f g
+  + availability : Availability εa a b f g
+```
+
+The supplied caps `a : X ⇒ I`, `b : Y ⇒ I` are fixed before tests; availability
+does not existentially choose a simulator. Both capped terms have unit grade.
+No tensor on the computation category, isomorphism `T₀ I B ≅ B`, or cap for every
+grade is assumed. [`secure-trans`](../src/CategoricalCrypto/UC/Quantitative/Availability.agda#L83)
+has independent errors `(εs ⊕ δs, εa ⊕ δa)` for a common middle cap;
+`secure-trans-cap` permits hom-equal middle caps without extra cost.
+For distinct middle caps, [`secure-trans-bridge`](../src/CategoricalCrypto/UC/Quantitative/Availability.agda#L75)
+requires the actual middle-resource comparison
+`close b₁ g ≈ᵁ[κ] close b₂ g` and returns
+`(εs ⊕ δs, ((εa ⊕ κ) ⊕ δa))`.
+The parentheses are literal: the error algebra assumes **neither associativity
+nor commutativity**. This is replacement order, not the separate security-only
+honest-protocol composition rule `at-compose` with error `εu ⊕ εf`.
+[`mode-preserving`](../src/CategoricalCrypto/UC/Quantitative/Availability.agda#L56)
+uses the correctly directed `a ∘ s ≈ b` for `s : Y ⇒ X` to turn its fixed-simulator
+security bound into availability at the same error. `zero-availability` and
+`zero-secure` reuse the existing `QBridge` over `underlying₀`.
+
+The actual [`QAvailabilityᴿ`](../src/CategoricalCrypto/UC/RandomSystems/Availability.agda#L33)
+instance proves
+[`Availability⇔AvailableWithin`](../src/CategoricalCrypto/UC/RandomSystems/Availability.agda#L99),
+[`SecureAvailable⇔SecurelyConstructs`](../src/CategoricalCrypto/UC/RandomSystems/Availability.agda#L111)
+and `SecureConstruction⇔SecureAvailable₀`, preserving the exact supplied caps,
+honest boundary and two errors. Its availability bridge combines QRS quantitative
+full abstraction with **both directions** of nonexpansive transport through the
+invertible standard left unitor:
+`no-adversary a f = unitorˡ.from ∘ close a f`.
+Existing native factor/replacement theorem statements remain, with proofs using
+the generic API. The separate
+[`Availability.Rewrite`](../src/CategoricalCrypto/UC/RandomSystems/Availability/Rewrite.agda#L31)
+exports `QAvailabilityᵒ`, `rewrite-availability` and `rewrite-secure-available`;
+these consume the actual measured PM→QRS bridge and identity cap interpretation.
+A qualitative `UCSetupMorphism` alone is **not** quantitative availability transport.
+
+The mode-bit consumer's
+[`generic-flipped`/`generic-twice`](../src/CategoricalCrypto/Examples/RandomSystems/Availability.agda#L254)
+exercise that transport and replacement theorem. Perfect individual edges with
+incompatible false/true middle modes are rejected by `no-zero-mode-bridge` and
+`no-incompatible-conclusion`.
+[`one-mode-bridge`/`independent-budgets`](../src/CategoricalCrypto/Examples/RandomSystems/Availability.agda#L295)
+instead supply a genuine `κ = 1` comparison and yield security error **0** with
+availability error **1**; observable false/true separation refutes the zero bridge.
+The native [`Delivery`](../src/CategoricalCrypto/Examples/RandomSystems/Delivery.agda#L66)
+consumer has a literal `alwaysDrop` machine whose requested step is `botₚ`,
+not a false reply. `drop-run` computes no reply, `drop-security` is perfect,
+and `drop-not-available` rejects designated true-reply availability.
+`reliable-composition` consumes generic composed availability on the double-flip
+resource, while [`reliable-reply`](../src/CategoricalCrypto/Examples/RandomSystems/Delivery.agda#L200)
+computes an actual true reply using concrete wiring equality and native run
+congruence—not a behavioral-equality-to-raw-`Dₚ` reflection.
+
+The positive-error FaultFlag example below also has **new explicit cap proofs**:
+[`first-full`/`second-full`](../src/CategoricalCrypto/Examples/FaultFlag/UC.agda#L150)
+preserve a designated passive mode under the existing nonidentity tag simulator,
+each at genuine `(¼,¼)` error. `composed-full` gives `(½,½)`, `native-full`
+uses the native equivalence, and `no-small-full` retains the strict smaller-security
+error obstruction. This does not retroactively add availability to security-only
+results lacking such proofs.
+
+These are designated-mode contextual comparisons, not arbitrary-adversary liveness,
+fairness, deadlines, eventual delivery, normalized termination, feasibility,
+arbitrary quantitative compiler preservation, or an availability-qualified
+serial/parallel honest-protocol composition theorem.
+
+The unchanged `HashForwardConsumer.hash-security` also transports the existing inhabited-grade,
 three-state HashForward simulator through `≤UC⇒Constructs₀`, and `hash-rs`
 consumes `Constructs₀⇒≤UCᴿ`. This is security-only coverage: no availability
 theorem for arbitrary HashForward resources is claimed.
@@ -616,9 +695,10 @@ not remove them.
 ### 4.6 Concrete positive-error construction
 
 `Examples/FaultFlag.agda` and `Examples/FaultFlag/UC.agda` exercise **QSetupᴿ**, starting
-from raw `Proc`s and crossing the opaque graded seal.  This is a SECURITY-ONLY construction,
-not a theorem of `SecurelyConstructs`: no designated no-adversary converters or availability
-proof are provided here.  The separate full predicate is described in §4.5.
+from raw `Proc`s and crossing the opaque graded seal. The original security-only
+chain is preserved; the checked designated passive cap and mode-preservation proofs
+now also give the two-error `SecureAvailable` / native `SecurelyConstructs` statements
+described in §4.5. Neither field is inferred from security alone.
 
 The resource is a persistent fault flag: initialization samples one Boolean, and every
 honest read returns that same bit.  The real resource samples `true` with probability `½`,
@@ -640,6 +720,7 @@ one at depth 2 (`initialization-mass`).
 | `Examples.FaultFlag.UC` | `first-security : realᵒ ≤UCᴿ[¼] middleᵒ`, `second-security : middleᵒ ≤UCᴿ[¼] idealᵒ`, `composed-security : realᵒ ≤UCᴿ[¼ + ¼] idealᵒ`, `half-security : realᵒ ≤UCᴿ[½] idealᵒ` |
 | same | `composed-simulator`, `composed-simulator-image`: the exported witness uses `simᵒ ∘ simᵒ`, whose raw image is `doubleSimulator` |
 | same | `security-condition : Constructs ½ realᵒ idealᵒ`; `no-small-construction` and `no-small-security`: for every rational `ε < ½`, no simulator establishes the corresponding construction or quantitative UC witness |
+| same | `first-full`, `second-full` at `(¼,¼)`; `composed-full` at `(½,½)`; `native-full : SecurelyConstructs ½ ½ passive passive realᵒ idealᵒ`; `no-small-full` for security error below `½` |
 
 Composition here is the transitive chain of **two imperfect construction steps**, using
 `Quantitative.≤UCᴿ[]-trans` (and hence the existing advantage/context-absorption triangle
@@ -654,8 +735,15 @@ ancilla closing contexts.  The simulator is fixed before the slack and the strat
 `Composition.{procᵒ-≈ᴿ[],unprocᵒ-∼ᴿ[],gradedᵒ-≈ᴿ[],ungradedᵒ-∼ᴿ[]}` preserve the same
 error across the seal; `Model.Seal.procᵒ-unprocᵒ` makes the smaller-bound rejection apply
 to arbitrary sealed simulators, not just raw images chosen by the example author.
-The UC leaf is registered in `CategoricalCrypto.agda`.  No family tier, query-budget
-transformation, availability result or full-Maurer-construction claim is made by this example.
+The UC leaf is registered in `CategoricalCrypto.agda`. No family tier, query-budget
+transformation, arbitrary cap, normalized termination, or general honest-protocol
+serial/parallel construction claim is made by this example.
+
+The parent checked the integrated Delivery and FaultFlag.UC closures with paired
+`-M6G -H1G`: all six changed source paths rebuilt within eight Checking modules,
+rc0, 49.70 s combined, no warnings. The isolated generic/native/Rewrite/consumer
+checks have an unchanged zero escape baseline and empty warning gate. These are
+attributed check results, not an uncontended performance measurement.
 
 ## 5. Hard parts and risks
 

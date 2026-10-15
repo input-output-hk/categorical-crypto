@@ -51,12 +51,60 @@ uses actual composed SSP resources/consumers, while an independently defined rec
 protocol proves native joint-product/schedule compatibility, not ordinary SSP-tensor compatibility.
 Computational consumers retain persistent output/state correlation and include acceptance 2/3.
 
-This is **not** a TaskPIOA→SSPᵈ `UCSetupMorphism`, U/UC preservation or reflection.
-A lawful open-wiring/graded compiler and natural test map, followed by the relevant
-target context/ancilla/grade/simulator coverage, remain unsupplied. Individual all-`Calls`
-adequacy does not turn source fixed-word rational-test equality into target contextual equality.
-The full operational and morphism boundary is recorded in
+This adapter is **not** a TaskPIOA→full-SSPᵈ `UCSetupMorphism`, U/UC preservation
+or reflection. A compiler and target coverage for **that unrestricted endpoint**
+are not supplied by individual all-`Calls` adequacy. The distinct scheduled native
+setup bridge below has its own actual carrier/test/ancillary justification.
+The complete boundary is recorded in
 [the native task section](uc-setup-causal-boxes.md#43-other-setups-asynchronous-models).
+
+The later checked
+[`TaskPIOA.AdaptiveFinite.padded⇔finite-calls`](../src/CategoricalCrypto/TaskPIOA/AdaptiveFinite.agda#L69)
+sharpens the finite test boundary: equality of every **padded** fixed-word law,
+retaining silence at each activation, is equivalent to equality of every finite
+native Tick `Calls` final-result law. Adaptive task selection, rational coins,
+early return and failure are included; private state is projected out, but
+outer final-result `nothing` is not dropped or renormalized. Reply-level `nothing`
+is instead successful silence. Its generic
+[`FiniteTesting`](../src/CategoricalCrypto/SSP/Dist/FiniteTesting.agda#L125)
+cylinder proof uses total finitely supported rational kernels, unit queries and
+decidable replies, not finite state or a global finite reply enumeration.
+The actual `resource` kernels and `runᵖ (D ∘ᵖ resource M)` consumer consequences
+are checked. Generic source marker contexts additionally give
+[all actual source tests→padded→adaptive/composed consumers](../src/CategoricalCrypto/TaskPIOA/Marker.agda#L171),
+for arbitrary signatures including inputs, **not the contextual converse**.
+Silence-erased bare-word equality alone is weaker: the
+[raw pulse pair](../src/CategoricalCrypto/TaskPIOA/AdaptiveTests.agda#L30)
+is separated by a fixed padded test and by an actual source marker context as
+well as an adaptive test. This is activation-timestamp information loss, not
+an adaptive-power or UC-nonreflection theorem.
+
+### 2.2 A distinct scheduled NativeSSP setup bridge, not full SSPdist transfer
+
+[`TaskPIOA.NativeSSP.Morphism.bridge`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Morphism.agda#L154)
+is a complete setup morphism from the actual TaskPIOA setup to **new**
+`TaskPIOA.NativeSSP.Setup.UC.StdSetup`. The target has independent finite
+owned `Coins` machines, a proved state/kernel-simulation quotient of native wiring,
+and scheduled tests evaluated by actual SSP `Protocol.step`/`Calls` execution.
+Constructive source backtranslation covers every native valuation, including
+noncanonical coin trees; natural `ν` and `ν-epi`, plus explicit total object/
+ancillary representations, justify generic **E/U/UC preservation**.
+These are not fields assuming the desired security conclusion.
+
+The independently defined
+[`Protocol.connector`/`installed`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Protocol.agda#L48)
+uses actual ordinary SSP tensor and composition for sender activation and
+prescribed receiver-input calls. `joint-square` covers every paired state and
+every boundary-input/left-task/right-task channel; actual composed scheduling,
+joint reply/state, and arbitrary closing-consumer implementation congruence follow.
+`installed-context` compares those two concrete implementations; it does not extend
+the setup's scheduled test class to all SSP consumers.
+The [actual Boolean runᵖ regressions](../src/CategoricalCrypto/TaskPIOA/NativeSSP/ProtocolTests.agda#L50)
+give `just true`/`just false` by schedule order, with composed broadcast,
+persistent correlation and non-dyadic receiver reward `2/3` also checked.
+This new endpoint is **not `SSP.Dist.Setup.StdSetup`**; no full SSPdist coverage,
+U/UC reflection, full native refinement equivalence, infinite/fair scheduler or
+PPT theorem is inferred.
 
 ## 3. Laws (`SSP/Dist/Laws.agda`)
 
@@ -143,10 +191,24 @@ comparison twice and the compiled-wire comparison on both sides. Rewrapping each
 bare-kernel component assembles **target categorical hom equality**. This does
 not assume that an arbitrary U-kernel is tensor-congruent.
 
-`preserves-≈ℰ`, `preserves-≈ᵁ` and `preserves-≤UC` have the exact `Transfer`
-types for `dist⇒PM[wb]`. U-preservation uses identity-on-objects coverage and
-bare-kernel preservation; security can also cross `dist≤⇒ssp≤` and the existing
-WB transfer, as the implementation does.
+`preserves-≈ℰ`, `preserves-≈ᵁ` and `preserves-≤UC` retain the exact `Transfer`
+types for `dist⇒PM[wb]`, now derived through the reusable structural coverage API.
+[`test-coverage`](../src/CategoricalCrypto/SSP/Dist/Compile.agda#L78)
+reuses [`SSP.Dense.Tests.test-coverage`](../src/CategoricalCrypto/SSP/Dense/Tests.agda#L476)
+on the identical test representatives. That witness is built directly from
+`tests-dense` for **arbitrary WB target arrows and input closures**, with the actual
+finite truncation/depth/call/positive-rational approximation arguments. It is not
+an old preservation theorem packaged as a field, nor an exact `ν.Epi` assertion.
+
+[`ancilla-coverage`](../src/CategoricalCrypto/SSP/Dist/Compile.agda#L82)
+represents every target `Iface` by the identical source object and reflexive
+isomorphism. Generic `covered-≈ℰ`, `covered-≈ᵁ` and `covered-≤UC` derive the
+three preservation statements without target `GradeStable`; the public UC proof
+no longer detours through `dist≤⇒ssp≤` and the old direct WB transfer.
+[`TestCoverage`](../src/CategoricalCrypto/UCSetup/Coverage.agda#L26) is
+target-action density of the existing `ν` image, and
+[`ContextRepresentation`](../src/CategoricalCrypto/Standard2/Coverage.agda#L54)
+contains an actual source object plus target isomorphism—not a desired U/UC conclusion.
 
 The checked triangle is the actual composite
 `ssp-via-dist = composeᵁ dist⇒PM[wb] SSPᵈ.ssp⇒dist` compared with
@@ -181,3 +243,13 @@ own OPTIONS): `SSP/Dist/Compile` passed with `+RTS -M6G -H1G -RTS` after a
 with `+RTS -M3G -H1G -RTS`. All three warning gates were empty. These are
 typechecking results, not uncontended performance measurements: the client
 runs reported Nix fetch/profile-lock contention.
+
+The structural-coverage migration was subsequently checked in its seven changed
+modules and genuine ITM/SSP consumers; the whole-source escape baseline did not
+grow and the warning gate was empty. At integrated source `f0d6ba39c`, the parent
+checked `Examples.ITM.Tests` and this actual `Examples.SSP.OneTimePad.WB` consumer
+with paired `-M6G -H1G`, rebuilding all seven changed modules and their affected
+dependencies (18 Checking lines), with no warnings. The observed combined 92.90 s
+run is attributed integration evidence, not an uncontended performance measurement.
+No PM[wb]→SSPdist U/UC reflection or unrestricted target-simulator backtranslation
+has been added.

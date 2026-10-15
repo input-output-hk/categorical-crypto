@@ -1,7 +1,9 @@
 # A UC setup of causal boxes
 
-Plan, 2026-10-09.  Nothing here was typechecked; every Agda block is a design.  Paper
-references are to `portmann2017` (arXiv v3) unless another bibkey is given.
+Original causal-box plan, 2026-10-09: its causal-box Agda blocks remain untypechecked
+designs. The explicitly marked native TaskPIOA results in §4.3 are later checked
+implementations, not causal-box theorems. Paper references are to `portmann2017`
+(arXiv v3) unless another bibkey is given.
 
 ## 1. Summary
 
@@ -488,17 +490,123 @@ is not an alias for interpreting the already-evaluated source product.
 pin order-sensitive acceptance to 1 versus 0, disabled continuation to 1, persistent
 output/state correlation, and non-dyadic acceptance to 2/3.
 
-This remains **operational**, not a full setup morphism or a U/UC transfer.
-A lawful compiler on all open wiring objects and `install`/`connect` generators,
-a well-defined natural map of native test presheaves, and target test/game/ancilla,
-grade and simulator coverage are not supplied by those run squares.
-Arbitrary signed rational rewards cannot simply be treated as Boolean probabilities.
-The all-`Calls` theorem for a fixed automaton does not prove that source fixed-word
-observation equality survives every target context.
+**Checked fixed/adaptive observation boundary.**
+[`TaskPIOA.AdaptiveFinite.padded⇔finite-calls`](../src/CategoricalCrypto/TaskPIOA/AdaptiveFinite.agda#L69)
+equates equality of **every fixed finite padded-word law** with equality of
+**every finite native Tick `Calls` final-result law**, for arbitrary same-signature
+automata, initial states and result sets. A padded word retains one
+`Maybe(Output)` per activation, including hidden/disabled silence.
+Adaptive task selection, rational coins, early return and `dead` are included;
+private state is projected out but `nothing` failure remains observable.
+Reply `nothing` is successful silence, distinct from outer final-result `nothing`
+for failure.
+The independent generic
+[`SSP.Dist.FiniteTesting`](../src/CategoricalCrypto/SSP/Dist/FiniteTesting.agda#L125)
+proof uses weighted residual cylinders, decidable replies and total finitely
+supported rational kernels at uniform unit-query interfaces. It assumes neither
+a finite state space/global finite reply enumeration nor an all-calls conclusion
+or bisimulation as a premise, and never renormalizes conditional submass.
+`resource-result-agreement` and `padded-implies-consumers` use actual resource
+kernels and `runᵖ (D ∘ᵖ resource M)`, not copied source distributions.
 
-This supplies a setup node and a scheduled operational connection, not a
-`UCSetupMorphism` to SSPᵈ, PM, causal boxes, or another model; no U/UC preservation
-or reflection is asserted for the adapter.
+The generic
+[`Marker.source-tests-imply-padded`](../src/CategoricalCrypto/TaskPIOA/Marker.agda#L171)
+constructs an actual source marker environment for arbitrary signatures, including
+inputs, to recover padded replies from closing trace rewards.
+Thus equality under **all actual source `Setup.Test` contexts** implies every
+finite adaptive Tick result law and every actual task-consumer protocol readout
+(`source-tests-imply-adaptive`, `source-tests-imply-consumers`).
+This implication is one-way; only padded words↔finite Tick Calls is an iff.
+No converse to all source contexts, full boundary-input-plus-task interface
+theorem, or SSPdist UC coverage result is supplied by this comparison.
+
+The separate [raw pulse pair](../src/CategoricalCrypto/TaskPIOA/Adaptive.agda#L82)
+has equal silence-erased trace laws for **all** fixed words/rewards but different
+native readouts: adaptive acceptance `½` versus `0`, and already fixed padded
+acceptance `1` versus `0`. An
+[actual source marker test](../src/CategoricalCrypto/TaskPIOA/AdaptiveTests.agda#L87)
+also gives `1` versus `0`. This separates **activation-timestamp information**,
+not feedback alone or full source contextual equivalence; it is not a UC
+nonreflection counterexample. The positive
+[finite adaptive consumer](../src/CategoricalCrypto/TaskPIOA/AdaptiveFiniteTests.agda#L55)
+uses nonidentical Bool/Bool×Unit state representations with independently proved
+padded agreement. Its two reply-dependent next-task branches are each reachable
+with probability `½`, its actual composed consumer has true probability `½`,
+and a fair coin selecting `dead` retains failure probability `½`.
+
+The adapter and finite Tick comparison do not give a morphism into **full
+`SSP.Dist.Setup.StdSetup`**. Individual all-`Calls` adequacy does not cover every
+SSP protocol, test, ancillary grade or simulator, and arbitrary signed rational
+rewards are not automatically Boolean probabilities.
+
+**Justified setup bridge to a distinct scheduled NativeSSP endpoint.**
+The checked
+[`TaskPIOA.NativeSSP.Morphism.bridge`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Morphism.agda#L154)
+has source `TaskPIOA.Setup.UC.StdSetup` and target **new**
+[`TaskPIOA.NativeSSP.Setup.UC.StdSetup`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Setup.agda#L166),
+not full SSPdist. Its
+[`Core.Machine`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Core.agda#L29)
+has independent finite memory, SSP `Coins` boundary-input/local-transition
+computations and deterministic owned-action selection. `protocol` exposes input
+and task channels separately; disabled tasks successfully stutter, hidden actions
+update state silently, and output/state are joint.
+`Product.connect` independently performs public input delivery and prescribed
+cross-receives, retaining ownership and a joint ordered schedule.
+
+The actual
+[`Protocol.connector`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Protocol.agda#L48)
+issues sender activations and receiver-input `Calls`.
+`installed` uses ordinary SSP tensor, actual protocol composition and the correctly
+oriented empty-interface unitor: tensor supplies slots, the connector synchronizes.
+[`joint-square`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Protocol.agda#L303)
+compares its whole successor-state/reply law with `protocol (connect …)` at
+**every paired state and every input/left-task/right-task channel**, using explicit
+state embedding. Right-sender sampling uses `coins-comm` only after deterministic
+output selection, not a false structural tree equality or premature independence.
+Actual scheduled `Protocol.step` execution agrees with native traces;
+`installed-sampling`/`installed-context` additionally derive arbitrary SSP closing-
+consumer congruence for those **two concrete implementations**. That theorem does
+not enlarge the setup's scheduled test presheaf.
+
+The native
+[`Setup.Related`/`quotient-laws`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Setup.agda#L60)
+prove pointwise bidirectional state/kernel-simulation congruence for composition,
+open wiring and tensor before using it as the native quotient's hom equality.
+Target `Test`/`evaluate` execute actual `evalC (execution …)` with rational trace
+rewards, not source evaluation. The compiler is lawful strong monoidal and
+identity on signature terms.
+[`sampleMachine`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Core.agda#L78)
+constructively interprets arbitrary native coin trees into a genuine source
+automaton, retaining ownership metadata; context/value/test backtranslations
+handle **every native valuation**, including noncanonical installed trees.
+The compile/sample evaluation squares justify natural `ν` and constructive `ν-epi`.
+[`Security`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Security.agda#L20)
+uses that actual test coverage and explicit identity object isomorphisms for total
+ancillary coverage. Generic structural coverage derives E/U/UC preservation;
+`simulator-square` identifies the mapped grade action. No preservation conclusion
+is a coverage field and no reflection theorem is claimed.
+
+The [native suite](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Tests.agda#L100)
+exercises noncanonical test coverage, masked-output U/UC transfer (closing reward
+`½`), and a genuinely nonidentity installation simulator with observed reward `1`
+and source/native consumer correspondence. Actual
+[`runᵖ` Boolean consumers](../src/CategoricalCrypto/TaskPIOA/NativeSSP/ProtocolTests.agda#L50)
+return `just true` versus `just false` for send-before-read/read-before-send.
+Actual composed executions also compute public broadcast `1`, right-sender
+persistent correlation `1` and non-dyadic receiver reward `2/3`; disabled stutter,
+native delivery/order and joint correlation consumers remain.
+This is a fully justified bridge to the **specified scheduled native endpoint**,
+not to arbitrary SSPdist/PM/causal-box contexts, full native refinement equivalence,
+PPT/negligible security, infinite traces or fair infinite schedulers.
+
+The parent checked `TaskPIOA.AdaptiveFiniteTests`, `MarkerTests` and
+`NativeSSP.Tests` with paired `-M3G -H1G`, followed by the complete integrated
+`CategoricalCrypto.agda` root at paired `-M8G -H1G`: final accepted run rc0,
+35 Checking lines including all 17 new Task modules and affected root importers,
+90.26 s combined, no warnings. Host-backed TMPDIR addressed storage only; an
+earlier pre-Agda ENOSPC attempt is not counted as success. Isolated warning gates
+were empty and escape baselines stayed zero. This is attributed integration
+evidence, not an uncontended performance measurement.
 
 ### 4.4 Morphisms that exist (all inside causal boxes)
 

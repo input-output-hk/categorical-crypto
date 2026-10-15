@@ -314,24 +314,32 @@ itm⇒prot = StdUCMorphism 𝕋ᴹ 𝔾ᵒ ℰᵀ ℰᵒ Fᴾ (pullbackᵛ (Stro
 
 Reused: `StdUCMorphism`, `pullbackᵛ`, `Categories.FreeMonoidal` (`freeFunctor`, `⟦⟧-resp-≈`), `iterₚ`,
 `coinₚ`, `initˢ`, `procᵒ`, `⊗ᵒ`. New: `freeStrongMonoidal` (shared), `runᴾ`, `F₀≡`, `leafᵒ`, `unitᵒ`.
-`ITM.Transfer` supplies the contextual argument independently of generic
-`Transfer.transfer`: `dualPorts` exchanges port polarities without changing the
-tensor tree, and `image-dual` identifies its interpreted object with the PM dual
-of the interpreted domain. The source contextual component at that one ancilla
-crosses `≈ℰ⇔`; `Standard2.Morphism.at-image` removes the compiler comparisons,
-and cancelling the associator gives the premise of
-`FullAbstraction.T₁-≈ℰ⇒∼ᴿ`. Behavioral equality implies PM contextual equality,
-so `preserves-≈ᵁ` covers **every** target ancilla without claiming that all PM
-objects are in the compiler image. `reflects-≈ᵁ` evaluates at image ancillas,
-removes the comparisons, and crosses the monic pulled-back test map.
+The checked structural-coverage extraction now factors this actual compiler
+through [`UCSetup.Coverage`](../src/CategoricalCrypto/UCSetup/Coverage.agda#L26)
+and [`Standard2.Coverage`](../src/CategoricalCrypto/Standard2/Coverage.agda#L54).
+`ITM.Transfer.test-coverage` uses the real `νᵀ-epi`, not an old U/UC theorem
+stored as coverage data. `dualPorts` exchanges port polarities without changing
+the tensor tree; `dual-context A` contains that **source object** and the actual
+`image-dual-iso A : F(dualPorts A) ≅ dualᵒ(F A)`.
+Generic `covered-context` transports the one represented source U-component.
+The independent target-only
+[`UC.Model.Coverage.dual-prefix⇒≈ᵁ`](../src/CategoricalCrypto/UC/Model/Coverage.agda#L11)
+then derives U-agreement for arbitrary PM computations by the existing cup/
+full-abstraction theorem. This is a **partial image-dual basis**, not total
+representation of arbitrary PM ancillas. `reflects-≈ᵁ` uses the generic
+test-injectivity theorem with the real `νᵀ-mono`, cancelling strong image-prefix
+comparisons. The public preservation/reflection contracts are unchanged.
 
 `preserves-≤UC` applies `Transfer.transfer⁺` to this contextual theorem, including
 the actual protocol action `G f = κ ∘ F₁ f`. PM `GradeStable` is not assumed:
 `UC.RandomSystems.FullAbstraction.¬gradeStableᵒ` refutes it.
-`reflects-≤UC-witness` accepts a target dummy simulator `s′`, its contextual
-witness, and an explicitly supplied source grade morphism `s` with
-`F₁ s ≈ᴿ s′`. Behavioral tensor/composition congruence replaces the simulator,
-and contextual reflection yields the source dummy witness.
+[`reflects-≤UC-witness`](../src/CategoricalCrypto/ITM/Transfer.agda#L72)
+accepts a target dummy simulator `s′`, its contextual witness, and an explicitly
+supplied source grade morphism `s` with `F₁ s ≈ᴿ s′`.
+`simulator-representation` derives generic `SimulatorRepresentation s′ s` from
+that behavioral lift: their substitutions have the same E-action on arbitrary
+target computations and prefixes, independently of the desired source conclusion.
+The generic conditional-reflection theorem then yields the source dummy witness.
 `reflects-≤UC-image-witness` is the convenient case with an image simulator.
 Neither result asserts unrestricted simulator fullness/backtranslation.
 The observation is still the perfect, unrestricted PM test pullback, not

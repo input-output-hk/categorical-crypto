@@ -433,6 +433,22 @@ client transports deferred sampling as target categorical equality and consumes
 the distributional setup's security theorem; see
 [uc-setup-ssp-dist.md §6](uc-setup-ssp-dist.md#6-descending-the-compiler-to-pmwb-sspdistcompileagda).
 
+**Checked structural-coverage extraction (2026-10-15).**
+[`SSP.Dense.Tests.test-coverage`](../src/CategoricalCrypto/SSP/Dense/Tests.agda#L476)
+now constructs target-action density of the existing `νᵂ` image directly from
+`tests-dense` for arbitrary WB target arrows and input closures. It spends the
+actual finite truncation/depth/call/positive-rational approximation arguments,
+not an already-proved E/U/UC result. Generic
+[`covered-≈ℰ`](../src/CategoricalCrypto/UCSetup/Coverage.agda#L36)
+derives direct SSP bare-kernel preservation from this data and naturality.
+The descended compiler reuses this same density on identical tests and gives total
+[`AncillaCoverage`](../src/CategoricalCrypto/SSP/Dist/Compile.agda#L82)
+by the identical source/target `Iface` and reflexive target isomorphism.
+Its E/U/UC proofs now use the derived coverage API; the UC proof no longer detours
+through source quotient reflection. The actual compiler triangle and meaningful
+OTP categorical/security consumers retain their public statements.
+Neither target `GradeStable`, exact SSP test epi nor full SSP reflection is added.
+
 | obligation | status | needs |
 |---|---|---|
 | `F-resp-≈` | true | `morphism-resp` → `≈ᴹ` → `∼` (`≈⇒∼`) |

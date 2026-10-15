@@ -2634,3 +2634,92 @@ and closure, and a nonidentity simulator retained by transfer. Its
 [inverse-linear control](../src/CategoricalCrypto/UC/Family/Negligible/Tests.agda#L209)
 separates scalar vanishing from negligibility only. No endpoint UC-nonreflection,
 reverse promotion of vanishing to negligibility, or PPT correspondence is claimed.
+
+## 18. Generic designated-cap security and availability (2026-10-15)
+
+The earlier dated API inventories remain historical. The checked
+[`UC.Quantitative.Availability.Designated`](../src/CategoricalCrypto/UC/Quantitative/Availability.agda#L23)
+adds a short construction over **any existing `QUCSetup` and its ordered error
+algebra**, reusing `Witness`, `At`, `ctx-trans`, `ctx-sub` and `QBridge`.
+For fixed grade caps `a : X ⇒ I`, `b : Y ⇒ I`:
+
+```text
+close a f = sub a ∘ f : A ⇒ T₀ I B
+Availability εa a b f g = close a f ≈ᵁ[εa] close b g
+SecureAvailable εs εa a b f g
+  security     : Witness εs f g
+  availability : Availability εa a b f g
+```
+
+Both capped protocols have unit grade. No tensor on computations, isomorphism
+`T₀ I B ≅ B`, or cap for every grade is required. The security simulator precedes
+all tests; availability compares **the supplied caps**, without another simulator
+existential. Its public rules retain the error algebra's actual strength:
+
+| API | Premise and exact result |
+|---|---|
+| [`mode-preserving`](../src/CategoricalCrypto/UC/Quantitative/Availability.agda#L56) / `secure-mode-preserving` | For `s : Y ⇒ X`, the directed law `a ∘ s ≈ b` and `At s ε f g` give availability `ε`, respectively full `(ε,ε)`. |
+| [`availability-trans`](../src/CategoricalCrypto/UC/Quantitative/Availability.agda#L68) / `secure-trans` | A common middle cap gives independent security `εs ⊕ δs` and availability `εa ⊕ δa`. |
+| [`secure-trans-cap`](../src/CategoricalCrypto/UC/Quantitative/Availability.agda#L90) | Hom-equal middle caps cost no additional error. |
+| [`secure-trans-bridge`](../src/CategoricalCrypto/UC/Quantitative/Availability.agda#L75) | For different `b₁,b₂`, requires actual `close b₁ g ≈ᵁ[κ] close b₂ g`; result security `εs ⊕ δs`, availability **`((εa ⊕ κ) ⊕ δa)`**. |
+| [`zero-availability`](../src/CategoricalCrypto/UC/Quantitative/Availability.agda#L98) / `zero-secure` | Existing `QBridge` over `underlying₀` identifies zero availability/full construction with ordinary capped U-agreement plus UC security. |
+
+**No associativity or commutativity is assumed.** The three-step bridge formula's
+parentheses and order cannot be dropped. These are replacement-transitivity rules
+at one honest boundary, not the distinct availability-qualified honest-protocol
+composition theorem. Existing security-only `at-compose` still costs `εu ⊕ εf`.
+
+### 18.1 Actual native RS equivalence and measured PM→QRS transport
+
+[`UC.RandomSystems.Availability.QAvailabilityᴿ`](../src/CategoricalCrypto/UC/RandomSystems/Availability.agda#L33)
+is the actual QRS instance.
+[`Availability⇔AvailableWithin`](../src/CategoricalCrypto/UC/RandomSystems/Availability.agda#L99)
+uses quantitative QRS full abstraction and nonexpansive transport in **both
+directions** through the invertible standard left unitor, since
+`no-adversary a f = unitorˡ.from ∘ close a f`.
+`SecureAvailable⇔SecurelyConstructs` and `SecureConstruction⇔SecureAvailable₀`
+retain the same supplied caps, boundary and independent errors. Existing native
+factor/replacement signatures remain, with proofs using the generic package.
+
+The separate
+[`UC.RandomSystems.Availability.Rewrite`](../src/CategoricalCrypto/UC/RandomSystems/Availability/Rewrite.agda#L23)
+provides the PM instance `QAvailabilityᵒ`, `rewrite-availability` and
+`rewrite-secure-available`. These use the **actual measured PM→QRS bridge and cap
+interpretation square**, not a generic quantitative guarantee from the qualitative
+`UCSetupMorphism`.
+
+### 18.2 Nontrivial consumers and controls
+
+* [`Examples.RandomSystems.Availability`](../src/CategoricalCrypto/Examples/RandomSystems/Availability.agda#L254)
+  transports the PM bit-flipping construction and composes it twice. Incompatible
+  perfect false/true middle-mode edges have no zero bridge or zero-error conclusion.
+  Actual `one-mode-bridge` spends `κ = 1`; `independent-budgets` gives security
+  error **0** and availability error **1**. False/true observation refutes zero,
+  so this is not inflation of reflexive exact agreement.
+* [`Examples.RandomSystems.Delivery`](../src/CategoricalCrypto/Examples/RandomSystems/Delivery.agda#L66)
+  defines literal `alwaysDrop` by requested step `botₚ`, not a false reply.
+  `drop-run` computes no reply and `drop-security` is perfect, but
+  `drop-not-available` rejects designated true-reply availability.
+  `reliable-composition` consumes generic composed availability; `reliable-reply`
+  computes a real native true response using concrete double-flip wiring equality
+  and run congruence. It does **not** reflect behavioral all-positive equality
+  into raw `Dₚ` equality.
+* [`Examples.FaultFlag.UC`](../src/CategoricalCrypto/Examples/FaultFlag/UC.agda#L150)
+  proves that the actual nonidentity version-tag simulator preserves a passive cap.
+  `first-full` and `second-full` retain genuine `(¼,¼)` errors, `composed-full`
+  gives `(½,½)`, `native-full` consumes the native equivalence, and
+  `no-small-full` retains the strict smaller-security-error obstruction.
+  HashForward remains security-only.
+
+Designated-mode availability is not arbitrary-adversary liveness, fairness,
+deadlines, eventual delivery, normalized termination or feasibility. No arbitrary
+quantitative compiler theorem or availability-qualified serial/parallel
+honest-protocol construction theorem is inferred.
+
+The isolated six-path slice passed its generic/native/Rewrite/FaultFlag/Delivery
+and affected consumer closures, with an empty warning gate and unchanged zero
+escape baseline. The parent then checked integrated
+`Examples.RandomSystems.Delivery` and `Examples.FaultFlag.UC` with paired
+`-M6G -H1G`: eight modules rebuilt, including all six changed paths, rc0,
+49.70 s combined, no warnings. This is attributed integration evidence, not an
+uncontended performance measurement.
