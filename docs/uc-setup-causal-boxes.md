@@ -463,7 +463,42 @@ and task words. There is no PPT, approximate/negligible, infinite-execution, or 
   run, and `native-probabilistic-plugging` evaluates the actual installed resource through
   the native closing test to probability 1/2.
 
-This supplies a setup node, not a UCSetupMorphism to PM, causal boxes, or another model.
+**Checked scheduled SSPᵈ operational adapter (2026-10-15).**
+[`TaskPIOA.SSPAdapter`](../src/CategoricalCrypto/TaskPIOA/SSPAdapter.agda#L47)
+supplies an actual SSP protocol at a tick interface with native task channels,
+unit queries and `Maybe(Output)` replies. The exact
+[`rationalCoins`](../src/CategoricalCrypto/SSP/Dist/Sampling.agda#L102) compiler
+handles every finite rational distribution, including non-dyadic probabilities.
+It preserves the **joint** successor-state/reply law; disabled tasks return
+successful stutter, not partial failure. General
+[`run-agreement`/`reward-agreement`](../src/CategoricalCrypto/TaskPIOA/SSPAdapter.agda#L183)
+preserve finite-word trace laws and arbitrary rational trace rewards from every
+initial state. [`experiment-agreement`](../src/CategoricalCrypto/TaskPIOA/SSPAdapter.agda#L262)
+uses actual SSP consumer composition, and
+[`all-calls-agreement`](../src/CategoricalCrypto/TaskPIOA/SSPAdapter.agda#L150)
+reuses `Samples`/`sample-⟦⟧` for every finite adaptive/partial tick call tree.
+The source scheduler nevertheless remains a precommitted finite word.
+
+The independently defined
+[`Synchronized`](../src/CategoricalCrypto/TaskPIOA/SSPAdapter.agda#L275) target
+protocol includes receiver-input updates and preserves one joint tagged word.
+Its general step/tree/schedule compatibility is **not ordinary SSP tensor** and
+is not an alias for interpreting the already-evaluated source product.
+[Computational consumers](../src/CategoricalCrypto/TaskPIOA/SSPAdapterTests.agda#L149)
+pin order-sensitive acceptance to 1 versus 0, disabled continuation to 1, persistent
+output/state correlation, and non-dyadic acceptance to 2/3.
+
+This remains **operational**, not a full setup morphism or a U/UC transfer.
+A lawful compiler on all open wiring objects and `install`/`connect` generators,
+a well-defined natural map of native test presheaves, and target test/game/ancilla,
+grade and simulator coverage are not supplied by those run squares.
+Arbitrary signed rational rewards cannot simply be treated as Boolean probabilities.
+The all-`Calls` theorem for a fixed automaton does not prove that source fixed-word
+observation equality survives every target context.
+
+This supplies a setup node and a scheduled operational connection, not a
+`UCSetupMorphism` to SSPᵈ, PM, causal boxes, or another model; no U/UC preservation
+or reflection is asserted for the adapter.
 
 ### 4.4 Morphisms that exist (all inside causal boxes)
 

@@ -67,6 +67,7 @@
 #let CB = $sans("CB")$
 #let TaskPIOA = $sans("TaskPIOA")$
 #let CSP = $sans("CSP")$
+#let CSPtrace = $sans("CSP")_sans("tr")$
 #let Sym = $sans("Sym")$
 #let Symiso = $sans("Sym")_≅$
 #let Symcert = $sans("Sym")_≅^sans("c")$
@@ -90,6 +91,9 @@
 #let mres = $sans("res")$
 #let mgr = $sans("gr")$
 #let mcomp = $sans("comp")$
+#let merase = $sans("erase")$
+#let mvan = $sans("van")$
+#let mtrace = $sans("tr")$
 #let miota = $iota$
 
 // Relations and operators
@@ -118,7 +122,7 @@
   #v(1pt)
   #text(size: 12.5pt)[Setups, the morphisms between them, and the major theorems]
   #v(3pt)
-  Branch `uc-setup-landscape`, 14 October 2026
+  Branch `uc-setup-landscape`, 15 October 2026
 ]
 
 #v(6pt)
@@ -147,15 +151,19 @@ probabilistic ITM security clients, relational initialization/finite-trace consu
 conservative environment-selected symbolic transmission/decryption construction.
 The finite IPDL API/linker, native #TaskPIOA setup, general ITM-to-PM preservation and
 descended SSPᵈ-to-PM[wb] triangle were checked at `9f9be2a89`. CSP source `3c3e3caf7`
-now adds lawful typed networks, native observations, fragment correspondences and a
-quantified UC client. The current integrated root is `b535ea092`. Historical proof
-boundaries remain in the review dispositions. The explicitly proposed cross-model
-bridges remain obligations; no computational cryptographic soundness or full
+adds lawful typed networks, native observations, fragment correspondences and a
+quantified UC client, registered at root `b535ea092`. Subsequent checked additions include
+local-negligible-to-vanishing refinement, full-to-trace CSP observation, and
+certified-to-ordinary symbolic erasure, plus the scheduled #TaskPIOA → #SSPd operational adapter.
+All four additions and their dedicated consumers, followed by the integrated root closure,
+were checked on 15 October with an empty warning gate and no new escape hatches.
+Historical proof boundaries remain in the review dispositions. The explicitly proposed
+cross-model bridges remain obligations; no computational cryptographic soundness or full
 native-model equivalence is inferred from these results.
 
 #{
   set text(size: 8.7pt)
-  set par(leading: 0.3em)
+  set par(leading: 0.15em)
   outline(depth: 2, indent: auto)
 }
 
@@ -323,8 +331,9 @@ premise. The refinement below and the explicit construction theorem of @sec:rs g
 
 #theorem(name: [refinement of the observation])[
 Let $cal(E)'$ be a second test presheaf on the same $cal(C)$ with $eqE ⊆ scripts(≈)_(cal(E)')$. Then
-$eqU ⊆ scripts(≈)^upright(U)'$ and $leUC ⊆ scripts(≤)'_"UC"$, with the same simulators. No epi, mono or
-grade-stability hypothesis is spent.
+$eqU ⊆ scripts(≈)^upright(U)'$ and $leUC ⊆ scripts(≤)'_"UC"$. The generic proof retains the
+source dummy simulator; pointwise transfer can retain each supplied adversary's simulator.
+No epi, mono or grade-stability hypothesis is spent.
 #srcs(cc("Abstract2/Morphism.agda", 125, "Refine"), cc("Abstract2/Morphism.agda", 139, "≈ᵁ-refine"), cc("Abstract2/Morphism.agda", 142, "≤UC-refine"))
 ] <thm:refine>
 
@@ -463,7 +472,7 @@ the grade category without restricting computations. #design rows are planned, n
     [free circuits whose generators carry direct positive-rate query certificates for their actual parameterized runtime; coherence equality],
     [syntactic tests of certified circuits],
     [query-admissible interpretation, not a PPT or crypto-security theorem],
-    [#formal #cc("Symbolic/Computational.agda", 143, "Sym≅ᶜ"), #cc("Symbolic/Computational.agda", 214, "fine→comp"); @sec:symbolic-interpretations],
+    [#formal #cc("Symbolic/Computational.agda", 143, "Sym≅ᶜ"), #cc("Symbolic/Computational.agda", 214, "fine→comp"), #cc("Symbolic/Erasure.agda", 65, "certified→fine"); @sec:symbolic-interpretations],
     [#Iso \ relational machines], [channels $(sans("in"), sans("out"))$ of sets; $+$, grade on the right],
     [relations $S × sans("In") × (sans("Out") + 1) × S$ without initial state; composition by ping-pong; $isoM$: step-preserving bijection of state sets],
     [pairs $(Y, E : A ⊗ Y → Ω)$ of an ancilla and an environment, up to $isoM$],
@@ -509,6 +518,10 @@ the grade category without restricting computations. #design rows are planned, n
     [consumers $A → Ω$, equal on all resources $I → A$ by raw trace/stable-failure/exact-trace-divergence observations],
     [typed-network CSP; not native refinement identified with UC],
     [#formal #cc("CSP/Monoidal.agda", 94, "OpenCSPᴹ"), #cc("CSP/Testing.agda", 25, "ℰᶜˢᵖ"), #cc("CSP/Setup.agda", 13, "StdSetup"); @sec:csp-island],
+    [#CSPtrace \ trace-observed networks], [as #CSP], [as #CSP],
+    [the same consumers and resource closures, equal only on finite visible-trace predicates],
+    [information-forgetting observation of the same typed networks, not native trace refinement equated with UC],
+    [#formal #cc("CSP/Trace/Setup.agda", 14, "StdSetup"), #cc("CSP/Trace/Morphism.agda", 45, "fullCSP→traceCSP"); @prop:csp-trace],
     [$sans("RSIM")$], [typed service/clock ports with ownership; proposed disjoint union],
     [open buffered collections with default scheduling; gluing/identity laws unproved],
     [native honest views; test correspondence unproved],
@@ -518,7 +531,7 @@ the grade category without restricting computations. #design rows are planned, n
     [free non-symmetric monoidal installation and compatible-product wiring contexts; free monoidal congruence],
     [closing wiring context, fixed finite task word and rational trace reward; equality on every native resource assignment],
     [finite exact native task schedules @canetti2006taskpioa],
-    [#formal #cc("TaskPIOA/Setup.agda", 53, "Wiringᴹ"), #cc("TaskPIOA/Setup.agda", 86, "ℰ-native"), #cc("TaskPIOA/Setup.agda", 95, "UC.StdSetup"); @sec:task-island],
+    [#formal #cc("TaskPIOA/Setup.agda", 95, "UC.StdSetup"); native adapter: #cc("TaskPIOA/SSPAdapter.agda", 262, "experiment-agreement"); @sec:task-island],
     [#NDA, #NDB \ nondeterministic choice], [#PM's (or #SSP's) objects; grades $X ⊗ C_(S_1) ⊗ dots.c ⊗ C_(S_n)$ with choice factors $C_S = (1, S)$],
     [#PM's morphisms; grade morphisms: all of them between such grades (#NDB), or $u ⊗ ρ$ with $ρ$ a relabelling of choice factors (#NDA)],
     [the ambient tests],
@@ -1407,12 +1420,33 @@ $μ apx^ω_ε ν$ iff $μ_n apx_ε ν_n$ for all large $n$.
 #srcs(cc("UC/Family.agda", 161, "_≈ℰ[_]_"), cc("UC/Family.agda", 188, "absorb"), cc("UC/Family.agda", 223, "absorb-negl"), cc("UC/Family.agda", 233, "_≈ℰⁿ_"), cc("UC/Family.agda", 249, "≈ℰⁿ⇒≈ᵁ"), cc("UC/Family/Negligible/Setup.agda", 60, "≈ℰⁿ⇒≤UC"), cc("UC/Family/Negligible/Setup.agda", 71, "shared-computational"), cc("UC/Family/Quantitative.agda", 97, "≈ᵁ^ω⇔≈ᵁ₊"), cc("UC/Family/Quantitative.agda", 103, "≤UC^ω⇒≤UC₊"), cc("UC/Family/Quantitative.agda", 108, "≤UC₊⇒≤UC^ω"), cc("UC/Family/Negligible/Quantitative.agda", 83, "uniform⇒local"), cc("UC/Family/Negligible/Quantitative.agda", 101, "≤UCˢ⇒≤UCᴺ"), cc("UC/Family/Negligible/Quantitative.agda", 108, "uniform-witness⇒≤UCᴺ"))
 ] <thm:tiers>
 
+#proposition(name: [local negligibility refines vanishing])[
+The checked change of kernel $mvan : PMN → PMom$ is the identity on computational
+data: $F = Φ = "Id"$, $κ = opid$, and the native consumer representatives are unchanged.
+For each closure, its already-chosen witness $(δ, "Negligible"(δ), "bound")$ supplies
+convergence of that same $δ$, hence the target observation equality. The witness stays
+inside the closure/test/ancilla context: no global bound is selected and no quantifier moves.
+It preserves $eqE$, $eqU$ and $leUC$ on the original protocol arrows, without grade stability
+or epi/mono assumptions. The exported UC map acts on the actual witness function:
+if the source proof sends adversary $a$ to $(s_a,h_a)$, its image sends $a$ to
+$(s_a,h'_a)$. Equality of these simulator projections is proved by `refl`.
+#srcs(cc("UC/Family/Negligible/Vanishing.agda", 58, "observationsᴺ⇒observationsω"), cc("UC/Family/Negligible/Vanishing.agda", 64, "νᴺω"), cc("UC/Family/Negligible/Vanishing.agda", 70, "negligible⇒vanishing"), cc("UC/Family/Negligible/Vanishing.agda", 77, "≈ℰᴺ⇒≈ℰω"), cc("UC/Family/Negligible/Vanishing.agda", 85, "≈ᵁᴺ⇒≈ᵁω"), cc("UC/Family/Negligible/Vanishing.agda", 88, "≤UCᴺ⇒≤UCω"), cc("UC/Family/Negligible/Vanishing.agda", 94, "same-simulator"))
+] <prop:negligible-vanishing>
+
+*Native consumer.* An additive-offset family model reads offset $k$ as $2^(-k)$.
+Real offset $n+2$ and ideal offset $n$, with a nonidentity simulator adding one, have
+different concrete readouts but locally negligible discrepancy. Both the test and closure
+can change the selected negligible witness. The public refinement transfers their actual
+U/UC proofs and retains the original simulator at every adversary.
+#srcs(cc("UC/Family/Negligible/Tests.agda", 105, "real"), cc("UC/Family/Negligible/Tests.agda", 115, "local-error"), cc("UC/Family/Negligible/Tests.agda", 143, "real≈simulatedᴺ"), cc("UC/Family/Negligible/Tests.agda", 153, "real≤idealω"), cc("UC/Family/Negligible/Tests.agda", 156, "same-native-simulator"), cc("UC/Family/Negligible/Tests.agda", 166, "simulator-not-identity"), cc("UC/Family/Negligible/Tests.agda", 180, "context-witnesses-differ"), cc("UC/Family/Negligible/Tests.agda", 187, "closure-witnesses-differ"))
+
 Both tiers inherit the abstract composition theorem of @thm:metatheory. Identifying #PMN with
 computational UC (@canetti2001) still needs a concrete feasibility/attacker correspondence:
-query-rate certificates alone are not PPT bounds. The relation $eqU$ of #PMom is too weak to carry a property whose
-error must stay negligible (a bad event of probability $1/(n+1)$ vanishes); #PMN keeps the witness. A
-family tier over #RS would now be possible — $𝔾^R$ has the quantitative readout of #QRS — but needs a
-resource grading on $𝔾^R$, which is not built.
+query-rate certificates alone are not PPT bounds. The scalar sequence $1/(n+1)$ vanishes but
+is not negligible; the checked consumer records this decay-class separation, not a
+UC-nonreflection counterexample for $mvan$. A family tier over #RS would now be possible —
+$𝔾^R$ has the quantitative readout of #QRS — but needs a resource grading on $𝔾^R$, which is not built.
+#srcs(cc("UC/Family/Negligible/Tests.agda", 210, "scalar-vanishes"), cc("UC/Family/Negligible/Tests.agda", 213, "scalar-not-negligible"))
 
 == #NDA and #NDB: nondeterministic choice <sec:nd>
 
@@ -1522,11 +1556,12 @@ discipline; it is not an equality with the separate on-demand #PM choice combina
 
 The finite IPDL API interpreter and its concrete linker witnesses are checked operational
 results, not an IPDL setup morphism. #TaskPIOA is an actual finite exact native setup with
-its own tests and a qualified UC-to-contextual theorem. #CSP is an actual typed-network
-setup with native observations and a quantified UC client; finite interfaces/networks
-can carry infinite guarded behavior and arbitrary internal branching. The open IPDL, causal-box and RSIM
-setups and proposed cross-model bridges remain #design. “Island” means no supplied bridge,
-not a classification or impossibility theorem for all morphisms.
+its own tests, a qualified UC-to-contextual theorem and a checked scheduled operational
+adapter to #SSPd. #CSP is an actual typed-network setup with native observations, a
+quantified UC client and a separate trace-observed setup linked by a proved refinement.
+Finite CSP interfaces/networks can carry infinite guarded behavior and arbitrary internal branching.
+The open IPDL, causal-box and RSIM setups and remaining cross-model bridges are #design.
+“Island” means no supplied cross-setup bridge, not a classification or impossibility theorem.
 
 Three deliverables must be separated. An _operational interpretation_ proves agreement with a
 specified driver. A _setup morphism_ additionally provides $F, Φ, κ, ν$ and all laws of
@@ -1750,6 +1785,51 @@ deduplication, and two joint words with equal component projections but differen
 These negatives separate named distributions/words, not UC emulation or all simulators.
 #srcs(cc("TaskPIOA/Tests.agda", 125, "masked-output-secure"), cc("TaskPIOA/Tests.agda", 128, "masked-output-contextual"), cc("TaskPIOA/Tests.agda", 133, "real-repeats"), cc("TaskPIOA/Tests.agda", 167, "disabled-does-not-stop"), cc("TaskPIOA/Tests.agda", 171, "repetition-not-deduplication"), cc("TaskPIOA/Tests.agda", 203, "synchronized-product"), cc("TaskPIOA/Tests.agda", 226, "order-sensitive"), cc("TaskPIOA/Tests.agda", 247, "masked-adaptive-law"), cc("TaskPIOA/Tests.agda", 266, "native-probabilistic-plugging"))
 
+=== A scheduled #SSPd operational adapter
+
+#theorem(name: [native task runs as SSP protocols])[
+#formal `Tick S` has one channel per native task, unit queries and optional-output replies.
+The actual `resource M` is an SSP protocol with the automaton's state and initial state.
+Its finite rational coin tree samples the _joint_ successor-state/reply law exactly,
+including non-dyadic probabilities; disabled tasks return successfully with unchanged
+state and no output, rather than failing or stopping the word.
+For every automaton, finite task word and initial state, `run-agreement` compares its actual
+SSP execution with the native trace distribution; `reward-agreement` preserves the expected
+value of every rational trace reward. A real SSP consumer composed with the resource
+gives the native Boolean verdict distribution by `experiment-agreement`.
+#srcs(cc("SSP/Dist/Sampling.agda", 102, "rationalCoins"), cc("SSP/Dist/Sampling.agda", 105, "rationalCoins-correct"), cc("TaskPIOA/SSPAdapter.agda", 47, "Tick"), cc("TaskPIOA/SSPAdapter.agda", 51, "resource"), cc("TaskPIOA/SSPAdapter.agda", 159, "native-disabled"), cc("TaskPIOA/SSPAdapter.agda", 183, "run-agreement"), cc("TaskPIOA/SSPAdapter.agda", 203, "reward-agreement"), cc("TaskPIOA/SSPAdapter.agda", 214, "consumer"), cc("TaskPIOA/SSPAdapter.agda", 262, "experiment-agreement"))
+] <thm:task-ssp-adapter>
+
+The existing sampling interface also proves adequacy against every finite tick `Calls`
+tree, including reply-adaptive calls, coins and partial failure, with arbitrary result and
+external-state types. This is interface adequacy for an individual automaton, not an
+enlargement of the source's fixed-word scheduler or a source-UC transfer theorem.
+#srcs(cc("TaskPIOA/SSPAdapter.agda", 123, "native-samples"), cc("TaskPIOA/SSPAdapter.agda", 150, "all-calls-agreement"))
+
+*Synchronized product, not ordinary SSP tensor.* The independently defined target protocol
+updates both the sender and its connected receiver, retaining the one joint tagged task word.
+Its activation, receive, step, tree and schedule correspondences hold for arbitrary compatible
+wiring, component automata and paired initial states. It is not merely a name for compiling
+the already-evaluated source product, and it does not assert that independent SSP calls/tensor
+implement native synchronization.
+#srcs(cc("TaskPIOA/SSPAdapter.agda", 275, "Synchronized"), cc("TaskPIOA/SSPAdapter.agda", 280, "activation"), cc("TaskPIOA/SSPAdapter.agda", 294, "synchronized"), cc("TaskPIOA/SSPAdapter.agda", 308, "receive-left"), cc("TaskPIOA/SSPAdapter.agda", 314, "receive-right"), cc("TaskPIOA/SSPAdapter.agda", 324, "tree-compatibility"), cc("TaskPIOA/SSPAdapter.agda", 333, "schedule-compatibility"))
+
+Native consumers compute send-first/read-first acceptance as 1 and 0, respectively,
+disabled-then-enabled acceptance as 1, persistent shared output/state correlation, and a non-dyadic acceptance
+probability $2/3$. The negative witnesses distinguish named distributions/words,
+not UC security against every simulator.
+#srcs(cc("TaskPIOA/SSPAdapterTests.agda", 55, "native-order-sensitive"), cc("TaskPIOA/SSPAdapterTests.agda", 85, "native-disabled-stutter"), cc("TaskPIOA/SSPAdapterTests.agda", 125, "native-correlated-output-state"), cc("TaskPIOA/SSPAdapterTests.agda", 142, "correlation-not-independent"), cc("TaskPIOA/SSPAdapterTests.agda", 149, "native-send-first-computes"), cc("TaskPIOA/SSPAdapterTests.agda", 154, "native-read-first-computes"), cc("TaskPIOA/SSPAdapterTests.agda", 159, "native-disabled-computes"), cc("TaskPIOA/SSPAdapterTests.agda", 173, "non-dyadic-native-consumer"))
+
+*Honest morphism boundary.* This is an operational automaton/word/consumer interpretation,
+not a `UCSetupMorphism`. Still absent are the lawful open-wiring/graded compiler on all
+source objects and `install`/`connect` generators and a well-defined natural test map $ν$.
+The tick API does not supply general boundary-input wiring. Arbitrary signed rational
+rewards are not Boolean probabilities without a proved encoding and pullback/naturality.
+U/UC transfer would additionally need the actual target-test, game/ancilla, grade and simulator
+coverage or a justified backtranslation/density theorem. All-`Calls` adequacy for a fixed
+automaton does not prove that source observation equality survives all target contexts.
+No preservation or reflection of U/UC is claimed.
+
 No setup morphism to PM/SSP/causal boxes, full literature equivalence, PPT/negligible
 security, infinite-run or fairness theorem is supplied. The earlier state-peeking
 guess-scheduler separator remains a proposed experiment, not one of these checked results.
@@ -1893,6 +1973,31 @@ PM. Its simulators are actual typed network converters, not `FSim` witnesses.
 #srcs(cc("CSP/Testing.agda", 20, "evaluationᶜˢᵖ"), cc("CSP/Testing.agda", 25, "ℰᶜˢᵖ"), cc("CSP/Setup.agda", 13, "StdSetup"), cc("CSP/SetupTests.agda", 90, "public-setup-category"), cc("CSP/SetupTests.agda", 99, "public-grade-action"), cc("CSP/SetupTests.agda", 102, "public-grade-action-arrow"))
 ] <def:csp>
 
+#proposition(name: [the trace-observed CSP setup and projection])[
+The separate node $CSPtrace := Std(cal(N), cal(E)_sans("tr"))$ retains the full #CSP
+carrier, grades, tensor action, observation interface and actual consumer representatives.
+Only the observation changes: $Obs_"tr"(F)$ is the predicate of finite visible traces,
+with equality given by mutual implication at every trace. The projection is exactly
+$Obs(F) ↦ Obs(F)."traces"$, forgetting stable failures and exact-trace divergence.
+
+The checked setup morphism $mtrace : CSP → CSPtrace$ is a change of kernel with
+identity $F$, $Φ$ and $κ$. Its test map is identity on consumers, with projection
+congruence and pullback naturality; it is proved Epi, with no Mono claim.
+It preserves $eqE$, $eqU$ and $leUC$ by refinement of the shared prefix contexts.
+In addition to the generic dummy-based transfer, `≤UC-pointwise` keeps the source
+simulator at each adversary. For the quantified client below, the transferred simulator
+projection is definitionally $a ∘ h$.
+#srcs(cc("CSP/Trace/Observation.agda", 15, "TraceObservation"), cc("CSP/Trace/Observation.agda", 19, "_≈ᵀ_"), cc("CSP/Trace/Observation.agda", 32, "project"), cc("CSP/Trace/Setup.agda", 14, "StdSetup"), cc("CSP/Trace/Morphism.agda", 37, "consumer-map"), cc("CSP/Trace/Morphism.agda", 42, "consumer-map-epi"), cc("CSP/Trace/Morphism.agda", 45, "fullCSP→traceCSP"), cc("CSP/Trace/Morphism.agda", 48, "≈ℰ-preserved"), cc("CSP/Trace/Morphism.agda", 53, "≈ᵁ-refine"), cc("CSP/Trace/Morphism.agda", 70, "≤UC-pointwise"), cc("CSP/Trace/Security.agda", 26, "f≤UCg-same-simulator"), cc("CSP/Trace/Security.agda", 29, "concrete-simulator"))
+] <prop:csp-trace>
+
+*Checked information loss, not UC nonreflection.* The native ready/choice networks
+have equal projected trace evaluations but different raw observations: the choice
+network admits a stable refusal after the empty trace that the ready network cannot.
+This separates the observation readouts, not the full contextual or UC relations.
+There is no UC-reflection theorem or UC-nonreflection counterexample here.
+The actual trace-setup consumer also transfers the real/ideal experiment and its executed verdict.
+#srcs(cc("CSP/Trace/Tests.agda", 36, "Refusal.ready-choice-evaluation"), cc("CSP/Trace/Tests.agda", 52, "Refusal.projection-loses-refusal"), cc("CSP/Trace/Tests.agda", 66, "SecurityTransfer.representatives-unchanged"), cc("CSP/Trace/Tests.agda", 76, "SecurityTransfer.order-transfer"), cc("CSP/Trace/Tests.agda", 79, "SecurityTransfer.simulator-unchanged"), cc("CSP/Trace/Tests.agda", 83, "SecurityTransfer.executed-verdict"))
+
 #proposition(name: [checked native CSP fragments])[
 The implemented source-process/network correspondences include:
 
@@ -1999,11 +2104,11 @@ Only the explicitly checked entries are implemented; the remaining rows are #des
     [A], [#formal IPDL Fig. 9 → #SSPd resource], [Finite adaptive Boolean-verdict agreement, private coins/read order, shared-coin and concrete hidden/copy/feedback linker witnesses are checked. General open laws and native test correspondence remain; @thm:ipdl-agreement.],
     [B], [RSIM buffers/default scheduler → legal-view PM], [High finite-interpreter, medium native-bridge confidence. First-delivery witness plus identity/gluing squares and ownership. Highest prospective reactive payoff; fairness/PPT excluded.],
     [C], [Batch IPDL → rational kernels → #Rel], [High restricted-morphism confidence. Supply $F, Φ, κ, ν$, direct U-preservation and target OTP, plus biased-pad nonreflection. Best small genuine new setup edge; heavy batch/support semantic loss.],
-    [D], [#formal #TaskPIOA native finite setup], [Own wiring category/tests, simulation and unit-leakage UC-to-native inclusion, probabilistic and schedule consumers are checked. No converse, non-unit theorem or PM bridge; @thm:taskpioa-security.],
+    [D], [#formal #TaskPIOA setup and #SSPd operational adapter], [Own tests, simulation/unit-leakage theorem, exact word/reward/consumer and synchronized-product agreement are checked. No full setup morphism or U/UC transfer to SSP; @thm:task-ssp-adapter.],
     [E], [Synchronous causal histories], [High confidence for the stated finite product fragment. Delay-one/two and joint/independent ticks first; then prefix-causal two-round strong-monoidal square. Reflection needs causal grades.],
     [Later], [IPDL single-assignment quotient], [Medium confidence; only after API/linker experiments establish a closed interaction contract and legal-context density. WB alone is insufficient.],
     [Later], [Full classical causal converters → synchronized PM], [Moderate/low confidence; correct converter category, resource correspondence, barrier tensor and causal tests remain substantial.],
-    [Checked], [#formal #CSP typed open networks], [Actual monoidal carrier, native tests, fragment correspondences and quantified UC consumer. Arbitrary-network native full abstraction and cross-model bridges remain separate; @sec:csp-island.],
+    [Checked], [#formal #CSP and #CSPtrace], [Actual monoidal carrier, native tests, quantified UC consumer and full-to-trace observation refinement. Arbitrary-network native full abstraction and PM/SSP bridges remain separate; @sec:csp-island.],
     [Defer], [Timed realization families / quantum bridges], [Different refinement or quantum infrastructure and uniformity needed; no immediate UCSetupMorphism claim.],
   )
 }
@@ -2025,14 +2130,14 @@ In these two figures, for $𝕄 : 𝕊 → 𝕊'$ write $G(f) := κ ∘ F(f)$ fo
   set par(justify: false)
   let sample(marks) = diagram(spacing: 16mm,
     edge((0, 0), (1, 0), marks, stroke: 0.7pt))
-  table(columns: (20mm, 1fr), inset: 4pt, stroke: 0.35pt + luma(65%),
+  block(breakable: false, table(columns: (20mm, 1fr), inset: 4pt, stroke: 0.35pt + luma(65%),
     align: (center + horizon, left + horizon),
     table.header([*Shape*], [*Direction of UC-relation transfer*]),
     sample("->>"), [*Preservation:* $(f leUC g " in " 𝕊) ⇒ (G(f) leUC G(g) " in " 𝕊')$.],
     sample("hook->"), [*Reflection:* $(G(f) leUC G(g) " in " 𝕊') ⇒ (f leUC g " in " 𝕊)$.],
     sample("hook->>"), [*Both:* the two UC statements are equivalent.],
     sample("->"), [*Neither direction is claimed:* this means unknown/not established here, not that either implication is false.],
-  )
+  ))
 }
 
 The double head is _epi-style_ and the hook _mono-style_, but neither denotes a categorical
@@ -2041,10 +2146,11 @@ alone do not establish UC transfer. Decorations on solid edges use the specific 
 results and discharged premises below; on dashed edges they state only the restricted
 _proposed transfer objective_, not a theorem. Missing decorations never assert a negative result.
 
-Quantitative forgetting and family refinements (@thm:refine) are omitted.
-The plain #Symcert arrow to #PMN certifies a formal query-admissible interpretation, not
-cryptographic soundness or canonical target UC. The #ITMuninit arrow is structural/uninitialized;
-the checked initialized finite-trace API is not another setup node or initialized-security bridge.
+Quantitative forgetting is omitted; the family refinement $PMN → PMom$ is included.
+The plain #Symcert arrows to #PMN and #Symiso respectively certify a query-admissible
+interpretation and erase generator certificates; neither supplies a UC-security direction.
+The #ITMuninit arrow is structural/uninitialized; the checked initialized finite-trace API is
+not another setup node or initialized-security bridge.
 
 #figure(
   diagram(
@@ -2062,6 +2168,7 @@ the checked initialized finite-trace API is not another setup node or initialize
     node((1.3, 1), $Symcert$, name: <symcert>),
     node((2.6, 1), $PM$, name: <pm>),
     node((3.9, 1), $ITM$, name: <itm>),
+    node((0, 2), $PMom$, name: <pmomega>),
     node((1.3, 2), $Wio$, name: <wio>),
     node((2.6, 2), $RS$, name: <rs>),
     node((3.9, 2), $NDB^(PM)$, name: <ndb>),
@@ -2072,10 +2179,14 @@ the checked initialized finite-trace API is not another setup node or initialize
     node((3.9, 3), $NDA^(PM)$, name: <nda>),
     node((2.6, 4), [#Rel \ one-shot], name: <rel>),
     node((3.9, 4), [#TaskPIOA \ finite exact], name: <taskpioa>),
-    node((2.6, 3), [#CSP \ open networks], name: <csp>),
+    node((2.6, 5), [#CSP \ full observations], name: <csp>),
+    node((3.9, 5), [#CSPtrace \ traces], name: <csptrace>),
     edge(<symiso>, <sym>, "->>", label: $mcoarse$, label-side: right),
     edge(<symiso>, <iso>, "->", label: $msym$),
     edge(<symcert>, <pmn>, "->", label: $mcs$),
+    edge(<symcert>, <symiso>, "->", label: $merase$, label-side: right),
+    edge(<pmn>, <pmomega>, "->>", label: $mvan$, label-side: right),
+    edge(<csp>, <csptrace>, "->>", label: $mtrace$),
     edge(<itm-uninit>, <iso>, "->>", label: $mitmuninit$, label-side: right),
     edge(<itm>, <pm>, "->>", label: $mitm$),
     edge(<pm>, <rs>, "hook->>", label: $mrs$),
@@ -2093,8 +2204,9 @@ the checked initialized finite-trace API is not another setup node or initialize
   caption: [Implemented setup components and two candidate-specific obstructions. The SSP
     quotient/direct/descended compiler triangle agrees pointwise (@prop:dist-wb).
     The W arrows point from full tests to PM and to restricted W/PM[wb]; there is no directed
-    SSP-to-PM security path. #Rel, #TaskPIOA and #CSP are actual separate components,
-    not impossibility classes.],
+    SSP-to-PM security path. #Rel and #TaskPIOA remain separate setup components;
+    #CSP and #CSPtrace form an observation-refinement component, not a PM/SSP bridge.
+    Separate components are not impossibility classes.],
 ) <fig:graph>
 
 *Implemented-edge qualifications.* The ND nodes are the #PM instances. Their preservation
@@ -2111,6 +2223,13 @@ its converse needs an explicitly lifted target simulator, so it has no unconditi
 Plain symbolic interpretation arrows remain useful morphisms, but bare-kernel agreement or
 query certificates do not prove general UC transfer.
 
+The $mvan$ and $mtrace$ double heads use checked U/UC refinement on unchanged computational
+data, not a grade-stability assumption. Their pointwise maps preserve the supplied
+per-adversary simulators (@prop:negligible-vanishing, @prop:csp-trace).
+The erasure $merase$ is plain: its complete setup-morphism laws do not establish a
+security direction. Neither scalar decay-class separation nor the ready/choice
+observation separator supplies a UC-nonreflection theorem.
+
 #figure(
   diagram(
     spacing: (10mm, 8mm),
@@ -2121,25 +2240,28 @@ query certificates do not prove general UC transfer.
     mark-scale: 130%,
     node((0, 0), [finite IPDL \ Fig. 9 API], name: <api>),
     node((1.5, 0), [#SSPd resource], name: <api-target>),
-    node((0, 1), [finite RSIM \ explicit buffers], name: <rsim-source>),
-    node((1.5, 1), [PM legal \ finite views], name: <rsim-target>),
-    node((0, 2), [batch IPDL], name: <batch-source>),
-    node((1.5, 2), [finite rational \ kernels], name: <kernel-target>),
-    node((3, 2), $Rel$, name: <support-target>),
-    node((0, 3), [synchronous causal \ finite histories], name: <causal-source>),
-    node((0, 4), [single-assignment \ IPDL], name: <sa-source>),
-    node((1.5, 4), [legal SA \ quotient], name: <sa-target>),
+    node((0, 1), [#TaskPIOA \ scheduled native runs], name: <task-source>),
+    node((1.5, 1), [#SSPd tick \ protocol/consumer], name: <task-target>),
+    node((0, 2), [finite RSIM \ explicit buffers], name: <rsim-source>),
+    node((1.5, 2), [PM legal \ finite views], name: <rsim-target>),
+    node((0, 3), [batch IPDL], name: <batch-source>),
+    node((1.5, 3), [finite rational \ kernels], name: <kernel-target>),
+    node((3, 3), $Rel$, name: <support-target>),
+    node((0, 4), [synchronous causal \ finite histories], name: <causal-source>),
+    node((0, 5), [single-assignment \ IPDL], name: <sa-source>),
+    node((1.5, 5), [legal SA \ quotient], name: <sa-target>),
     edge(<api>, <api-target>, "->", stroke: blue, label: [O: checked]),
+    edge(<task-source>, <task-target>, "->", stroke: blue, label: [O: checked]),
     edge(<rsim-source>, <rsim-target>, "-->", stroke: blue, label: [O]),
     edge(<batch-source>, <kernel-target>, "-->>", stroke: blue, label: [M]),
     edge(<kernel-target>, <support-target>, "-->>", stroke: blue, label: [M: support]),
     edge(<causal-source>, <kernel-target>, "-->>", stroke: blue, label: [M], label-side: right),
     edge(<sa-source>, <sa-target>, "-->>", stroke: blue, label: [M]),
   ),
-  caption: [Bounded operational and proposed native connections. Only the solid blue O-edge
-    is checked (@thm:ipdl-agreement); it is not an IPDL setup or UC-transfer arrow.
+  caption: [Bounded operational and proposed native connections. The solid blue O-edges
+    are checked (@thm:ipdl-agreement, @thm:task-ssp-adapter), not setup-morphism or UC-transfer arrows.
     Dashed double heads are proposed exact-UC preservation objectives, not checked theorems.
-    The actual #TaskPIOA and #CSP nodes in @fig:graph have no supplied cross-model morphism.
+    #TaskPIOA has no supplied cross-setup morphism; #CSP's new edge only changes observation.
     Support preserves only exact security and does not reflect probability-sensitive security.
     Causal-history reflection additionally needs prefix-causal simulators and
     reconstruction/fullness; no such hook is claimed. The single-assignment objective
@@ -2147,6 +2269,20 @@ query certificates do not prove general UC transfer.
 ) <fig:proposed>
 
 == Formal morphisms <sec:formal-morphisms>
+
+=== $mvan : PMN → PMom$
+
+This is the checked local-negligible-to-vanishing change of kernel of
+@prop:negligible-vanishing. It leaves computations, grades and consumer representatives
+unchanged, and preserves U/UC with the same per-adversary simulator.
+#srcs(cc("UC/Family/Negligible/Vanishing.agda", 70, "negligible⇒vanishing"), cc("UC/Family/Negligible/Vanishing.agda", 88, "≤UCᴺ⇒≤UCω"), cc("UC/Family/Negligible/Vanishing.agda", 94, "same-simulator"))
+
+=== $mtrace : CSP → CSPtrace$
+
+The checked change of kernel of @prop:csp-trace projects the raw observation triple
+to traces while retaining the actual consumers and their resource closures. Its forward
+U/UC theorems do not identify native CSP refinement with UC or prove a reflection result.
+#srcs(cc("CSP/Trace/Morphism.agda", 45, "fullCSP→traceCSP"), cc("CSP/Trace/Morphism.agda", 53, "≈ᵁ-refine"), cc("CSP/Trace/Morphism.agda", 70, "≤UC-pointwise"))
 
 === $mrs : PM → RS$
 
@@ -2339,6 +2475,20 @@ direct certificates at every natural rate for the backwards role; it is not an o
 about `QB`'s machine-equivalence closure.
 #srcs(cc("Symbolic/Computational.agda", 100, "Generator"), cc("Symbolic/Computational.agda", 143, "Sym≅ᶜ"), cc("Symbolic/Computational.agda", 214, "fine→comp"), cc("Symbolic/Computational/Obstruction.agda", 67, "no-backwards-certificate"))
 
+*$merase : Symcert → Symiso$.* #formal Certificate erasure is a complete standard setup
+morphism. Its free strong monoidal functor is identity on object trees; on each generator
+it keeps the role and unit-free boundaries and discards its positive rate and query-bound
+certificate. It extends through composition, tensor and coherence. The actual test map is
+$ν(Y,T) = (F Y,F T)$, with congruence and pullback naturality proved.
+No Epi/Mono, $eqU$ preservation, UC preservation or UC reflection theorem is supplied:
+ordinary symbolic tests are not shown to have certified preimages. The diagram arrow is plain.
+#srcs(cc("Symbolic/Erasure.agda", 29, "erase-object"), cc("Symbolic/Erasure.agda", 34, "erasureData"), cc("Symbolic/Erasure.agda", 42, "erase"), cc("Symbolic/Erasure.agda", 47, "erase-test"), cc("Symbolic/Erasure.agda", 58, "ν"), cc("Symbolic/Erasure.agda", 65, "certified→fine"))
+
+The checked verdict-forwarding consumer has a genuine rate-one certificate and erases to
+its ordinary role generator. It exercises erased composition/tensor, the actual syntactic
+test, pullback naturality and test congruence; none is a security-transfer assertion.
+#srcs(cc("Symbolic/ErasureTests.agda", 63, "verdict-certified"), cc("Symbolic/ErasureTests.agda", 72, "forward-erases"), cc("Symbolic/ErasureTests.agda", 75, "composition-erases"), cc("Symbolic/ErasureTests.agda", 79, "tensor-erases"), cc("Symbolic/ErasureTests.agda", 89, "consumer-erases"), cc("Symbolic/ErasureTests.agda", 98, "pull-natural"), cc("Symbolic/ErasureTests.agda", 103, "consumer-congruence"))
+
 *Operational runtime versus certified families.* `Scheme` supplies bit carriers and primitive
 operations; `Execution.Fᶜ η` runs all roles as raw PM processes, with concrete guards and
 independently sampled `new`, not symbolic normalization on bitstrings. The record alone imposes
@@ -2388,14 +2538,14 @@ CLC additionally needs its key hierarchy, randomness and process/equivalence cor
 (@comonlundhcortier2008, Theorem 12, Lemmas 24–25); Abadi–Rogaway's passive acyclic-expression
 result (@abadirogaway2002) is not active UC. Canetti–Herzog/BPW routes require their certified
 encryption/library and trace-mapping machinery (@canettiherzog2006; @backes2003library).
-Neither formal interpretation supplies a morphism from #Sym's observational quotient,
+None of these formal interpretations supplies a morphism from #Sym's observational quotient,
 and no concrete cryptographic/target-UC acceptance/rejection result follows from the normalized
 echo/projected-pair conditional consumers.
 
 === The generic morphisms, instantiated
 
-Besides $mcoarse$ and the observation restriction @prop:Wrestriction, change of kernel $mck$ and
-the wide-subcategory inclusion $mincl$ (@sec:setup-morphisms) instantiate the refinements between
+Besides $mcoarse$, $mvan$, $mtrace$ and the observation restriction @prop:Wrestriction,
+change of kernel $mck$ and the wide-subcategory inclusion $mincl$ (@sec:setup-morphisms) instantiate the refinements between
 each tier and its quantitative family (@thm:tiers(3), through @thm:refine) and #NDA $→$ #NDB
 (@prop:nd-incl, formal at #SSP and #PM).
 

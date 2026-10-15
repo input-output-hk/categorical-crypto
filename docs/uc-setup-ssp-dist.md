@@ -29,6 +29,35 @@ threshold test separates two finite joint distributions).
 - `⊑-⊗ˡ`, `⊑-⊗ʳ`: tensoring with any protocol (the other factor commutes with `ρ`, `>>=ᴹ-comm⊥`);
   `⊑-run`: closed composites read out alike (`sample-⟦⟧`).  `⊑⇒≈ᵈ` pads by wires and reads out.
 
+### 2.1 Exact finite rational sampling and the native TaskPIOA consumer (2026-10-15)
+
+[`SSP.Dist.Sampling.rationalCoins`](../src/CategoricalCrypto/SSP/Dist/Sampling.agda#L102)
+compiles every finite normalized nonnegative rational distribution into a finite coin tree;
+[`rationalCoins-correct`](../src/CategoricalCrypto/SSP/Dist/Sampling.agda#L105)
+proves equality of the sampled distribution. The primitive `coin` accepts rational Boolean
+distributions, not only fair coins, so non-dyadic weights are represented exactly.
+
+The checked [`TaskPIOA.SSPAdapter`](../src/CategoricalCrypto/TaskPIOA/SSPAdapter.agda#L47)
+is a substantive operational consumer of this sampler and the existing `Samples/sample-⟦⟧`
+interface. Its actual tick protocol samples the **joint** native next-state/optional-output
+law; a disabled task returns successful stutter, not `dead`. `native-samples` and
+[`all-calls-agreement`](../src/CategoricalCrypto/TaskPIOA/SSPAdapter.agda#L150)
+give adequacy for every finite reply-adaptive/partial tick call tree.
+[`run-agreement`/`reward-agreement`](../src/CategoricalCrypto/TaskPIOA/SSPAdapter.agda#L183)
+cover all finite native words, all initial states and arbitrary rational trace rewards.
+[`experiment-agreement`](../src/CategoricalCrypto/TaskPIOA/SSPAdapter.agda#L262)
+uses actual composed SSP resources/consumers, while an independently defined receive-aware
+[`Synchronized`](../src/CategoricalCrypto/TaskPIOA/SSPAdapter.agda#L275)
+protocol proves native joint-product/schedule compatibility, not ordinary SSP-tensor compatibility.
+Computational consumers retain persistent output/state correlation and include acceptance 2/3.
+
+This is **not** a TaskPIOA→SSPᵈ `UCSetupMorphism`, U/UC preservation or reflection.
+A lawful open-wiring/graded compiler and natural test map, followed by the relevant
+target context/ancilla/grade/simulator coverage, remain unsupplied. Individual all-`Calls`
+adequacy does not turn source fixed-word rational-test equality into target contextual equality.
+The full operational and morphism boundary is recorded in
+[the native task section](uc-setup-causal-boxes.md#43-other-setups-asynchronous-models).
+
 ## 3. Laws (`SSP/Dist/Laws.agda`)
 
 | law | statement |

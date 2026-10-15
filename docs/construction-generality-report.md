@@ -3957,3 +3957,46 @@ of the shared IPDL/CSP R4 package. Main reports all 44 modules rebuilt through
 `MonoidalTests`/`SetupTests` at 3 GiB and the full root at 8 GiB (`bg132`), with no
 warnings. This is attributed validation, not a new research-worker typecheck or
 an uncontended performance measurement.
+
+## Postscript: checked scheduled TaskPIOA sampling adapter
+
+**2026-10-15; later checked result, not a recensus.** Integrated source `f028c681d`
+adds `SSP/Dist/Sampling`, `TaskPIOA/SSPAdapter` and `TaskPIOA/SSPAdapterTests`.
+This narrowly supersedes the pending **TaskPIOA operational adapter** portion of
+§4.2's proposed `Samples/sample-⟦⟧` instance. The original `9f9be2a89` source boundary,
+89 records, literature evidence and construction classifications above are unchanged.
+
+[`rationalCoins-correct`](../src/CategoricalCrypto/SSP/Dist/Sampling.agda#L105)
+compiles arbitrary finite rational distributions exactly, including non-dyadic weights.
+The actual SSP tick resource retains the joint successor-state/optional-output law:
+disabled tasks successfully stutter rather than fail.
+[`native-samples`/`all-calls-agreement`](../src/CategoricalCrypto/TaskPIOA/SSPAdapter.agda#L123)
+reuse the existing `Samples` and `sample-⟦⟧` interface for every finite
+reply-adaptive/partial tick tree, with arbitrary result and external-state types.
+The general [`run-agreement`/`reward-agreement`](../src/CategoricalCrypto/TaskPIOA/SSPAdapter.agda#L183)
+cover every finite word and initial state and arbitrary rational trace rewards.
+[`experiment-agreement`](../src/CategoricalCrypto/TaskPIOA/SSPAdapter.agda#L262)
+uses actual SSP resource/consumer composition, not a source distribution renamed as a run.
+
+The independently defined
+[`Synchronized`](../src/CategoricalCrypto/TaskPIOA/SSPAdapter.agda#L275)
+target protocol has native receiver-input updates as well as sender kernels,
+and preserves one joint tagged schedule. Its activation/step/tree/schedule laws
+hold for arbitrary compatible wiring, automata and paired initial states.
+This is not ordinary SSP tensor or an alias for compiling the evaluated source product.
+[Native computational consumers](../src/CategoricalCrypto/TaskPIOA/SSPAdapterTests.agda#L149)
+pin order-sensitive verdict probabilities to 1 versus 0, disabled continuation to 1,
+correlated output/state and non-dyadic acceptance to 2/3.
+
+The result is **operational**, not a `TaskPIOA.UC → SSPdist.UC` setup morphism,
+and not U/UC preservation or reflection. A lawful open-wiring/graded compiler on
+all source objects and `install`/`connect` generators, a well-defined natural
+test-presheaf map, and the relevant target test/game/ancilla, grade and simulator
+coverage remain separate obligations. Arbitrary signed rational rewards are not
+automatically Boolean probabilities. Interface adequacy for a fixed automaton
+does not backtranslate every target context or preserve source UC equality.
+It neither completes the report's broader stochastic relation/frame package nor
+asserts a universal no-morphism theorem. The integrated dedicated consumer and
+full root closure were checked with an empty warning gate; the new-source
+escape-hatch scan has no matches. These are attributed integration checks, not
+a documentation-worker typecheck or an uncontended performance measurement.

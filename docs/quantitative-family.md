@@ -2608,3 +2608,29 @@ indexed by `ℕ⁺`; `𝒞ᵇ` the Σ-total of `L`); 23-29 (`Image` hypotheses a
 `Image forget 1⁺`, strictly weaker); 31-35 (`composeSim` at `cost sf n · cost t n`,
 `composeError rf rtv`, `≤UC[]-compose′`, `UC-composeᵉ`/`≤UC^ωᵉ-∙` from `v`'s
 certificate).
+
+## 17. Checked local-negligible → vanishing setup morphism (2026-10-15)
+
+The preceding sections retain their dated landing boundaries. The new
+[`UC.Family.Negligible.Vanishing.negligible⇒vanishing`](../src/CategoricalCrypto/UC/Family/Negligible/Vanishing.agda#L70)
+is a complete `UCSetupMorphism ucSetupᴺ ucSetup^ω` between the existing public
+family endpoints. It is `changeKernel`: the computation and grade functors and
+comparison are identity data, and native test representatives are unchanged.
+
+[`observationsᴺ⇒observationsω`](../src/CategoricalCrypto/UC/Family/Negligible/Vanishing.agda#L58)
+opens the negligible witness already chosen for each closure and uses
+`Negligible⇒→0` on that particular function. No witness leaves its original
+test/closure/ancilla quantifier; there is no selected global schedule or uniformization.
+[`≈ᵁᴺ⇒≈ᵁω`](../src/CategoricalCrypto/UC/Family/Negligible/Vanishing.agda#L85)
+and [`≤UCᴺ⇒≤UCω`](../src/CategoricalCrypto/UC/Family/Negligible/Vanishing.agda#L88)
+preserve the original protocol arrows without grade stability or epi/mono assumptions.
+The actual UC function maps each supplied `le a = (s,h)` to `(s,h′)`, and
+[`same-simulator`](../src/CategoricalCrypto/UC/Family/Negligible/Vanishing.agda#L94)
+proves equality of the simulator projections by `refl`, not only for the dummy adversary.
+
+The [native offset-family consumer](../src/CategoricalCrypto/UC/Family/Negligible/Tests.agda#L105)
+has different concrete rational readouts, negligible witnesses that vary with test
+and closure, and a nonidentity simulator retained by transfer. Its
+[inverse-linear control](../src/CategoricalCrypto/UC/Family/Negligible/Tests.agda#L209)
+separates scalar vanishing from negligibility only. No endpoint UC-nonreflection,
+reverse promotion of vanishing to negligibility, or PPT correspondence is claimed.

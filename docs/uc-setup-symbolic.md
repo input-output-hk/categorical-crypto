@@ -21,7 +21,9 @@ equivalence; E is a kernel fact, because roles emit and store canonical forms; `
 without hypotheses. The syntactic twin `Sym≅` maps to `Sym` (`changeKernel`) and to
 machine-iso (`StdUCMorphism`). Its unrestricted computational execution lands in 𝔾ᵒ, not in the
 query-certified family category `Famᴹ`. A separate certificate-bearing source `Sym≅ᶜ` maps to
-`ucSetupᴺ`. A context-uniform operational backtranslation implies a feasible comparison theorem;
+`ucSetupᴺ` and now has a checked certificate-erasure setup morphism to ordinary `Sym≅`
+(`Symbolic/Erasure.agda`; 2026-10-15). No U/UC direction is claimed for erasure.
+A context-uniform operational backtranslation implies a feasible comparison theorem;
 neither that backtranslation from cryptographic games nor full computational UC soundness is
 established. No interpretation of `Sym`'s observational quotient is claimed.
 
@@ -707,6 +709,24 @@ role for **every** scheme, constructs its generator, pins the carried schedule, 
 `fine→comp`, and also consumes the backwards obstruction. Query admissibility is separate
 from `GroundGuardedC` and from feasibility.
 
+**Checked certificate erasure (2026-10-15).**
+[`Erasure.certified→fine`](../src/CategoricalCrypto/Symbolic/Erasure.agda#L65)
+is a complete `UCSetupMorphism Sym≅ᶜ.StdSetup Fine.Sym≅.StdSetup`, separate from
+the computational interpretation `fine→comp`. Its free strong monoidal
+[`erase`](../src/CategoricalCrypto/Symbolic/Erasure.agda#L42) keeps object trees,
+role bodies and unit-free boundaries and discards each generator's positive rate
+and direct query-bound certificate. Its natural test map is exactly
+[`erase-test (Y,T) = (FY,FT)`](../src/CategoricalCrypto/Symbolic/Erasure.agda#L47),
+with coherence congruence and pullback naturality.
+
+The checked [verdict-forwarding consumer](../src/CategoricalCrypto/Symbolic/ErasureTests.agda#L63)
+has a genuine rate-one certificate. It consumes erased generators/composition/tensor,
+the actual syntactic test, naturality and test congruence. No epi/mono property of
+the test map, U/UC preservation or UC reflection is supplied: arbitrary ordinary
+tests are not proved to have certified preimages. The diagram arrow is therefore
+plain, not a security-transfer arrow. Neither erasure nor `fine→comp` establishes
+PPT correspondence, cryptographic equation correctness or computational soundness.
+
 **The derived theorem and its exact prerequisite.** `Symbolic/Soundness.agda` keeps the honest
 source unrestricted and defines `GroundGuardedC` pointwise on generator occurrences.
 `Feasible` is an external predicate on QB-admissible family tests and closures, not a
@@ -942,6 +962,9 @@ listed exports.
 12. `Symbolic/Computational{,/Run,/Obstruction}.agda`: unrestricted execution into 𝔾ᵒ;
     `fine→comp` from the distinct certificate-bearing `Sym≅ᶜ`; and
     `no-backwards-certificate`. The original universal rate-one source claim is false.
+    `Symbolic/Erasure.agda` additionally supplies the checked complete
+    `certified→fine` setup morphism; `ErasureTests` exercises its generator/test map.
+    This erases rate/query certificates, with no U/UC preservation/reflection claim.
 13. `Symbolic/Soundness{,/Deterministic}.agda`: exact-trace `trace⇒bisim` and the derived
     `Backtranslation → sound⁺`/`sound-≤UC` results, consumed by `InterpretationTests`.
     Game-based backtranslation, `det⇒∼o`, and the full computational UC order remain
