@@ -17,15 +17,22 @@ open import Data.Rational.Properties
 open import Function.Bundles
 open import Relation.Binary.PropositionalEquality
 
+open import CategoricalCrypto.Approx.Error
+open import CategoricalCrypto.UC.Model.Quantitative using (QSetupᵒ)
 open import CategoricalCrypto.UC.Model.Seal
 open import CategoricalCrypto.UC.RandomSystems.Advantage
 open import CategoricalCrypto.UC.RandomSystems.Composition
 open import CategoricalCrypto.UC.RandomSystems.Construction
 open import CategoricalCrypto.UC.RandomSystems.Seal
+open import CategoricalCrypto.UC.RandomSystems.Quantitative
 
 import CategoricalCrypto.UC.Model.Setup as Sᵒ
+import CategoricalCrypto.UC.Quantitative.Availability as Designated
 
 module CategoricalCrypto.UC.RandomSystems.Availability where
+
+module QAvailabilityᴿ = Designated.Designated ℚ-ordered QSetupᴿ
+module QAvailabilityᵒ = Designated.Designated ℚ-ordered QSetupᵒ
 
 private
   module G = MonoidalCategory 𝔾ᵒ
@@ -76,6 +83,79 @@ SecureConstruction⇔SecurelyConstructs₀ {a = a} {b} {f} {g} = mk⇔
                              (SecurelyConstructs.availability c)))
 
 ------------------------------------------------------------------------
+-- The native and generic designated comparisons
+------------------------------------------------------------------------
+
+private
+  post-within : {C : G.Obj} (u : B G.⇒ C) {f g : A G.⇒ B}
+              → f ∼ᴿ[ εₐ ] g → (u G.∘ f) ∼ᴿ[ εₐ ] (u G.∘ g)
+  post-within {εₐ = ε} u {f} {g} e =
+    ≈ᴿ[]-mono (≤-reflexive (+-identityˡ ε))
+      (∘-resp-∼ᴿ[] {f = u} {h = u} {g = f} {i = g} (≈⇒∼ᴿ[0] G.Equiv.refl) e)
+
+  unitor-cancel : (f : A G.⇒ Sᵒ.T₀ G.unit B)
+                → (G.unitorˡ.to G.∘ (G.unitorˡ.from G.∘ f)) G.≈ f
+  unitor-cancel f = G.Equiv.trans G.sym-assoc
+    (G.Equiv.trans (G.∘-resp-≈ˡ G.unitorˡ.isoˡ) G.identityˡ)
+
+Availability⇔AvailableWithin : {a : X G.⇒ G.unit} {b : Y G.⇒ G.unit}
+                               {f : A G.⇒ Sᵒ.T₀ X B} {g : A G.⇒ Sᵒ.T₀ Y B}
+                             → QAvailabilityᴿ.Availability εₐ a b f g ⇔ AvailableWithin εₐ a b f g
+Availability⇔AvailableWithin {εₐ = ε} {a = a} {b} {f} {g} = mk⇔
+  (λ e → post-within G.unitorˡ.from
+    (≈ᵁᴿ[]⇒∼ᴿ[] {ε = ε} {f = Sᵒ.sub a G.∘ f} {g = Sᵒ.sub b G.∘ g} e))
+  (λ e → QUCᴿ.ctx-resp (Q.≈⇒∼ (unitor-cancel (Sᵒ.sub a G.∘ f)))
+    (Q.≈⇒∼ (unitor-cancel (Sᵒ.sub b G.∘ g)))
+    (∼ᴿ[]⇒≈ᵁᴿ[] {ε = ε}
+      {f = G.unitorˡ.to G.∘ no-adversary a f} {g = G.unitorˡ.to G.∘ no-adversary b g}
+      (post-within G.unitorˡ.to e)))
+
+SecureAvailable⇔SecurelyConstructs : {a : X G.⇒ G.unit} {b : Y G.⇒ G.unit}
+                                      {f : A G.⇒ Sᵒ.T₀ X B} {g : A G.⇒ Sᵒ.T₀ Y B}
+                                    → QAvailabilityᴿ.SecureAvailable εₛ εₐ a b f g
+                                    ⇔ SecurelyConstructs εₛ εₐ a b f g
+SecureAvailable⇔SecurelyConstructs {εₛ = εs} {εₐ = εa} {a = a} {b} {f} {g} = mk⇔
+  (λ c → securely-constructs
+    (≤UCᴿ[]⇒Constructs {ε = εs} {f = f} {g = g} (QAvailabilityᴿ.SecureAvailable.security c))
+    (Equivalence.to (Availability⇔AvailableWithin {εₐ = εa} {a = a} {b} {f} {g})
+      (QAvailabilityᴿ.SecureAvailable.availability c)))
+  (λ c → QAvailabilityᴿ.secure-available
+    (Constructs⇒≤UCᴿ[] {ε = εs} {f = f} {g = g} (SecurelyConstructs.security c))
+    (Equivalence.from (Availability⇔AvailableWithin {εₐ = εa} {a = a} {b} {f} {g})
+      (SecurelyConstructs.availability c)))
+
+SecureConstruction⇔SecureAvailable₀ : {a : X G.⇒ G.unit} {b : Y G.⇒ G.unit}
+                                       {f : A G.⇒ Sᵒ.T₀ X B} {g : A G.⇒ Sᵒ.T₀ Y B}
+                                     → SecureConstruction a b f g
+                                     ⇔ QAvailabilityᴿ.SecureAvailable 0ℚ 0ℚ a b f g
+SecureConstruction⇔SecureAvailable₀ {a = a} {b} {f} {g} = mk⇔
+  (λ c → Equivalence.from (SecureAvailable⇔SecurelyConstructs {a = a} {b} {f} {g})
+    (Equivalence.to (SecureConstruction⇔SecurelyConstructs₀ {a = a} {b} {f} {g}) c))
+  (λ c → Equivalence.from (SecureConstruction⇔SecurelyConstructs₀ {a = a} {b} {f} {g})
+    (Equivalence.to (SecureAvailable⇔SecurelyConstructs {a = a} {b} {f} {g}) c))
+
+-- rewrite⇒RS is identity on objects and cap maps. Its computation image
+-- inserts an identity; the measured transport cancels it without error.
+rewrite-availability : {a : X G.⇒ G.unit} {b : Y G.⇒ G.unit}
+                       {f : A G.⇒ Sᵒ.T₀ X B} {g : A G.⇒ Sᵒ.T₀ Y B}
+                     → QAvailabilityᵒ.Availability εₐ a b f g
+                     → QAvailabilityᴿ.Availability εₐ a b f g
+rewrite-availability {εₐ = ε} {a = a} {b} {f} {g} e =
+  Equivalence.to (≈ᵁᴿ[]-G⇔ {ε = ε} {f = Sᵒ.sub a G.∘ f} {g = Sᵒ.sub b G.∘ g})
+    (≈ᵁ[]⇒≈ᵁᴿ[] {ε = ε} {f = Sᵒ.sub a G.∘ f} {g = Sᵒ.sub b G.∘ g} e)
+
+rewrite-secure-available : {a : X G.⇒ G.unit} {b : Y G.⇒ G.unit}
+                           {f : A G.⇒ Sᵒ.T₀ X B} {g : A G.⇒ Sᵒ.T₀ Y B}
+                         → QAvailabilityᵒ.SecureAvailable εₛ εₐ a b f g
+                         → QAvailabilityᴿ.SecureAvailable εₛ εₐ a b f g
+rewrite-secure-available {εₛ = εs} {εₐ = εa} {a = a} {b} {f} {g} c =
+  QAvailabilityᴿ.secure-available
+    (Equivalence.to (≤UCᴿ[]-G⇔ {ε = εs} {f = f} {g = g})
+      (Witness⇒≤UCᴿ[] {ε = εs} {f = f} {g = g} (QAvailabilityᵒ.SecureAvailable.security c)))
+    (rewrite-availability {εₐ = εa} {a = a} {b} {f} {g}
+      (QAvailabilityᵒ.SecureAvailable.availability c))
+
+------------------------------------------------------------------------
 -- Converter compatibility
 ------------------------------------------------------------------------
 
@@ -95,10 +175,11 @@ secure-construction-factor : {a : X G.⇒ G.unit} {b : Y G.⇒ G.unit}
                              {s : Y G.⇒ X} {f : A G.⇒ Sᵒ.T₀ X B} {g : A G.⇒ Sᵒ.T₀ Y B}
                            → f G.≈ (Sᵒ.sub s G.∘ g) → (a G.∘ s) Q.∼ b
                            → SecureConstruction a b f g
-secure-construction-factor {a = a} {b} {s} {f} {g} factor compat = secure-construction
-  (Constructs₀⇒≤UC {f = f} {g = g} (s , ≈⇒∼ᴿ[0] {f = f} {g = Sᵒ.sub s G.∘ g} factor))
-  (Q.∼.trans (Q.≈⇒∼ (G.∘-resp-≈ʳ (G.∘-resp-≈ʳ factor)))
-    (Q.∼.trans (Q.≈⇒∼ (no-adversary-regrade a s g)) (no-adversary-resp-converter g compat)))
+secure-construction-factor {a = a} {b} {s} {f} {g} factor compat =
+  Equivalence.from (SecureConstruction⇔SecureAvailable₀ {a = a} {b} {f} {g})
+    (QAvailabilityᴿ.secure-mode-preserving {s = s} {f = f} {g = g} compat
+      (∼ᴿ[]⇒≈ᵁᴿ[] {ε = 0ℚ} {f = f} {g = Sᵒ.sub s G.∘ g}
+        (≈⇒∼ᴿ[0] {f = f} {g = Sᵒ.sub s G.∘ g} factor)))
 
 ------------------------------------------------------------------------
 -- Replacement composition
@@ -110,10 +191,11 @@ secure-construction-trans : {a : X G.⇒ G.unit} {b b′ : Y G.⇒ G.unit} {c : 
                             {f : A G.⇒ Sᵒ.T₀ X B} {g : A G.⇒ Sᵒ.T₀ Y B} {h : A G.⇒ Sᵒ.T₀ Z B}
                           → b Q.∼ b′ → SecureConstruction a b f g → SecureConstruction b′ c g h
                           → SecureConstruction a c f h
-secure-construction-trans {g = g} compat cf cg = secure-construction
-  (Sᵒ.≤UC-trans (SecureConstruction.security cf) (SecureConstruction.security cg))
-  (Q.∼.trans (SecureConstruction.availability cf)
-    (Q.∼.trans (no-adversary-resp-converter g compat) (SecureConstruction.availability cg)))
+secure-construction-trans {a = a} {b} {b′} {c} {f} {g} {h} compat cf cg =
+  Equivalence.from (SecureConstruction⇔SecureAvailable₀ {a = a} {b = c} {f = f} {g = h})
+    (QAvailabilityᴿ.secure-trans-cap {f = f} {g = g} {h = h} compat
+      (Equivalence.to (SecureConstruction⇔SecureAvailable₀ {a = a} {b} {f} {g}) cf)
+      (Equivalence.to (SecureConstruction⇔SecureAvailable₀ {a = b′} {b = c} {f = g} {g = h}) cg))
 
 securely-constructs-trans : {a : X G.⇒ G.unit} {b b′ : Y G.⇒ G.unit} {c : Z G.⇒ G.unit}
                             {f : A G.⇒ Sᵒ.T₀ X B} {g : A G.⇒ Sᵒ.T₀ Y B} {h : A G.⇒ Sᵒ.T₀ Z B}
@@ -121,12 +203,7 @@ securely-constructs-trans : {a : X G.⇒ G.unit} {b b′ : Y G.⇒ G.unit} {c : 
                           → SecurelyConstructs εₛ′ εₐ′ b′ c g h
                           → SecurelyConstructs (εₛ ℚ.+ εₛ′) (εₐ ℚ.+ εₐ′) a c f h
 securely-constructs-trans {εₛ = εₛ} {εₐ} {εₛ′} {εₐ′} {a} {b} {b′} {c} {f} {g} {h} compat cf cg =
-  securely-constructs
-    (constructs-trans {ε = εₛ} {ε′ = εₛ′} {f = f} {g = g} {h = h}
-                      (SecurelyConstructs.security cf) (SecurelyConstructs.security cg))
-    (≈ᴿ[]-mono (≤-reflexive (cong (εₐ ℚ.+_) (+-identityˡ εₐ′)))
-      (≈ᴿ[]-trans (SecurelyConstructs.availability cf)
-        (≈ᴿ[]-trans
-          (Equivalence.to (∼ᴿ⇔∼ᴿ[0] {f = no-adversary b g} {g = no-adversary b′ g})
-                          (no-adversary-resp-converter g compat))
-          (SecurelyConstructs.availability cg))))
+  Equivalence.to (SecureAvailable⇔SecurelyConstructs {a = a} {b = c} {f = f} {g = h})
+    (QAvailabilityᴿ.secure-trans-cap {f = f} {g = g} {h = h} compat
+      (Equivalence.from (SecureAvailable⇔SecurelyConstructs {a = a} {b} {f} {g}) cf)
+      (Equivalence.from (SecureAvailable⇔SecurelyConstructs {a = b′} {b = c} {f = g} {g = h}) cg))

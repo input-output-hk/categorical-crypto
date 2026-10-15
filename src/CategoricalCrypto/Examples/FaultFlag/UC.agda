@@ -1,39 +1,53 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- SECURITY-ONLY construction in QSetupᴿ, not its independent availability
--- condition.  Both quarter-error steps are proved from the finite initial laws;
--- neither is a weakening of a zero-error theorem.  See the RS plan §4.6.
+-- The quarter-error security steps come from finite initialization laws, not
+-- weakening exact comparisons. A fixed passive cap ignores version tags, so
+-- the same steps also bound the honest fault observation independently.
 
 open import Categories.Category
 open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Construction.Quotient
 
 open import Data.Bool.Base
+open import Data.Empty
 open import Data.Product.Base
 open import Data.Rational as ℚ using (ℚ; 0ℚ; ½)
 open import Data.Rational.Properties
 open import Relation.Binary.PropositionalEquality
+open import Data.Sum.Base
+open import Function.Base using (id)
+open import Function.Bundles
+open import Level using (0ℓ)
 open import Relation.Nullary.Negation
 
 open import ProbabilisticLogic.Dp
+open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Approx.Error
 open import CategoricalCrypto.Examples.FaultFlag
 open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Model.Graded
+open import CategoricalCrypto.UC.Machine.Wire
 open import CategoricalCrypto.UC.Model.Seal
 open import CategoricalCrypto.UC.RandomSystems.Advantage
 open import CategoricalCrypto.UC.RandomSystems.Composition
+open import CategoricalCrypto.UC.RandomSystems.Availability
 open import CategoricalCrypto.UC.RandomSystems.Construction
 open import CategoricalCrypto.UC.RandomSystems.Quantitative
+open import CategoricalCrypto.UC.RandomSystems.Seal
 
 import CategoricalCrypto.UC.Model.Setup as PM
+import CategoricalCrypto.Machines.Core as Core
+import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.Examples.FaultFlag.UC where
 
 private
   module G = MonoidalCategory 𝔾ᵒ
   module P = Category 𝒫ᴵ
+  module Q = MonoidalCongruence congᴿ
   variable ε : ℚ
 
 realᵒ middleᵒ idealᵒ : ifaceᵒ unitᴵ PM.⇒ PM.T₀ (ifaceᵒ Advᴵ) (ifaceᵒ Honᴵ)
@@ -107,3 +121,45 @@ no-small-construction small (s , e) = no-small-simulation small (unprocᵒ s) (r
 no-small-security : ε ℚ.< ½ → ¬ (realᵒ ≤UCᴿ[ ε ] idealᵒ)
 no-small-security {ε} small w = no-small-construction small
   (≤UCᴿ[]⇒Constructs {ε = ε} {f = realᵒ} {g = idealᵒ} w)
+
+------------------------------------------------------------------------
+-- A fixed passive mode retains the honest initialization error
+------------------------------------------------------------------------
+
+private
+  module MC = Core (𝒱ₚ 0ℓ)
+  module S = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
+
+passiveᴹ : Proc Advᴵ 𝟭ᴵ
+passiveᴹ = MC.mk MC.Iˢ λ where
+  (_ , inj₁ _) → botₚ
+  (_ , inj₂ ())
+
+passive : ifaceᵒ Advᴵ G.⇒ G.unit
+passive = procᵘ passiveᴹ
+
+passive-simulator : (passive G.∘ simᵒ) G.≈ passive
+passive-simulator = G.Equiv.trans (G.Equiv.sym (procᵘ-∘ passiveᴹ simulator))
+  (≈ᴹ⇒≈ᵘ (∘-wireᴹ {Advᴵ} {Advᴵ} {𝟭ᴵ} previousTag id passiveᴹ
+    S.○ᴹ S.≲⇒≈ᴹ (S.mk-cong λ where
+      (_ , inj₁ _) → bot-bind-≈ₚ _
+      (_ , inj₂ ()))))
+
+first-full : QAvailabilityᴿ.SecureAvailable ¼ ¼ passive passive realᵒ middleᵒ
+first-full = QAvailabilityᴿ.secure-mode-preserving
+  {s = simᵒ} {f = realᵒ} {g = middleᵒ} (Q.≈⇒∼ passive-simulator) (proj₂ first-security)
+
+second-full : QAvailabilityᴿ.SecureAvailable ¼ ¼ passive passive middleᵒ idealᵒ
+second-full = QAvailabilityᴿ.secure-mode-preserving
+  {s = simᵒ} {f = middleᵒ} {g = idealᵒ} (Q.≈⇒∼ passive-simulator) (proj₂ second-security)
+
+composed-full : QAvailabilityᴿ.SecureAvailable (¼ ℚ.+ ¼) (¼ ℚ.+ ¼) passive passive realᵒ idealᵒ
+composed-full = QAvailabilityᴿ.secure-trans
+  {f = realᵒ} {g = middleᵒ} {h = idealᵒ} first-full second-full
+
+native-full : SecurelyConstructs ½ ½ passive passive realᵒ idealᵒ
+native-full = Equivalence.to
+  (SecureAvailable⇔SecurelyConstructs {f = realᵒ} {g = idealᵒ}) composed-full
+
+no-small-full : ε ℚ.< ½ → ¬ (QAvailabilityᴿ.SecureAvailable ε ½ passive passive realᵒ idealᵒ)
+no-small-full small c = no-small-security small (QAvailabilityᴿ.SecureAvailable.security c)

@@ -26,10 +26,11 @@ open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary.Decidable.Core using (toWitness)
 open import Relation.Nullary.Negation.Core
 
-open import ProbabilisticLogic.Distribution.Uniform using (indᵇ; indᵇ-nn)
+open import ProbabilisticLogic.Distribution.Uniform using (indᵇ; indᵇ-nn; indᵇ-≤1)
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Advantage
 open import ProbabilisticLogic.Dp.Iter
+open import ProbabilisticLogic.Dp.Mass using (cum-≤1)
 open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Abstract2.Morphism
@@ -46,11 +47,14 @@ open import CategoricalCrypto.UC.Machine.Run
 open import CategoricalCrypto.UC.Machine.Wire
 open import CategoricalCrypto.UC.Model.Enrichment
 open import CategoricalCrypto.UC.Model.Graded
+open import CategoricalCrypto.UC.Model.Quantitative using (module QUCᵒ)
 open import CategoricalCrypto.UC.Model.Seal
+open import CategoricalCrypto.UC.RandomSystems.Advantage
 open import CategoricalCrypto.UC.RandomSystems.Availability
 open import CategoricalCrypto.UC.RandomSystems.Composition
 open import CategoricalCrypto.UC.RandomSystems.Construction
 open import CategoricalCrypto.UC.RandomSystems.Morphism
+open import CategoricalCrypto.UC.RandomSystems.Quantitative
 open import CategoricalCrypto.UC.RandomSystems.Seal
 
 import CategoricalCrypto.Examples.HashForward.UC as HashForward
@@ -234,6 +238,70 @@ twice-full₀ : SecurelyConstructs 0ℚ 0ℚ (mode true) (mode true) twice ideal
 twice-full₀ = securely-constructs-trans Q.∼.refl
   (Equivalence.to (SecureConstruction⇔SecurelyConstructs₀ {f = twice} {g = adapted not}) twice-to-flipped)
   flipped-full₀
+
+------------------------------------------------------------------------
+-- The generic entry points retain the designated modes
+------------------------------------------------------------------------
+
+pm-flipped : QAvailabilityᵒ.SecureAvailable 0ℚ 0ℚ (mode false) (mode true) (adapted not) ideal
+pm-flipped = QAvailabilityᵒ.secure-mode-preserving
+  {s = adaptᵒ not} {f = adapted not} {g = ideal}
+  (G.Equiv.trans (G.Equiv.sym (procᵘ-∘ (answer false) (adapt not)))
+    (≈ᴹ⇒≈ᵘ (answer-adapt false not))) QUCᵒ.ctx-refl
+
+generic-flipped : QAvailabilityᴿ.SecureAvailable 0ℚ 0ℚ (mode false) (mode true) (adapted not) ideal
+generic-flipped = rewrite-secure-available {f = adapted not} {g = ideal} pm-flipped
+
+generic-twice : QAvailabilityᴿ.SecureAvailable 0ℚ 0ℚ (mode true) (mode true) twice ideal
+generic-twice = QAvailabilityᴿ.secure-trans {f = twice} {g = adapted not} {h = ideal}
+  (QAvailabilityᴿ.secure-mode-preserving {s = adaptᵒ not} {f = twice} {g = adapted not}
+    (mode-adapt true not) QUCᴿ.ctx-refl) generic-flipped
+
+generic-not-available : ¬ QAvailabilityᴿ.Availability 0ℚ
+  (mode true) (mode true) (adapted (λ _ → false)) ideal
+generic-not-available h = not-available (Equivalence.from
+  (Available⇔AvailableWithin₀ {f = adapted (λ _ → false)} {g = ideal})
+  (Equivalence.to (Availability⇔AvailableWithin {f = adapted (λ _ → false)} {g = ideal}) h))
+
+-- Each edge is perfect, but its middle resource is used in opposite modes.
+incompatible-left : QAvailabilityᴿ.SecureAvailable 0ℚ 0ℚ
+  (mode true) (mode false) (adapted (λ _ → false)) ideal
+incompatible-left = QAvailabilityᴿ.secure-mode-preserving
+  {s = adaptᵒ (λ _ → false)} {f = adapted (λ _ → false)} {g = ideal}
+  (mode-adapt true (λ _ → false)) QUCᴿ.ctx-refl
+
+incompatible-right : QAvailabilityᴿ.SecureAvailable 0ℚ 0ℚ
+  (mode true) (mode true) ideal ideal
+incompatible-right = QAvailabilityᴿ.secure-mode-preserving
+  {s = G.id} {f = ideal} {g = ideal} (Q.≈⇒∼ G.identityʳ)
+  (QUCᴿ.ctx-resp Q.∼.refl (Q.∼.sym (Q.≈⇒∼ (Sᵒ.sub-identityˡ ideal))) QUCᴿ.ctx-refl)
+
+no-zero-mode-bridge : ¬ QAvailabilityᴿ.Availability 0ℚ (mode false) (mode true) ideal ideal
+no-zero-mode-bridge h = bits-separated
+  (Q.∼.trans (Q.≈⇒∼ (G.Equiv.sym (mode-bit true)))
+    (Q.∼.trans (Q.∼.sym
+      (Equivalence.from (Available⇔AvailableWithin₀ {f = ideal} {g = ideal})
+        (Equivalence.to (Availability⇔AvailableWithin {f = ideal} {g = ideal}) h)))
+      (Q.≈⇒∼ (mode-bit false))))
+
+no-incompatible-conclusion : ¬ QAvailabilityᴿ.SecureAvailable 0ℚ 0ℚ
+  (mode true) (mode true) (adapted (λ _ → false)) ideal
+no-incompatible-conclusion c = generic-not-available (QAvailabilityᴿ.SecureAvailable.availability c)
+
+-- This bridge spends a full bit of availability and no security error.
+one-mode-bridge : QAvailabilityᴿ.Availability 1ℚ (mode false) (mode true) ideal ideal
+one-mode-bridge = Equivalence.from (Availability⇔AvailableWithin {f = ideal} {g = ideal})
+  λ d → Verdict.≈⇒≈̄
+    ((λ b n → 0 , ≤-trans (cum-≤1 n _ (indᵇ b) (indᵇ-≤1 b))
+      (≤-reflexive (sym (+-identityʳ 1ℚ))))
+    , (λ b n → 0 , ≤-trans (cum-≤1 n _ (indᵇ b) (indᵇ-≤1 b))
+      (≤-reflexive (sym (+-identityʳ 1ℚ)))))
+
+independent-budgets : QAvailabilityᴿ.SecureAvailable 0ℚ 1ℚ
+  (mode true) (mode true) (adapted (λ _ → false)) ideal
+independent-budgets = QAvailabilityᴿ.secure-trans-bridge
+  {f = adapted (λ _ → false)} {g = ideal} {h = ideal}
+  one-mode-bridge incompatible-left incompatible-right
 
 -- HashForward's public PM proof transports to the actual RS construction
 -- relation. It does not choose designated no-adversary converters.
