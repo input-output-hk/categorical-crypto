@@ -19,10 +19,10 @@ opaque
   unfolding _⊗₀_ destruct-⊗ construct-⊗ ⊗-sym ⊗-right-assoc ⊗-left-assoc
             ⊗-right-intro ⊗-ᵀ-distrib ⊗-ᵀ-factor ⊗-right-neutral ⊗-fusion ⊗-combine
 
-  compose-presentation : {R : Initialized A B} {S : Initialized B C}
-    → Presentation S → Presentation R → Presentation (S W.∘ R)
-  compose-presentation {A} {B} {C} Q P = trace-presentation
-    (reindex (M.∘σ {A} {B} {C}) rearrange left right (tensor-presentation P Q))
+  pre-presentation : {R : Initialized A B} {S : Initialized B C}
+    → Presentation S → Presentation R → Presentation (W.modify M.∘σ (R W.⊗₁ S))
+  pre-presentation {A} {B} {C} Q P =
+    reindex (M.∘σ {A} {B} {C}) rearrange left right (tensor-presentation P Q)
     where
     rearrange : (Channel.outType A ⊎ Channel.outType B) ⊎ (Channel.inType B ⊎ Channel.inType C)
               → (Channel.outType A ⊎ Channel.outType B) ⊎ (Channel.inType C ⊎ Channel.inType B)
@@ -39,6 +39,10 @@ opaque
     right (inj₁ (inj₂ b)) = refl
     right (inj₂ (inj₁ c)) = refl
     right (inj₂ (inj₂ b)) = refl
+
+compose-presentation : {R : Initialized A B} {S : Initialized B C}
+  → Presentation S → Presentation R → Presentation (S W.∘ R)
+compose-presentation Q P = trace-presentation (pre-presentation Q P)
 
 composition-shadow : {R : Initialized A B} {S : Initialized B C}
   (Q : Presentation S) (P : Presentation R) → shadow (compose-presentation Q P) ≈ᴿ (S W.∘ R)
