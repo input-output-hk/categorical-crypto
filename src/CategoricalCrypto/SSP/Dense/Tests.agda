@@ -474,7 +474,7 @@ private
     where open G.HomReasoning
 
 test-coverage : TestCoverage SSP→PM[wb]
-test-coverage = record { complete = complete }
+test-coverage = record { complete = λ {A} {B} {h} {k} → complete {A} {B} {h} {k} }
   where
   complete : ∀ {A B} {h k : A 𝒲ᵂ.⇒ B}
     → ((D : Protocol B Ωᴵ) → Observable._≋_ (Evaluation.observable evaluationᵂ)
