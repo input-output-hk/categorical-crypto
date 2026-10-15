@@ -14,17 +14,20 @@ open import Data.Unit.Base
 import Data.Unit.Polymorphic as Unit
 open import Relation.Binary.PropositionalEquality
 
-open import CategoricalCrypto.SSP.Dist.Kernel using (done; toss; sample)
+open import CategoricalCrypto.SSP.Dist.Kernel using (done; toss; sample; _≈ᵏ_)
+open import CategoricalCrypto.SSP.Iface using (unitᴵ)
 open import CategoricalCrypto.SSP.Observation using (evalC)
 import CategoricalCrypto.SSP.Protocol as P
 open import CategoricalCrypto.TaskPIOA.Core using
-  (Signature; Wiring; Ports; bit; empty; one; productSignature; Output)
+  (Signature; Wiring; Ports; bit; empty; one; productSignature; Output; Schedule)
 import CategoricalCrypto.TaskPIOA.Setup as S
 import CategoricalCrypto.TaskPIOA.Security as SourceSecurity
 import CategoricalCrypto.TaskPIOA.Tests as Examples
 import CategoricalCrypto.TaskPIOA.SSPAdapterTests as Rational
 open import CategoricalCrypto.TaskPIOA.NativeSSP.Core
 open import CategoricalCrypto.TaskPIOA.NativeSSP.Product
+import CategoricalCrypto.TaskPIOA.NativeSSP.Protocol as Native
+import CategoricalCrypto.TaskPIOA.NativeSSP.ProtocolTests
 import CategoricalCrypto.TaskPIOA.NativeSSP.Setup as N
 open import CategoricalCrypto.TaskPIOA.NativeSSP.Morphism
 open import CategoricalCrypto.TaskPIOA.NativeSSP.Security
@@ -158,3 +161,69 @@ masked-native-closing-reward : N.evaluate
   (N.nativeTest (compileEnvironment Examples.echoEnvironment) Examples.adaptive-word Examples.first-ciphertext)
   (compile Examples.real) ≡ ½
 masked-native-closing-reward = refl
+
+installed-network : P.Protocol unitᴵ
+  (Boundary (productSignature (Examples.coinSignature empty) Examples.receiverSignature empty))
+installed-network = Native.installed Examples.wire (compile Examples.pulse) (compile Examples.receiver)
+
+composed-send-first : lookupᴰℚ (entries (evalC
+  (Native.scheduled {productSignature (Examples.coinSignature empty) Examples.receiverSignature empty}
+    installed-network Examples.send-first (P.init installed-network))))
+  (maybeℚ Examples.receiver-accepts) ≡ 1ℚ
+composed-send-first = refl
+
+composed-read-first : lookupᴰℚ (entries (evalC
+  (Native.scheduled {productSignature (Examples.coinSignature empty) Examples.receiverSignature empty}
+    installed-network Examples.read-first (P.init installed-network))))
+  (maybeℚ Examples.receiver-accepts) ≡ 0ℚ
+composed-read-first = refl
+
+composed-run-compatibility : scheduledTree network Examples.send-first (false , false)
+  ≈ᵏ Native.scheduled {productSignature (Examples.coinSignature empty) Examples.receiverSignature empty}
+    installed-network Examples.send-first
+    (Native.embed Examples.wire (compile Examples.pulse) (compile Examples.receiver) (false , false))
+composed-run-compatibility = Native.installed-scheduled Examples.wire
+  (compile Examples.pulse) (compile Examples.receiver) Examples.send-first (false , false)
+
+composed-broadcast : lookupᴰℚ (entries (evalC
+  (P.step (Native.installed broadcast (compile Examples.receiver) (compile Examples.receiver))
+    (Native.embed broadcast (compile Examples.receiver) (compile Examples.receiver) (false , false))
+    (inj₁ true) tt)))
+  (maybeℚ (λ where (((tt , (true , true)) , tt) , nothing) → 1ℚ ; _ → 0ℚ)) ≡ 1ℚ
+composed-broadcast = refl
+
+right-sender-wire : Wiring Examples.receiverSignature (Examples.coinSignature empty) empty
+right-sender-wire = record
+  { left = CategoricalCrypto.TaskPIOA.Core.right Examples.wire
+  ; right = CategoricalCrypto.TaskPIOA.Core.left Examples.wire
+  ; boundary-live = λ () }
+
+installed-correlated : P.Protocol unitᴵ
+  (Boundary (productSignature Examples.receiverSignature (Examples.coinSignature empty) empty))
+installed-correlated = Native.installed right-sender-wire (compile Examples.receiver) noncanonical
+
+right-sender-word : Schedule (productSignature Examples.receiverSignature (Examples.coinSignature empty) empty)
+right-sender-word = inj₂ false ∷ inj₂ true ∷ inj₁ tt ∷ []
+
+right-correlated : List (Bool ⊎ Bool) → ℚ
+right-correlated (inj₂ false ∷ inj₁ false ∷ []) = 1ℚ
+right-correlated (inj₂ true ∷ inj₁ true ∷ []) = 1ℚ
+right-correlated _ = 0ℚ
+
+composed-right-sender-correlation : lookupᴰℚ (entries (evalC
+  (Native.scheduled {productSignature Examples.receiverSignature (Examples.coinSignature empty) empty}
+    installed-correlated right-sender-word (P.init installed-correlated))))
+  (maybeℚ right-correlated) ≡ 1ℚ
+composed-right-sender-correlation = refl
+
+right-receiver-reward : List (Bool ⊎ Bool) → ℚ
+right-receiver-reward [] = 0ℚ
+right-receiver-reward (inj₂ _ ∷ xs) = right-receiver-reward xs
+right-receiver-reward (inj₁ true ∷ _) = 1ℚ
+right-receiver-reward (inj₁ false ∷ _) = 0ℚ
+
+composed-right-sender-nondyadic : lookupᴰℚ (entries (evalC
+  (Native.scheduled {productSignature Examples.receiverSignature (Examples.coinSignature empty) empty}
+    installed-correlated right-sender-word (P.init installed-correlated))))
+  (maybeℚ right-receiver-reward) ≡ + 2 / 3
+composed-right-sender-nondyadic = refl
