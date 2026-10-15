@@ -54,6 +54,7 @@ open import CategoricalCrypto.UC.Bracket
 open import CategoricalCrypto.UC.Bracket.Category using (⊙≈∘) renaming (_⊙_ to _⊙ʷ_)
 open import CategoricalCrypto.UC.Bracket.Monitor
 open import CategoricalCrypto.UC.Bracket.Setup
+open import CategoricalCrypto.UC.Core
 open import CategoricalCrypto.UC.Machine hiding (Ωᴵ)
 open import CategoricalCrypto.UC.Model.Observation
 open import CategoricalCrypto.UC.Model.Seal
@@ -476,8 +477,9 @@ test-coverage : TestCoverage SSP→PM[wb]
 test-coverage = record { complete = complete }
   where
   complete : ∀ {A B} {h k : A 𝒲ᵂ.⇒ B}
-    → ((D : Protocol B Ωᴵ) → (⟦ D ⟧ᵂ 𝒲ᵂ.∘ h) ≋ (⟦ D ⟧ᵂ 𝒲ᵂ.∘ k))
-    → (T : B 𝒲ᵂ.⇒ Ωᴵ) → (T 𝒲ᵂ.∘ h) ≋ (T 𝒲ᵂ.∘ k)
+    → ((D : Protocol B Ωᴵ) → Observable._≋_ (Evaluation.observable evaluationᵂ)
+        (⟦ D ⟧ᵂ 𝒲ᵂ.∘ h) (⟦ D ⟧ᵂ 𝒲ᵂ.∘ k))
+    → (T : B 𝒲ᵂ.⇒ Ωᴵ) → Observable._≋_ (Evaluation.observable evaluationᵂ) (T 𝒲ᵂ.∘ h) (T 𝒲ᵂ.∘ k)
   complete {h = h} {k} agree T m ε pos =
     ≈ₚ[]-resp (obsᵂ-resp (T 𝒲ᵂ.∘ (h 𝒲ᵂ.∘ m)) ((T 𝒲ᵂ.∘ h) 𝒲ᵂ.∘ m) G.sym-assoc)
               (obsᵂ-resp (T 𝒲ᵂ.∘ (k 𝒲ᵂ.∘ m)) ((T 𝒲ᵂ.∘ k) 𝒲ᵂ.∘ m) G.sym-assoc)

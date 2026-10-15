@@ -48,7 +48,7 @@ image-dual-iso A = equality-iso (image-dual A)
   equality-iso refl = record { from = P.id ; to = P.id ; iso = record { isoˡ = P.identityˡ ; isoʳ = P.identityˡ } }
 
 test-coverage : TestCoverage S.itm⇒prot
-test-coverage = epi⇒TestCoverage S.itm⇒prot S.νᵀ-epi
+test-coverage = epi⇒TestCoverage S.itm⇒prot (λ {A} → S.νᵀ-epi {A})
 
 dual-context : (A : Ports) → C.ContextRepresentation (dualᵒ (F.₀ A))
 dual-context A = record { source = dualPorts A ; iso = image-dual-iso A }
@@ -57,7 +57,7 @@ preserves-≈ᵁ : Transfer.Preserves-≈ᵁ S.itm⇒prot
 preserves-≈ᵁ {A = A} e = dual-prefix⇒≈ᵁ (C.covered-context test-coverage (dual-context A) e)
 
 reflects-≈ᵁ : {f g : A S.⇒ S.T₀ X B} → G f P.≈ᵁ G g → f S.≈ᵁ g
-reflects-≈ᵁ = C.reflects-≈ᵁ S.νᵀ-mono
+reflects-≈ᵁ = C.reflects-≈ᵁ (λ {A} → S.νᵀ-mono {A})
 
 preserves-≤UC : Transfer.Preserves-≤UC S.itm⇒prot
 preserves-≤UC = Transfer.transfer⁺ S.itm⇒prot preserves-≈ᵁ
@@ -73,7 +73,7 @@ reflects-≤UC-witness : {f : A S.⇒ S.T₀ X B} {g : A S.⇒ S.T₀ Y B}
                     → (s′ : F.₀ Y P.⇒ F.₀ X) → G f P.≈ᵁ (P.sub s′ P.∘ G g)
                     → (s : Y S.⇒ X) → F.₁ s Q.∼ s′ → f S.≤UC g
 reflects-≤UC-witness s′ witness s lift =
-  C.reflects-≤UC-witness S.νᵀ-mono s′ witness s (simulator-representation s′ s lift)
+  C.reflects-≤UC-witness (λ {A} → S.νᵀ-mono {A}) s′ witness s (simulator-representation s′ s lift)
 
 reflects-≤UC-image-witness : {f : A S.⇒ S.T₀ X B} {g : A S.⇒ S.T₀ Y B}
                           → (s : Y S.⇒ X) → G f P.≈ᵁ G (S.sub s S.∘ g) → f S.≤UC g
