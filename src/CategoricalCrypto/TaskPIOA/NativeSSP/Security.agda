@@ -70,7 +70,8 @@ reflects-≤UC-witness s′ witness = Coverage.reflects-≤UC-witness
   s′ witness (sampleContext s′) (simulator-representation s′)
 
 reflects-≤UC : Transport.Reflects-≤UC
-reflects-≤UC le = reflects-≤UC-witness (proj₁ (N.UC.≤UC⇒dummy le)) (proj₂ (N.UC.≤UC⇒dummy le))
+reflects-≤UC le = let s′ , witness = N.UC.≤UC⇒dummy le
+  in reflects-≤UC-witness s′ witness
 
 ≈ᵁ-iff : ∀ {A B X} {f g : S.Syntax.HomTerm A (X S.Syntax.⊗₀ B)}
   → (f S.UC.≈ᵁ g) ⇔ (Transport.G f N.UC.≈ᵁ Transport.G g)

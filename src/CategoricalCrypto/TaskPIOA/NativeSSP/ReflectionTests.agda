@@ -117,8 +117,26 @@ pulse-converter-reward : N.evaluate (N.pull pulse-converter converter-test)
   (compile Examples.receiver) ≡ 1ℚ
 pulse-converter-reward = refl
 
+source-pulse-converter-reward : S.evaluate
+  (S.pull (sampleContext pulse-converter) (sampleTest converter-test))
+  (sampleMachine (compile Examples.receiver)) ≡ 1ℚ
+source-pulse-converter-reward = trans
+  (sym (sample-evaluate (N.pull pulse-converter converter-test) (compile Examples.receiver)))
+  pulse-converter-reward
+
 two-thirds-not-one : ¬ (+ 2 / 3 ≡ 1ℚ)
 two-thirds-not-one ()
+
+source-converter-tests-distinguished : ¬
+  (S.pull source-converter (sampleTest converter-test)
+    S.≋ S.pull (sampleContext pulse-converter) (sampleTest converter-test))
+source-converter-tests-distinguished eq = two-thirds-not-one (trans (sym source-converter-reward)
+  (trans (eq (sampleMachine (compile Examples.receiver))) source-pulse-converter-reward))
+
+native-converter-tests-distinguished : ¬
+  (N.pull native-converter converter-test N.≋ N.pull pulse-converter converter-test)
+native-converter-tests-distinguished eq = two-thirds-not-one (trans (sym native-converter-reward)
+  (trans (eq (compile Examples.receiver)) pulse-converter-reward))
 
 converter-is-nontrivial : ¬ (native-converter N.∼ pulse-converter)
 converter-is-nontrivial eq = two-thirds-not-one (trans (sym native-converter-reward)
