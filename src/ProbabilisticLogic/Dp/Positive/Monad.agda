@@ -2,12 +2,13 @@
 
 module ProbabilisticLogic.Dp.Positive.Monad where
 
-open import Data.Nat.Base using (_+_)
+open import Data.Nat.Base using (_+_; suc)
 open import Data.Product.Base
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Data.Rational.Properties
 open import Level using (Level)
 open import Relation.Binary using (IsEquivalence)
+open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Positive
@@ -65,3 +66,12 @@ bind-cong d e f g de fg =
 
 map-cong : (f : A → B) {d e : Dₚ A} → d ≈₊ e → mapₚ f d ≈₊ mapₚ f e
 map-cong f {d} {e} de = bind-cong d e (λ x → returnₚ (f x)) (λ x → returnₚ (f x)) de (λ x → ≈₊-refl)
+
+map-positive-to : (f : A → B) (d : Dₚ A) (P : B → ℚ) → NNF P
+                → PositiveTest d (λ x → P (f x)) → PositiveTest (mapₚ f d) P
+map-positive-to f d P nn (n , pos) =
+  suc n , subst (0ℚ ℚ.<_) (sym (mapₚ-cum n f d P)) pos
+
+map-positive-from : (f : A → B) (d : Dₚ A) (P : B → ℚ) → NNF P
+                  → PositiveTest (mapₚ f d) P → PositiveTest d (λ x → P (f x))
+map-positive-from f d P nn (n , pos) = n , <-≤-trans pos (mapₚ-≤ n f d P nn)
