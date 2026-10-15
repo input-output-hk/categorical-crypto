@@ -2,19 +2,18 @@
 
 module CategoricalCrypto.Machines.Positive.Wires.Mid where
 
-import Categories.GConstructionTrace as GT
+import CategoricalCrypto.Machines.Positive.Raw as Raw
 import Categories.Category.Monoidal.Utilities as MU
 import Categories.Category.Monoidal.Braided.Properties as BP
 open import Data.Sum.Base using (_⊎_)
 open import Level
-import CategoricalCrypto.Machines.Base as PM
-import CategoricalCrypto.Machines.Positive.Base as Positive
 import CategoricalCrypto.Machines.Positive.Repack as Re
 
 module _ (ℓ : Level) where
   open Re.At ℓ
-  module PW = GT PMM.U PMM.monoidal (PM.Tracedₚ ℓ)
-  module QW = GT QMM.U QMM.monoidal (Positive.Traced₊ ℓ)
+  private module G = Raw.At ℓ
+  module PW = G.PW
+  module QW = G.QW
   module PWires = MU.Shorthands PMM.monoidal
   module PB = BP.Shorthands PMM.braided
   private variable A B C D : Set ℓ
