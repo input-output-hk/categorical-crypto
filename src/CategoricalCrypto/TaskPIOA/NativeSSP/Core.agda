@@ -158,3 +158,8 @@ execution M ρ = scheduledTree M ρ (start M)
 execution-trace : ∀ {S} (M : Machine S) ρ → evalC (execution M ρ) ≈Mℚ Dmap just (trace M ρ)
 execution-trace M ρ P = trans (evalC-cong (P.≈ᶜ-sym (run-calls M ρ (start M))) P)
   (eval-coins (run M ρ (start M)) P)
+
+compile-execution : ∀ {S} (M : Source.Automaton S) ρ
+  → evalC (execution (compile M) ρ) ≈Mℚ Dmap just (Source.traceDist M ρ)
+compile-execution M ρ P = trans (execution-trace (compile M) ρ P)
+  (map-cong just (trace (compile M) ρ) (Source.traceDist M ρ) (compile-trace M ρ) P)
