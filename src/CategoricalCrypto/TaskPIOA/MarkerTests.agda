@@ -56,8 +56,8 @@ oneOutput _ = 0ℚ
 open-input-marker-test : Source.evaluate (markerTest (tt ∷ []) oneOutput) openMachine ≡ 1ℚ
 open-input-marker-test = refl
 
-open-input-extraction : Dmap decodeReplies
+open-input-extraction : Dmap (decodeReplies {S = openSignature})
     (runFrom (product (wiring (markerEnvironment openSignature)) openMachine
-      (markerAutomaton openSignature)) (markedSchedule (tt ∷ [])) (tt , tt))
+      (markerAutomaton openSignature)) (markedSchedule {S = openSignature} (tt ∷ [])) (tt , tt))
   ≈Mℚ paddedReplyRun openMachine (tt ∷ []) tt
 open-input-extraction = marker-extraction openMachine (tt ∷ []) tt
