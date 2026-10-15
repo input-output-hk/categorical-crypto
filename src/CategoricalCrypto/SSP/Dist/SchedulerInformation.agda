@@ -23,6 +23,7 @@ import CategoricalCrypto.SSP.Protocol as P
 open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation using (E; E-bind)
 open import ProbabilisticLogic.Distribution.RationalDist.Partial
+open import ProbabilisticLogic.Distribution.RationalDist.Setoid using (>>=ᴹ-congˡ)
 
 private variable
   T R V Q A X Y Symbol : Set
@@ -87,6 +88,23 @@ record Instrumentation {T R Q Symbol : Set} (K : F.TotalKernel T R Q)
           ≈Mℚ (K t q >>=ᴹ λ (r , q′) → Dmap (encodeReply codec r ++_) (execute c q′))
 open Instrumentation public
 
+replyCodec : Codec R R
+replyCodec = record
+  { encodeReply = λ r → r ∷ [] ; decode = λ rs → rs ; decode-encode = roundtrip }
+  where
+  roundtrip : ∀ rs → encodeWord (λ r → r ∷ []) rs ≡ rs
+  roundtrip [] = refl
+  roundtrip (r ∷ rs) = cong (r ∷_) (roundtrip rs)
+
+replyInstrumentation : (K : F.TotalKernel T R Q) → Instrumentation K replyCodec
+replyInstrumentation K = record
+  { Context = List _
+  ; emptyContext = []
+  ; extendContext = _∷_
+  ; execute = F.word K
+  ; empty-law = λ _ _ → refl
+  ; extend-law = λ _ _ _ _ → refl }
+
 compileWord : ∀ {K : F.TotalKernel T R Q} {codec : Codec R Symbol}
   (instrument : Instrumentation K codec) → List T → Context instrument
 compileWord instrument [] = emptyContext instrument
@@ -143,6 +161,22 @@ fixed-information-to-calls : ∀ {dec} (_≟_ : DecidableEquality R)
 fixed-information-to-calls _≟_ left right q r equal =
   F.Cylinders.fixed-to-calls _≟_ _ q _ r (information-to-words left right q r equal)
 
+reply-context : ∀ (K : F.TotalKernel T R Q) ts → compileWord (replyInstrumentation K) ts ≡ ts
+reply-context K [] = refl
+reply-context K (t ∷ ts) = cong (t ∷_) (reply-context K ts)
+
+words-to-calls : ∀ {dec} (_≟_ : DecidableEquality R)
+  (K : F.TotalKernel T R Q) q (H : F.TotalKernel T R A) r
+  → (∀ ts → F.word K ts q ≈Mℚ F.word H ts r)
+  → (c : P.Calls (F.Uniform T R dec) X) → F.observe K c q ≈Mℚ F.observe H c r
+words-to-calls _≟_ K q H r equal = fixed-information-to-calls _≟_
+  (replyInstrumentation K) (replyInstrumentation H) q r native
+  where
+  native : ∀ ts → F.word K (compileWord (replyInstrumentation K) ts) q
+    ≈Mℚ F.word H (compileWord (replyInstrumentation H) ts) r
+  native ts ξ = trans (cong (λ us → E (F.word K us q) ξ) (reply-context K ts))
+    (trans (equal ts ξ) (sym (cong (λ us → E (F.word H us r) ξ) (reply-context H ts))))
+
 -- A local receiving/step square, not standalone fixed-word equality, is
 -- required when a linked native context may inject boundary inputs.
 observeOracle : Oracle I Q → P.Calls I X → Q → Dist⊥ X
@@ -168,3 +202,42 @@ sample-result {Q = Q} {A = A} {ρ = ρ} {O = O} {O′} square c q ξ = trans
   point (just (x , s)) = trans (E-bind (ρ s) (λ u → return⊥ (x , u)) (F.lift ξ))
     (trans (lookupᴰℚ-cong-P (entries (ρ s)) (λ u → lookupᴰℚ-return (just (x , u)) (F.lift ξ)))
       (lookupᴰℚ-const (ρ s) (ξ (just x))))
+
+link-samples : {ρ : Q → Dist-ℚ A} {O : Oracle I Q} {O′ : Oracle I A}
+  → Samples {A = I} ρ O O′ → (context : P.Protocol I B)
+  → Samples {A = B} (second ρ) (context · O) (context · O′)
+link-samples {Q = Q} {A = A} {ρ = ρ} {O = O} {O′} square context (p , q) b x ξ = trans
+  (>>=ᴹ-assoc (ρ q) (λ r → return-ℚ (p , r)) (λ z → (context · O′) z b x) ξ)
+  (trans (>>=ᴹ-congˡ (ρ q)
+    (λ r → return-ℚ (p , r) >>=ᴹ λ z → (context · O′) z b x)
+    (λ r → (context · O′) (p , r) b x) (λ r →
+      >>=ᴹ-identityˡ (p , r) (λ z → (context · O′) z b x)) ξ)
+    (trans (E-bind (ρ q) (λ r → (context · O′) (p , r) b x) ξ)
+      (trans (lookupᴰℚ-cong-P (entries (ρ q)) (λ r →
+        F.partial-map-reward regroup (⟦ c ⟧ O′ r) ξ))
+        (trans (sym (E-bind (ρ q) (⟦ c ⟧ O′) reward))
+          (trans (sample-⟦⟧ square c q reward)
+            (trans (E-bind μ (kmaybe transport) reward)
+              (trans (lookupᴰℚ-cong-P (entries μ) point)
+                (trans (sym (E-bind μ (kmaybe (linked ∘ regroup)) ξ))
+                  (sym (Dmap⊥->>=⊥ regroup μ linked ξ))))))))))
+  where
+  c = P.step context p b x
+  μ = ⟦ c ⟧ O q
+  reward = ξ ∘ Maybe.map regroup
+  transport : (P.St context × _) × Q → Dist⊥ ((P.St context × _) × A)
+  transport z = ρ (proj₂ z) >>=ᴹ λ r → return⊥ (proj₁ z , r)
+  linked : (P.St context × Q) × _ → Dist⊥ ((P.St context × A) × _)
+  linked z = second ρ (proj₁ z) >>=ᴹ λ s → return⊥ (s , proj₂ z)
+  point : ∀ z → E (kmaybe transport z) reward ≡ E (kmaybe (linked ∘ regroup) z) ξ
+  point nothing = refl
+  point (just ((p′ , y) , q′)) = trans
+    (E-bind (ρ q′) (λ r → return⊥ ((p′ , y) , r)) reward)
+    (trans (lookupᴰℚ-cong-P (entries (ρ q′)) (λ r →
+      lookupᴰℚ-return (just ((p′ , y) , r)) reward))
+      (sym (trans
+        (>>=ᴹ-assoc (ρ q′) (λ r → return-ℚ (p′ , r)) (λ s → return⊥ (s , y)) ξ)
+        (trans (E-bind (ρ q′) (λ r → return-ℚ (p′ , r) >>=ᴹ λ s → return⊥ (s , y)) ξ)
+          (lookupᴰℚ-cong-P (entries (ρ q′)) (λ r → trans
+            (>>=ᴹ-identityˡ (p′ , r) (λ s → return⊥ (s , y)) ξ)
+            (lookupᴰℚ-return (just ((p′ , r) , y)) ξ)))))))
