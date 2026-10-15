@@ -4042,18 +4042,106 @@ Genuine consumers include the
 [PM bit-flip transport and generic twice-composition](../src/CategoricalCrypto/Examples/RandomSystems/Availability.agda#L254),
 incompatible perfect false/true middle-mode edges with a refuted zero bridge,
 and actual `κ=1` composition giving security0/availability1.
-[`Delivery`](../src/CategoricalCrypto/Examples/RandomSystems/Delivery.agda#L66)
+[`Delivery`](../src/CategoricalCrypto/Examples/RandomSystems/Delivery.agda#L68)
 uses a literal `botₚ` always-drop machine, perfect security but failed designated
 true-reply availability, and reliable composed availability plus an exact native
 true reply. The raw reply computation uses concrete double-flip wiring/run
 congruence, not behavioral all-positive-to-raw-`Dₚ` reflection.
-[`FaultFlag.UC`](../src/CategoricalCrypto/Examples/FaultFlag/UC.agda#L150)
+[`FaultFlag.UC`](../src/CategoricalCrypto/Examples/FaultFlag/UC.agda#L163)
 proves passive-mode preservation for its nonidentity tag simulator, yielding
 genuine `(¼,¼)` + `(¼,¼)` → `(½,½)` full constructions and retaining the strict
 smaller-security-error obstruction. HashForward remains security-only.
 These are replacement results at a fixed honest boundary—not arbitrary liveness,
-fairness, deadlines, normalized termination, feasibility, arbitrary quantitative
-compiler preservation or availability-qualified serial/parallel honest composition.
+fairness, deadlines, normalized termination, feasibility or arbitrary quantitative
+compiler preservation. Honest serial/parallel composition is a separate theorem.
+
+### Further checked honest serial composition and supported parallel pairing
+
+[`Availability.Composition.Serial`](../src/CategoricalCrypto/UC/Quantitative/Availability/Composition.agda#L19)
+is over any QUC setup and proves honest graded composition, not a renaming of
+replacement transitivity. The canonical joint cap is
+**`cap-compose a c = λ_I.from ∘ (a ⊗ c)`**.
+`close-compose` derives its actual cap/extension equation.
+[`secure-compose`](../src/CategoricalCrypto/UC/Quantitative/Availability/Composition.agda#L59)
+composes `f/g : A⇒T_X/Y B` with `u/v : B⇒T_P/R C`, yielding the honest composites
+`u ∙ f` / `v ∙ g`, simulator `(id ⊗ t) ∘ (s ⊗ id)`, and independent budgets
+**`(εu,s ⊕ εf,s, εu,a ⊕ εf,a)`**. This is outer-then-inner absorption order.
+Serial requires no tensor on computations or `T_I B ≅ B`.
+`availability-compose` is separate; the `-cap` variants require actual hom
+equality of supplied joint caps to these canonical caps.
+
+Parallel is restricted to the explicit
+[`Parallel.Pairing`](../src/CategoricalCrypto/UC/Quantitative/Availability/Composition.agda#L124)
+class: a monoidal computation category, actual interchange
+`χ : T_X B ⊗ T_P D ⇒ T_(X⊗P) (B⊗D)`, its `χ-sub` substitution law,
+and separate same-error left/right U-action nonexpansivity.
+`pair f u = χ ∘ (f ⊗ u)`; `pair-sub` and `close-parallel` are derived.
+[`secure-parallel`](../src/CategoricalCrypto/UC/Quantitative/Availability/Composition.agda#L193)
+uses simulator **`s ⊗ t`**, canonical caps and budgets
+**`(εf,s ⊕ εu,s, εf,a ⊕ εu,a)`**, literally left-then-right.
+Neither error associativity nor commutativity is assumed.
+`mode-compose`/`mode-parallel` derive composite designated-mode preservation
+from `a ∘ s ≈ b` and `c ∘ t ≈ d`. Braiding alone is not a proof of action
+nonexpansivity, and no arbitrary QUC tensor, incompatible joint-cap,
+arbitrary liveness or quantitative compiler theorem is inferred.
+
+The checked sufficient **standard class**
+[`Availability.Standard.Standard`](../src/CategoricalCrypto/UC/Quantitative/Availability/Standard.agda#L99)
+takes one symmetric monoidal category, its standard curried-tensor grading
+`T_X B=X⊗B`, and **any** Approx-valued presheaf `Q`. It constructs the actual
+middle-four `pairing`; both action inequalities are derived by converting
+contextual to all-ancilla `Ambient` agreement, absorbing the other factor into
+the ancilla, exchanging sides by symmetry and using presheaf restriction at
+the unchanged error. The conversion uses the actual monadic prefix, not an
+unrelated derived Kleisli action.
+The separate test-independent
+[`Structural`](../src/CategoricalCrypto/UC/Quantitative/Availability/Standard.agda#L28)
+proves middle-four substitution, `unit-middle4`, `unit-close-compose` and
+`close-compose`. Native ordinary no-adversary observations can consume these
+ambient hom laws without instantiating the direct-PM quantitative setup.
+This discharges the pairing premises for the standard symmetric tensor-graded
+class, not every QUC graded action on a symmetric category.
+
+**Two actual models, not aliases.** Native
+[`QCompositionᴿ`](../src/CategoricalCrypto/UC/RandomSystems/Availability/Composition.agda#L23)
+instantiates honest serial construction. The descended quotient `symmetricᴿ`
+and actual `Qᴿ` instantiate the standard proof to construct
+[`QParallelᴿ`](../src/CategoricalCrypto/UC/RandomSystems/Availability/Parallel.agda#L29).
+Native `securely-constructs-compose` / `securely-constructs-parallel` retain the
+ordered budgets and explicit product caps. Their no-adversary squares are
+ambient hom equalities to ordinary composition/tensor of the closed legs.
+Actual product-state machine tensor/left-right step laws and sealed coercions
+connect those homs to native runs.
+
+[`Delivery`](../src/CategoricalCrypto/Examples/RandomSystems/Delivery.agda#L225)
+really composes an honest output-not converter as `u ∙ f`, observes false,
+and separately retains independent literal **`(0+0,0+1)`** budgets.
+Wrong ideal composite caps refute zero availability/full construction despite
+perfect component constructions; even behavioral cap coherence is refuted.
+[`FaultFlag`](../src/CategoricalCrypto/Examples/FaultFlag/UC.agda#L194)
+uses `parallel middleᵒ middleᵒ` / `parallel idealᵒ idealᵒ`, not its replacement
+chain. Two quarter full constructions give independent half bounds with literal
+`simᵒ ⊗ simᵒ`, compatible passive product cap and actual native left/right
+real reads. The ideal left read is false, while finite real true mass is **¼**;
+perfect availability and zero full construction are refuted. The half parallel
+bound is **not claimed optimal**.
+
+The distinct direct
+[`UC.Model.Availability.Composition`](../src/CategoricalCrypto/UC/Model/Availability/Composition.agda#L19)
+constructs `QCompositionᵒ`, `pairingᵒ` and `QParallelᵒ` at **actual direct `Qᵒ`**,
+not a QRS-forwarded instance. It uses two-sided raw `Dₚ` advantage through all
+closures/tests, unlike the native positive-slack quantitative closure.
+The [direct PM consumer](../src/CategoricalCrypto/Examples/AvailabilityComposition/PM.agda#L64)
+has exact premises and literal `(0+0,0+0)` conclusions. The full capped honest
+serial real/ideal resources both return false after an actual output flip.
+The parallel real caps are `(false,true)`, ideal caps `(true,false)`, with
+the tensor of both flipping simulators and an explicit cap square.
+`pair-tell` queries **both** independent resources and returns `b ∧ not c`;
+`paired-bit-run` proves its raw law for arbitrary bits, so it is not constant.
+Both full real/ideal parallel resources actually return true at compatible caps.
+These are genuine two-model honest composition consumers; native quarter bounds
+are not relabelled direct raw bounds. Only designated no-adversary behavior is
+proved, not arbitrary-adversary liveness/fairness/deadlines/PPT.
 
 ### Structural test coverage and actual ITM/SSPdist migrations
 
@@ -4129,10 +4217,134 @@ No arbitrary-network/ancillary full abstraction, equality-based U/UC
 identification, unseparated overlapping-Par/arbitrary-fan-in theorem, or CSP→PM/SSP
 bridge is asserted. The larger shared IPDL/CSP R4 package is not declared complete.
 
+### Further checked extensional hiding: finite negative and independent positives
+
+The new [`FiniteSteps` / `FinitelyBranching`](../src/CategoricalCrypto/CSP/FiniteBranching.agda#L17)
+certifies a finite **sound and complete list of every `(Label,Tree)` successor**,
+including τ, ordinary events and `√`, with closure after every transition.
+It is total all-label finite branching, not finite alphabet/state or just
+per-label/channel support.
+[`FiniteBranchingHidingBoundary`](../src/CategoricalCrypto/CSP/FiniteBranchingHidingBoundary.agda#L230)
+has SPEC `select n` offer exactly two τ alternatives: increment `n`, or emit
+`b` followed by exactly `n` copies of `a` and STOP. IMPL emits `b` then `aω`.
+Both satisfy the total branching certificate. Every implementation finite trace,
+stable failure and exact divergence is included in SPEC before hiding; IMPL has
+no pre-hide divergence. SPEC diverges at `[]` by infinite increments, but every
+path after `b` has only a finite a-walk.
+Hiding **a only** gives [`hidden-impl-exact-b`](../src/CategoricalCrypto/CSP/FiniteBranchingHidingBoundary.agda#L329)
+while [`hidden-spec-no-exact-b`](../src/CategoricalCrypto/CSP/FiniteBranchingHidingBoundary.agda#L389)
+rules out SPEC divergence at that exact prefix. Thus
+[`hiding-breaks-exact-divergence-inclusion`](../src/CategoricalCrypto/CSP/FiniteBranchingHidingBoundary.agda#L392)
+refutes the desired general raw hiding rule under **total finite branching,
+even classically**. Earlier divergence at `[]` does not count after `[b]`.
+The original countable-root counterexample remains unchanged; new
+[finite-alphabet/no-finite-τ-cover controls](../src/CategoricalCrypto/CSP/FiniteBranchingHidingBoundaryTests.agda#L173)
+formally prove that it is not totally finitely branching.
+
+[`ExtensionalHiding.RawInclusion`](../src/CategoricalCrypto/CSP/ExtensionalHiding.agda#L41)
+retains the implementation-to-specification direction of all three raw fields.
+For arbitrary Boolean masks, `Mask.traces` and `Mask.failures` transfer the finite
+fields unconditionally. Refusal transport adds **all hidden events** to the
+source refusal, retaining both stability exclusions, τ and pending `√`.
+Two independent constructive hypotheses supply full hiding inclusion:
+
+* [`Mask.Progress` / `ranked-hiding`](../src/CategoricalCrypto/CSP/ExtensionalHiding.agda#L192):
+  a local **implementation** invariant starts initially and is closed under
+  every labelled step; its natural potential strictly decreases on each τ or
+  mask-hidden event. Kept visible events may reset rank. Constructive descent
+  excludes hidden implementation divergence at every reachable exact trace.
+  There is no source rank/compactness premise, finite-branching premise, global
+  termination claim, or post-hide divergence-freedom conclusion stored as data.
+* [`InfiniteObservation.Residual` / `Mask.residual-hiding`](../src/CategoricalCrypto/CSP/InfiniteObservation.agda#L37):
+  a finite weak **pre-hide source** visible word `s′` reaches a residual with an
+  actual infinite stream of **complete labels, including τ**. Prefix and stream
+  are correlated at the same residual; the observation is mask-independent and
+  contains no simulation relation between implementation/specification successors.
+  Finite trace/failure inclusion plus residual observation inclusion yields full
+  raw hiding inclusion. A hidden divergence after `s` is lifted to a source
+  prefix with `erase(s′)=s`, not an already post-hide prefix. Guarded transition
+  inversions supply the stream without choice. This is not ordinary infinite
+  visible-trace semantics.
+
+[`NativeExtensionalHiding.Admissible`](../src/CategoricalCrypto/CSP/NativeExtensionalHiding.agda#L27)
+transports **all three** fields through the existing closed **all-hide** `ClosedReadout` for represented
+nonempty common-channel families, retaining sole producer, designated distinct
+listener and all-incident synchronization.
+The [represented communicating client](../src/CategoricalCrypto/CSP/ExtensionalHidingTests.agda#L175)
+adds one finite τ delay to the emitter. Pre-hide raw inclusion holds but strong
+ready SPEC⊑IMPL is explicitly refuted at the root. The new rule gives actual
+`Testing.Test`/`pull`/`Evaluation.read` refinement through flattening, hidden
+handshake, exact `[√]` success and every terminal refusal.
+The separate productive selective-hide loop has explicit infinite runs and
+rank **1→0→1** reset across hidden/kept-visible steps; progress is not termination.
+The richer nonreflexive `silent(aω)`/`aω` client transports an actual hidden
+infinite divergence at `[]`, not just identity/divergence-free cases.
+
+[`FloodedObservation`](../src/CategoricalCrypto/CSP/FloodedObservation.agda#L25)
+is a **separate legal-word triple**: event words may end in one final tick, with
+no event or second tick after it. `DivergenceClosure D s` requires `s=p++r`,
+`D p` and legality of the **whole** `s`; flooded traces/failures additionally
+admit those extensions. Raw embeddings, raw-inclusion→flooded-inclusion,
+idempotence and strict-addition/tick controls are checked.
+For the binary-selector pair, SPEC's existing `[]` divergence floods every
+legal post-hide word; the
+[entire flooded triple is still included after hiding](../src/CategoricalCrypto/CSP/FiniteBranchingHidingBoundaryTests.agda#L151).
+This is explicitly **not** a flooded-FD counterexample. No universal flooded
+hiding theorem or identification with standard CSP healthiness/pinned native
+FD order follows: that native order extends arbitrary event/tick lists and has
+no separate trace field.
+
+### CSP hiding: primary-source terminology and logical boundaries
+
+The raw observation here records finite traces, stable failures and divergence
+after the **exact** visible trace; it neither floods extensions after divergence
+nor records infinite visible traces. Hiding preserves visible completion `√`;
+stability excludes both τ and pending `√`. Standard catastrophic FD theorems
+therefore cannot be imported without an observation comparison.
+
+Three branching notions must be kept distinct. Finite visible alphabet says
+nothing about internal branch indices. The pinned native
+[`FinBr`](https://github.com/input-output-hk/agda-cardano-common/blob/9a40d1de330f376c3a102e7c9f1282f4fa830a7e/src/ITree-CSP/Semantics/FinBr.agda)
+certificate gives finite **channel support**, decidable stability and successor
+closure; channel payloads and τ fanout may still be infinite.
+Roscoe's *Theory and Practice of Concurrency* §7.4, p177, instead defines
+finiteness for each fixed label in `Σ ∪ {τ,√}`: finitely many successor processes
+at that label. With an infinite alphabet this need not bound all successors
+together. These native-channel and fixed-label conditions are generally
+incomparable; neither is total all-label transition finiteness.
+The Roscoe definition was read in an indexed primary-source excerpt from
+[the author's PDF](https://www.cs.ox.ac.uk/oucl/work/bill.roscoe/publications/68b.pdf);
+the full Oxford PDF returned 403, so no unseen detailed hiding lemma is cited.
+
+The pinned native
+[`HideDivergence`](https://github.com/input-output-hk/agda-cardano-common/blob/9a40d1de330f376c3a102e7c9f1282f4fa830a7e/src/ITree-CSP/CSP/Laws/FD/HideDivergence.agda)
+constructively derives absence of infinite modulo-hidden paths from accessibility.
+The converse `¬DivModA→MAcc` is explicitly postulated and documented as using DNE.
+Likewise `DRCongruence.modA-transfer` is an explicit classical transfer premise;
+the separate native
+[`ClassicalFromLEM`](https://github.com/input-output-hk/agda-cardano-common/blob/9a40d1de330f376c3a102e7c9f1282f4fa830a7e/src/ITree-CSP/CSP/Laws/ClassicalFromLEM.agda)
+certifies those classical steps. None is imported into the local safe proofs.
+A supplied decreasing natural potential is independent constructive data, not
+mere negated divergence relabelled as accessibility.
+
+Full-label residual infinite observations, ordinary infinite **visible** traces,
+and divergence-flooded closure are different candidate observation theories.
+An infinite label stream retains τ placements; ordinary visible traces erase
+them. A finite-versus-infinite-visibility dichotomy, or selection of a last
+visible event, is not automatically constructive. No such dichotomy, safe
+König extraction, complete extensional characterization or identification of
+these richer observations is assumed.
+Publisher abstracts for Roscoe's
+[*The Three Platonic Models of Divergence-Strict CSP*](https://link.springer.com/chapter/10.1007/978-3-540-85762-4_3)
+and [*Seeing Beyond Divergence*](https://link.springer.com/chapter/10.1007/11423348_2)
+were inspected; full Oxford PDFs were unavailable. They support distinguishing
+divergence-strict and richer theories, not identifying this exact raw triple
+with a complete standard non-strict CSP model.
+
 ### TaskPIOA: justified scheduled NativeSSP bridge and exact finite test boundary
 
 The earlier operational SSPᵈ adapter is retained. The later checked setup edge is
-[`TaskPIOA.NativeSSP.Morphism.bridge`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Morphism.agda#L154)
+[`TaskPIOA.NativeSSP.Morphism.bridge`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Morphism.agda#L176)
 from `TaskPIOA.Setup.UC.StdSetup` to **new**
 [`TaskPIOA.NativeSSP.Setup.UC.StdSetup`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Setup.agda#L166),
 not `SSP.Dist.Setup.StdSetup`. Its independent finite owned machines use native
@@ -4159,15 +4371,46 @@ noncanonical coin trees.
 [`sampleMachine`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Core.agda#L78),
 context/value/test backtranslation supplies real source automata and `ν-epi`;
 explicit identity object isomorphisms give total ancillary coverage.
-[`Security`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Security.agda#L20)
-then derives E/U/UC preservation using the structural coverage API, without
-conclusion-as-premise fields. `simulator-square` is the actual grade-action square.
-Native consumers cover noncanonical test density, masked-output U/UC transfer
+[`Security`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Security.agda#L21)
+derives E/U/UC preservation using structural coverage, without conclusion-as-
+premise fields. `simulator-square` is the actual grade-action square.
+
+**Further checked reflection (2026-10-15).**
+[`compile-source-evaluate`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Morphism.agda#L147)
+evaluates every compiled source test on every compiled source valuation, deriving
+[`ν-mono`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Morphism.agda#L172).
+For **every** target hom `h`,
+[`native-context-roundtrip`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Morphism.agda#L183)
+proves `compileContext (sampleContext h) ∼ h` in the native state/kernel-simulation
+quotient, covering actual wires, installations, composition, tensor and all
+structural constructors on arbitrary native inputs.
+This derives [`simulator-representation`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Security.agda#L54)
+with equal substitution action on arbitrary **target computations and ancillas**.
+Every admissible simulator of this particular target is a native wiring hom;
+extracting the target dummy witness therefore gives unconditional
+[`reflects-≤UC`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Security.agda#L72)
+and [`≈ᵁ-iff` / `≤UC-iff`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Security.agda#L76).
+The generic representation contract remains conditional elsewhere. No source
+grade-stability assumption, categorical equivalence or quotient-respecting
+backward functor into free source syntactic equality is inferred.
+
+Native consumers retain noncanonical test density, masked-output U/UC transfer
 (closing reward `½`) and a nonidentity installation simulator (observed reward `1`).
+[`ReflectionTests`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/ReflectionTests.agda#L36)
+reflects masked U/UC and directly constructs a new independent biased native
+`Coins` installation into a receiver using actual wire/tensor/composition/unitor
+syntax. Its native witness is not forward transport of source security.
+Both witness-specific and unconditional reflection recover source security with
+the computed `sampleContext`. The same receiver computes **native, sampled-source
+and recompiled-source reward `2/3`, versus pulse `1`** on both sides.
+The observations genuinely distinguish converters; the source real resource is
+the positive dummy action of that converter, so no UC impossibility is claimed.
+Source/native send/read order rewards `1/0` distinguish actual tests, the native
+distinction consuming `ν-mono`.
 Actual [`runᵖ` Boolean consumers](../src/CategoricalCrypto/TaskPIOA/NativeSSP/ProtocolTests.agda#L50)
-compute `just true`/`just false` by schedule order; actual composed broadcast and
-right-sender persistent correlation have reward `1`, with non-dyadic receiver
-reward `2/3`. Disabled successful stutter and persistent joint state are retained.
+still compute `just true`/`just false` by schedule order; actual composed broadcast
+and right-sender persistent correlation have reward `1`, with receiver reward
+`2/3`. Disabled successful stutter and persistent joint state are retained.
 
 The exact independently checked observation chain is:
 
@@ -4178,7 +4421,7 @@ equal under ALL actual source Setup.Test contexts
   ⇒ actual runᵖ (D ∘ᵖ resource M/N) task-consumer distributions equal.
 ```
 
-[`Marker.source-tests-imply-padded`](../src/CategoricalCrypto/TaskPIOA/Marker.agda#L171)
+[`Marker.source-tests-imply-padded`](../src/CategoricalCrypto/TaskPIOA/Marker.agda#L196)
 constructs marker contexts for arbitrary signatures, including inputs.
 Only [`padded⇔finite-calls`](../src/CategoricalCrypto/TaskPIOA/AdaptiveFinite.agda#L69)
 is an iff: arbitrary same-signature automata/states, arbitrary result `Set`,
@@ -4202,7 +4445,85 @@ native-refinement equivalence, PPT, infinite-trace or fair-infinite-scheduler
 claim is inferred. This resolves the specified scheduled/native C bridge, not
 the larger unrestricted scheduler or stochastic relation/frame packages.
 
-### Attributed integrated checks for all four slices
+### Further checked shared scheduler information and TaskPIOA instrumentation
+
+[`SSP.Dist.SchedulerInformation`](../src/CategoricalCrypto/SSP/Dist/SchedulerInformation.agda#L32)
+represents legal finite public schedulers as Calls over viewed replies.
+`lower` passes only that view to continuations; the raw successor state remains
+private. `lower-bind` proves finite substitution compatibility and `lower-observe`
+agrees with the actual `viewKernel`, retaining rational coins, arbitrary result
+sets, early return and `dead`/failure branches.
+
+A **shared** [`Codec`](../src/CategoricalCrypto/SSP/Dist/SchedulerInformation.agda#L74)
+provides the block encoder and one model-independent decoder, left inverse only
+on valid encoded reply words. [`Instrumentation`](../src/CategoricalCrypto/SSP/Dist/SchedulerInformation.agda#L80)
+contains actual native context/execution data and empty/one-extension equations,
+not fixed/adaptive equality as a conclusion-shaped field.
+`compileWord`, `encoded-execution` and `extraction` derive complete fixed reply
+word recovery. [`fixed-information-to-calls`](../src/CategoricalCrypto/SSP/Dist/SchedulerInformation.agda#L156)
+then invokes the unchanged finite-cylinder theorem. Compared resources use the
+same codec and finite Calls tree, with arbitrary possibly different initial
+private states; neither context nor tester is indexed by private state.
+
+TaskPIOA's actual marker environment/interleaved schedule supplies
+[`markerInstrumentation`](../src/CategoricalCrypto/TaskPIOA/Marker.agda#L162).
+The common `markerCodec` is defined outside the automaton parameter.
+Input-forwarding names close nonempty source input signatures and are never
+fired by the marker. The original all-source-test and arbitrary-state/result
+padded↔finite-Calls quantifiers are preserved.
+
+Finite context closure requires a **local receiving/step square**:
+[`sample-result` / `link-samples`](../src/CategoricalCrypto/SSP/Dist/SchedulerInformation.agda#L185)
+reuse `Samples`/`sample-⟦⟧` to derive finite-result agreement and preserve that
+square under actual SSP protocol contexts. It is not inferred from standalone
+Tick information equality. Actual public-view substitution, linked Samples,
+[a nonempty-input native marker and a synchronized sender/input-receiver product](../src/CategoricalCrypto/TaskPIOA/MarkerTests.agda#L79)
+consume these theorems. Native `product-simulation` uses the masked sender's
+local receive/step correspondence; the linked finite adaptive and actual
+composed-consumer results agree, with true probability `½`.
+This does not add arbitrary input-environment product closure, unrestricted
+linking, all-Calls/native-Strategy equivalence, infinite/fair/PPT schedulers,
+or a full SSPdist/source-UC theorem.
+
+### Independent checked IPDL Input/Get/Step instrumentation
+
+[`IPDL.SchedulerInformation`](../src/CategoricalCrypto/IPDL/SchedulerInformation.agda#L50)
+is a second **native** instance of the same shared `Codec`/`Instrumentation`,
+not TaskPIOA reuse or the generic kernel word renamed as native execution.
+`Command` carries typed Input values, Get ports and Step; `Response` retains
+acknowledgements, output-port tags and successful absence. The actual native
+`Model.Context` is `Strategy I O (List (Response O))`; `execute` is native
+residual execution. Its empty/one-extension laws are derived from actual
+`Interaction.turn`; `singleton-codec O` is defined outside the net/private-state
+parameter. Fixed native instrumentation equality yields
+[`fixed-information-to-native` / `fixed-information-to-strategies`](../src/CategoricalCrypto/IPDL/SchedulerInformation.agda#L315)
+for arbitrary possibly different residual states, and the existing native/SSP
+correspondence gives actual composed tester/resource equality.
+
+The original failure-free native `Strategy` has a proved `compileNative`
+**embedding**, with [`native-execution`](../src/CategoricalCrypto/IPDL/SchedulerInformation.agda#L295).
+Generic Calls `dead` is interpreted by `legal` as a native **`Maybe` result**,
+not native execution failure. There is **no native-Strategy/all-Calls equivalence
+or iff**. `recoverResponse` distinguishes wrong tags from successful Get absence
+(`just nothing`); `kernel-issued-port` proves reply recovery for actual issued
+commands. Private residual cells never become legal continuation arguments.
+
+[Public privacy consumers](../src/CategoricalCrypto/IPDL/SchedulerInformationTests.agda#L147)
+compare two sealed nets with different hidden bits under **every** finite native
+strategy, including private coins; a separately labelled illegal residual-cell
+peek has actual true rewards **0/1**. Successful absence has acceptance **1**,
+not failure, with initial unsaturated Get and persistent repeated Input pinned.
+An actual local `Samples` square and
+[`linked-context-square`](../src/CategoricalCrypto/IPDL/SchedulerInformationTests.agda#L98)
+consume generic finite context closure. The hidden-channel linked/flat repeated-
+read client has correlation acceptance **1**; its raw distribution preserves
+**two half-weight entries**, not a falsely collapsed singleton. A private-coin
+challenge client has actual linked and flat acceptance **½**, and the protocol
+context also has **½**. These are meaningful native API/finite local/concrete
+linking consumers, not general open IPDL wiring, an IPDL source setup, UC
+security transfer, infinite/fair/PPT schedulers or a hidden-state-peeking policy.
+
+### Prior four-slice integrated checks (preserved)
 
 | Parent check | Integrated source and exercised result |
 |---|---|
@@ -4215,3 +4536,39 @@ Isolated implementors additionally checked the changed modules and affected
 native/setup/trace/security importers, with empty warning gates and no escape-
 hatch baseline growth. These are attributed typechecking results, not a new
 research/documentation-worker check or an uncontended performance measurement.
+
+### Further checked extension evidence (2026-10-15)
+
+These later results are separate from the preserved prior four-slice checks and
+13-module update. All commands use `pagda`, an owned host-backed temporary
+directory, UTF-8 locale and paired heap flags. Times are observed/attributed
+wall results, **not uncontended performance measurements**.
+
+| Later parent targeted check | Integrated source and exercised result |
+|---|---|
+| Scheduled NativeSSP reflection | `656c40b9c` + `39bfc2178`; `TaskPIOA.NativeSSP.Tests` and `ProtocolTests`, `-M3G -H1G`, rc0, all four changed reflection modules rebuilt, 18.17 s combined, empty warning gate. |
+| Shared scheduler core / actual TaskPIOA marker | `2e059e7ad` + `176d9aec5` + `0db1c4e5e`; `TaskPIOA.AdaptiveFiniteTests` and `MarkerTests`, `-M3G -H1G`, rc0, all five changed core/Task modules rebuilt, 20.47 s combined, no warnings. |
+| Independent actual IPDL scheduler instance | `14fa84a30` (source `10e592284`); `IPDL.SchedulerInformationTests`, `-M3G -H1G`, rc0, both new modules rebuilt, 13 s, no warnings. |
+| Extensional CSP positive and total-finite negative leaves | `0f4a18818` + `0db22aeb6` (source `2679db425` + `1382cd500`); `CSP.ExtensionalHidingTests` and `FiniteBranchingHidingBoundaryTests`, `-M3G -H1G`, final combined rc0, 12.20 s, no warnings. The positive interface was cached from the preceding interrupted check; the four new boundary modules rebuilt. Each isolated public leaf had separately rebuilt its four owned modules successfully. No interrupted/root attempt is counted as a pass. |
+| Actual direct-PM honest-composition consumer | Source through `b523b9e9e`, including core `62300c06a`, tensor helpers `4aa26888a` and Standard `6ac3f6949`; `Examples.AvailabilityComposition.PM`, `-M6G -H1G`, rc0. Six modules rebuilt, including the direct instance/consumer and common prerequisites. Durable `availability-pm-integrated.log` ends `COMMAND_EXIT_CODE="0"`. |
+| Native honest serial/parallel consumers and complete registered root | Native source `09da41c63` + `5130546a2`; `Examples.RandomSystems.Delivery` and `Examples.FaultFlag.UC` at `-M6G -H1G`, then `CategoricalCrypto.agda` at `-M8G -H1G`, all rc0, 62.61 s combined as reported by Main. Native serial/parallel dependencies rebuilt and the root emitted an actual `Checking CategoricalCrypto` line with all four new test leaves registered. All three successful logs end `COMMAND_EXIT_CODE="0"`; fresh warning gate empty and all assigned-scope escape matches zero. |
+
+The isolated final reflection, scheduler and CSP leaves had empty warning gates,
+unchanged zero escape baselines and preserved safe options. The standard
+availability-pairing module's isolated successful check used `-M6G -H1G`
+after the 3-GiB attempt exhausted its heap; its final source `c8f46b1f7` passed
+with an empty warning gate and zero escape growth. No 3-GiB success, root result
+or timing speedup is inferred from that retry.
+
+The successful later logs are retained under the integration worktree's
+`.omp-check-evidence/`: `availability-pm-integrated.log`,
+`availability-native-serial-integrated-6g.log`,
+`availability-native-parallel-integrated.log` and
+`reflection-composition-root-integrated.log`.
+The preceding `availability-native-serial-integrated.log` records **3-GiB heap
+exhaustion, rc251**, not a pass; the separate 6-GiB retry above is the success.
+The documentation worker read the four final exit-zero trailers and actual
+root checking line; it ran no Agda build/test. The full root is an independently
+observed integrated success, not inferred from isolated checks or a cache receipt.
+The original 89 research records/source boundary and prior four construction
+results remain intact.

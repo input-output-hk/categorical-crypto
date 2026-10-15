@@ -30,7 +30,7 @@ checks and the full `CategoricalCrypto.agda` root closure. The warning gate is e
 and the 13 new source modules introduce no escape-hatch matches. The historical root
 census in the provenance and original construction reports is not a count of this update.
 
-**Current checked construction update (2026-10-15).** All four later slices are
+**Prior checked construction update (2026-10-15; preserved).** All four slices are
 integrated: the justified TaskPIOA→**scheduled NativeSSP** setup bridge and exact
 fixed/padded/adaptive test boundary; arbitrary-QUC designated two-budget availability
 with native RS/PM→QRS consumers; local native CSP ready refinement with supported
@@ -42,9 +42,26 @@ escape-hatch baselines did not grow.
 are later postscripts, not a rewrite of the historical 89-record census or a
 replacement of the prior 13-module results.
 
+**Further checked extensions (2026-10-15).** The scheduled NativeSSP edge now
+preserves **and reflects** U/UC unconditionally at that endpoint. Honest serial/
+supported parallel availability has actual native RS and distinct direct PM
+instances, not replacement transitivity. One shared finite public-information
+API has actual TaskPIOA marker and independent typed IPDL instrumentation/local
+context consumers. CSP adds a **total** finitely branching binary-τ-selector
+negative, independent implementation-rank/residual-infinite positives and
+legal-word flooding classification. The exact later contracts/evidence remain
+postscripts, without altering the original census or claiming unrestricted
+native-model/categorical equivalence.
+The integrated dedicated consumers and complete registered
+`CategoricalCrypto.agda` closure also passed with an empty warning gate and
+zero assigned-scope escape growth. Actual direct-PM/native availability consumers
+used paired6G/H1G and the final root paired8G/H1G; the earlier native serial
+3-GiB heap failure is not counted as success. Exact terminal logs/revisions are
+attributed in the checked construction postscript.
+
 | setup | what exists | key exports |
 |---|---|---|
-| random systems `𝔾ᴿ` | `Categories/…/Construction/Quotient` (generic), `UC/Machine/Behaviour*`, `UC/RandomSystems/{Seal,Setup,Morphism,FullAbstraction,Advantage,Composition,Construction,Quantitative,Availability,Availability/Rewrite}`, `UC/Quantitative/Availability` | `rewrite⇒RS`, **`≈ᵁ⇔≈ᴿ`**, **`¬gradeStableᵒ`**, `≈ᴮ⇒≈ᴿ-fin`, `Δ`, composition/hybrids, security-only `Constructs` bridges; generic two-budget `SecureAvailable`, native `SecurelyConstructs` equivalence, measured PM→QRS cap transport, compatible/mismatched-cap replacement and mode/drop/nonzero consumers |
+| random systems `𝔾ᴿ` | quotient/behavioral setup and quantitative construction modules; `UC/Quantitative/Availability{,/Composition,/Standard}`, native `Availability/{Composition,Symmetric,Parallel}`, direct `UC/Model/Availability/Composition` | `≈ᵁ⇔≈ᴿ`, quantitative/native designated availability, measured cap transport; honest serial and supported parallel full construction with actual native RS/direct-PM pairings, canonical caps and independent ordered budgets; genuine honest reply, cap-incompatibility, nonzero FaultFlag parallel and two-port PM consumers |
 | ITM `𝕋ᴹ` | `ITM/{Core,Run,Functor,Setup,Transfer,Relational,Relational/Tests}`, `UCSetup/Coverage`, `Standard2/Coverage`, `UC/Model/Coverage`, `Machine/Initialized`, `FreeMonoidal.freeStrongMonoidal`, `Seal.unitᵒ` | `itm⇒prot`, `≈ℰ⇔`, actual epi/mono test witnesses, `dual-context` (partial image-dual basis), **`preserves-≈ᵁ`**, **`reflects-≈ᵁ`**, **`preserves-≤UC`**; UC reflection only with a supplied simulator lift; structural `Relational.Uninitialized.⇒iso` and separate initialized trace consumers |
 | SSP (call/return) | `SSP/{Iface,Protocol,Protocol/Category,Protocol/Monoidal,Observation,Setup,Reduction,Compile,Semantics,Cut,Dense,Dense/Tests}`, `Standard2/UKernel`, `Protocol/{Sim,Machine/Resp,Machine/Oracle}`, `UC/Bracket{,/Category}` | `StdSetup`, `Protᴹ`/`Protˢ`, `toProtocol`, `morphism-resp`, `W`, `morphism-W`, `𝒲`, `ι`, **`games-dense`**, **`SSP→PM[wb]`**, **`preserves-≤UC`** |
 | symbolic `𝔻𝕐` (steps 3–9; static and conservative transmitting step 10) | `Symbolic/{Term,Term/PairEnc,Deduction,Role,Fine,Semantics,Setup,Static,Static/PairEnc,Test,TheoryTests,StaticTests,Example/SecureChannel,Example/SecureChannel/Interactive}`, `Symbolic/RunFollowing`, `FreeMonoidal/Decorated`, `Machines/Sim/{Relational,RunFollowing}`, `UC/{Machine,Model}/Relational` | `Sym≅`, `Sym`, `fine→sym` (`coarse` Epi), **`grade-stable`** (hypothesis-free), `≈ᵁ⇔≈ℰ`, **`emit-≈E`**, **generic `≈ₛ⇒≈ℰ`**, **E₀ `≈ℰ⇔≈ₛ`**; admissible `EqTheory` closes under sorted name-to-term substitution, with `fresh-name`, `distinct-names`, `⊬-fresh`; fixed-public-message **`smt≤ideal`** retained, plus **`Interactive.smt≤ideal`** for one environment-selected plaintext with conservative ciphertext-controlled delivery and actual decryption; `leaky≉real`/`leaky≉simulated` are observational separators, not all-simulator impossibility; no multi-sort static converse or computational-crypto theorem |
@@ -52,11 +69,11 @@ replacement of the prior 13-module results.
 | certified symbolic `𝔻𝕐ᶜ` | `Symbolic/Computational{,/Run,/Obstruction}`, `Symbolic/{InterpretationTests,Erasure,ErasureTests}` | distinct `CertifiedSource.Sym≅ᶜ.StdSetup`; `fine→comp : UCSetupMorphism` into `ucSetupᴺ`; **`Erasure.certified→fine`** into ordinary `Sym≅`, erasing generator rate/query certificates and mapping tests `(Y,T) ↦ (FY,FT)`; no U/UC preservation/reflection for erasure; unrestricted rate-one runtime certificates are refuted by `no-backwards-certificate`; no crypto soundness or PPT setup is asserted |
 | computational family tiers | `UC/Family/Negligible/{Setup,Vanishing,Tests}` and `UC/Family/Vanishing` | **`negligible⇒vanishing : UCSetupMorphism ucSetupᴺ ucSetup^ω`**; identity computational data and native test representatives; preserves `≈ℰ`, `≈ᵁ`, `≤UC`, retaining each supplied source simulator by `same-simulator = refl`; no uniform bound or endpoint UC-nonreflection theorem |
 | SSPᵈ | `SSP/Dist{,/Setup,/Compile}`, `SSP/Dense/Tests`, `UCSetup/Coverage`, `Standard2/Coverage`, `Examples/SSP/OneTimePad/{Dist,WB}` | `ssp⇒dist` preserves/reflects UC; **`dist⇒PM[wb]`** derives `≈ℰ`, `≈ᵁ`, `≤UC` preservation from actual finite-approximation test density and total literal `Iface` coverage; the actual `composeᵁ` triangle agrees pointwise, including return/ext/sub comparisons; categorical and security OTP consumers; no full SSP reflection |
-| finite exact task-PIOA | `TaskPIOA/{Core,Product,Setup,Simulation,Security,Tests,SSPAdapter,SSPAdapterTests,Adaptive*,Marker*}`, `SSP/Dist/{Sampling,FiniteTesting}` | actual **`UC.StdSetup`**, native plugging/correspondence, same-signature/unit-leakage UC→contextual theorem; exact all-source-tests→fixed padded↔finite Tick Calls→actual composed consumers; bare compact-word pair separated by an actual source marker, not UC/contextual nonreflection |
-| scheduled native SSP | `TaskPIOA/NativeSSP/{Core,Product,Protocol,ProtocolTests,Setup,Morphism,Security,Tests}`, `SSP/Dist/Coins`, `TaskPIOA/Simulation/Properties` | distinct **`NativeSSP.Setup.UC.StdSetup`** and **`Morphism.bridge`** from TaskPIOA; actual SSP tensor/connector joint square at every input/task channel; constructive native test backtranslation and total ancillary coverage derive E/U/UC preservation; noncanonical/native/masked/nonidentity-simulator/composed-protocol consumers; **not full SSPdist** |
-| typed open-network CSP | `CSP/{Category,Monoidal,SemanticInvariance,Observation,Testing,Setup,Security,SecurityNetwork,SetupTests,MonoidalTests}`, native correspondences and eleven ready/refinement modules | actual **`OpenCSPᴹ`**, derived **`structural→operational`** / **`observations-respect`**, native **`ℰᶜˢᵖ`**, **`StdSetup`**, all-adversary **`f≤UCg`**, independent local ready simulation with full raw-triple inclusion, supported hiding/Par/family/linking and actual represented-consumer contextual results; not UC/native-refinement identification or a PM/SSP bridge |
+| finite exact task-PIOA | `TaskPIOA/{Core,Product,Setup,Simulation,Security,Tests,SSPAdapter,SSPAdapterTests,Adaptive*,Marker*}`, `SSP/Dist/{Sampling,FiniteTesting,SchedulerInformation}` | actual **`UC.StdSetup`**, same-signature/unit-leakage UC→contextual theorem; shared `Codec` and actual native marker `Instrumentation`; all-source-tests→padded↔finite Tick Calls→composed consumers; public-view substitution and context-local `Samples` closure with an actual input-receiver product; compact-word separator is not UC/contextual nonreflection |
+| scheduled native SSP | `TaskPIOA/NativeSSP/{Core,Product,Protocol,ProtocolTests,Setup,Morphism,Security,ReflectionTests,Tests}`, `SSP/Dist/Coins`, `TaskPIOA/Simulation/Properties` | distinct **`NativeSSP.Setup.UC.StdSetup`** and **`Morphism.bridge`** from TaskPIOA; actual tensor/connector joint square; constructive test/ancilla coverage, `ν-mono` and universal native-context quotient roundtrip represent every native simulator, deriving unconditional **`≈ᵁ-iff` / `≤UC-iff`**; independent biased converter `2/3` versus pulse `1` with matching source consumers; **not full SSPdist or categorical equivalence** |
+| typed open-network CSP | `CSP/{Category,Monoidal,SemanticInvariance,Observation,Testing,Setup,Security,SecurityNetwork,SetupTests,MonoidalTests}`, native correspondences, ready/refinement and eight extensional/classification modules | actual **`OpenCSPᴹ`**, observations and all-adversary **`f≤UCg`**; ready refinement with supported Hide/Par/linking; **total** finitely branching binary-τ-selector raw-hiding negative; independent implementation rank and correlated residual infinite-label positives with actual native readouts; legal-word flooding controls; not arbitrary-network full abstraction, UC/refinement identification or a PM/SSP bridge |
 | trace-observed CSP | `CSP/Trace/{Observation,Testing,Setup,Morphism,Security,Tests}` | new **`Trace.Setup.StdSetup`** and **`fullCSP→traceCSP : UCSetupMorphism`**; same `OpenCSP` carriers, grades, tensor action, consumers and resource closures; raw observation triple projected to traces; `≈ℰ`/U/UC preservation, pointwise same simulator; ready/choice refusal witness proves observation information loss only, not UC nonreflection |
-| finite IPDL API interpreter — not a setup | `IPDL/{Syntax,Native,SSP,Tests,ReadOrder,Linker}` | `Correspondence.agreement` for finite adaptive Boolean-verdict strategies including private coins; persistent/read-order and correlation witnesses; concrete hidden-channel, copy and feedback squares |
+| finite IPDL API interpreter — not a setup | `IPDL/{Syntax,Native,SSP,Tests,ReadOrder,Linker,SchedulerInformation,SchedulerInformationTests}` | finite adaptive native/SSP API agreement; independent typed Input/Get/Step shared-codec instrumentation and original native `Strategy` embedding, not all-Calls iff; all-native-strategy public privacy versus illegal residual peek, successful absence, actual local `Samples`/protocol context and hidden-channel linked/flat correlation/half-acceptance |
 
 **Major findings** (proven unless marked; finding 3's raw-compiler obstruction is
 argued in `Protocol/Machine.agda:14-19`'s header, not a universal no-morphism theorem):
@@ -148,8 +165,29 @@ argued in `Protocol/Machine.agda:14-19`'s header, not a universal no-morphism th
    designated availability, while reliable double-flip gives a native true reply.
    FaultFlag's proved passive cap adds genuine `(¼,¼)` + `(¼,¼)` → `(½,½)`
    full constructions with the strict smaller-security-error control retained.
-   HashForward remains security-only. None is arbitrary-adversary liveness,
-   fairness or a general availability-qualified honest-protocol composition theorem.
+   HashForward remains security-only. These replacement clients alone are not
+   honest graded composition. The later
+   [`Serial.secure-compose`](../src/CategoricalCrypto/UC/Quantitative/Availability/Composition.agda#L59)
+   proves honest serial full construction for any QUC setup, with canonical
+   `λ_I.from ∘ (a ⊗ c)` caps and independent outer-then-inner budgets
+   `(εu,s ⊕ εf,s, εu,a ⊕ εf,a)`.
+   [`Parallel.Pairing` / `secure-parallel`](../src/CategoricalCrypto/UC/Quantitative/Availability/Composition.agda#L124)
+   additionally require a monoidal computation category, actual interchange,
+   its grade-substitution square and separate U-action nonexpansivity; budgets
+   are left-then-right `(εf,s ⊕ εu,s, εf,a ⊕ εu,a)`, simulator `s ⊗ t`.
+   Cap variants require hom equality to canonical caps. No error associativity/
+   commutativity, arbitrary QUC tensor, arbitrary-adversary liveness or fairness follows.
+   The standard symmetric tensor-graded class with **any** Approx-valued
+   presheaf derives pairing by actual middle-four naturality and all-ancilla
+   contextual/presheaf reasoning. It is instantiated independently at native
+   `Qᴿ` and actual direct raw-advantage `Qᵒ`, not a QRS alias.
+   Native Delivery's honest converter gives false, literal `(0+0,0+1)` and
+   wrong-composite-cap controls. Native FaultFlag's actual middle⊗middle versus
+   ideal⊗ideal has tensor simulator/passive cap, `(¼+¼,¼+¼)` and a finite
+   quarter-mass control excluding perfect availability, not half-bound optimality.
+   Direct PM has exact full serial false replies and a nonconstant two-port
+   parallel `b ∧ not c` test giving true on both full resources at compatible
+   caps. Native positive-slack quarter bounds are not relabelled direct raw bounds.
    The toolkit includes Δ, nonexpansive composition and hybrids; `𝔾ᵒ`'s own
    `≈ᵁ[ε]` matches up to every positive slack. Amplification (`maurer2007`)
    remains out of reach: `Dₚ` masses are lower reals, with no conditional probabilities.
@@ -441,6 +479,28 @@ simulator backtranslation or UC reflection.
   The copy result is not SSP wire identity; there is no arbitrary flattening,
   open-functor or source-UC transfer theorem. The target resources can use the descended
   WB compiler without creating an IPDL source setup or repairing the old pull compiler.
+  The independent
+  [`IPDL.SchedulerInformation`](../src/CategoricalCrypto/IPDL/SchedulerInformation.agda#L306)
+  now instantiates the **same** shared `Codec`/`Instrumentation` as TaskPIOA.
+  It uses typed Input/Get/Step commands and port-tagged replies; an actual native
+  `Strategy` logger executes residual `Interaction.turn`, proving the local
+  empty/one-extension law. The common `singleton-codec O` is independent of net
+  and private state. Fixed native information equality derives finite adaptive
+  native and actual composed SSP output equality at arbitrary residual states.
+  `compileNative` embeds original failure-free native `Strategy`; generic Calls
+  `dead` instead becomes an ordinary `Maybe` result through `legal`.
+  **No native-Strategy/all-Calls equivalence or iff is claimed.**
+  [Actual clients](../src/CategoricalCrypto/IPDL/SchedulerInformationTests.agda#L147)
+  prove privacy for every finite native strategy despite different hidden bits,
+  versus an explicitly illegal residual peek with rewards `0/1`; successful
+  absence has acceptance `1`, not failure. Native local `Samples` and an actual
+  SSP protocol context consume the finite closure theorem.
+  The hidden-channel linked/flat consumer has repeated-read correlation
+  acceptance `1`, preserving its two raw half-weight entries. Private-coin
+  challenge and protocol-context acceptances are actual `½`; typed Input
+  persistence and initial unsaturated Get remain pinned.
+  These are independent native instrumentation and finite local/concrete linking
+  consumers, not arbitrary open IPDL wiring or a source UC setup.
 
 ### Coarser machine equalities go to random systems, not to `𝔾ᵒ`
 
@@ -506,7 +566,7 @@ possibilistic, so only the deterministic fragment maps into RS (`det-≈ᴮ⇒�
   give send-first/read-first acceptance 1 and 0, disabled-then-enabled acceptance 1,
   persistent correlated output/state and non-dyadic acceptance 2/3.
   **Exact finite test relationship:**
-  [`source-tests-imply-padded`](../src/CategoricalCrypto/TaskPIOA/Marker.agda#L171)
+  [`source-tests-imply-padded`](../src/CategoricalCrypto/TaskPIOA/Marker.agda#L196)
   uses actual marker contexts for arbitrary signatures, including inputs, to recover
   activation timestamps. All actual source tests equal ⇒ every fixed padded-word
   law equal ↔ every finite Tick `Calls` final-result law equal ⇒ actual
@@ -525,8 +585,22 @@ possibilistic, so only the deterministic fragment maps into RS (`det-≈ᴮ⇒�
   The positive adaptive consumer uses different Bool/Bool×Unit state representations,
   two reachable different-next-task branches of probability `½`, actual composed
   true probability `½`, and an explicit failure branch of probability `½`.
+  **Shared scheduler information and local closure:** the actual native marker
+  instantiates [`SchedulerInformation.Codec` / `Instrumentation`](../src/CategoricalCrypto/SSP/Dist/SchedulerInformation.agda#L74),
+  with one common decoder independent of private state or automaton.
+  Native empty/one-extension equations derive fixed-word extraction, then the
+  existing cylinder theorem derives all finite adaptive Calls equality.
+  Legal schedulers are finite Calls over viewed replies; `lower` never exposes
+  successor state, and its bind/observation laws are proved.
+  [`sample-result` / `link-samples`](../src/CategoricalCrypto/SSP/Dist/SchedulerInformation.agda#L185)
+  preserve finite context results from actual local `Samples` receiving/step
+  squares, not from marginal Tick-word equality alone.
+  [A nonempty-input native marker and real synchronized receiver product](../src/CategoricalCrypto/TaskPIOA/MarkerTests.agda#L79)
+  exercise the API, finite adaptive/actual composed equality and true probability
+  `½`. This does not give arbitrary input-environment closure or an infinite/
+  fair/PPT scheduler theorem.
 - **Scheduled native SSP — justified new setup bridge.**
-  [`NativeSSP.Morphism.bridge`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Morphism.agda#L154)
+  [`NativeSSP.Morphism.bridge`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Morphism.agda#L176)
   targets **new `NativeSSP.Setup.UC.StdSetup`**, not full `SSP.Dist.Setup.StdSetup`.
   Independent finite owned `Coins` machines expose boundary-input and task channels;
   a proved bidirectional state/kernel-simulation congruence quotients native wiring.
@@ -541,17 +615,32 @@ possibilistic, so only the deterministic fragment maps into RS (`det-≈ᴮ⇒�
   concrete corresponding implementations; this does not enlarge the setup's
   scheduled test class.
   Constructive `sampleMachine`/context/value/test backtranslation covers **every
-  native valuation**, including noncanonical coin trees, justifying natural `ν`
-  and `ν-epi`. Explicit total object/ancillary isomorphisms and actual test coverage
-  [derive E/U/UC preservation](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Security.agda#L20);
-  no coverage record assumes the conclusion.
-  Consumers exercise masked U/UC transfer (closing reward `½`), a genuinely
-  nonidentity installation simulator (observed reward `1`), actual Boolean SSP
-  `runᵖ` results `just true`/`just false` by schedule order, public-input broadcast,
-  persistent correlation and right-sender non-dyadic receiver reward `2/3`.
-  The older SSPᵈ tick adapter remains operational. No full SSPdist context/ancilla/
-  simulator coverage, reflection, full native-refinement equivalence, PM/causal-box
-  morphism, PPT, infinite-trace or fairness theorem is supplied.
+  native valuation**, including noncanonical coin trees, deriving `ν-epi` and
+  total ancillary coverage for [E/U/UC preservation](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Security.agda#L21).
+  Conversely, [`compile-source-evaluate` and `ν-mono`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Morphism.agda#L147)
+  follow from actual execution on every compiled source valuation.
+  [`native-context-roundtrip`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Morphism.agda#L183)
+  proves `compileContext (sampleContext h) ∼ h` for **every** native wiring hom.
+  This semantic-quotient equality supplies an independent
+  [`simulator-representation`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Security.agda#L54)
+  on arbitrary target computations and ancillary prefixes. Every simulator of
+  this target is represented, so extracting the actual dummy witness yields
+  unconditional [`≈ᵁ-iff` and `≤UC-iff`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Security.agda#L76).
+  No coverage record assumes the security conclusion.
+  [Reflection consumers](../src/CategoricalCrypto/TaskPIOA/NativeSSP/ReflectionTests.agda#L54)
+  construct an independent native biased-machine wire/tensor/composition/unitor
+  converter and its target witness directly. The native, sampled-source and
+  recompiled-source converters all give receiver reward `2/3`, versus pulse `1`;
+  both witness-specific and unconditional reflection recover source security.
+  This is a positive simulation, not UC nonrealizability. Masked U/UC security is
+  reflected too; source/native order rewards `1/0` distinguish actual tests, the
+  native distinction using `ν-mono`.
+  Existing nonidentity simulator reward `1`, masked closing reward `½`, actual
+  Boolean SSP `runᵖ` results by schedule order, public broadcast and persistent
+  correlation remain. The older SSPᵈ tick adapter is still operational.
+  No full SSPdist context/ancilla/simulator coverage or reflection, categorical
+  equivalence, quotient-respecting backward functor, full native-refinement
+  equivalence, PM/causal-box morphism, PPT, infinite-trace or fairness theorem follows.
 - **CSP typed open networks — implemented and checked.** Source `3c3e3caf7`, registered
   at root `b535ea092`, supplies the actual
   [`OpenCSPᴹ`](../src/CategoricalCrypto/CSP/Monoidal.agda#L94).
@@ -658,6 +747,47 @@ possibilistic, so only the deterministic fragment maps into RS (`det-≈ᴮ⇒�
   neither diverging before hiding; only the loop diverges after all-hide.
   It is not a finitely branching counterexample. The ready rule rejects it at
   the root τ mismatch; no divergence flooding/choice/compactness principle is used.
+  The later [`FiniteBranching`](../src/CategoricalCrypto/CSP/FiniteBranching.agda#L17)
+  certifies a finite sound/complete cover of **all labelled transitions**, including
+  τ, events and `√`, closed after every step—not finite alphabet/state or per-label
+  support. The new
+  [`FiniteBranchingHidingBoundary`](../src/CategoricalCrypto/CSP/FiniteBranchingHidingBoundary.agda#L392)
+  is genuinely **totally finitely branching**: SPEC `select n` has exactly two τ
+  successors, incrementing or emitting `b; a^n; STOP`; IMPL is `b; aω`.
+  Full implementation-to-specification raw inclusion holds before hiding.
+  SPEC diverges at `[]`, but not after `[b]`; hiding only `a` gives IMPL exact
+  divergence at `[b]`, refuting raw hiding congruence even under total finite
+  branching, even classically. The old countable-root example is retained and
+  [formally shown to lack a finite τ cover](../src/CategoricalCrypto/CSP/FiniteBranchingHidingBoundaryTests.agda#L195).
+  **Independent constructive positives:** [`Mask.traces` / `Mask.failures`](../src/CategoricalCrypto/CSP/ExtensionalHiding.agda#L174)
+  transport finite fields unconditionally, extending refusal by all hidden events.
+  [`ranked-hiding`](../src/CategoricalCrypto/CSP/ExtensionalHiding.agda#L233)
+  uses an implementation invariant closed under every labelled step and a natural
+  rank decreasing on τ/hidden events; kept visible events may reset rank. It
+  imposes no source rank/compactness or global termination.
+  [`residual-hiding`](../src/CategoricalCrypto/CSP/InfiniteObservation.agda#L99)
+  instead uses inclusion of correlated **pre-hide** finite-prefix/residual
+  infinite **full-label** streams, including τ, plus finite trace/failure inclusion.
+  This mask-independent observation is not ordinary infinite visible traces.
+  [`Admissible`](../src/CategoricalCrypto/CSP/NativeExtensionalHiding.agda#L27)
+  transports all three fields through the closed **all-hide** `ClosedReadout`, retaining nonempty
+  common channels, sole producer, distinct listener and all-incident ownership.
+  [Actual consumers](../src/CategoricalCrypto/CSP/ExtensionalHidingTests.agda#L175)
+  have raw inclusion but refute ready refinement, and prove communicating
+  `Testing.Test`/`pull`/`Evaluation.read` refinement, hidden handshake, exact `[√]`
+  and terminal refusals. Separate infinite rank-reset and enriched-divergence
+  clients show the rules are not STOP-only/reflexive packaging.
+  [`FloodedObservation`](../src/CategoricalCrypto/CSP/FloodedObservation.agda#L25)
+  is a separate legal tick-last triple with raw embeddings and idempotent closure.
+  For this binary-selector pair the **entire flooded triple remains included**
+  [after hiding](../src/CategoricalCrypto/CSP/FiniteBranchingHidingBoundaryTests.agda#L151):
+  the exact-divergence counterexample is not a flooded-FD counterexample.
+  Native `FinBr` is finite channel support, not finite τ/payload branching;
+  Roscoe's per-fixed-label finiteness is different again. Classical accessibility/
+  hiding postulates are not imported. [The checked report](construction-generality-report.md#csp-hiding-primary-source-terminology-and-logical-boundaries)
+  gives exact primary sources/access limits. No universal flooded hiding rule,
+  ordinary-infinite/full-label equivalence, safe general König extraction or
+  complete extensional characterization is claimed.
   The parent integrated all eleven new modules at `cdf2c11e0` + `fb7099bc5` and
   checked `NativeRefinementTests` with paired `-M3G -H1G`: rc0, 21.28 s combined,
   empty warning gate. The isolated native/setup/trace importer checks and unchanged
@@ -666,8 +796,8 @@ possibilistic, so only the deterministic fragment maps into RS (`det-≈ᴮ⇒�
   all-return-type network parallel theorem, UC/native-refinement identification,
   unseparated overlapping-Par or arbitrary-fan-in interchange, probability/PPT,
   fairness or CSP→PM/SSP bridge is supplied. Arbitrary-mask hiding is proved for
-  strong ready simulation, not extensional raw-triple inclusion. The pinned
-  library's broader weak/DR/FD limitations remain separate.
+  strong ready simulation and under independent progress/richer-observation
+  hypotheses, not raw inclusion alone. The pinned weak/DR/FD limits remain separate.
 - **Local-negligible → vanishing family observation.** The checked
   [`negligible⇒vanishing`](../src/CategoricalCrypto/UC/Family/Negligible/Vanishing.agda#L70)
   uses `changeKernel` between the existing endpoints. `F`, `Φ` and `κ` are identity
@@ -774,9 +904,12 @@ This overview shows implemented setup-morphism existence only. In
 `docs/uc-models.typ`, a double head means **UC preservation**, a hook **UC reflection**,
 both mean both directions, and a plain arrow claims neither direction (not their falsity).
 These decorations have no categorical mono/epi meaning and do not merely mean `ν.Mono`/`ν.Epi`.
-ITM→PM, SSPᵈ→PM[wb], PMᴺ→PM^ω, full-CSP→trace-CSP and TaskPIOA→scheduled
-NativeSSP preserve UC; none gets an unconditional reflection hook.
-Certified→ordinary symbolic erasure is plain.
+ITM→PM, SSPᵈ→PM[wb], PMᴺ→PM^ω and full-CSP→trace-CSP preserve UC without an
+unconditional reflection hook. **TaskPIOA→scheduled NativeSSP has both**:
+`ν-mono` plus the universal native-context quotient roundtrip represents every
+admissible native simulator, deriving unconditional U/UC iff. This is only that
+scheduled endpoint, not categorical equivalence or full SSPdist reflection.
+Certified→ordinary symbolic erasure remains plain.
 
 ```text
 Sym≅ᶜ ──erase──▶ Sym≅ ──coarse──▶ Sym
@@ -805,9 +938,11 @@ The SSP triangle agrees pointwise in target hom/test equality, not by bundled
 record equality. The checked finite-IPDL-API→SSPᵈ-resource and scheduled
 TaskPIOA→SSPᵈ-protocol/consumer connections remain **operational**, not setup-
 morphism or U/UC-transfer edges. TaskPIOA's new **black setup edge** targets the
-distinct scheduled `NativeSSP.Setup.UC.StdSetup`, with constructive coverage and
-U/UC preservation—not full SSPdist. CSP's setup edge changes observation; its
-native ready refinement is a separate represented-fragment relation.
+distinct scheduled `NativeSSP.Setup.UC.StdSetup`, with constructive coverage,
+universal converter representation and unconditional U/UC preservation/reflection—
+not full SSPdist or a quotient-respecting backward functor. CSP's setup edge changes
+observation; its ready and extensional hiding rules are separate represented-fragment
+results, not equality-based UC/refinement identification.
 Native IPDL, RSIM and causal-box bridges remain proposals. The old raw `SSP → PM`,
 `IPDL → RS` and `RS → causal boxes` candidates remain withdrawn; none is a universal
 impossibility theorem.

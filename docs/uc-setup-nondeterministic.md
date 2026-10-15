@@ -318,6 +318,20 @@ resolve qs (choose i k) = maybe′ (λ pq → resolve (proj₂ pq) (k (proj₁ p
   (the header view of canetti2015suc's router, backes2007rsim's "realistic information"), not the coins
   ⊐ SSP pick-ahead sees activation boundaries only (oblivious within an activation) ⊐ a task schedule
   fixed in advance (canetti2006taskpioa).
+  The later checked finite
+  [`SchedulerInformation`](../src/CategoricalCrypto/SSP/Dist/SchedulerInformation.agda#L32)
+  API makes a **public reply view** explicit: legal testers are finite Calls over
+  that view, and `lower` cannot pass raw replies or private successor states to
+  their continuations. Its proved bind/observation laws are information/substitution
+  results, not an identification of the grade owners or scheduler roles above.
+  A shared `Codec` plus actual native empty/one-extension instrumentation derives
+  fixed-word recovery and finite adaptive Calls agreement. TaskPIOA's real marker
+  environment and the independent typed IPDL Input/Get/Step native logger instantiate
+  it, without making the task word state-peeking or equating native Strategy with
+  all Calls. Context-local closure additionally needs the existing
+  `Samples` receiving/step square (`sample-result`, `link-samples`), not standalone
+  Tick-word equality. No infinite/fair/PPT scheduler or native-Strategy/all-Calls
+  equivalence is inferred.
 - **Not a `StdUCMorphism`.**  ⌈−⌉ changes the grade, so it is no functor Prot⁺ → Prot; it maps into
   graded hom-sets, the Kleisli-valued shape the old plan rejected as its (2b).  None is needed: ND_B has
   no category of its own, protocols with choices are its morphisms at choice grades, `Protocol⁺` is

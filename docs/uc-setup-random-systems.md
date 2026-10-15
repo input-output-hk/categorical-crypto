@@ -542,8 +542,8 @@ Thm 1's security obligations at `≤UCᴿ[ ε ]` are `constructs-*` transported 
 `≤UCᴿ[]⇔Constructs`; `QUCᴿ.at-trans` and `QUCᴿ.at-compose` give the same errors
 directly. Availability is a separate obligation (§4.5); the emulation equivalences
 do not fix the designated no-adversary converters. Thm 1 (ii), parallel construction,
-still needs a graded tensor and the interchange
-`(X ⊗ B) ⊗ (X′ ⊗ B′) ≅ (X ⊗ X′) ⊗ (B ⊗ B′)`.
+requires an actual graded pairing and U-action nonexpansivity, not braiding alone.
+The later explicit structural class and honest-composition rules are recorded in §4.5.
 
 **Amplification** (maurer2007 Thm 1, the product theorem): not attempted.  Its proof rests on
 Lemma 5 there, systems with a monotone binary output whose conditionals are
@@ -586,8 +586,8 @@ the designated ideal no-adversary mode. `securely-constructs-trans` adds the two
 security errors and the two availability errors separately, provided the
 intermediate designated converters are behaviourally equal. Its qualitative
 counterpart is `secure-construction-trans`. This is replacement composition at
-a fixed honest boundary, not an unproved full parallel-construction theorem or
-the full honest-protocol serial theorem of the paper.
+a fixed honest boundary; the distinct honest-protocol serial/supported-parallel
+rules below use actual graded composition/pairing and canonical joint caps.
 
 `Examples/RandomSystems/Availability.agda` proves the concrete counterexample:
 the ideal server asks Eve which bit to answer; the no-adversary converter answers
@@ -657,27 +657,106 @@ incompatible false/true middle modes are rejected by `no-zero-mode-bridge` and
 [`one-mode-bridge`/`independent-budgets`](../src/CategoricalCrypto/Examples/RandomSystems/Availability.agda#L295)
 instead supply a genuine `κ = 1` comparison and yield security error **0** with
 availability error **1**; observable false/true separation refutes the zero bridge.
-The native [`Delivery`](../src/CategoricalCrypto/Examples/RandomSystems/Delivery.agda#L66)
+The native [`Delivery`](../src/CategoricalCrypto/Examples/RandomSystems/Delivery.agda#L68)
 consumer has a literal `alwaysDrop` machine whose requested step is `botₚ`,
 not a false reply. `drop-run` computes no reply, `drop-security` is perfect,
 and `drop-not-available` rejects designated true-reply availability.
 `reliable-composition` consumes generic composed availability on the double-flip
-resource, while [`reliable-reply`](../src/CategoricalCrypto/Examples/RandomSystems/Delivery.agda#L200)
+resource, while [`reliable-reply`](../src/CategoricalCrypto/Examples/RandomSystems/Delivery.agda#L202)
 computes an actual true reply using concrete wiring equality and native run
 congruence—not a behavioral-equality-to-raw-`Dₚ` reflection.
 
 The positive-error FaultFlag example below also has **new explicit cap proofs**:
-[`first-full`/`second-full`](../src/CategoricalCrypto/Examples/FaultFlag/UC.agda#L150)
+[`first-full`/`second-full`](../src/CategoricalCrypto/Examples/FaultFlag/UC.agda#L163)
 preserve a designated passive mode under the existing nonidentity tag simulator,
 each at genuine `(¼,¼)` error. `composed-full` gives `(½,½)`, `native-full`
 uses the native equivalence, and `no-small-full` retains the strict smaller-security
 error obstruction. This does not retroactively add availability to security-only
 results lacking such proofs.
 
-These are designated-mode contextual comparisons, not arbitrary-adversary liveness,
-fairness, deadlines, eventual delivery, normalized termination, feasibility,
-arbitrary quantitative compiler preservation, or an availability-qualified
-serial/parallel honest-protocol composition theorem.
+These earlier designated-mode comparisons alone are not arbitrary-adversary
+liveness, fairness, deadlines, eventual delivery, normalized termination,
+feasibility or arbitrary quantitative compiler preservation.
+
+#### Honest graded serial composition and supported parallel pairing
+
+[`Availability.Composition.Serial`](../src/CategoricalCrypto/UC/Quantitative/Availability/Composition.agda#L19)
+proves honest serial composition for **every QUC setup**, independently of the
+old replacement rule. For caps `a : X⇒I`, `c : P⇒I`, its canonical joint cap is
+**`cap-compose a c = λ_I.from ∘ (a ⊗ c)`**.
+The proved `close-compose` square relates capping `u ∙ f` to graded composition
+of the capped components. For full constructions of `f/g` and `u/v`,
+[`secure-compose`](../src/CategoricalCrypto/UC/Quantitative/Availability/Composition.agda#L59)
+gives full construction of the actual honest composites `u ∙ f` / `v ∙ g`
+with simulator `(id ⊗ t) ∘ (s ⊗ id)` and independent budgets
+**`(εu,s ⊕ εf,s, εu,a ⊕ εf,a)`**. This outer-then-inner order is literal;
+serial needs neither a tensor on computations nor `T_I B ≅ B`.
+
+Parallel additionally requires the explicit
+[`Parallel.Pairing`](../src/CategoricalCrypto/UC/Quantitative/Availability/Composition.agda#L124)
+class: monoidal computations, an actual interchange
+`χ : T_X B ⊗ T_P D ⇒ T_(X⊗P) (B⊗D)`,
+its grade-substitution square `χ-sub`, and separate same-error left/right
+U-action nonexpansivity. `pair f u = χ ∘ (f ⊗ u)`.
+[`secure-parallel`](../src/CategoricalCrypto/UC/Quantitative/Availability/Composition.agda#L193)
+then uses simulator `s ⊗ t`, the canonical caps and independent **left-then-right**
+budgets **`(εf,s ⊕ εu,s, εf,a ⊕ εu,a)`**.
+The ordered error algebra gains neither associativity nor commutativity.
+`*-compose-cap` / `*-parallel-cap` require actual hom equality to canonical
+joint caps, while `mode-compose` / `mode-parallel` derive their preservation
+from the directed component laws `a ∘ s ≈ b`, `c ∘ t ≈ d`.
+Unsupported pairings and incompatible arbitrary joint caps are not covered.
+
+The checked standard sufficient class is
+[`Availability.Standard.Standard`](../src/CategoricalCrypto/UC/Quantitative/Availability/Standard.agda#L99):
+one symmetric monoidal category with its standard curried-tensor grading
+`T_X B=X⊗B`, and **any** Approx-valued presheaf `Q`.
+Its actual [`pairing`](../src/CategoricalCrypto/UC/Quantitative/Availability/Standard.agda#L214)
+uses middle-four interchange. Both action bounds are derived by all-ancilla
+`Ambient` conversion, tensor-factor absorption into the ancilla, symmetry and
+presheaf restriction at the same error—not assumed from braiding.
+The test-independent `Structural` module separately proves middle-four/unit
+and closed-serial hom equations, so native ordinary no-adversary readouts
+do not need to instantiate the direct-PM quantitative presheaf.
+
+**Actual native RS instances.**
+[`QCompositionᴿ`](../src/CategoricalCrypto/UC/RandomSystems/Availability/Composition.agda#L23)
+and native `available-within-compose` / `securely-constructs-compose` instantiate
+honest serial construction at `QSetupᴿ`. The actual quotient
+[`symmetricᴿ`](../src/CategoricalCrypto/UC/RandomSystems/Availability/Symmetric.agda#L21)
+and `Qᴿ` instantiate the standard class to derive
+[`QParallelᴿ`](../src/CategoricalCrypto/UC/RandomSystems/Availability/Parallel.agda#L29)
+and native `available-within-parallel` / `securely-constructs-parallel`.
+`no-adversary-compose` is ambient equality to ordinary composition of separately
+closed legs; `no-adversary-parallel` is equality to their actual tensor.
+The concrete `UC.Machine.Tensor.tensorᴹ` gives product state, category equality
+and left/right step laws, with `Seal.Monoidal.procᵒ-tensor` at sealed endpoints.
+
+[Delivery's honest output-not converter](../src/CategoricalCrypto/Examples/RandomSystems/Delivery.agda#L225)
+really composes as `u ∙ f`, proves full construction and observes the designated
+reply **false**. `honest-independent-full` separately retains literal
+**`(0+0,0+1)`** budgets. Wrong ideal composite caps refute perfect availability/
+full construction, and `honest-composite-cap-incompatible` refutes even behavioral
+coherence of those proposed caps. Old replacement examples remain distinct.
+
+[FaultFlag's actual parallel full construction](../src/CategoricalCrypto/Examples/FaultFlag/UC.agda#L194)
+compares `parallel middleᵒ middleᵒ` to `parallel idealᵒ idealᵒ`.
+Two quarter-error premises produce **`(¼+¼,¼+¼)`**, then native `(½,½)`,
+with literal simulator `simᵒ ⊗ simᵒ` and a proved compatible passive product cap.
+Actual native left/right real-read laws use the concrete tensor and cached
+initialization distributions. The ideal left read returns false; the real
+left read has finite-approximation true mass **¼**, excluding zero availability
+and zero full construction. This does **not** assert tightness of the parallel
+half bound, arbitrary liveness, fairness, deadlines or PPT.
+
+**A second, genuinely direct model.**
+[`UC.Model.Availability.Composition`](../src/CategoricalCrypto/UC/Model/Availability/Composition.agda#L19)
+constructs the same structural laws at actual direct `Qᵒ`/`QSetupᵒ`, not via QRS.
+Its [exact PM consumer](../src/CategoricalCrypto/Examples/AvailabilityComposition/PM.agda#L64)
+has raw `Dₚ` serial replies false on both sides and a nonconstant two-port
+parallel test `b ∧ not c` returning true for both full resources at compatible
+caps. Direct two-sided raw advantage and native positive-slack QRS are distinct;
+native quarter bounds are not asserted as direct raw bounds.
 
 The unchanged `HashForwardConsumer.hash-security` also transports the existing inhabited-grade,
 three-state HashForward simulator through `≤UC⇒Constructs₀`, and `hash-rs`

@@ -71,7 +71,7 @@ cylinder proof uses total finitely supported rational kernels, unit queries and
 decidable replies, not finite state or a global finite reply enumeration.
 The actual `resource` kernels and `runᵖ (D ∘ᵖ resource M)` consumer consequences
 are checked. Generic source marker contexts additionally give
-[all actual source tests→padded→adaptive/composed consumers](../src/CategoricalCrypto/TaskPIOA/Marker.agda#L171),
+[all actual source tests→padded→adaptive/composed consumers](../src/CategoricalCrypto/TaskPIOA/Marker.agda#L196),
 for arbitrary signatures including inputs, **not the contextual converse**.
 Silence-erased bare-word equality alone is weaker: the
 [raw pulse pair](../src/CategoricalCrypto/TaskPIOA/AdaptiveTests.agda#L30)
@@ -79,17 +79,76 @@ is separated by a fixed padded test and by an actual source marker context as
 well as an adaptive test. This is activation-timestamp information loss, not
 an adaptive-power or UC-nonreflection theorem.
 
+The later [`SSP.Dist.SchedulerInformation`](../src/CategoricalCrypto/SSP/Dist/SchedulerInformation.agda#L32)
+factors this through a reusable **public-view / shared-codec** API.
+`lower` passes only viewed replies to a continuation, never private successor
+state; `lower-bind` proves finite substitution compatibility and `lower-observe`
+agrees with `viewKernel`. A [`Codec`](../src/CategoricalCrypto/SSP/Dist/SchedulerInformation.agda#L74)
+has one block encoder and model-independent decoder, left inverse on valid
+encoded words. [`Instrumentation`](../src/CategoricalCrypto/SSP/Dist/SchedulerInformation.agda#L80)
+contains actual native contexts/execution and empty/one-extension equations,
+not the desired all-adaptive conclusion. `encoded-execution` and `extraction`
+derive complete fixed-word recovery; `fixed-information-to-calls` compares
+arbitrary initial private states using the **same codec and same finite Calls**.
+Coins, arbitrary result sets, early return and `dead`/failure are retained.
+
+TaskPIOA's actual marker product and interleaved schedule instantiate this API:
+[`markerCodec`](../src/CategoricalCrypto/TaskPIOA/Marker.agda#L88) is independent
+of the automaton, and [`markerInstrumentation`](../src/CategoricalCrypto/TaskPIOA/Marker.agda#L162)
+proves its extension law from actual native steps. Nonempty input signatures
+are closed by input-forwarding names which the marker automaton never fires.
+This strengthens the implementation account, not the source test quantifiers.
+
+Context closure uses an additional **local** premise:
+[`sample-result` / `link-samples`](../src/CategoricalCrypto/SSP/Dist/SchedulerInformation.agda#L185)
+derive finite-result agreement and preserve the existing receiving/step `Samples`
+square under an actual SSP protocol context. Standalone Tick-word equality
+alone is not arbitrary input-environment closure. Actual public substitution,
+linked Samples and a synchronized masked-sender/input-receiver product are
+[checked consumers](../src/CategoricalCrypto/TaskPIOA/MarkerTests.agda#L94);
+their finite adaptive/closed composed results agree, with true probability `½`.
+No infinite/fair/PPT scheduler or unrestricted SSPdist UC theorem follows.
+
+[`IPDL.SchedulerInformation.instrumentation`](../src/CategoricalCrypto/IPDL/SchedulerInformation.agda#L306)
+is an independent **native** instance of that same shared API, with typed
+Input/Get/Step commands, port-tagged public replies and actual native Strategy
+logger execution. Its `singleton-codec O` is independent of net/private state.
+Fixed instrumentation equality derives finite native and actual composed SSP
+consumer agreement. Original native `Strategy` embeds failure-free; generic
+`dead` becomes a `Maybe` result, so no all-Calls/native-Strategy iff is claimed.
+The [privacy/local-linking consumers](../src/CategoricalCrypto/IPDL/SchedulerInformationTests.agda#L147)
+include all-native-strategy privacy versus illegal residual peek `0/1`,
+successful absence `1`, actual local/protocol-context Samples and genuine
+hidden-channel linked/flat correlation `1` and challenge acceptance `½`.
+This does not supply an IPDL source UC setup or arbitrary open linking theorem.
+
 ### 2.2 A distinct scheduled NativeSSP setup bridge, not full SSPdist transfer
 
-[`TaskPIOA.NativeSSP.Morphism.bridge`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Morphism.agda#L154)
+[`TaskPIOA.NativeSSP.Morphism.bridge`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Morphism.agda#L176)
 is a complete setup morphism from the actual TaskPIOA setup to **new**
 `TaskPIOA.NativeSSP.Setup.UC.StdSetup`. The target has independent finite
 owned `Coins` machines, a proved state/kernel-simulation quotient of native wiring,
 and scheduled tests evaluated by actual SSP `Protocol.step`/`Calls` execution.
 Constructive source backtranslation covers every native valuation, including
-noncanonical coin trees; natural `ν` and `ν-epi`, plus explicit total object/
-ancillary representations, justify generic **E/U/UC preservation**.
-These are not fields assuming the desired security conclusion.
+noncanonical coin trees; `ν-epi` and total ancillary representations derive
+**E/U/UC preservation**. Actual evaluation on every compiled source valuation
+also derives [`ν-mono`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Morphism.agda#L172).
+The universal [`native-context-roundtrip`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Morphism.agda#L183)
+proves `compileContext (sampleContext h) ∼ h` for every target wiring hom in the
+native semantic quotient. Its independent
+[`simulator-representation`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Security.agda#L54)
+acts at arbitrary target computations and ancillas. Every simulator of this
+endpoint is such a hom, so **E/U/UC reflection** and unconditional
+[`≈ᵁ-iff` / `≤UC-iff`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Security.agda#L76)
+follow by extracting and backtranslating the target dummy simulator.
+These are derived theorems, not fields assuming the desired security conclusion.
+
+The [independent native converter client](../src/CategoricalCrypto/TaskPIOA/NativeSSP/ReflectionTests.agda#L54)
+builds a biased native `Coins` installation using actual wire/tensor/composition/
+unitor syntax and directly proves its target witness. Native, sampled-source and
+recompiled-source receiver rewards are `2/3`, while pulse rewards are `1` on
+both sides. Witness-specific and unconditional reflection recover positive source
+security; the observations distinguish converters, not UC realizability.
 
 The independently defined
 [`Protocol.connector`/`installed`](../src/CategoricalCrypto/TaskPIOA/NativeSSP/Protocol.agda#L48)
@@ -102,9 +161,10 @@ the setup's scheduled test class to all SSP consumers.
 The [actual Boolean runᵖ regressions](../src/CategoricalCrypto/TaskPIOA/NativeSSP/ProtocolTests.agda#L50)
 give `just true`/`just false` by schedule order, with composed broadcast,
 persistent correlation and non-dyadic receiver reward `2/3` also checked.
-This new endpoint is **not `SSP.Dist.Setup.StdSetup`**; no full SSPdist coverage,
-U/UC reflection, full native refinement equivalence, infinite/fair scheduler or
-PPT theorem is inferred.
+This endpoint is **not `SSP.Dist.Setup.StdSetup`**: no full SSPdist coverage or
+reflection, categorical equivalence, quotient-respecting backward functor into
+source syntactic equality, full native refinement equivalence, infinite/fair
+scheduler or PPT theorem is inferred.
 
 ## 3. Laws (`SSP/Dist/Laws.agda`)
 

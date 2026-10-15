@@ -7,7 +7,8 @@ report. Coq references are to github.com/ipdl/ipdl.
 
 ## Implemented finite Fig. 9 interpretation
 
-All six modules under `src/CategoricalCrypto/IPDL/` use `--safe --without-K`.
+The original six modules and the two later scheduler-information modules under
+`src/CategoricalCrypto/IPDL/` use `--safe --without-K`.
 The value types are unit, Boolean and their finite products. Reactions are
 uniformly depth-bounded trees of returns, reads and rational Boolean sampling;
 Agda continuations express deterministic conditionals. A net has one reaction
@@ -22,6 +23,8 @@ cryptographic axiom interpretation, or implementation of the categorical plan.
 | `Tests` | delayed readiness/repeated input, initial Get, hidden bit read twice, conditional-feedback separator and all three marginal masses |
 | `ReadOrder` | `read-order` in SSP distributional equality and `all-strategies`; separate demand-exposing `pull-left`/`pull-right` counterexample |
 | `Linker` | independent paired saturation, hidden-channel square, native copy identity and seeded/blocked feedback squares |
+| `SchedulerInformation` | independent typed `Command`/`Response`, actual native logger/context execution, common `singleton-codec`, `instrumentation`, fixed-information transfer, original native `Strategy` embedding and composed-output consequences |
+| `SchedulerInformationTests` | all-native-strategy sealed-bit privacy versus illegal residual peek, successful absence, persistent typed Input/Get/Step, local/context `Samples`, actual hidden-channel linked/flat correlation and half-acceptance |
 
 Each query first performs its Fig. 9 action and then saturates to quiescence.
 In particular `Get` observes the **pre-saturation** state, even in the first
@@ -73,6 +76,51 @@ No native IPDL category, test presheaf, ancilla closure, `UCSetupMorphism` or
 UC/security-transfer theorem is claimed. The pull-compiler obstructions in
 the design plan below apply to its demand-exposing encoding, **not** to the
 Fig. 9 API resource interpreter.
+
+## Checked shared scheduler-information instance (2026-10-15)
+
+[`IPDL.SchedulerInformation`](../src/CategoricalCrypto/IPDL/SchedulerInformation.agda#L50)
+is an **independent** instance of the same
+[`SSP.Dist.SchedulerInformation.Codec` / `Instrumentation`](../src/CategoricalCrypto/SSP/Dist/SchedulerInformation.agda#L74)
+used by TaskPIOA, not a renamed TaskPIOA or generic-word interpreter.
+`Command` represents typed Input payloads, Get ports and Step; `Response` retains
+acknowledgements, output-port tags and successful absence. `Model.Context` is an
+actual native `Strategy` producing a response log. `Model.execute` runs the
+native residual semantics; its
+[`extension-law`](../src/CategoricalCrypto/IPDL/SchedulerInformation.agda#L220)
+is proved from actual `Interaction.turn`. `singleton-codec O` is common across
+compared nets and private states.
+
+[`fixed-information-to-native` / `fixed-information-to-strategies`](../src/CategoricalCrypto/IPDL/SchedulerInformation.agda#L315)
+derive finite adaptive native agreement for arbitrary possibly different initial
+residual states, with the same codec and public tester, from equality of fixed
+native instrumented observations. Existing native/SSP correspondence gives
+actual composed tester/resource output, not merely a trace-level assertion.
+No private residual cell is available to a legal continuation.
+
+The original failure-free native `Strategy` has the proved
+[`compileNative` / `native-execution`](../src/CategoricalCrypto/IPDL/SchedulerInformation.agda#L153)
+**embedding** into Calls. In the other direction `legal` returns native
+`Strategy (Maybe X)` and interprets generic `dead` as ordinary result `nothing`.
+This is **not native-Strategy/all-Calls equivalence or an iff**.
+`recoverResponse` distinguishes wrong tags from successful Get absence
+(`just nothing`), and `kernel-issued-port` proves recovery for actual issued
+queries. No malformed reply is silently identified with successful absence.
+
+[Actual consumers](../src/CategoricalCrypto/IPDL/SchedulerInformationTests.agda#L147)
+prove sealed-hidden-bit privacy under **every** finite native strategy, including
+private coins, while one explicitly illegal residual peek has true rewards `0/1`.
+Successful absence has acceptance `1`; initial unsaturated Get and persistent
+repeated Input are separately pinned. `native-square` and
+[`linked-context-square`](../src/CategoricalCrypto/IPDL/SchedulerInformationTests.agda#L98)
+consume the existing local receiving/step `Samples` law and generic
+`link-samples`, not standalone marginal information equality.
+The genuine hidden-channel linked/flat consumer preserves repeated-read
+correlation with acceptance **1**. Its raw law retains **two half-weight entries**,
+not a collapsed singleton. A private-coin challenge consumer has actual linked
+and flat acceptance **½**, and an actual protocol context also has acceptance
+**½**. These are finite local/context and concrete linking results, not general
+open IPDL composition or a new UC setup/security-transfer theorem.
 
 ## 1. Summary
 
