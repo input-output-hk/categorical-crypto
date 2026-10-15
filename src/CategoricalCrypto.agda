@@ -98,7 +98,11 @@ import CategoricalCrypto.Symbolic.TheoryTests
 import CategoricalCrypto.Symbolic.Example.SecureChannel.Interactive
 import CategoricalCrypto.TaskPIOA.Tests
 import CategoricalCrypto.TaskPIOA.SSPAdapterTests
+import CategoricalCrypto.TaskPIOA.AdaptiveFiniteTests
+import CategoricalCrypto.TaskPIOA.MarkerTests
+import CategoricalCrypto.TaskPIOA.NativeSSP.Tests
 import CategoricalCrypto.CSP.MonoidalTests
+import CategoricalCrypto.CSP.NativeRefinementTests
 import CategoricalCrypto.CSP.SetupTests
 import CategoricalCrypto.CSP.Trace.Tests
 import CategoricalCrypto.ND.SSP.Laws
@@ -145,6 +149,7 @@ open import CategoricalCrypto.Examples.Commitment
 open import CategoricalCrypto.Examples.Signatures
 open import CategoricalCrypto.Examples.RandomOracle
 import CategoricalCrypto.Examples.RandomSystems.Availability
+import CategoricalCrypto.Examples.RandomSystems.Delivery
 import CategoricalCrypto.Examples.SSP.OneTimePad.Dist
 import CategoricalCrypto.Examples.SSP.OneTimePad.FullTests
 import CategoricalCrypto.Examples.SSP.OneTimePad.ObservationRestriction
