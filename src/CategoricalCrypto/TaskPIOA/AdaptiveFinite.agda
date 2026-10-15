@@ -15,35 +15,39 @@ open import Relation.Binary.PropositionalEquality
 
 import CategoricalCrypto.SSP.Dist.FiniteTesting as F
 open import CategoricalCrypto.SSP.Dist.Kernel using (Oracle; ⟦_⟧; _·_; none)
+import CategoricalCrypto.SSP.Dist.SchedulerInformation as Information
 open import CategoricalCrypto.SSP.Iface using (unitᴵ; Ωᴵ)
 open import CategoricalCrypto.SSP.Observation using (runᵖ)
 import CategoricalCrypto.SSP.Protocol as P
 open import CategoricalCrypto.TaskPIOA.Core
 open import CategoricalCrypto.TaskPIOA.SSPAdapter using
-  (Tick; tickOracle; finite-dec; resource; all-calls-agreement)
+  (Tick; tickOracle; finite-dec; resource; native-samples)
+open import CategoricalCrypto.TaskPIOA.Simulation using (Simulation; stateMap; tick-match)
 open import ProbabilisticLogic.Distribution.RationalDist
-open import ProbabilisticLogic.Distribution.RationalDist.Expectation using (E; E-bind)
 open import ProbabilisticLogic.Distribution.RationalDist.Partial
+open import ProbabilisticLogic.Distribution.RationalDist.Product using (mapped-bind; map-cong)
 
 paddedReplyRun : ∀ {S} (M : Automaton S) → Schedule S → State M
   → Dist-ℚ (List (Maybe (Output S)))
-paddedReplyRun M [] q = return-ℚ []
-paddedReplyRun M (t ∷ ρ) q = tick M t q >>=ᴹ λ (o , q′) →
-  Dmap (o ∷_) (paddedReplyRun M ρ q′)
+paddedReplyRun M = F.word (tick M)
 
 private variable
   S : Signature
   X : Set
 
 padded-word : ∀ (M : Automaton S) ρ q → paddedReplyRun M ρ q ≈Mℚ F.word (tick M) ρ q
-padded-word M [] q ξ = refl
-padded-word M (t ∷ ρ) q ξ = trans
-  (E-bind (tick M t q) (λ (o , q′) → Dmap (o ∷_) (paddedReplyRun M ρ q′)) ξ)
-  (trans (lookupᴰℚ-cong-P (entries (tick M t q)) (λ { (o , q′) →
-    trans (lookupᴰℚ-Dmap (o ∷_) (paddedReplyRun M ρ q′) ξ)
-      (trans (padded-word M ρ q′ (ξ ∘ (o ∷_)))
-        (sym (lookupᴰℚ-Dmap (o ∷_) (F.word (tick M) ρ q′) ξ))) }))
-    (sym (E-bind (tick M t q) (λ (o , q′) → Dmap (o ∷_) (F.word (tick M) ρ q′)) ξ)))
+padded-word M ρ q ξ = refl
+
+simulation-implies-padded : ∀ {M N : Automaton S} (s : Simulation M N) ρ q
+  → paddedReplyRun M ρ q ≈Mℚ paddedReplyRun N ρ (stateMap s q)
+simulation-implies-padded s [] q ξ = refl
+simulation-implies-padded {M = M} {N} s (t ∷ ρ) q =
+  mapped-bind (map₂ (stateMap s)) (tick M t q) (tick N t (stateMap s q))
+    (λ (o , q′) → Dmap (o ∷_) (paddedReplyRun M ρ q′))
+    (λ (o , q′) → Dmap (o ∷_) (paddedReplyRun N ρ q′))
+    (tick-match s q t) (λ (o , q′) → map-cong (o ∷_)
+      (paddedReplyRun M ρ q′) (paddedReplyRun N ρ (stateMap s q′))
+      (simulation-implies-padded s ρ q′))
 
 finiteResult : (M : Automaton S) → P.Calls (Tick S) X → State M → Dist⊥ X
 finiteResult M c q = Dmap (Maybe.map proj₁) (⟦ c ⟧ (tickOracle M) q)
@@ -51,13 +55,9 @@ finiteResult M c q = Dmap (Maybe.map proj₁) (⟦ c ⟧ (tickOracle M) q)
 padded-implies-finite-calls : ∀ (M N : Automaton S) q r
   → (∀ ρ → paddedReplyRun M ρ q ≈Mℚ paddedReplyRun N ρ r)
   → (c : P.Calls (Tick S) X) → finiteResult M c q ≈Mℚ finiteResult N c r
-padded-implies-finite-calls {S} M N q r equal c =
-  Proof.fixed-to-calls (tick M) q (tick N) r fixed c
-  where
-  module Proof = F.Cylinders (DecEq._≟_ (DecEq-Maybe ⦃ finite-dec (outputs S) ⦄))
-  fixed : ∀ ρ → F.word (tick M) ρ q ≈Mℚ F.word (tick N) ρ r
-  fixed ρ ξ = trans (sym (padded-word M ρ q ξ))
-    (trans (equal ρ ξ) (padded-word N ρ r ξ))
+padded-implies-finite-calls {S} M N q r equal =
+  Information.words-to-calls (DecEq._≟_ (DecEq-Maybe ⦃ finite-dec (outputs S) ⦄))
+    (tick M) q (tick N) r equal
 
 finite-calls-implies-padded : ∀ (M N : Automaton S) q r
   → (∀ {X} (c : P.Calls (Tick S) X) → finiteResult M c q ≈Mℚ finiteResult N c r)
@@ -79,22 +79,10 @@ resourceResult M O s c q = Dmap (Maybe.map proj₁) (⟦ c ⟧ (resource M · O)
 
 resource-result-agreement : ∀ {Y} (M : Automaton S) (O : Oracle unitᴵ Y) s
   (c : P.Calls (Tick S) X) q → resourceResult M O s c q ≈Mℚ finiteResult M c q
-resource-result-agreement {Y = Y} M O s c q ξ = trans
-  (lookupᴰℚ-Dmap (Maybe.map proj₁) native ξ)
-  (trans (sym (>>=ᴹ-identityˡ (q , s) (⟦ c ⟧ (resource M · O)) (F.lift ξ)))
-    (trans (all-calls-agreement M O s c q (F.lift ξ))
-      (trans (E-bind source (kmaybe embed) (F.lift ξ))
-        (trans (lookupᴰℚ-cong-P (entries source) point)
-          (sym (lookupᴰℚ-Dmap (Maybe.map proj₁) source ξ))))))
-  where
-  native = ⟦ c ⟧ (resource M · O) (q , s)
-  source = ⟦ c ⟧ (tickOracle M) q
-  embed = λ p → return-ℚ (proj₂ p , s) >>=ᴹ λ u → return⊥ (proj₁ p , u)
-  point : ∀ p → E (kmaybe embed p) (F.lift ξ) ≡ F.lift ξ p
-  point nothing = lookupᴰℚ-return nothing (F.lift {Q = State M × Y} ξ)
-  point (just (x , q′)) = trans
-    (>>=ᴹ-identityˡ (q′ , s) (λ u → return⊥ (x , u)) (F.lift ξ))
-    (lookupᴰℚ-return (just (x , (q′ , s))) (F.lift ξ))
+resource-result-agreement {S = S} M O s c q ξ = trans
+  (sym (>>=ᴹ-identityˡ (q , s) (Information.observeOracle (resource M · O) c) ξ))
+  (Information.sample-result {I = Tick S} {ρ = λ q′ → return-ℚ (q′ , s)}
+    {O = tickOracle M} {O′ = resource M · O} (native-samples M O s) c q ξ)
 
 padded-implies-resource-calls : ∀ {Y} (M N : Automaton S) q r
   → (∀ ρ → paddedReplyRun M ρ q ≈Mℚ paddedReplyRun N ρ r)

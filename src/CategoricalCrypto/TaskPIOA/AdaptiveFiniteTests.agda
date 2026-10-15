@@ -12,13 +12,16 @@ open import Data.Unit.Base
 open import Function.Base using (_∘_)
 open import Relation.Binary.PropositionalEquality
 
-open import CategoricalCrypto.SSP.Dist.Kernel using (none; _·_; ⟦_⟧)
+import CategoricalCrypto.SSP.Dist.FiniteTesting as F
+open import CategoricalCrypto.SSP.Dist.Kernel using (none; _·_; ⟦_⟧; _>>=ᶜ_; Samples; second)
+import CategoricalCrypto.SSP.Dist.SchedulerInformation as Information
 open import CategoricalCrypto.SSP.Iface using (Ωᴵ)
 open import CategoricalCrypto.SSP.Observation using (runᵖ)
 import CategoricalCrypto.SSP.Protocol as P
 open import CategoricalCrypto.TaskPIOA.AdaptiveFinite
 open import CategoricalCrypto.TaskPIOA.Core
-open import CategoricalCrypto.TaskPIOA.SSPAdapter using (Tick; resource)
+open import CategoricalCrypto.TaskPIOA.SSPAdapter using
+  (Tick; resource; tickOracle; native-samples; finite-dec)
 import CategoricalCrypto.TaskPIOA.SSPAdapterTests as Existing
 import CategoricalCrypto.TaskPIOA.Tests as Source
 open import ProbabilisticLogic.Distribution.RationalDist
@@ -125,3 +128,50 @@ failure-half = refl
 reverse-public : ∀ ρ → paddedReplyRun M ρ (initial M) ≈Mℚ paddedReplyRun N ρ (initial N)
 reverse-public = finite-calls-implies-padded M N (initial M) (initial N)
   (padded-implies-finite-calls M N (initial M) (initial N) (λ ρ → padded-related ρ false))
+
+presence : Bool → Maybe Bool → Bool
+presence _ nothing = false
+presence _ (just _) = true
+
+Public : CategoricalCrypto.SSP.Iface.Iface
+Public = F.Uniform Bool Bool (finite-dec bit)
+
+publicTree : P.Calls Public Bool
+publicTree = P.coin uniform-Bool λ b → P.call false tt λ _ →
+  P.call true tt λ present → P.call present tt λ _ → P.ret b
+
+publicTail : Bool → P.Calls Public Bool
+publicTail b = P.call b tt λ present → P.ret present
+
+public-substitution : Information.lower presence (publicTree >>=ᶜ publicTail)
+  P.≈ᶜ (Information.lower presence publicTree >>=ᶜ (Information.lower presence ∘ publicTail))
+public-substitution = Information.lower-bind presence publicTree publicTail
+
+public-view-agreement : finiteResult M (Information.lower presence publicTree) true
+  ≈Mℚ F.observe (Information.viewKernel presence (tick M)) publicTree true
+public-view-agreement = Information.lower-observe presence (tick M) publicTree true
+
+native-public-substitution : resourceResult M none tt
+    (Information.lower presence (publicTree >>=ᶜ publicTail)) (initial M)
+  ≈Mℚ resourceResult N none tt
+    (Information.lower presence (publicTree >>=ᶜ publicTail)) (initial N)
+native-public-substitution = padded-implies-resource-calls M N (initial M) (initial N)
+  (λ ρ → padded-related ρ false) none tt (Information.lower presence (publicTree >>=ᶜ publicTail))
+
+linked-native-square : Samples {A = Ωᴵ} (second (λ q → return-ℚ (q , tt)))
+  (consumer · tickOracle M) (consumer · (resource M · none))
+linked-native-square = Information.link-samples {I = Tick S}
+  {ρ = λ q → return-ℚ (q , tt)} {O = tickOracle M} {O′ = resource M · none}
+  (native-samples M none tt) consumer
+
+linked-public-read : P.Calls Ωᴵ Bool
+linked-public-read = P.call tt tt P.ret
+
+linked-native-substitution :
+  (second (λ q → return-ℚ (q , tt)) (tt , initial M) >>=ᴹ λ q →
+    Information.observeOracle (consumer · (resource M · none)) linked-public-read q)
+  ≈Mℚ Information.observeOracle (consumer · tickOracle M) linked-public-read (tt , initial M)
+linked-native-substitution = Information.sample-result {I = Ωᴵ}
+  {ρ = second (λ q → return-ℚ (q , tt))}
+  {O = consumer · tickOracle M} {O′ = consumer · (resource M · none)}
+  linked-native-square linked-public-read (tt , initial M)

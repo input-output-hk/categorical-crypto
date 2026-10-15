@@ -14,6 +14,7 @@ open import Data.Unit.Base
 open import Function.Base using (_∘_)
 open import Relation.Binary.PropositionalEquality
 
+import CategoricalCrypto.SSP.Dist.SchedulerInformation as Information
 open import CategoricalCrypto.SSP.Iface using (Ωᴵ)
 open import CategoricalCrypto.SSP.Observation using (runᵖ)
 import CategoricalCrypto.SSP.Protocol as P
@@ -23,6 +24,7 @@ open import CategoricalCrypto.TaskPIOA.Product
 open import CategoricalCrypto.TaskPIOA.SSPAdapter using (Tick; resource)
 import CategoricalCrypto.TaskPIOA.Setup as Source
 open import ProbabilisticLogic.Distribution.RationalDist
+open import ProbabilisticLogic.Distribution.RationalDist.Expectation using (E-bind)
 open import ProbabilisticLogic.Distribution.RationalDist.Product
 
 markerSignature : Signature → Signature
@@ -66,10 +68,12 @@ module _ {S : Signature} where
   markedSchedule [] = []
   markedSchedule (t ∷ ρ) = inj₁ t ∷ inj₂ tt ∷ markedSchedule ρ
 
+  markerBlock : Maybe (Output S) → List (Output Joint)
+  markerBlock nothing = mark ∷ []
+  markerBlock (just o) = inj₁ o ∷ mark ∷ []
+
   encodeReplies : List (Maybe (Output S)) → List (Output Joint)
-  encodeReplies [] = []
-  encodeReplies (nothing ∷ xs) = mark ∷ encodeReplies xs
-  encodeReplies (just o ∷ xs) = inj₁ o ∷ mark ∷ encodeReplies xs
+  encodeReplies = Information.encodeWord markerBlock
 
   decodeReplies : List (Output Joint) → List (Maybe (Output S))
   decodeReplies (inj₁ o ∷ inj₂ (inj₂ _) ∷ xs) = just o ∷ decodeReplies xs
@@ -80,6 +84,10 @@ module _ {S : Signature} where
   decode-encode [] = refl
   decode-encode (nothing ∷ xs) = cong (nothing ∷_) (decode-encode xs)
   decode-encode (just o ∷ xs) = cong (just o ∷_) (decode-encode xs)
+
+  markerCodec : Information.Codec (Maybe (Output S)) (Output Joint)
+  markerCodec = record
+    { encodeReply = markerBlock ; decode = decodeReplies ; decode-encode = decode-encode }
 
   module _ (M : Automaton S) where
     private
@@ -127,30 +135,47 @@ module _ {S : Signature} where
         continuation : Maybe (Output Joint) × State joint → ℚ
         continuation (o , qr) = lookupᴰℚ (entries (Dmap (prepend o) (runFrom joint ρ qr))) P
 
-    marked-run : ∀ ρ q P → lookupᴰℚ (entries (runFrom joint (markedSchedule ρ) (q , tt))) P
-      ≡ lookupᴰℚ (entries (paddedReplyRun M ρ q)) (P ∘ encodeReplies)
-    marked-run [] q P = trans (lookupᴰℚ-return [] P)
-      (sym (lookupᴰℚ-return [] (P ∘ encodeReplies)))
-    marked-run (t ∷ ρ) q P = trans (lookupᴰℚ-bind (entries (tick joint (inj₁ t) (q , tt))) _ P)
+    marker-extension : ∀ t c q → runFrom joint (inj₁ t ∷ inj₂ tt ∷ c) (q , tt)
+      ≈Mℚ (tick M t q >>=ᴹ λ (o , q′) →
+        Dmap (markerBlock o Data.List.Base.++_) (runFrom joint c (q′ , tt)))
+    marker-extension t c q P = trans
+      (lookupᴰℚ-bind (entries (tick joint (inj₁ t) (q , tt))) _ P)
       (trans (tick-left t q _)
         (trans (lookupᴰℚ-Dmap liftReply (tick M t q) _)
           (trans (lookupᴰℚ-cong-P (entries (tick M t q)) inner)
-            (sym (trans (lookupᴰℚ-bind (entries (tick M t q)) _ (P ∘ encodeReplies))
+            (sym (trans (E-bind (tick M t q)
+              (λ (o , q′) → Dmap (markerBlock o Data.List.Base.++_) (runFrom joint c (q′ , tt))) P)
               (lookupᴰℚ-cong-P (entries (tick M t q)) λ (o , q′) →
-                lookupᴰℚ-Dmap (o ∷_) (paddedReplyRun M ρ q′) (P ∘ encodeReplies)))))))
+                lookupᴰℚ-Dmap (markerBlock o Data.List.Base.++_) (runFrom joint c (q′ , tt)) P))))))
       where
       inner : ∀ p → lookupᴰℚ (entries (Dmap (prepend (proj₁ (liftReply p)))
-          (runFrom joint (inj₂ tt ∷ markedSchedule ρ) (proj₂ (liftReply p))))) P
-        ≡ lookupᴰℚ (entries (paddedReplyRun M ρ (proj₂ p)))
-          (λ xs → P (encodeReplies (proj₁ p ∷ xs)))
+          (runFrom joint (inj₂ tt ∷ c) (proj₂ (liftReply p))))) P
+        ≡ lookupᴰℚ (entries (runFrom joint c (proj₂ p , tt)))
+          (P ∘ (markerBlock (proj₁ p) Data.List.Base.++_))
       inner (nothing , q′) = trans (lookupᴰℚ-Dmap (λ xs → xs)
-          (runFrom joint (inj₂ tt ∷ markedSchedule ρ) (q′ , tt)) P)
-        (trans (marker-run (markedSchedule ρ) q′ P)
-          (marked-run ρ q′ (P ∘ (mark ∷_))))
+          (runFrom joint (inj₂ tt ∷ c) (q′ , tt)) P)
+        (marker-run c q′ P)
       inner (just o , q′) = trans (lookupᴰℚ-Dmap (inj₁ o ∷_)
-          (runFrom joint (inj₂ tt ∷ markedSchedule ρ) (q′ , tt)) P)
-        (trans (marker-run (markedSchedule ρ) q′ (P ∘ (inj₁ o ∷_)))
-          (marked-run ρ q′ (P ∘ (inj₁ o ∷_) ∘ (mark ∷_))))
+          (runFrom joint (inj₂ tt ∷ c) (q′ , tt)) P)
+        (marker-run c q′ (P ∘ (inj₁ o ∷_)))
+
+    markerInstrumentation : Information.Instrumentation (tick M) markerCodec
+    markerInstrumentation = record
+      { Context = Schedule Joint ; emptyContext = []
+      ; extendContext = λ t c → inj₁ t ∷ inj₂ tt ∷ c
+      ; execute = λ c q → runFrom joint c (q , tt)
+      ; empty-law = λ _ _ → refl ; extend-law = marker-extension }
+
+    compiled-marker : ∀ ρ → Information.compileWord markerInstrumentation ρ ≡ markedSchedule ρ
+    compiled-marker [] = refl
+    compiled-marker (t ∷ ρ) = cong (λ c → inj₁ t ∷ inj₂ tt ∷ c) (compiled-marker ρ)
+
+    marked-run : ∀ ρ q P → lookupᴰℚ (entries (runFrom joint (markedSchedule ρ) (q , tt))) P
+      ≡ lookupᴰℚ (entries (paddedReplyRun M ρ q)) (P ∘ encodeReplies)
+    marked-run ρ q P = trans
+      (cong (λ c → lookupᴰℚ (entries (runFrom joint c (q , tt))) P) (sym (compiled-marker ρ)))
+      (trans (Information.encoded-execution markerInstrumentation ρ q P)
+        (lookupᴰℚ-Dmap encodeReplies (paddedReplyRun M ρ q) P))
 
     marker-extraction : ∀ ρ q → Dmap decodeReplies
         (runFrom joint (markedSchedule ρ) (q , tt)) ≈Mℚ paddedReplyRun M ρ q
