@@ -18,7 +18,6 @@ open import Function.Bundles
 open import Relation.Binary.PropositionalEquality
 
 open import CategoricalCrypto.Approx.Error
-open import CategoricalCrypto.UC.Model.Quantitative using (QSetupᵒ)
 open import CategoricalCrypto.UC.Model.Seal
 open import CategoricalCrypto.UC.RandomSystems.Advantage
 open import CategoricalCrypto.UC.RandomSystems.Composition
@@ -32,7 +31,6 @@ import CategoricalCrypto.UC.Quantitative.Availability as Designated
 module CategoricalCrypto.UC.RandomSystems.Availability where
 
 module QAvailabilityᴿ = Designated.Designated ℚ-ordered QSetupᴿ
-module QAvailabilityᵒ = Designated.Designated ℚ-ordered QSetupᵒ
 
 private
   module G = MonoidalCategory 𝔾ᵒ
@@ -133,27 +131,6 @@ SecureConstruction⇔SecureAvailable₀ {a = a} {b} {f} {g} = mk⇔
     (Equivalence.to (SecureConstruction⇔SecurelyConstructs₀ {a = a} {b} {f} {g}) c))
   (λ c → Equivalence.from (SecureConstruction⇔SecurelyConstructs₀ {a = a} {b} {f} {g})
     (Equivalence.to (SecureAvailable⇔SecurelyConstructs {a = a} {b} {f} {g}) c))
-
--- rewrite⇒RS is identity on objects and cap maps. Its computation image
--- inserts an identity; the measured transport cancels it without error.
-rewrite-availability : {a : X G.⇒ G.unit} {b : Y G.⇒ G.unit}
-                       {f : A G.⇒ Sᵒ.T₀ X B} {g : A G.⇒ Sᵒ.T₀ Y B}
-                     → QAvailabilityᵒ.Availability εₐ a b f g
-                     → QAvailabilityᴿ.Availability εₐ a b f g
-rewrite-availability {εₐ = ε} {a = a} {b} {f} {g} e =
-  Equivalence.to (≈ᵁᴿ[]-G⇔ {ε = ε} {f = Sᵒ.sub a G.∘ f} {g = Sᵒ.sub b G.∘ g})
-    (≈ᵁ[]⇒≈ᵁᴿ[] {ε = ε} {f = Sᵒ.sub a G.∘ f} {g = Sᵒ.sub b G.∘ g} e)
-
-rewrite-secure-available : {a : X G.⇒ G.unit} {b : Y G.⇒ G.unit}
-                           {f : A G.⇒ Sᵒ.T₀ X B} {g : A G.⇒ Sᵒ.T₀ Y B}
-                         → QAvailabilityᵒ.SecureAvailable εₛ εₐ a b f g
-                         → QAvailabilityᴿ.SecureAvailable εₛ εₐ a b f g
-rewrite-secure-available {εₛ = εs} {εₐ = εa} {a = a} {b} {f} {g} c =
-  QAvailabilityᴿ.secure-available
-    (Equivalence.to (≤UCᴿ[]-G⇔ {ε = εs} {f = f} {g = g})
-      (Witness⇒≤UCᴿ[] {ε = εs} {f = f} {g = g} (QAvailabilityᵒ.SecureAvailable.security c)))
-    (rewrite-availability {εₐ = εa} {a = a} {b} {f} {g}
-      (QAvailabilityᵒ.SecureAvailable.availability c))
 
 ------------------------------------------------------------------------
 -- Converter compatibility

@@ -51,6 +51,7 @@ open import CategoricalCrypto.UC.Model.Quantitative using (module QUCᵒ)
 open import CategoricalCrypto.UC.Model.Seal
 open import CategoricalCrypto.UC.RandomSystems.Advantage
 open import CategoricalCrypto.UC.RandomSystems.Availability
+open import CategoricalCrypto.UC.RandomSystems.Availability.Rewrite
 open import CategoricalCrypto.UC.RandomSystems.Composition
 open import CategoricalCrypto.UC.RandomSystems.Construction
 open import CategoricalCrypto.UC.RandomSystems.Morphism
@@ -104,9 +105,12 @@ private
       (s , inj₁ tt) → >>=ₚ-identityˡ (s , inj₁ b) _
       (_ , inj₂ ()))
 
+mode-adapt-hom : (b : Bool) (h : Bool → Bool) → (mode b G.∘ adaptᵒ h) G.≈ mode (h b)
+mode-adapt-hom b h = G.Equiv.trans (G.Equiv.sym (procᵘ-∘ (answer b) (adapt h)))
+  (≈ᴹ⇒≈ᵘ (answer-adapt b h))
+
 mode-adapt : (b : Bool) (h : Bool → Bool) → (mode b G.∘ adaptᵒ h) Q.∼ mode (h b)
-mode-adapt b h = Q.≈⇒∼ (G.Equiv.trans (G.Equiv.sym (procᵘ-∘ (answer b) (adapt h)))
-                                       (≈ᴹ⇒≈ᵘ (answer-adapt b h)))
+mode-adapt b h = Q.≈⇒∼ (mode-adapt-hom b h)
 
 ------------------------------------------------------------------------
 -- The designated modes really answer opposite bits
@@ -245,15 +249,14 @@ twice-full₀ = securely-constructs-trans Q.∼.refl
 
 pm-flipped : QAvailabilityᵒ.SecureAvailable 0ℚ 0ℚ (mode false) (mode true) (adapted not) ideal
 pm-flipped = QAvailabilityᵒ.secure-mode-preserving
-  {s = adaptᵒ not} {f = adapted not} {g = ideal}
-  (G.Equiv.trans (G.Equiv.sym (procᵘ-∘ (answer false) (adapt not)))
-    (≈ᴹ⇒≈ᵘ (answer-adapt false not))) QUCᵒ.ctx-refl
+  {s = adaptᵒ not} {f = adapted not} {g = ideal} (mode-adapt-hom false not) QUCᵒ.ctx-refl
 
 generic-flipped : QAvailabilityᴿ.SecureAvailable 0ℚ 0ℚ (mode false) (mode true) (adapted not) ideal
 generic-flipped = rewrite-secure-available {f = adapted not} {g = ideal} pm-flipped
 
 generic-twice : QAvailabilityᴿ.SecureAvailable 0ℚ 0ℚ (mode true) (mode true) twice ideal
-generic-twice = QAvailabilityᴿ.secure-trans {f = twice} {g = adapted not} {h = ideal}
+generic-twice = QAvailabilityᴿ.secure-trans {εs = 0ℚ} {εa = 0ℚ} {δs = 0ℚ} {δa = 0ℚ}
+  {f = twice} {g = adapted not} {h = ideal}
   (QAvailabilityᴿ.secure-mode-preserving {s = adaptᵒ not} {f = twice} {g = adapted not}
     (mode-adapt true not) QUCᴿ.ctx-refl) generic-flipped
 

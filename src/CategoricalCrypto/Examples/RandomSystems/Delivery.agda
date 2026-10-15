@@ -26,6 +26,7 @@ open import Relation.Nullary.Negation.Core
 
 open import ProbabilisticLogic.Distribution.Uniform using (indᵇ)
 open import ProbabilisticLogic.Dp
+open import ProbabilisticLogic.Dp.Advantage
 open import ProbabilisticLogic.Dp.Iter
 open import ProbabilisticLogic.Dp.Reasoning
 
@@ -85,9 +86,9 @@ private
     a = answer true
     c = dropSimulator
     S₀ = Col.Sᴳ a c
-    open Col.Loop (⊤ ⊎ ⊥) (Bool ⊎ ⊥) (Bool ⊎ ⊤) S₀ (Col.kᴳ a c)
+    open Col.Loop (⊤ ⊎ Neg 𝟭ᴵ) (Bool ⊎ Pos 𝟭ᴵ) (Bool ⊎ ⊤) S₀ (Col.kᴳ a c)
 
-    step-law : (p : MC.obj S₀ × (⊤ ⊎ ⊥))
+    step-law : (p : MC.obj S₀ × (⊤ ⊎ Neg 𝟭ᴵ))
              → (MC.step tracedᴹ p >>=ₚ padϕ (λ _ → ttᵛ))
                ≈ₚ MC.step dropConverter (ttᵛ , proj₂ p)
     step-law ((sa , sc) , inj₁ tt) =
@@ -183,5 +184,20 @@ reliable-composition = Q.∼.trans
     (Equivalence.to (Availability⇔AvailableWithin {f = twice} {g = ideal})
       (QAvailabilityᴿ.SecureAvailable.availability generic-twice))) (Q.≈⇒∼ (mode-bit true))
 
-reliable-reply : runˢ (unprocᵒ (no-adversary (mode true) twice)) tell ≈ₚ returnₚ true
-reliable-reply = ≈trans (∼ᴿ⇒≈ᴿ reliable-composition tell) (bit-run true)
+private
+  close-flip : (b : Bool)
+               (g : ifaceᵒ unitᴵ G.⇒ PM.T₀ (ifaceᵒ Eve) (ifaceᵒ Ωᴵ))
+             → no-adversary (mode b) (PM.sub (adaptᵒ not) G.∘ g)
+               G.≈ no-adversary (mode (not b)) g
+  close-flip b g = G.Equiv.trans (no-adversary-regrade (mode b) (adaptᵒ not) g)
+    (G.∘-resp-≈ʳ (G.∘-resp-≈ˡ (G.⊗.F-resp-≈ (mode-adapt-hom b not , G.Equiv.refl))))
+
+-- Native behavioral equality is the all-positive limit. Exact run equality
+-- here instead follows from the concrete double-flip wiring.
+opaque
+  unfolding procᵒ unprocᵒ
+
+  reliable-reply : runˢ (unprocᵒ (no-adversary (mode true) twice)) tell ≈ₚ returnₚ true
+  reliable-reply = runˢ-resp-≈ᴹ
+    (≈ᵒ⇒≈ᴹ (G.Equiv.trans (close-flip true (adapted not))
+      (G.Equiv.trans (close-flip false ideal) (mode-bit true)))) tell ⟨≈⟩ bit-run true
