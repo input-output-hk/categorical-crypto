@@ -76,7 +76,8 @@ dist⇒PM[wb] = StdUCMorphism SSPᵈ.Protᵈ WB.PM[wb]ᴹ SSPᵈ.ℰᵈ WB.ℰ[w
 module Coverageᵈ = Coverage.Coverage SSPᵈ.Protᵈ WB.PM[wb]ᴹ SSPᵈ.ℰᵈ WB.ℰ[wb] Fᵂᵈ νᵂᵈ
 
 test-coverage : TestCoverage dist⇒PM[wb]
-test-coverage = record { complete = TestCoverage.complete Tests.test-coverage }
+test-coverage = record { complete = λ {A} {B} {h} {k} →
+  TestCoverage.complete Tests.test-coverage {A} {B} {h} {k} }
 
 ancilla-coverage : Coverageᵈ.AncillaCoverage
 ancilla-coverage = Coverageᵈ.essentiallySurjective⇒AncillaCoverage
