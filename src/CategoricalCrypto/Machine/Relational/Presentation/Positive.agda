@@ -2,6 +2,7 @@
 
 module CategoricalCrypto.Machine.Relational.Presentation.Positive where
 
+open import Categories.Category.Monoidal.Bundle
 open import Data.Maybe.Base using (just)
 open import Data.Product.Base
 open import Data.Sum.Base
@@ -18,6 +19,9 @@ open import CategoricalCrypto.Machine.Relational
 open import CategoricalCrypto.Machine.Relational.Presentation
 open import CategoricalCrypto.Machines.Positive.Base
 import CategoricalCrypto.Machines.Core as Core
+import CategoricalCrypto.Iface as I
+import CategoricalCrypto.Machines.Positive.Model as Model
+import CategoricalCrypto.UC.Model.Seal as Seal
 
 module Target = Core (𝒱₊ 0ℓ)
 
@@ -63,3 +67,12 @@ opaque
     → Positive (Target.step (toPositive P) (s , i)) (s′ , o)
       ⇔ M.Machine.stepRel (machine R) s (machine-input {A} {B} i) (just (machine-output {A} {B} o)) s′
   step-agreement P s s′ i o = mk⇔ (step-sound P) (step-complete P)
+
+private module Quotient = MonoidalCategory Model.𝔾₊
+
+target-interface : Channel → Quotient.Obj
+target-interface A = Seal.ifaceᵒ (Channel.inType A I.⇿ Channel.outType A)
+
+toQuotient : {R : Initialized A B} → Presentation R → target-interface A Quotient.⇒ target-interface B
+toQuotient {A} {B} P = Model.pack-positive
+  {Channel.inType A I.⇿ Channel.outType A} {Channel.inType B I.⇿ Channel.outType B} (toPositive P)
