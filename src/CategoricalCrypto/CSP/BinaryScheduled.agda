@@ -198,6 +198,13 @@ opaque
     {i = input {scheduler} {result} (inj₁ sync)} {o = o} path
   ... | Joint.handshake sp sq = disabled sp
 
+  sync-disabled-right : ∀ {p q o t}
+    → (∀ {x q′} → P._─[_]→_ q (P.visible (P.event x)) q′ → ⊥)
+    → M.Machine.stepRel compiled (live p , live q) (input {scheduler} {result} (inj₁ sync)) o t → ⊥
+  sync-disabled-right {o = o} disabled path with compiled-to-joint
+    {i = input {scheduler} {result} (inj₁ sync)} {o = o} path
+  ... | Joint.handshake sp sq = disabled sq
+
   finish-disabled-right : ∀ {p q o t} → (P.Tree.force q ≡ P.ret tt → ⊥)
     → M.Machine.stepRel compiled (live p , live q) (input {scheduler} {result} (inj₁ Command.finish)) o t → ⊥
   finish-disabled-right {o = o} disabled path with compiled-to-joint

@@ -193,3 +193,13 @@ opaque
     ; step-sound = λ { {s} {i} → context-sound s i }
     ; step-complete = context-complete
     ; no-refusal = λ () }
+
+  blocked-listener-cannot-leak : ∀ {o t} → ¬ (M.Machine.stepRel S.compiled
+    (S.live sender-tree , S.live P.stop) (S.input {S.scheduler} {S.result} (inj₁ S.sync)) o t)
+  blocked-listener-cannot-leak {o} = S.sync-disabled-right {o = o} P.stop-no-step
+
+  local-left-silent-move : M.Machine.stepRel S.compiled
+    (S.live (P.silent (P.return tt)) , S.live (P.return tt))
+    (S.input {S.scheduler} {S.result} (inj₁ S.leftτ)) (S.output {S.scheduler} {S.result} (just (inj₁ S.τ)))
+    (S.live (P.return tt) , S.live (P.return tt))
+  local-left-silent-move = S.joint-to-compiled (S.Joint.left (P.sSil refl))
