@@ -15,11 +15,13 @@ import CategoricalCrypto.Channel.Core as C
 open import CategoricalCrypto.CSP.BinaryPositive
 open import CategoricalCrypto.CSP.BinaryPresented
 open import CategoricalCrypto.CSP.BinaryScheduledTests
+import CategoricalCrypto.Iface as I
 open import CategoricalCrypto.Machine.Relational.Presentation
 open import CategoricalCrypto.Machine.Relational.Presentation.Composition
 import CategoricalCrypto.Machine.Relational.Presentation.Positive as Positive
 import CategoricalCrypto.Machine.Relational.Wiring as W
 import CategoricalCrypto.Machines.Positive.Run as Run
+import CategoricalCrypto.Machines.Positive.Run.Model as ModelRun
 open import CategoricalCrypto.Strategy
 open import ProbabilisticLogic.Distribution.Uniform using (indᵇ; indᵇ-nn)
 open import ProbabilisticLogic.Dp.Positive
@@ -66,3 +68,15 @@ opaque
 
 presented-positive-test : PositiveTest (Run.run (Positive.toPositive contextual-presentation) exchange-then-finish) (indᵇ true)
 presented-positive-test = positive-witness (indᵇ true) (indᵇ-nn true) presented-accepts 0<1ℚ
+
+scheduler-boundary context-boundary : I.Iface
+scheduler-boundary = C.Channel.inType S.scheduler I.⇿ C.Channel.outType S.scheduler
+context-boundary = C.Channel.inType context-channel I.⇿ C.Channel.outType context-channel
+
+sealed-presented-positive-test : PositiveTest
+  (ModelRun.run {scheduler-boundary} {context-boundary}
+    (Positive.toQuotient contextual-presentation) exchange-then-finish) (indᵇ true)
+sealed-presented-positive-test = proj₂
+  (ModelRun.pack-run {scheduler-boundary} {context-boundary}
+    (Positive.toPositive contextual-presentation) exchange-then-finish)
+  (indᵇ true) (indᵇ-nn true) presented-positive-test
