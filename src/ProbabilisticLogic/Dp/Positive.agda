@@ -13,7 +13,7 @@ open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Data.Rational.Properties
 open import Data.Rational.Properties.Ext
 open import Data.Sum.Base
-open import Data.Sum.Properties using (inj₁-injective)
+open import Data.Sum.Properties using (inj₁-injective; inj₂-injective)
 open import Level using (Level)
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary.Negation
@@ -37,6 +37,11 @@ positive-return x = hit true 0<1ℚ refl
 positive-return-reflect : {x y : A} → Positive (returnₚ x) y → x ≡ y
 positive-return-reflect (hit c p eq) = inj₁-injective eq
 positive-return-reflect (delay c e p () q)
+
+positive-bot : {x : A} → Positive botₚ x → ⊥
+positive-bot (hit c pw ())
+positive-bot (delay c e pw eq path) with inj₂-injective eq
+... | refl = positive-bot path
 
 rational-separation : {x y : A} → ¬ ¬ (x ≡ y) → (P : A → ℚ) → P x ≡ P y
 rational-separation {x = x} {y} nn P with P x ≟ P y
