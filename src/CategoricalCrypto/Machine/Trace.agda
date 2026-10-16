@@ -6,13 +6,13 @@
 -- A trace is a chronological list of entries, each naming a *hint*, the
 -- input the step consumes, and an *expectation* about the output it emits.
 -- Hints exist because step relations are nondeterministic: a rule may have
--- premises with witnesses that the input does not determine, so the trace 
--- has to name them.  Checking a step is then a decision problem rather than 
+-- premises with witnesses that the input does not determine, so the trace
+-- has to name them. Checking a step is then a decision problem rather than
 -- a search.
 --
 -- A machine is made checkable by a `Checkable` record: the hint type, a way
 -- to read the hint off a step, and a per-step checker that returns either a
--- machine-specific error or a step carrying that hint.  An `Observation`
+-- machine-specific error or a step carrying that hint. An `Observation`
 -- fixes what is checked about outputs: nothing (`ignoreOutputs`) or equality
 -- with an expected output (`exactOutputs`).
 --
@@ -90,9 +90,9 @@ module _ {A B : Channel} (M : Machine A B) where
     StepWith : Hint → State → Input → Type
     StepWith h s i = Σ[ x ∈ Step s i ] hintOf x ≡ h
 
-    -- Traces name inputs as `Msg`s.  Because `_⊗₀_` is opaque, a flat sum of
+    -- Traces name inputs as `Msg`s. Because `_⊗₀_` is opaque, a flat sum of
     -- the leaf message types is often easier to produce and to match on than
-    -- `Input` itself; `embed` maps it into `Input`, typically via selectors
+    -- `Input` itself; `embed` maps it into `Input`, typically via selectors.
     -- Use `Msg = Input` and `embed = id` when no flattening is wanted.
     field
       Msg       : Type
@@ -101,7 +101,7 @@ module _ {A B : Channel} (M : Machine A B) where
       checkStep : ∀ h m s → Err h m s ⊎ StepWith h s (embed m)
 
   -- Optional: errors are genuine refutations, and a hint pins down the
-  -- result of a step.  Needed for completeness, not for soundness.
+  -- result of a step. Needed for completeness, not for soundness.
   record Complete (C : Checkable) : Type where
     open Checkable C
     field
@@ -198,7 +198,7 @@ module _ {A B : Channel} (M : Machine A B) where
         (no ¬ok) → inj₁ (output-mismatch x ¬ok)
 
     verifyTrace : ∀ s es → TraceErr s es ⊎ Σ[ s′ ∈ State ] ValidTrace s es s′
-    verifyTrace s []                    = return (s , [])
+    verifyTrace s []                   = return (s , [])
     verifyTrace s (⟨ h , m , e ⟩ ∷ es) = do
       (x , ok)  ← S.map₁ here (verifyStep h m e s)
       (s′ , vt) ← S.map₁ (there x ok) (verifyTrace (x .proj₁ .next) es)
