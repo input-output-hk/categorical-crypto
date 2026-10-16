@@ -23,6 +23,7 @@ open import CategoricalCrypto.Machine.Relational.Isomorphism
 open import CategoricalCrypto.Machine.Relational.Model
 open import CategoricalCrypto.Machine.Relational.Observation
 import CategoricalCrypto.Machine.Relational.Setup as Setup
+import CategoricalCrypto.Machine.Relational.Simulation as Sim
 import CategoricalCrypto.Machine.Relational.Wiring as W
 
 private
@@ -114,3 +115,17 @@ true≠refusal = test-separation (reply-succeeds true) (refusal-no-success true)
 
 true≠divergence : ¬ Setup.E.Obs._≋_ (reply true) diverge
 true≠divergence = test-separation (reply-succeeds true) (divergence-no-success true)
+
+divergence-below-reply : (b : Bool) → diverge Sim.≲ᴿ reply b
+divergence-below-reply b = record
+  { Related = λ _ _ → ⊤
+  ; initial-to = λ _ → tt , tt , tt
+  ; step-to = λ _ ()
+  }
+
+reply-not-below-divergence : (b : Bool) → ¬ (reply b Sim.≲ᴿ diverge)
+reply-not-below-divergence b φ = divergence-no-success b (Sim.forward φ (reply-succeeds b))
+
+forward-all-tests : {p q : Initialized J A} → p Sim.≲ᴿ q → (t : Initialized A Ω)
+  → ∀ {b} → eval (t W.∘ p) b → eval (t W.∘ q) b
+forward-all-tests φ t = Sim.observe Sim.reflexive φ
