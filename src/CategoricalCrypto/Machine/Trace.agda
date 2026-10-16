@@ -93,8 +93,7 @@ module _ {A B : Channel} (M : Machine A B) where
     -- Traces name inputs as `Msg`s.  Because `_⊗₀_` is opaque, a flat sum of
     -- the leaf message types is often easier to produce and to match on than
     -- `Input` itself; `embed` maps it into `Input`, typically via selectors
-    -- (Linear Leios: `TestInput` and `toRcvType`).  Use `Msg = Input` and
-    -- `embed = id` when no flattening is wanted.
+    -- Use `Msg = Input` and `embed = id` when no flattening is wanted.
     field
       Msg       : Type
       embed     : Msg → Input
@@ -209,7 +208,7 @@ module _ {A B : Channel} (M : Machine A B) where
     -- Soundness: a valid trace is a run of the machine
 
     labels : ValidTrace s es s′ → List (Input × Maybe Output)
-    labels []             = []
+    labels []                   = []
     labels (ok∷ {m = m} x _ vt) = (embed m , x .proj₁ .out) ∷ labels vt
 
     toRun : (vt : ValidTrace s es s′) → Run s (labels vt) s′
@@ -229,7 +228,7 @@ module _ {A B : Channel} (M : Machine A B) where
           → AllMatch (⟨ h , m , e ⟩ ∷ es) ((embed m , o) ∷ l)
 
     labels-match : (vt : ValidTrace s es s′) → AllMatch es (labels vt)
-    labels-match []           = []
+    labels-match []            = []
     labels-match (ok∷ _ ok vt) = ok ∷ labels-match vt
 
     --------------------------------------------------------------------------
