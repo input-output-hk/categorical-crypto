@@ -110,6 +110,13 @@ module _ {A B : Channel} (M : Machine A B) where
       unique : ∀ {h i s} (x y : StepWith h s i)
              → (x .proj₁ .out , x .proj₁ .next) ≡ (y .proj₁ .out , y .proj₁ .next)
 
+    -- With `Complete`, `checkStep` is a decision procedure: whether a step
+    -- with a given hint exists is decidable.
+    step? : ∀ h m s → Dec (StepWith h s (embed m))
+    step? h m s with checkStep h m s
+    ... | inj₁ err = no (refute err)
+    ... | inj₂ x   = yes x
+
   ------------------------------------------------------------------------------
   -- What is checked about outputs
 
