@@ -115,6 +115,8 @@ import CategoricalCrypto.Machines.Positive.Setup
 import CategoricalCrypto.Machines.Positive.Tensor.Tests
 import CategoricalCrypto.Machine.Relational.Presentation.Feedback.Tests
 import CategoricalCrypto.Machine.Relational.Presentation.Guard
+import CategoricalCrypto.Machine.Relational.Tests
+import CategoricalCrypto.Machine.Relational.Presentation.ClassicalConsumers
 import CategoricalCrypto.ND.SSP.Laws
 import CategoricalCrypto.ND.SSP.Reflect
 import CategoricalCrypto.ND.SSP.Setup

@@ -63,10 +63,28 @@ ownership. The original
 preserves U/UC via natural epi tests and ancillary coverage; reflection,
 probability magnitudes and fixed-error bounds are not claimed.
 
-The new initialized relational carrier uses an initial **predicate** and
-two-way bisimulation, while `Machine.Iso` stays unchanged.
-Literal exact-support congruence on arbitrary types would imply stable
-equality; the checked implication is **not an internal impossibility theorem**.
+The initialized native relational carrier now forms its own
+[`symmetric monoidal model`](../src/CategoricalCrypto/Machine/Relational/Model.agda#L15)
+and [`finite-may setup`](../src/CategoricalCrypto/Machine/Relational/Setup.agda#L21):
+an initial **predicate**, two-way exact-label bisimulation, and separate possible
+true/false verdicts against all native preparations. Original `Machine.Iso`
+stays unchanged and has an all-state-initial categorical connection to this model.
+Unrestricted literal-support congruence implies stable equality, and with explicit
+function extensionality implies global decidable equality; this is a conditional
+logical consequence, **not an internal impossibility theorem**.
+
+With `ExcludedMiddle 0ℓ` explicitly supplied,
+[`ClassicalSetup.WithLEM`](../src/CategoricalCrypto/Machine/Relational/Presentation/ClassicalSetup.agda#L41)
+constructs actual **PMmay→native** and **PM→native** setup morphisms without
+state/message/branching restrictions. The strong monoidal functors and public
+feedback law use native wiring; object, arrow and test components of the
+probability-forgetting diagram commute. Finite interaction extraction and
+equality-guarded script replay establish test congruence against arbitrary native
+preparations, not just represented ones. Simulator-substitution/context squares
+are checked, but general U/UC transfer and test surjectivity are not asserted.
+This is still not a probability/powerset distributive law or a change of
+scheduler ownership.
+
 CSP's actual schedulerized binary sender/receiver and presented stateful
 context reach the same public positive quotient through proved composition
 coherence and a

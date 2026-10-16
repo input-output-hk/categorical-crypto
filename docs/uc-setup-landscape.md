@@ -94,6 +94,36 @@ compositions and preserves success therefore has the same logical consequences.
 This is a conditional obstruction, not an internal contradiction or an
 unconditional derivation of decidable equality without function extensionality.
 
+**Classical morphism into an actual Iso variant.** The native carrier is now a
+constructive symmetric monoidal category and
+[`finite-may UC setup`](../src/CategoricalCrypto/Machine/Relational/Setup.agda#L21),
+with initial predicates, bisimulation equality and separate possible true/false
+observations. Its observable-test equivalence quantifies every native preparation.
+[`Iso→native`](../src/CategoricalCrypto/Machine/Relational/Iso.agda#L54) adds
+all-state initialization to the original plain machine bundle;
+[`IsoUC→native-reverse`](../src/CategoricalCrypto/Machine/Relational/Iso.agda#L74)
+handles exactly the reversed bundle used by original Iso. These are categorical
+connections, not morphisms between the different UC test presheaves.
+
+Given **explicit `ExcludedMiddle 0ℓ`**, the actual
+[`PMmay→native`](../src/CategoricalCrypto/Machine/Relational/Presentation/ClassicalSetup.agda#L65)
+and [`PM→native`](../src/CategoricalCrypto/Machine/Relational/Presentation/ClassicalSetup.agda#L69)
+setup morphisms require no restrictions on source states, messages or branching.
+They use strong monoidal support functors; the probability-forgetting diagram
+commutes on objects, arrows and tests, and public feedback maps to native trace.
+The hard test-map congruence is proved against **all native preparations** by
+extracting a finite successful interaction, checking its requests in a PM script
+using LEM, transferring the source positive observation, and replaying via a
+one-way native simulation. Wrong requests and exhausted scripts diverge.
+This is not an assertion that arbitrary native relations have PM presentations.
+
+Public consumers cover the original noninjective ghost, half/quarter bias,
+both initial states, zero-weight exclusions, stateful feedback, and the actual
+setup simulator-substitution square under arbitrary native tests/preparations.
+No general U/UC preservation, reflection, or test-surjectivity theorem is claimed
+for these new classical arrows. Original Iso and original PM equality are unchanged;
+LEM is a supplied parameter, not a global postulate.
+
 CSP has a checked full-label initialized relational shadow and a **different,
 genuine schedulerized binary wiring fragment**. Finite Bool controllers and
 a nontrivial stateful context reach the **same public positive PM quotient**
@@ -109,6 +139,7 @@ These are later checked-source additions, not changes to the historical
 |---|---|---|
 | random systems `𝔾ᴿ` | quotient/behavioral setup and quantitative construction modules; `UC/Quantitative/Availability{,/Composition,/Standard}`, native `Availability/{Composition,Symmetric,Parallel}`, direct `UC/Model/Availability/Composition` | `≈ᵁ⇔≈ᴿ`, quantitative/native designated availability, measured cap transport; honest serial and supported parallel full construction with actual native RS/direct-PM pairings, canonical caps and independent ordered budgets; genuine honest reply, cap-incompatibility, nonzero FaultFlag parallel and two-port PM consumers |
 | initialized positive-may PM | `Dp.Positive{,/Paths,/Monad,/Iteration,/Transfer,/Observation}`, `Machines.Positive/{Base,Repack,Bridge,Model,Setup,Run/Model,Feedback/Model,Tests}` | all-`Dₚ` `PositiveTest`/`≈₊`; actual sealed **`𝔾₊`**, strong `forget-probabilities`, original-source **`PM→positive`**, epi tests/ancilla coverage and **U/UC preservation**; real noninjective ghost erasure, probabilistic initial states, public half/quarter information loss and zero-positive distinction; **not Iso, arbitrary relations, reflection or quantitative preservation** |
+| initialized native relations `Rel_init` | `Machine/Relational/{Category,Isomorphism,Monoidal,Model,Observation,Setup,Iso,Simulation,Tests}`, `Presentation/Classical*` | constructive native bisimulation setup with all native preparations; categorical plain/reversed Iso connections; explicit-LEM **PMmay→native / PM→native setup morphisms**, strong monoidal support, public feedback and commuting probability-forgetting diagram; finite extraction/script replay discharges test-map congruence; actual simulator/context square, not general U/UC transfer |
 | CSP/common relational connection — operational, not a setup edge | `Machine.Relational{,/Wiring,/Presentation/**}`, `CSP/{Scheduled,ScheduledMachine,Relational,ScheduledMachineBoundary,BinaryNetwork,BinaryScheduled,BinaryOperational,BinaryDivergence,BinaryPresented*,BinaryPositive*}` | initialized full-label shadow with exact finite/silent-path correspondence; closed-unit activation obstruction; independent binary native wiring and finite presented/stateful-context generic-G **and actual sealed-positive** composition/test consumers; not arbitrary multiparty serialization, FD descent, fairness or CSP U/UC transfer |
 | ITM `𝕋ᴹ` | `ITM/{Core,Run,Functor,Setup,Transfer,Relational,Relational/Tests}`, `UCSetup/Coverage`, `Standard2/Coverage`, `UC/Model/Coverage`, `Machine/Initialized`, `FreeMonoidal.freeStrongMonoidal`, `Seal.unitᵒ` | `itm⇒prot`, `≈ℰ⇔`, actual epi/mono test witnesses, `dual-context` (partial image-dual basis), **`preserves-≈ᵁ`**, **`reflects-≈ᵁ`**, **`preserves-≤UC`**; UC reflection only with a supplied simulator lift; structural `Relational.Uninitialized.⇒iso` and separate initialized trace consumers |
 | SSP (call/return) | `SSP/{Iface,Protocol,Protocol/Category,Protocol/Monoidal,Observation,Setup,Reduction,Compile,Semantics,Cut,Dense,Dense/Tests}`, `Standard2/UKernel`, `Protocol/{Sim,Machine/Resp,Machine/Oracle}`, `UC/Bracket{,/Category}` | `StdSetup`, `Protᴹ`/`Protˢ`, `toProtocol`, `morphism-resp`, `W`, `morphism-W`, `𝒲`, `ι`, **`games-dense`**, **`SSP→PM[wb]`**, **`preserves-≤UC`** |

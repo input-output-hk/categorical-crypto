@@ -49,6 +49,7 @@
 // Names of setups (fixed throughout)
 #let PM = $sans("PM")$
 #let PMmay = $sans("PM")_sans("may")$
+#let Relinit = $sans("Rel")_sans("init")$
 #let RS = $sans("RS")$
 #let PMwb = $sans("PM")[sans("wb")]$
 #let Wsub = $cal(W)$
@@ -186,12 +187,12 @@ negative, implementation-rank/residual-infinite positives and legal-word floodin
 classification. Their exact hypotheses and attributed checks are later postscripts,
 not new literature-census records or a completion of unrestricted native bridges.
 
-The original #PM → #PMmay bridge has proved U/UC preservation, with #Iso unchanged.
-CSP's exact initialized full-label shadow and independently compiled presented
-binary/stateful-context consumer reach the same positive endpoint, not a full-CSP
-setup morphism or FD/infinite-path abstraction. Historical proof boundaries remain
-in the review dispositions; no computational cryptographic soundness, full-SSPᵈ
-Task bridge or full native-model equivalence is inferred.
+The original #PM → #PMmay bridge preserves U/UC. Under explicit LEM,
+#PM and #PMmay also map to the native initialized relational setup #Relinit.
+Its #Iso connections are categorical; no additional UC-security direction is
+asserted. CSP's full-label shadow and presented binary/stateful-context route
+remain distinct from a full-CSP setup morphism. Historical proof boundaries,
+including computational soundness and full native-model equivalence, remain.
 
 #pagebreak()
 
@@ -483,7 +484,7 @@ between $leUC$ and outcome inclusion; and the criteria hierarchy of robust compi
 (@abate2019journey) as a family of test presheaves on one $(cal(C), cal(I), cal(M))$, ordered by kernel
 refinement (@thm:refine).
 
-#page(flipped: true)[
+#page(flipped: true, margin: (x: 2.1cm, y: 1.5cm))[
 = The setups at a glance <sec:table>
 
 For standard setups (@def:std), each row gives the monoidal category $𝕄$ — objects with their
@@ -509,6 +510,11 @@ the grade category without restricting computations. #design rows are planned, n
     [the same presented verdict tests and closures, compared by every nonnegative rational positive finite-cumulative event],
     [initialized probabilistic presentations with weights forgotten; not #Iso or arbitrary relations],
     [#formal #cc("Machines/Positive/Model.agda", 64, "𝔾₊"), #cc("Machines/Positive/Setup.agda", 75, "Target.StdSetup"); @sec:pm-positive],
+    [#Relinit \ initialized native relations], [typed channels; componentwise $+$],
+    [native relational machines with initial-state predicates; exact-label initialized bisimulation],
+    [native ticked Boolean tests, compared on every native preparation by possible finite true and false replies],
+    [an initialized behavioral variant of #Iso; arbitrary relations, not probabilistic presentations],
+    [#formal #cc("Machine/Relational/Model.agda", 18, "𝔾ᴿᵐ"), #cc("Machine/Relational/Setup.agda", 21, "StdSetup"); @sec:native-relational],
     [#RS \ random systems], [as #PM],
     [#PM's globally initialized partial machines; behavioural equivalence $eqR$: equal verdict laws against every adaptive distinguisher],
     [#PM's tests, descended],
@@ -715,16 +721,16 @@ representative, but only a finite successful event is observed.
 #srcs(ag("ProbabilisticLogic/Dp/Positive.agda", 29, "Positive"), ag("ProbabilisticLogic/Dp/Positive.agda", 66, "PositiveTest"), ag("ProbabilisticLogic/Dp/Positive/Monad.agda", 27, "_≈₊_"), ag("ProbabilisticLogic/Dp/Positive/Paths.agda", 59, "positive-extract"), ag("ProbabilisticLogic/Dp/Positive/Paths.agda", 88, "positive-witness"))
 ] <def:positive-may>
 
-*Why not literal support?* Syntactic support is not an $apx_p$-stable abstraction.
-Even congruence of _exact positive singleton paths_ on every set would imply
-stable equality: $¬¬(x=y) ⇒ x=y$. The checked `return-double-negation` and
-`literal-support-congruence⇒stable-equality` prove this sharp constructive
-consequence, _not_ an internal impossibility theorem. The rational-test quotient
-requires no such principle, decidable equality on arbitrary sets or coupling
-axiom. Its general bind, iteration congruence and iteration-transfer proofs
-support the actual categorical construction, rather than a representative-only
-support map.
-#srcs(ag("ProbabilisticLogic/Dp/Positive.agda", 51, "return-double-negation"), ag("ProbabilisticLogic/Dp/Positive.agda", 61, "literal-support-congruence⇒stable-equality"), ag("ProbabilisticLogic/Dp/Positive/Monad.agda", 30, "≈ₚ⇒≈₊"), ag("ProbabilisticLogic/Dp/Positive/Iteration.agda", 45, "iter-cong"), ag("ProbabilisticLogic/Dp/Positive/Transfer.agda", 72, "iter-transfer"))
+*Constructive support boundary.* Unrestricted congruence of exact positive
+singleton paths under $apx_p$ implies stable equality:
+$¬¬(x=y) ⇒ x=y$. With function extensionality explicitly supplied, a four-point
+fair-coin argument strengthens this to decidable equality for every small type.
+Conversely, global decidable equality suffices for literal support congruence.
+The machine-level descent theorems use the actual sealed #PM and #PMmay
+equalities, not only kernel equality. These are conditional logical consequences,
+not an internal contradiction; no classical or extensionality axiom is postulated.
+The constructive rational-test quotient itself needs none of these assumptions.
+#srcs(ag("ProbabilisticLogic/Dp/Positive.agda", 51, "return-double-negation"), ag("ProbabilisticLogic/Dp/Positive.agda", 61, "literal-support-congruence⇒stable-equality"), ag("ProbabilisticLogic/Dp/Positive/Decidability.agda", 73, "FourPoints.same-observations"), ag("ProbabilisticLogic/Dp/Positive/Decidability.agda", 90, "literal-support⇒decidable-equality"), ag("ProbabilisticLogic/Dp/Positive/Decidability.agda", 129, "decidable-equality⇒literal-support"), cc("Machine/Relational/Presentation/Descent.agda", 117, "pm-descent⇒decidable-equality"), cc("Machine/Relational/Presentation/Descent.agda", 121, "pmmay-descent⇒decidable-equality"))
 
 #definition(name: [the positive initialized protocol setup])[
 The positive base has an actual discrete monad, Kleisli symmetric monoidal
@@ -809,6 +815,95 @@ relay. Both verdicts are positive through the real sealed feedback,
 normalized native trace coherence and `Run.Model`, not a no-op loop or
 an asserted representative readout.
 #srcs(cc("Machines/Positive/Tensor/Tests.agda", 139, "tensor-may"), cc("Machine/Relational/Presentation/Feedback/Tests.agda", 133, "feedback-may"))
+
+== #Relinit: initialized native relations <sec:native-relational>
+
+#definition(name: [the native relational finite-may setup])[
+The transition carrier is exactly #Iso's `Machine.Core.Machine`, equipped with
+an initial-state predicate. Hom-equality is initialized, bidirectional,
+exact-label bisimulation $≈^R$, not a state bijection and not equality defined
+by compiling into #PMmay. Composition, tensor and feedback are the existing
+native relational wiring operations. The category and symmetric monoidal laws
+reuse native isomorphism witnesses with explicit transport of initial predicates.
+#srcs(cc("Machine/Relational.agda", 17, "Initialized"), cc("Machine/Relational.agda", 27, "_≈ᴿ_"), cc("Machine/Relational/Model.agda", 12, "𝔾ᴿ"), cc("Machine/Relational/Model.agda", 15, "𝔾ᴿˢ"), cc("Machine/Relational/Model.agda", 18, "𝔾ᴿᵐ"))
+
+The readout uses a ticked verdict channel $Ω=(sans("Bool"),1)$ and an empty
+closure interface. A Boolean $b$ is observed exactly when some initial state
+has a native tick step returning $b$; native wiring can contain finite hidden
+interaction inside that step. Both Boolean outcomes are observed separately.
+Refusal and absence of a finite reply witness neither outcome.
+The standard observable-test presheaf quantifies over _all native preparation
+arrows_, without countability or probabilistic-presentability assumptions.
+This target and its setup are constructive; they do not themselves assume LEM.
+#srcs(cc("Machine/Relational/Observation.agda", 23, "J"), cc("Machine/Relational/Observation.agda", 38, "eval"), cc("Machine/Relational/Observation.agda", 47, "eval-resp"), cc("Machine/Relational/Observation.agda", 62, "evaluation"), cc("Machine/Relational/Setup.agda", 18, "ℰᴿ"), cc("Machine/Relational/Setup.agda", 21, "StdSetup"))
+] <def:native-relational>
+
+*Actual connection to #Iso.* `Iso→native` is a strong monoidal functor from
+the original plain machine bundle: it declares every state initial and forgets
+the requirement that the state correspondence be bijective.
+`IsoUC→native-reverse` has exactly the bundle used by `Machine.UC` as source
+and the explicitly reversed native bundle as target. The two tensor orientations
+are not silently identified. Native feedback preservation is checked separately;
+no bundled traced-category structure or morphism between the different UC test
+presheaves is asserted by these categorical connections.
+#srcs(cc("Machine/Relational/Iso.agda", 37, "all-states-trace"), cc("Machine/Relational/Iso.agda", 54, "Iso→native"), cc("Machine/Relational/Iso.agda", 74, "IsoUC→native-reverse"))
+
+*Why changing equality matters.* The Boolean-state ghost is bisimilar to native
+identity but admits no state bijection to it. Its public `ghost-UC` proof supplies
+each arbitrary adversary as its simulator. Native observable-test consumers
+distinguish true from false and distinguish either reply from refusal or divergence.
+#srcs(cc("Machine/Relational/Tests.agda", 42, "ghost-erasure"), cc("Machine/Relational/Tests.agda", 51, "ghost-not-iso"), cc("Machine/Relational/Tests.agda", 62, "ghost-all-preparations"), cc("Machine/Relational/Tests.agda", 68, "ghost-UC"), cc("Machine/Relational/Tests.agda", 104, "true≠false"), cc("Machine/Relational/Tests.agda", 107, "false≠refusal"), cc("Machine/Relational/Tests.agda", 116, "true≠divergence"))
+
+*Equality alone cannot avoid the support boundary.* Arbitrary native relations
+include exact-value guards. Their actual composition with a one-state emitter
+observes literal support. Any proposed equality that respects #PM equality,
+is preserved by these compositions and preserves finite Boolean success therefore
+has the same stability/decidability consequences stated above.
+#srcs(cc("Machine/Relational/Presentation/Guard.agda", 43, "guard"), cc("Machine/Relational/Presentation/Guard.agda", 61, "guarded-support"), cc("Machine/Relational/Presentation/Guard.agda", 104, "support-guarded"), cc("Machine/Relational/Presentation/Guard.agda", 111, "ObservationalDescent"), cc("Machine/Relational/Presentation/Guard.agda", 131, "ObservationalDescent.decidable-equality"))
+
+#block(breakable: false)[
+#theorem(name: [classical support interpretation into native relations])[
+For an explicitly supplied `ExcludedMiddle 0ℓ`, there are actual setup morphisms
+$PMmay → Relinit$ and $PM → Relinit$. Their underlying functors are strong
+monoidal and send the initializer and each transition law to their literal
+positive-support relations. Every small state and message type is admitted;
+there is no finiteness, branching, decidable-state or presentability restriction
+on the source. The target itself remains the independent native setup above.
+No global LEM or function-extensionality axiom is added.
+#srcs(cc("Machine/Relational/Presentation/ClassicalMonoidal.agda", 102, "WithLEM.PMmay→native"), cc("Machine/Relational/Presentation/ClassicalMonoidal.agda", 105, "WithLEM.PM→native"), cc("Machine/Relational/Presentation/ClassicalSetup.agda", 65, "WithLEM.PMmay→native"), cc("Machine/Relational/Presentation/ClassicalSetup.agda", 69, "WithLEM.PM→native"))
+
+The original-PM morphism factors through the existing probability-forgetting
+morphism. `forgetting-objects`, `forgetting-arrows` and `forgetting-tests`
+prove the actual setup components agree; `test-canonical` and
+`original-test-canonical` identify the public test maps with canonical support.
+Composition, tensor and monoidal coherences are native laws, and
+`preserves-public-feedback` separately relates the existing sealed feedback
+operator to native relational trace.
+#srcs(cc("Machine/Relational/Presentation/ClassicalSetup.agda", 60, "WithLEM.test-canonical"), cc("Machine/Relational/Presentation/ClassicalSetup.agda", 78, "WithLEM.forgetting-objects"), cc("Machine/Relational/Presentation/ClassicalSetup.agda", 81, "WithLEM.forgetting-arrows"), cc("Machine/Relational/Presentation/ClassicalSetup.agda", 85, "WithLEM.forgetting-tests"), cc("Machine/Relational/Presentation/ClassicalSetup.agda", 91, "WithLEM.original-test-canonical"), cc("Machine/Relational/Presentation/ClassicalFeedback.agda", 86, "WithLEM.preserves-public-feedback"))
+] <thm:classical-native>
+]
+
+#proofidea[
+The test map must respect source test equivalence on _every_ native preparation,
+not only translated PM preparations. Extract a finite interaction from any
+successful native composite. Its deterministic PM script checks requests using
+LEM and diverges on deviations or exhaustion. Source test equivalence transfers
+the positive verdict to the replacement test. A one-way initialized simulation
+replays that successful script against the original native preparation, allowing
+the replacement test to finish at a prefix. This establishes the natural test
+map without asserting that arbitrary native relations have probabilistic
+presentations.
+#srcs(cc("Machine/Relational/Presentation/ClassicalExtraction.agda", 67, "extract"), cc("Machine/Relational/Presentation/ClassicalTests.agda", 63, "WithLEM.tests-to"), cc("Machine/Relational/Presentation/ClassicalTests.agda", 85, "WithLEM.tests-cong"), cc("Machine/Relational/Presentation/ClassicalSetup.agda", 51, "WithLEM.tests"))
+]
+
+*Consumers and transfer scope.* The actual public functors erase the noninjective
+PM ghost and half/quarter bias. Initial states, zero-weight exclusions, both
+Boolean verdicts and a state-changing hidden-feedback example are checked.
+`simulator-square` respects the original setup's actual simulator substitution;
+`simulator-context` transports that equation through arbitrary native tests and
+preparations. These laws are not a general U/UC preservation theorem, test
+surjectivity, security reflection, or a representation of every native adversary.
+#srcs(cc("Machine/Relational/Presentation/ClassicalConsumers.agda", 60, "WithLEM.ghost-erasure"), cc("Machine/Relational/Presentation/ClassicalConsumers.agda", 63, "WithLEM.half-quarter"), cc("Machine/Relational/Presentation/ClassicalConsumers.agda", 69, "WithLEM.all-initial-states"), cc("Machine/Relational/Presentation/ClassicalConsumers.agda", 72, "WithLEM.zero-initial-excluded"), cc("Machine/Relational/Presentation/ClassicalConsumers.agda", 80, "WithLEM.zero-verdict-excluded"), cc("Machine/Relational/Presentation/ClassicalConsumers.agda", 96, "WithLEM.feedback-both-verdicts"), cc("Machine/Relational/Presentation/ClassicalConsumers.agda", 103, "WithLEM.simulator-square"), cc("Machine/Relational/Presentation/ClassicalConsumers.agda", 109, "WithLEM.simulator-context"))
 
 == #RS: random systems <sec:rs>
 
@@ -2954,6 +3049,9 @@ The plain #Symcert arrows to #PMN and #Symiso respectively certify a query-admis
 interpretation and erase generator certificates; neither supplies a UC-security direction.
 The #ITMuninit arrow is structural/uninitialized; the checked initialized finite-trace API is
 not another setup node or initialized-security bridge.
+The #PMmay → #Relinit edge explicitly assumes LEM. Its plain arrow asserts
+the setup morphism, not U/UC preservation. The #Iso links to the native
+plain/reversed bundles are categorical only and are not drawn as setup edges.
 
 #figure(
   diagram(
@@ -2972,20 +3070,21 @@ not another setup node or initialized-security bridge.
     node((1.3, 1), $PMmay$, name: <pmmay>),
     node((2.6, 1), $PM$, name: <pm>),
     node((3.9, 1), $ITM$, name: <itm>),
-    node((0, 2), $PMom$, name: <pmomega>),
-    node((1.3, 2), $Wio$, name: <wio>),
-    node((2.6, 2), $RS$, name: <rs>),
-    node((3.9, 2), $NDB^(PM)$, name: <ndb>),
-    node((0, 4), $SSP$, name: <ssp>),
-    node((0, 3), $SSPd$, name: <sspd>),
-    node((1.3, 4), $PMwb$, name: <pmwb>),
-    node((1.3, 3), $WW$, name: <ww>),
-    node((3.9, 3), $NDA^(PM)$, name: <nda>),
-    node((2.6, 4), [#Rel \ one-shot], name: <rel>),
-    node((3.9, 4), [#TaskPIOA \ finite exact], name: <taskpioa>),
-    node((2.6, 3), [#NativeSSP \ scheduled], name: <nativessp>),
-    node((2.6, 5), [#CSP \ full observations], name: <csp>),
-    node((3.9, 5), [#CSPtrace \ traces], name: <csptrace>),
+    node((1.3, 2), $Relinit$, name: <relinit>),
+    node((0, 3), $PMom$, name: <pmomega>),
+    node((1.3, 3), $Wio$, name: <wio>),
+    node((2.6, 3), $RS$, name: <rs>),
+    node((3.9, 3), $NDB^(PM)$, name: <ndb>),
+    node((0, 5), $SSP$, name: <ssp>),
+    node((0, 4), $SSPd$, name: <sspd>),
+    node((1.3, 5), $PMwb$, name: <pmwb>),
+    node((1.3, 4), $WW$, name: <ww>),
+    node((3.9, 4), $NDA^(PM)$, name: <nda>),
+    node((2.6, 5), [#Rel \ one-shot], name: <rel>),
+    node((3.9, 5), [#TaskPIOA \ finite exact], name: <taskpioa>),
+    node((2.6, 4), [#NativeSSP \ scheduled], name: <nativessp>),
+    node((2.6, 6), [#CSP \ full observations], name: <csp>),
+    node((3.9, 6), [#CSPtrace \ traces], name: <csptrace>),
     edge(<taskpioa>, <nativessp>, "hook->>", label: $mnative$, label-side: right),
     edge(<symiso>, <sym>, "->>", label: $mcoarse$, label-side: right),
     edge(<symiso>, <iso>, "->", label: $msym$),
@@ -2997,6 +3096,7 @@ not another setup node or initialized-security bridge.
     edge(<itm>, <pm>, "->>", label: $mitm$),
     edge(<pm>, <rs>, "hook->>", label: $mrs$),
     edge(<pm>, <pmmay>, "->>", label: $mpositive$),
+    edge(<pmmay>, <relinit>, "->", label: [LEM]),
     edge(<wio>, <pm>, "->>", label: $miota$),
     edge(<wio>, <ww>, "->>", label: $mck_(ν_W)$, label-side: right),
     edge(<ssp>, <pmwb>, "->>", label: $mwb$, label-side: right),
@@ -3014,9 +3114,10 @@ not another setup node or initialized-security bridge.
     SSP-to-PM security path. #Rel remains separate; #TaskPIOA now maps to the distinct
     scheduled #NativeSSP endpoint, not full #SSPd. #CSP and #CSPtrace form an
     observation-refinement component, not a full PM/SSP setup bridge.
-    The #PM → #PMmay edge preserves UC without a reflection hook;
-    CSP's presented binary connection to that endpoint is operational prose,
-    not an extra black setup edge. Separate components are not impossibility classes.],
+    The #PM → #PMmay edge preserves UC without a reflection hook; the next edge
+    to #Relinit assumes LEM and has no security decoration.
+    CSP's presented binary connection is operational prose, not another setup edge.
+    Separate components are not impossibility classes.],
 ) <fig:graph>
 
 *Implemented-edge qualifications.* The ND nodes are the #PM instances. Their preservation
@@ -3113,6 +3214,16 @@ and _no hook_: the public half/quarter and zero-weight consumers record
 precisely which finite-positive information is retained or lost, not
 security reflection. Neither #Iso nor the full CSP setup is this endpoint.
 #srcs(cc("Machines/Positive/Model.agda", 67, "forget-probabilities"), cc("Machines/Positive/Setup.agda", 86, "PM→positive"), cc("Machines/Positive/Setup.agda", 99, "preserves-≈ᵁ"), cc("Machines/Positive/Setup.agda", 102, "preserves-≤UC"))
+
+=== Classical support: $PM → PMmay → Relinit$
+
+The two setup morphisms of @thm:classical-native use LEM as an explicit argument.
+The composite agrees on computation, object and test components, and interprets
+the source as native initial/transition support. Its test congruence quantifies
+all native preparations through finite witness extraction and guarded replay.
+The graph therefore includes a solid, LEM-labeled plain arrow: construction of
+the morphism is proved, while general U/UC transfer and reflection are not claimed.
+#srcs(cc("Machine/Relational/Presentation/ClassicalSetup.agda", 65, "WithLEM.PMmay→native"), cc("Machine/Relational/Presentation/ClassicalSetup.agda", 69, "WithLEM.PM→native"), cc("Machine/Relational/Presentation/ClassicalSetup.agda", 85, "WithLEM.forgetting-tests"))
 
 === $mvan : PMN → PMom$
 
@@ -3504,6 +3615,7 @@ This ledger records their current scope; absence of a public client is not nonex
     [Native extensions], [Finite IPDL operational agreement/private coins and concrete linking remain checked, not an IPDL UC setup. #TaskPIOA has unconditional U/UC preservation and reflection at the distinct scheduled #NativeSSP endpoint, via test injectivity and representation of every native wiring simulator; actual SSP tensor/connector semantics and exact padded/adaptive Tick comparison remain. Its older resource UC-to-native inclusion is still same-signature/unit-leakage only; no full SSPᵈ, categorical equivalence, PPT or fairness bridge is inferred.],
     [CSP], [Actual typed-network setup/UC clients and ready Hide/Par/linking fragments remain. The total-finitely-branching binary τ selector refutes raw hiding congruence; independent implementation-rank/residual-infinite rules and legal-word flooding retain their exact scopes. A full-label initialized relational shadow and independently compiled presented binary/stateful-context route reach the shared positive endpoint, not a full-CSP setup morphism. No arbitrary-network full abstraction, UC/refinement identification or FD abstraction follows.],
     [Positive-may connection], [The original qualitative #PM setup maps to #PMmay by an actual strong quotient functor, natural epi tests and total ancillary coverage, preserving U/UC. All $Dp$ is supported through rational-positive finite observations; literal-support congruence implies stable equality, not an internal impossibility theorem. Public ghost/initializer/half-quarter/zero controls and actual CSP composed finite tests reach the same sealed target. No categorical equivalence, security reflection or quantitative-error preservation is claimed.],
+    [Classical native connection], [#Relinit is a constructive native bisimulation setup with arbitrary relational preparations. Explicit LEM supplies actual #PM/#PMmay setup morphisms, a commuting probability-forgetting diagram and native feedback preservation. Finite script replay proves the test-map obligation; simulator substitution is respected. The #Iso links are categorical, with plain/reversed tensors distinguished. No general U/UC transfer, test surjectivity, categorical equivalence or full-CSP setup bridge is asserted.],
   )
 }
 
