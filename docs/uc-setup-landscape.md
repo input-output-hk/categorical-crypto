@@ -71,6 +71,29 @@ have natural epi tests and total ancillary coverage, proving original PM
 Rational-positive finite-cumulative observations forget weights, exclude zero
 branches and do not provide arbitrary-relation/FD/infinite-path semantics.
 
+**Unrestricted native descent boundary (2026-10-16).**
+[`Presentation.Descent`](../src/CategoricalCrypto/Machine/Relational/Presentation/Descent.agda)
+proves that respecting either original sealed PM equality or positive-PM equality
+under the canonical literal-support interpretation into initialized bisimulation
+would imply literal support congruence. This already forces double-negation-stable
+equality without extra assumptions. With **function extensionality explicitly
+supplied**, it forces decidable equality for every small type:
+`pm-descent⇒decidable-equality` and `pmmay-descent⇒decidable-equality`.
+[`Positive.Decidability`](../src/ProbabilisticLogic/Dp/Positive/Decidability.agda)
+proves the stronger consequence using four function-valued points and two fair
+coins, and proves the converse from global decidable equality to literal support
+congruence. No extensionality or classical axiom is postulated.
+
+Changing only the target equality does not bypass this boundary if arbitrary
+native relational contexts and finite Boolean success are retained.
+[`Presentation.Guard`](../src/CategoricalCrypto/Machine/Relational/Presentation/Guard.agda)
+constructs an exact-value guard and proves that its actual native composition
+with a one-state emitter succeeds exactly when the emitted distribution supports
+that value. Any equality-respecting interpretation that is closed under those
+compositions and preserves success therefore has the same logical consequences.
+This is a conditional obstruction, not an internal contradiction or an
+unconditional derivation of decidable equality without function extensionality.
+
 CSP has a checked full-label initialized relational shadow and a **different,
 genuine schedulerized binary wiring fragment**. Finite Bool controllers and
 a nontrivial stateful context reach the **same public positive PM quotient**
