@@ -31,8 +31,25 @@ module CategoricalCrypto.Machine.Trace where
 open import categorical-crypto.Prelude hiding (id; _∘_)
 open import Data.Maybe.Properties using () renaming (≡-dec to ≡-decMaybe)
 import Data.List as L
+import Data.Sum as S
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Machine.Core using (Machine; _⊗ᵀ_)
+
+--------------------------------------------------------------------------------
+-- The error monad `E ⊎_`
+module _ {E : Type} where instance
+  Functor-⊎ : Functor (E ⊎_)
+  Functor-⊎ ._<$>_ = S.map₂
+
+  Applicative-⊎ : Applicative (E ⊎_)
+  Applicative-⊎ .pure = inj₂
+  Applicative-⊎ ._<*>_ (inj₁ err) _ = inj₁ err
+  Applicative-⊎ ._<*>_ (inj₂ f)   x = S.map₂ f x
+
+  Monad-⊎ : Monad (E ⊎_)
+  Monad-⊎ .return = inj₂
+  Monad-⊎ ._>>=_ (inj₁ err) _ = inj₁ err
+  Monad-⊎ ._>>=_ (inj₂ x)   f = f x
 
 module _ {A B : Channel} (M : Machine A B) where
 
@@ -168,19 +185,18 @@ module _ {A B : Channel} (M : Machine A B) where
 
     verifyStep : ∀ h m e s
                → StepErr h m e s ⊎ Σ[ x ∈ StepWith h s (embed m) ] Matches e (x .proj₁ .out)
-    verifyStep h m e s with checkStep h m s
-    ... | inj₁ err = inj₁ (rejected err)
-    ... | inj₂ x with match? e (x .proj₁ .out)
-    ...   | yes ok = inj₂ (x , ok)
-    ...   | no ¬ok = inj₁ (output-mismatch x ¬ok)
+    verifyStep h m e s = do
+      x ← S.map₁ rejected (checkStep h m s)
+      case match? e (x .proj₁ .out) of λ where
+        (yes ok) → return (x , ok)
+        (no ¬ok) → inj₁ (output-mismatch x ¬ok)
 
     verifyTrace : ∀ s es → TraceErr s es ⊎ Σ[ s′ ∈ State ] ValidTrace s es s′
-    verifyTrace s []                    = inj₂ (s , [])
-    verifyTrace s (⟨ h , m , e ⟩ ∷ es) with verifyStep h m e s
-    ... | inj₁ err      = inj₁ (here err)
-    ... | inj₂ (x , ok) with verifyTrace (x .proj₁ .next) es
-    ...   | inj₁ err        = inj₁ (there x ok err)
-    ...   | inj₂ (s′ , vt)  = inj₂ (s′ , ok∷ x ok vt)
+    verifyTrace s []                    = return (s , [])
+    verifyTrace s (⟨ h , m , e ⟩ ∷ es) = do
+      (x , ok)  ← S.map₁ here (verifyStep h m e s)
+      (s′ , vt) ← S.map₁ (there x ok) (verifyTrace (x .proj₁ .next) es)
+      return (s′ , ok∷ x ok vt)
 
     --------------------------------------------------------------------------
     -- Soundness: a valid trace is a run of the machine
