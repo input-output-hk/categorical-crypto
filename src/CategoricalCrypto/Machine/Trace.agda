@@ -152,50 +152,50 @@ module _ {A B : Channel} (M : Machine A B) where
     -- A trace together with a run of the machine that realises it.
     data ValidTrace : State → Trace → State → Type where
       []  : ValidTrace s [] s
-      ok∷ : (x : StepWith h s (embed m))
-          → Matches e (x .proj₁ .out)
-          → ValidTrace (x .proj₁ .next) es s′
+      ok∷ : ((x , _) : StepWith h s (embed m))
+          → Matches e (x .out)
+          → ValidTrace (x .next) es s′
           → ValidTrace s (⟨ h , m , e ⟩ ∷ es) s′
 
     data StepErr (h : Hint) (m : Msg) (e : Expect) (s : State) : Type where
       rejected        : Err h m s → StepErr h m e s
-      output-mismatch : (x : StepWith h s (embed m))
-                      → ¬ Matches e (x .proj₁ .out)
+      output-mismatch : ((x , _) : StepWith h s (embed m))
+                      → ¬ Matches e (x .out)
                       → StepErr h m e s
 
     -- The first failing entry, with the valid prefix leading up to it.
     data TraceErr : State → Trace → Type where
       here  : StepErr h m e s → TraceErr s (⟨ h , m , e ⟩ ∷ es)
-      there : (x : StepWith h s (embed m))
-            → Matches e (x .proj₁ .out)
-            → TraceErr (x .proj₁ .next) es
+      there : ((x , _) : StepWith h s (embed m))
+            → Matches e (x .out)
+            → TraceErr (x .next) es
             → TraceErr s (⟨ h , m , e ⟩ ∷ es)
 
     verifyStep : ∀ h m e s
-               → StepErr h m e s ⊎ Σ[ x ∈ StepWith h s (embed m) ] Matches e (x .proj₁ .out)
+               → StepErr h m e s ⊎ Σ[ (x , _) ∈ StepWith h s (embed m) ] Matches e (x .out)
     verifyStep h m e s = do
-      x ← S.map₁ rejected (checkStep h m s)
-      case match? e (x .proj₁ .out) of λ where
+      x@(x′ , _) ← S.map₁ rejected (checkStep h m s)
+      case match? e (x′ .out) of λ where
         (yes ok) → return (x , ok)
         (no ¬ok) → inj₁ (output-mismatch x ¬ok)
 
     verifyTrace : ∀ s es → TraceErr s es ⊎ Σ[ s′ ∈ State ] ValidTrace s es s′
     verifyTrace s []                   = return (s , [])
     verifyTrace s (⟨ h , m , e ⟩ ∷ es) = do
-      (x , ok)  ← S.map₁ here (verifyStep h m e s)
-      (s′ , vt) ← S.map₁ (there x ok) (verifyTrace (x .proj₁ .next) es)
+      (x@(x′ , _) , ok) ← S.map₁ here (verifyStep h m e s)
+      (s′ , vt) ← S.map₁ (there x ok) (verifyTrace (x′ .next) es)
       return (s′ , ok∷ x ok vt)
 
     --------------------------------------------------------------------------
     -- Soundness: a valid trace is a run of the machine
 
     labels : ValidTrace s es s′ → List (Input × Maybe Output)
-    labels []                   = []
-    labels (ok∷ {m = m} x _ vt) = (embed m , x .proj₁ .out) ∷ labels vt
+    labels []                         = []
+    labels (ok∷ {m = m} (x , _) _ vt) = (embed m , x .out) ∷ labels vt
 
     toRun : (vt : ValidTrace s es s′) → Run s (labels vt) s′
     toRun []           = done
-    toRun (ok∷ x _ vt) = x .proj₁ .derivation ∷ toRun vt
+    toRun (ok∷ (x , _) _ vt) = x .derivation ∷ toRun vt
 
     EntryMatches : Entry → Input × Maybe Output → Type
     EntryMatches ⟨ _ , m , e ⟩ (i , o) = embed m ≡ i × Matches e o
