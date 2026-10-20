@@ -189,14 +189,14 @@ oap⇔ᵁ gs {f = f} {g = g} = mk⇔ fwd (ᵁ⇒oap {f = f} {g = g})
 ------------------------------------------------------------------------
 
 ⌊⌈⌉⌋-id : (x : A 𝒞.⇒ T₀ X B) → ⌊ ⌈ x ⌉ ⌋ 𝒞.≈ x
-⌊⌈⌉⌋-id = FA.flatten-unflatten naiveKleisli
+⌊⌈⌉⌋-id = FA.flatten-unflatten Kleisli
 
 ι⌈⌊⌋⌉-id : (x : Prot A B J) → ι ⌈ ⌊ x ⌋ ⌉ OAPᶜ.≈ ι x
 ι⌈⌊⌋⌉-id x = OAPᶜ.Equiv.trans
   (GK.≈-components 𝒞 ℐ triple
     (𝒞.∘-resp-≈ˡ (sub-resp-≈ (ℐ.∘-resp-≈ˡ (ℐ.Equiv.sym ℐ.identityʳ)))) ℐ.identityʳ)
   (Functor.F-resp-≈ (FAK.fromFreeActegory 𝒞 ℐ triple)
-    (FA.unflatten-flatten naiveKleisli (ι x)))
+    (FA.unflatten-flatten Kleisli (ι x)))
 
 oap⇒bare-⌈⌉ : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B} → ⌈ f ⌉ OAP.≤UC ⌈ g ⌉ → f ≤UCᵇ g
 oap⇒bare-⌈⌉ {f = f} {g = g} f≤g =
