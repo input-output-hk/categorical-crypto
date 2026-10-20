@@ -2,8 +2,8 @@
 
 --------------------------------------------------------------------------------
 -- For a graded Kleisli triple ℳ over ℐ in 𝒞, the free actegory ∮ on
--- its locally graded presentation (GKOS / McDermott–Uustalu) is the
--- graded Kleisli category of Fujii/FKM.
+-- its locally graded Kleisli category is the graded Kleisli category
+-- of Fujii/FKM.
 --------------------------------------------------------------------------------
 
 open import Categories.Category
@@ -43,7 +43,7 @@ open Functor
 open GradedKleisliTriple ℳ
 
 private
-  K∮ = ∮ (naiveKleisli ℳ)
+  K∮ = ∮ (Kleisli ℳ)
   K  = GradedKleisli 𝒞 ℐ ℳ
   module K∮ where
     open Category K∮ public
