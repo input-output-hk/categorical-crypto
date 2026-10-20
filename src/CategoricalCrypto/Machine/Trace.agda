@@ -3,35 +3,39 @@
 -- ============================================================================
 -- Generic trace verification for machines.
 --
--- A trace is a chronological list of entries, each naming a *hint*, the
--- input the step consumes, and an *expectation* about the output it emits.
--- Hints exist because step relations are nondeterministic: a rule may have
--- premises with witnesses that the input does not determine, so the trace
--- has to name them. Checking a step is then a decision problem rather than
--- a search.
+-- A trace is a chronological list of entries, each naming a *hint* and the
+-- input the step consumes.  Hints exist because step relations are
+-- nondeterministic: a rule may have premises with witnesses that the input
+-- does not determine, so the trace has to name them.  Checking a step is
+-- then a decision problem rather than a search.
 --
 -- A machine is made checkable by a `Checkable` record: the hint type, a way
 -- to read the hint off a step, and a per-step checker that returns either a
--- machine-specific error or a step carrying that hint. An `Observation`
--- fixes what is checked about outputs: nothing (`ignoreOutputs`) or equality
--- with an expected output (`exactOutputs`).
+-- machine-specific error or a step carrying that hint.
 --
 -- From these, once for every machine:
 --   * `verifyTrace`, which returns a `ValidTrace` carrying the derivations,
 --     or a `TraceErr` locating the first failing entry;
---   * `toRun`, which forgets hints and expectations and yields the run of
---     the machine that the trace describes (soundness);
+--   * `toRun`, which forgets hints and yields the run of the machine that
+--     the trace describes (soundness);
 --   * given `Complete` (errors refute, and a hint determines output and
 --     target), `complete`, which shows that an error means no run with these
 --     hints exists, and `validTrace?`, which decides `ValidTrace`.
+--
+-- Outputs are checked separately, since they do not influence which run is
+-- found.  An `Observation` fixes what is expected of each output, for
+-- example equality (`exactOutputs`); `passes?` decides whether the outputs
+-- of a valid trace meet a list of expectations, and given `Complete`,
+-- `passing?` decides whether any run with these hints does.
 -- ============================================================================
 
 module CategoricalCrypto.Machine.Trace where
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
 open import Data.Maybe.Properties using () renaming (≡-dec to ≡-decMaybe)
+import Data.List as L
 import Data.Sum as S
-open import Data.List.Relation.Binary.Pointwise using (Pointwise; []; _∷_)
+open import Data.List.Relation.Binary.Pointwise as Pointwise using (Pointwise; []; _∷_)
 open import Class.Monad.Ext using (Functor-⊎; Applicative-⊎; Monad-⊎)
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Machine.Core using (Machine; _⊗ᵀ_)
@@ -107,13 +111,6 @@ module _ {A B : Channel} (M : Machine A B) where
       Matches : Expect → Maybe Output → Type
       match?  : ∀ e o → Dec (Matches e o)
 
-  ignoreOutputs : Observation
-  ignoreOutputs = record
-    { Expect  = ⊤
-    ; Matches = λ _ _ → ⊤
-    ; match?  = λ _ _ → yes tt
-    }
-
   -- `Output` is a sum built with the opaque `_⊗₀_`, so its decidable
   -- equality has to be supplied by the machine, typically proved in a block
   -- that unfolds `_⊗₀_`.
@@ -127,85 +124,85 @@ module _ {A B : Channel} (M : Machine A B) where
   ------------------------------------------------------------------------------
   -- The verifier
 
-  module Verifier (C : Checkable) (Ob : Observation) where
+  module Verifier (C : Checkable) where
 
     open Checkable C
-    open Observation Ob
 
     record Entry : Type where
-      constructor ⟨_,_,_⟩
+      constructor ⟨_,_⟩
       field
-        hint   : Hint
-        input  : Msg
-        expect : Expect
+        hint  : Hint
+        input : Msg
 
     Trace : Type
     Trace = List Entry
 
     private variable
-      s s′ : State
-      h    : Hint
-      m    : Msg
-      e    : Expect
-      es   : Trace
+      s s′ s″ t t′ : State
+      h            : Hint
+      m            : Msg
+      es           : Trace
 
     -- A trace together with a run of the machine that realises it.
     data ValidTrace : State → Trace → State → Type where
       []  : ValidTrace s [] s
       ok∷ : ((x , _) : StepWith h s (embed m))
-          → Matches e (x .out)
           → ValidTrace (x .next) es s′
-          → ValidTrace s (⟨ h , m , e ⟩ ∷ es) s′
-
-    data StepErr (h : Hint) (m : Msg) (e : Expect) (s : State) : Type where
-      rejected        : Err h m s → StepErr h m e s
-      output-mismatch : ((x , _) : StepWith h s (embed m))
-                      → ¬ Matches e (x .out)
-                      → StepErr h m e s
+          → ValidTrace s (⟨ h , m ⟩ ∷ es) s′
 
     -- The first failing entry, with the valid prefix leading up to it.
     data TraceErr : State → Trace → Type where
-      here  : StepErr h m e s → TraceErr s (⟨ h , m , e ⟩ ∷ es)
+      here  : Err h m s → TraceErr s (⟨ h , m ⟩ ∷ es)
       there : ((x , _) : StepWith h s (embed m))
-            → Matches e (x .out)
             → TraceErr (x .next) es
-            → TraceErr s (⟨ h , m , e ⟩ ∷ es)
-
-    verifyStep : ∀ h m e s
-               → StepErr h m e s ⊎ Σ[ (x , _) ∈ StepWith h s (embed m) ] Matches e (x .out)
-    verifyStep h m e s = do
-      x@(x′ , _) ← S.map₁ rejected (checkStep h m s)
-      case match? e (x′ .out) of λ where
-        (yes ok) → return (x , ok)
-        (no ¬ok) → inj₁ (output-mismatch x ¬ok)
+            → TraceErr s (⟨ h , m ⟩ ∷ es)
 
     verifyTrace : ∀ s es → TraceErr s es ⊎ Σ[ s′ ∈ State ] ValidTrace s es s′
-    verifyTrace s []                   = return (s , [])
-    verifyTrace s (⟨ h , m , e ⟩ ∷ es) = do
-      (x@(x′ , _) , ok) ← S.map₁ here (verifyStep h m e s)
-      (s′ , vt) ← S.map₁ (there x ok) (verifyTrace (x′ .next) es)
-      return (s′ , ok∷ x ok vt)
+    verifyTrace s []               = return (s , [])
+    verifyTrace s (⟨ h , m ⟩ ∷ es) = do
+      x@(x′ , _) ← S.map₁ here (checkStep h m s)
+      (s′ , vt)  ← S.map₁ (there x) (verifyTrace (x′ .next) es)
+      return (s′ , ok∷ x vt)
 
     --------------------------------------------------------------------------
     -- Soundness: a valid trace is a run of the machine
 
     labels : ValidTrace s es s′ → List (Input × Maybe Output)
-    labels []                         = []
-    labels (ok∷ {m = m} (x , _) _ vt) = (embed m , x .out) ∷ labels vt
+    labels []                       = []
+    labels (ok∷ {m = m} (x , _) vt) = (embed m , x .out) ∷ labels vt
 
     toRun : (vt : ValidTrace s es s′) → Run s (labels vt) s′
-    toRun []           = done
-    toRun (ok∷ (x , _) _ vt) = x .derivation ∷ toRun vt
+    toRun []               = done
+    toRun (ok∷ (x , _) vt) = x .derivation ∷ toRun vt
 
-    EntryMatches : Entry → Input × Maybe Output → Type
-    EntryMatches ⟨ _ , m , e ⟩ (i , o) = embed m ≡ i × Matches e o
+    -- The run consumes exactly the trace's inputs, in order.
+    EntryInput : Entry → Input × Maybe Output → Type
+    EntryInput ⟨ _ , m ⟩ (i , _) = embed m ≡ i
 
-    labels-match : (vt : ValidTrace s es s′) → Pointwise EntryMatches es (labels vt)
-    labels-match []            = []
-    labels-match (ok∷ _ ok vt) = (refl , ok) ∷ labels-match vt
+    labels-inputs : (vt : ValidTrace s es s′) → Pointwise EntryInput es (labels vt)
+    labels-inputs []         = []
+    labels-inputs (ok∷ _ vt) = refl ∷ labels-inputs vt
+
+    outputs : ValidTrace s es s′ → List (Maybe Output)
+    outputs vt = L.map proj₂ (labels vt)
 
     --------------------------------------------------------------------------
-    -- Completeness: with `Complete`, an error rules out every valid trace
+    -- Checking outputs: an `Observation` expects something of each output of
+    -- the run, in order.  It does not influence which run is found.
+
+    module _ (Ob : Observation) where
+
+      open Observation Ob
+
+      Passes : List Expect → ValidTrace s es s′ → Type
+      Passes exps vt = Pointwise Matches exps (outputs vt)
+
+      passes? : ∀ exps (vt : ValidTrace s es s′) → Dec (Passes exps vt)
+      passes? exps vt = Pointwise.decidable match? exps (outputs vt)
+
+    --------------------------------------------------------------------------
+    -- Completeness: with `Complete`, an error rules out every valid trace,
+    -- and the outputs of a valid trace are determined by its entries
 
     module _ (comp : Complete C) where
 
@@ -219,13 +216,39 @@ module _ {A B : Channel} (M : Machine A B) where
         next-eq x y = cong proj₂ (unique x y)
 
       complete : TraceErr s es → ¬ (Σ[ s′ ∈ State ] ValidTrace s es s′)
-      complete (here (rejected err)) (_ , ok∷ y _ _) = refute err y
-      complete (here {e = e} (output-mismatch x ¬ok)) (_ , ok∷ y ok _) =
-        ¬ok (subst (Matches e) (out-eq y x) ok)
-      complete (there {es = es} x _ err) (s″ , ok∷ y _ vt) =
+      complete (here err) (_ , ok∷ y _) = refute err y
+      complete (there {es = es} x err) (s″ , ok∷ y vt) =
         complete err (s″ , subst (λ t → ValidTrace t es s″) (next-eq y x) vt)
 
       validTrace? : ∀ s es → Dec (Σ[ s′ ∈ State ] ValidTrace s es s′)
       validTrace? s es with verifyTrace s es
       ... | inj₁ err = no (complete err)
       ... | inj₂ vt  = yes vt
+
+      private
+        outputs-unique′ : (vt : ValidTrace s es s′) (vt′ : ValidTrace t es t′)
+                        → s ≡ t → outputs vt ≡ outputs vt′
+        outputs-unique′ []         []          _    = refl
+        outputs-unique′ (ok∷ x vt) (ok∷ y vt′) refl =
+          cong₂ _∷_ (out-eq x y) (outputs-unique′ vt vt′ (next-eq x y))
+
+      -- A hint pins down each step, so all valid traces emit the same outputs.
+      outputs-unique : (vt : ValidTrace s es s′) (vt′ : ValidTrace s es s″)
+                     → outputs vt ≡ outputs vt′
+      outputs-unique vt vt′ = outputs-unique′ vt vt′ refl
+
+      -- Whether some run realises the trace and meets the expectations.
+      module _ (Ob : Observation) where
+
+        open Observation Ob
+
+        Passing : State → Trace → List Expect → Type
+        Passing s es exps = Σ[ s′ ∈ State ] Σ[ vt ∈ ValidTrace s es s′ ] Passes Ob exps vt
+
+        passing? : ∀ s es exps → Dec (Passing s es exps)
+        passing? s es exps with validTrace? s es
+        ... | no ¬vt = no λ (s′ , vt , _) → ¬vt (s′ , vt)
+        ... | yes (s′ , vt) with passes? Ob exps vt
+        ...   | yes ok = yes (s′ , vt , ok)
+        ...   | no ¬ok = no λ (_ , vt′ , ok) →
+                  ¬ok (subst (Pointwise Matches exps) (outputs-unique vt′ vt) ok)

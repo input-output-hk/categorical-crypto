@@ -56,35 +56,39 @@ complete-counter = record
   ; unique = λ { (step _ _ Inc , _) (step _ _ Inc , _) → refl }
   }
 
-open Verifier Counter checkable (exactOutputs Counter _≟O_)
+open Verifier Counter checkable
 
--- Three increments from 0, answering 1, 2 and 3.
-good : Trace
-good = ⟨ tt , inc , just (ϵ ⊗R ↑ₒ 1) ⟩
-     ∷ ⟨ tt , inc , just (ϵ ⊗R ↑ₒ 2) ⟩
-     ∷ ⟨ tt , inc , just (ϵ ⊗R ↑ₒ 3) ⟩
-     ∷ []
+exact : Observation Counter
+exact = exactOutputs Counter _≟O_
+
+-- Three increments from 0.
+incs : Trace
+incs = ⟨ tt , inc ⟩ ∷ ⟨ tt , inc ⟩ ∷ ⟨ tt , inc ⟩ ∷ []
+
+-- The counter answers 1, 2 and 3.
+good : List (Maybe (Output Counter))
+good = just (ϵ ⊗R ↑ₒ 1) ∷ just (ϵ ⊗R ↑ₒ 2) ∷ just (ϵ ⊗R ↑ₒ 3) ∷ []
 
 -- The same, but claiming the counter skipped 2.
-bad : Trace
-bad = ⟨ tt , inc , just (ϵ ⊗R ↑ₒ 1) ⟩
-    ∷ ⟨ tt , inc , just (ϵ ⊗R ↑ₒ 3) ⟩
-    ∷ []
+bad : List (Maybe (Output Counter))
+bad = just (ϵ ⊗R ↑ₒ 1) ∷ just (ϵ ⊗R ↑ₒ 3) ∷ just (ϵ ⊗R ↑ₒ 4) ∷ []
 
-isOk : ∀ {s es} → TraceErr s es ⊎ Σ[ s′ ∈ ℕ ] ValidTrace s es s′ → Bool
-isOk (inj₁ _) = false
-isOk (inj₂ _) = true
+-- Find the run, then check its outputs.
+accepts : ℕ → Trace → List (Maybe (Output Counter)) → Bool
+accepts s es exps with verifyTrace s es
+... | inj₁ _        = false
+... | inj₂ (_ , vt) = does (passes? exact exps vt)
 
 -- Running the verifier needs `_≟O_` to compute.
 opaque
   unfolding _≟O_
 
-  good-ok : isOk (verifyTrace 0 good) ≡ true
+  good-ok : accepts 0 incs good ≡ true
   good-ok = refl
 
-  bad-fails : isOk (verifyTrace 0 bad) ≡ false
+  bad-fails : accepts 0 incs bad ≡ false
   bad-fails = refl
 
   -- `bad` is not just rejected by the checker: no run of the counter fits it.
-  bad-impossible : ¬ (Σ[ s′ ∈ ℕ ] ValidTrace 0 bad s′)
-  bad-impossible = toWitnessFalse {a? = validTrace? complete-counter 0 bad} tt
+  bad-impossible : ¬ Passing complete-counter exact 0 incs bad
+  bad-impossible = toWitnessFalse {a? = passing? complete-counter exact 0 incs bad} tt
