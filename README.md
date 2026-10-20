@@ -52,6 +52,11 @@ Documentation can be found [here](https://input-output-hk.github.io/categorical-
   Under this assumption `≈ᵁ` is equivalent to `≈ℰ`, otherwise `≈ᵁ` is
   finer.
 
+- `Abstract2.Parallel` proves compatibility of `_≤UC_` with parallel
+  composition. Note that this requires a monoidal structure on `𝒞` and
+  an effect-combination map `χ : T X B ⊗ T Y D ⇒ T (X ⊗ Y) (B ⊗ D)`,
+  both of which need some compatibility laws.
+
 - `UCSetup.Morphism` defines structure-preserving maps between setups,
   combining a graded-monad morphism with a map of environment
   presheaves. `Abstract2.Morphism` proves preservation and reflection
@@ -67,6 +72,9 @@ Documentation can be found [here](https://input-output-hk.github.io/categorical-
   is tensoring with it. `Standard2.Morphism` constructs maps between
   these setups from strong monoidal functors and compatible maps
   of environment presheaves.
+  `Standard2.Parallel` is an optional extension for symmetric monoidal
+  categories, deriving `ParallelStable` and `UC-⊠` without extra
+  assumptions on the environment presheaf.
 
 `Abstract` and `Standard` are the older grade-on-object presentation.
 `Abstract2.Equivalence` and `Abstract2.OAPEmulation` relate it to the
