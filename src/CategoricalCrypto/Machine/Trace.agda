@@ -30,34 +30,16 @@ module CategoricalCrypto.Machine.Trace where
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
 open import Data.Maybe.Properties using () renaming (≡-dec to ≡-decMaybe)
-import Data.List as L
 import Data.Sum as S
+open import Data.List.Relation.Binary.Pointwise using (Pointwise; []; _∷_)
+open import Class.Monad.Ext using (Functor-⊎; Applicative-⊎; Monad-⊎)
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Machine.Core using (Machine; _⊗ᵀ_)
 
---------------------------------------------------------------------------------
--- The error monad `E ⊎_`
-module _ {E : Type} where instance
-  Functor-⊎ : Functor (E ⊎_)
-  Functor-⊎ ._<$>_ = S.map₂
-
-  Applicative-⊎ : Applicative (E ⊎_)
-  Applicative-⊎ .pure = inj₂
-  Applicative-⊎ ._<*>_ (inj₁ err) _ = inj₁ err
-  Applicative-⊎ ._<*>_ (inj₂ f)   x = S.map₂ f x
-
-  Monad-⊎ : Monad (E ⊎_)
-  Monad-⊎ .return = inj₂
-  Monad-⊎ ._>>=_ (inj₁ err) _ = inj₁ err
-  Monad-⊎ ._>>=_ (inj₂ x)   f = f x
-
 module _ {A B : Channel} (M : Machine A B) where
 
+  open Channel (A ⊗ᵀ B) renaming (inType to Input; outType to Output) public
   open Machine M using (State; stepRel)
-
-  Input Output : Type
-  Input  = Channel.inType  (A ⊗ᵀ B)
-  Output = Channel.outType (A ⊗ᵀ B)
 
   ------------------------------------------------------------------------------
   -- Steps and runs
@@ -215,21 +197,12 @@ module _ {A B : Channel} (M : Machine A B) where
     toRun []           = done
     toRun (ok∷ x _ vt) = x .proj₁ .derivation ∷ toRun vt
 
-    -- The run consumes exactly the trace's inputs, in order.
-    labels-inputs : (vt : ValidTrace s es s′)
-                  → L.map proj₁ (labels vt) ≡ L.map (embed ∘′ Entry.input) es
-    labels-inputs []           = refl
-    labels-inputs (ok∷ _ _ vt) = cong (_ ∷_) (labels-inputs vt)
+    EntryMatches : Entry → Input × Maybe Output → Type
+    EntryMatches ⟨ _ , m , e ⟩ (i , o) = embed m ≡ i × Matches e o
 
-    -- Every emitted output meets the trace's expectation.
-    data AllMatch : Trace → List (Input × Maybe Output) → Type where
-      []  : AllMatch [] []
-      _∷_ : ∀ {h m e es o l} → Matches e o → AllMatch es l
-          → AllMatch (⟨ h , m , e ⟩ ∷ es) ((embed m , o) ∷ l)
-
-    labels-match : (vt : ValidTrace s es s′) → AllMatch es (labels vt)
+    labels-match : (vt : ValidTrace s es s′) → Pointwise EntryMatches es (labels vt)
     labels-match []            = []
-    labels-match (ok∷ _ ok vt) = ok ∷ labels-match vt
+    labels-match (ok∷ _ ok vt) = (refl , ok) ∷ labels-match vt
 
     --------------------------------------------------------------------------
     -- Completeness: with `Complete`, an error rules out every valid trace
