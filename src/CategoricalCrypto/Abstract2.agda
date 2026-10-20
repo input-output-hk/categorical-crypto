@@ -1,6 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The locally graded ("naive one-sided") UC layer.  A protocol/functionality is
+-- The locally graded UC layer.  A protocol/functionality is
 -- a bare graded-Kleisli morphism f : A ⇒ T₀ X B — the adversary interface X is
 -- the grade, carried on the morphism — and an adversary/simulator is a grade
 -- morphism acting by `sub`.  Observational equivalence is the U-kernel _≈ᵁ_,
@@ -220,8 +220,8 @@ module AbstractUC
           sub s ∘ ext Y k ∘ g  ∎
 
   -- Note the hom-equality of this packaging is 𝒞._≈_, NOT ≈ᵁ.
-  naiveKleisli : LocallyGradedCategory ℐ o′ ℓ′ e′
-  naiveKleisli = LGKleisli.naiveKleisli triple
+  Kleisli : LocallyGradedCategory ℐ o′ ℓ′ e′
+  Kleisli = LGKleisli.Kleisli triple
 
   ≤UC-sub : (c : X ℐ.⇒ Y) (r : Y ℐ.⇒ X) → r ℐ.∘ c ℐ.≈ ℐ.id
           → f ≤UC g → sub c 𝒞.∘ f ≤UC sub c 𝒞.∘ g
