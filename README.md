@@ -52,10 +52,19 @@ Documentation can be found [here](https://input-output-hk.github.io/categorical-
   Under this assumption `≈ᵁ` is equivalent to `≈ℰ`, otherwise `≈ᵁ` is
   finer.
 
+- `Abstract2.Operation` proves that an operation on an indexed family of
+  protocols preserves `_≤UC_` if it preserves `≈ᵁ` and commutes with
+  regrading through a supplied map of simulators. This implies
+  compatibility with parallel composition and traces, but their manual
+  proofs are shorter.
+
 - `Abstract2.Parallel` proves compatibility of `_≤UC_` with parallel
   composition. Note that this requires a monoidal structure on `𝒞` and
   an effect-combination map `χ : T X B ⊗ T Y D ⇒ T (X ⊗ Y) (B ⊗ D)`,
   both of which need some compatibility laws.
+
+- `Abstract2.Trace` proves compatibility of `_≤UC_` with a lifted feedback
+  operation that commutes with regrading and preserves `≈ᵁ`.
 
 - `UCSetup.Morphism` defines structure-preserving maps between setups,
   combining a graded-monad morphism with a map of environment
@@ -75,6 +84,10 @@ Documentation can be found [here](https://input-output-hk.github.io/categorical-
   `Standard2.Parallel` is an optional extension for symmetric monoidal
   categories, deriving `ParallelStable` and `UC-⊠` without extra
   assumptions on the environment presheaf.
+  `Standard2.Trace` lifts a trace on the computation category to protocols,
+  assuming trace congruence and output naturality (absent from the current
+  library's `Traced` record), with contextual trace preservation required
+  separately for `UC-trace`.
 
 `Abstract` and `Standard` are the older grade-on-object presentation.
 `Abstract2.Equivalence` and `Abstract2.OAPEmulation` relate it to the
