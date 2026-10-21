@@ -1,5 +1,4 @@
 {-# OPTIONS --safe --no-require-unique-meta-solutions #-}
-{-# OPTIONS -v allTactics:100 #-}
 
 module CategoricalCrypto.Machine.Core where
 
@@ -11,8 +10,8 @@ open import CategoricalCrypto.Channel.Selection
 open import Relation.Binary.PropositionalEquality.Properties
 open import Tactic.Defaults
 
--- --------------------------------------------------------------------------------
--- -- Machines, which form the morphisms
+--------------------------------------------------------------------------------
+-- Machines, which form the morphisms
 
 machine-type : Type → Channel → Type₁
 machine-type S A = let open Channel A in S → inType → Maybe outType → S → Type
@@ -32,8 +31,6 @@ record Machine (A B : Channel) : Type₁ where
     {State} : Type
     stepRel : machine-type State machine-channel
 
--- This module exposes various ways of building machines
--- TODO: all of these are functors from the appropriate categories
 module _ {A B : Channel} (let open Channel (A ⊗ᵀ B)) where
 
   StatelessMachine      : (inType → Maybe outType → Type)          → Machine A B
@@ -53,9 +50,19 @@ module _ {A B : Channel} (let open Channel (A ⊗ᵀ B)) where
 id : ∀ {A} → Machine A A
 id = TotalFunctionMachine' ⇒-solver ⇒-solver
 
--- given transformation on the channels, transform the machine
 modifyStepRel : ∀ {A B C D} → (∀ {m} → C ⊗₀ D ᵀ [ m ]⇒[ m ] A ⊗₀ B ᵀ) → Machine A B → Machine C D
 modifyStepRel p (MkMachine stepRel) = MkMachine $ \s m m' s' → stepRel s (app {mᵢ = In} p m) (app {mₒ = Out} p <$> m') s'
+
+-- The channel reshuffles inside `_⊗₁_`, `_∘_`, `_∣ˡ`, `_∣^ˡ`, `_∘ᴷ_` and `_⊗ᴷ_`
+-- are NAMED (`⊗σ`, `∘σ`, …) rather than written inline, and so are the two
+-- halves of each structural forwarder (`⊗-assocᵢ`/`⊗-assocₒ`, `∘ᴷ-fwdᵢ`/
+-- `∘ᴷ-fwdₒ`, …).  Proofs about the builders (`Machine.Reindex`,
+-- `Machine.Monoidal`) can then refer to a reshuffle, or read a forwarder off
+-- its halves, without re-running `⇒-solver` and relying on it returning the
+-- same term twice.
+
+⊗σ : ∀ {A B C D m} → (A ⊗₀ C) ⊗₀ (B ⊗₀ D) ᵀ [ m ]⇒[ m ] (A ⊗₀ B ᵀ) ⊗₀ ((C ⊗₀ D ᵀ) ᵀ) ᵀ
+⊗σ = ⇒-solver
 
 module Tensor {A B C D} (M₁ : Machine A B) (M₂ : Machine C D) where
   open Machine M₁ renaming (State to State₁; stepRel to stepRel₁; machine-channel to machine-channel₁)
@@ -70,12 +77,41 @@ module Tensor {A B C D} (M₁ : Machine A B) (M₂ : Machine C D) where
 
   infixr 9 _⊗₁_
   _⊗₁_ : Machine (A ⊗₀ C) (B ⊗₀ D)
-  _⊗₁_ = modifyStepRel ⇒-solver machine-inter
+  _⊗₁_ = modifyStepRel ⊗σ machine-inter
     where
       machine-inter : Machine (A ⊗₀ B ᵀ) ((C ⊗₀ D ᵀ) ᵀ)
       machine-inter = MkMachine CompRel
    
 open Tensor using (_⊗₁_) public
+
+-- Inversion view for `CompRel`.  A case split on `Tensor.CompRel` succeeds
+-- only when its message and state indices are variables; at the concrete
+-- ports the machine builders produce, the unifier gets stuck.  Going through
+-- the view turns the stuck split into a split on `_⊎_`, whose propositional
+-- index equations are then discharged by conversion at the use site, inside
+-- whatever `opaque unfolding` block needs them.  The motive is named because
+-- proofs state their `where`-helpers over it.
+
+CompView : ∀ {A B C D} (M₁ : Machine A B) (M₂ : Machine C D)
+           (sp : Machine.State M₁ × Machine.State M₂)
+           (x : Channel.inType (Tensor.AllCs M₁ M₂))
+           (y : Maybe (Channel.outType (Tensor.AllCs M₁ M₂)))
+           (sp' : Machine.State M₁ × Machine.State M₂) → Type
+CompView M₁ M₂ sp x y sp' =
+    (∃ λ mᵢ → ∃ λ mo →
+         (x ≡ (ϵ ⊗R) ↑ᵢ mᵢ) × (y ≡ ((ϵ ⊗R) ↑ₒ_ <$> mo))
+         × (proj₂ sp' ≡ proj₂ sp)
+         × Machine.stepRel M₁ (proj₁ sp) mᵢ mo (proj₁ sp'))
+    ⊎ (∃ λ mᵢ → ∃ λ mo →
+         (x ≡ (L⊗ ϵ) ↑ᵢ mᵢ) × (y ≡ ((L⊗ ϵ) ↑ₒ_ <$> mo))
+         × (proj₁ sp' ≡ proj₁ sp)
+         × Machine.stepRel M₂ (proj₂ sp) mᵢ mo (proj₂ sp'))
+
+comp-view : ∀ {A B C D} {M₁ : Machine A B} {M₂ : Machine C D}
+            {sp : Machine.State M₁ × Machine.State M₂} {x y sp'}
+          → Tensor.CompRel M₁ M₂ sp x y sp' → CompView M₁ M₂ sp x y sp'
+comp-view (Tensor.Step₁ q) = inj₁ (_ , _ , refl , refl , refl , q)
+comp-view (Tensor.Step₂ q) = inj₂ (_ , _ , refl , refl , refl , q)
 
 _⊗ˡ_ : ∀ {A B} (C : Channel) → Machine A B → Machine (C ⊗₀ A) (C ⊗₀ B)
 C ⊗ˡ M = id ⊗₁ M
@@ -83,14 +119,20 @@ C ⊗ˡ M = id ⊗₁ M
 _⊗ʳ_ : ∀ {A B} → Machine A B → (C : Channel) → Machine (A ⊗₀ C) (B ⊗₀ C)
 M ⊗ʳ C = M ⊗₁ id
 
+∣ˡσ : ∀ {A B C m} → A ⊗₀ C ᵀ [ m ]⇒[ m ] (A ⊗₀ B) ⊗₀ C ᵀ
+∣ˡσ = ⇒-solver
+
 _∣ˡ : ∀ {A B C} → Machine (A ⊗₀ B) C → Machine A C
-_∣ˡ = modifyStepRel ⇒-solver
+_∣ˡ {B = B} = modifyStepRel (∣ˡσ {B = B})
 
 _∣ʳ : ∀ {A B C} → Machine (A ⊗₀ B) C → Machine B C
 _∣ʳ = modifyStepRel ⇒-solver
 
+∣^ˡσ : ∀ {A B C m} → A ⊗₀ B ᵀ [ m ]⇒[ m ] A ⊗₀ (B ⊗₀ C) ᵀ
+∣^ˡσ = ⇒-solver
+
 _∣^ˡ : ∀ {A B C} → Machine A (B ⊗₀ C) → Machine A B
-_∣^ˡ = modifyStepRel ⇒-solver
+_∣^ˡ {C = C} = modifyStepRel (∣^ˡσ {C = C})
   
 _∣^ʳ : ∀ {A B C} → Machine A (B ⊗₀ C) → Machine A C
 _∣^ʳ = modifyStepRel ⇒-solver
@@ -98,11 +140,6 @@ _∣^ʳ = modifyStepRel ⇒-solver
 liftᴷ : ∀ {A B E} → Machine A B → Machine A (B ⊗₀ E)
 liftᴷ {E = E} M = (M ⊗ʳ E) ∣ˡ
 
--- trace monoidal category?
--- What happens when you compose with a trace ?
--- Product of the traces ?
--- The regular composition "eats" messages
--- Trace: input-output behavior of the machines, list of messages
 module _ {A B C} (M : Machine (A ⊗₀ C) (B ⊗₀ C)) (let open Machine M) where
 
   data TraceRel : machine-type State ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C)) where
@@ -120,19 +157,70 @@ module _ {A B C} (M : Machine (A ⊗₀ C) (B ⊗₀ C)) (let open Machine M) wh
   tr : Machine A B
   tr = MkMachine TraceRel ∣ˡ ∣^ˡ
 
+∘σ : ∀ {A B C m} → (A ⊗₀ B) ⊗₀ (C ⊗₀ B) ᵀ [ m ]⇒[ m ] (A ⊗₀ B) ⊗₀ (B ⊗₀ C) ᵀ
+∘σ = ⇒-solver
+
 infixr 9 _∘_
 
 _∘_ : ∀ {B C A} → Machine B C → Machine A B → Machine A C
-_∘_ {B} M₁ M₂ = tr {C = B} $ modifyStepRel ⇒-solver (M₂ ⊗₁ M₁)
+_∘_ {B} M₁ M₂ = tr {C = B} $ modifyStepRel ∘σ (M₂ ⊗₁ M₁)
+
+⊗-assocᵢ : ∀ {A B C} → ((A ⊗₀ B) ⊗₀ C) [ In ]⇒[ In ] (A ⊗₀ (B ⊗₀ C))
+⊗-assocᵢ = ⇒-solver
+
+⊗-assocₒ : ∀ {A B C} → (A ⊗₀ (B ⊗₀ C)) [ Out ]⇒[ Out ] ((A ⊗₀ B) ⊗₀ C)
+⊗-assocₒ = ⇒-solver
 
 ⊗-assoc : ∀ {A B C} → Machine ((A ⊗₀ B) ⊗₀ C) (A ⊗₀ (B ⊗₀ C))
-⊗-assoc = TotalFunctionMachine' ⇒-solver ⇒-solver
-  
+⊗-assoc = TotalFunctionMachine' ⊗-assocᵢ ⊗-assocₒ
+
+⊗-assoc⃖ᵢ : ∀ {A B C} → (A ⊗₀ (B ⊗₀ C)) [ In ]⇒[ In ] ((A ⊗₀ B) ⊗₀ C)
+⊗-assoc⃖ᵢ = ⇒-solver
+
+⊗-assoc⃖ₒ : ∀ {A B C} → ((A ⊗₀ B) ⊗₀ C) [ Out ]⇒[ Out ] (A ⊗₀ (B ⊗₀ C))
+⊗-assoc⃖ₒ = ⇒-solver
+
 ⊗-assoc⃖ : ∀ {A B C} → Machine (A ⊗₀ (B ⊗₀ C)) ((A ⊗₀ B) ⊗₀ C)
-⊗-assoc⃖ = TotalFunctionMachine' ⇒-solver ⇒-solver
+⊗-assoc⃖ = TotalFunctionMachine' ⊗-assoc⃖ᵢ ⊗-assoc⃖ₒ
+
+⊗-symᵢ : ∀ {A B} → (A ⊗₀ B) [ In ]⇒[ In ] (B ⊗₀ A)
+⊗-symᵢ = ⇒-solver
+
+⊗-symₒ : ∀ {A B} → (B ⊗₀ A) [ Out ]⇒[ Out ] (A ⊗₀ B)
+⊗-symₒ = ⇒-solver
 
 ⊗-symₘ : ∀ {A B} → Machine (A ⊗₀ B) (B ⊗₀ A)
-⊗-symₘ = TotalFunctionMachine' ⇒-solver ⇒-solver
+⊗-symₘ = TotalFunctionMachine' ⊗-symᵢ ⊗-symₒ
+
+ρ⇒ : ∀ {A} → Machine (A ⊗₀ I) A
+ρ⇒ = TotalFunctionMachine' ⊗-right-neutral ⊗-right-intro
+
+ρ⇐ : ∀ {A} → Machine A (A ⊗₀ I)
+ρ⇐ = TotalFunctionMachine' ⊗-right-intro ⊗-right-neutral
+
+λ⇒ : ∀ {A} → Machine (I ⊗₀ A) A
+λ⇒ = TotalFunctionMachine' ⊗-left-neutral ⊗-left-intro
+
+λ⇐ : ∀ {A} → Machine A (I ⊗₀ A)
+λ⇐ = TotalFunctionMachine' ⊗-left-intro ⊗-left-neutral
+
+mid4σᵢ : ∀ {P Q R S} → ((P ⊗₀ Q) ⊗₀ (R ⊗₀ S)) [ In ]⇒[ In ] ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S))
+mid4σᵢ = ⇒-solver
+
+mid4σₒ : ∀ {P Q R S} → ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S)) [ Out ]⇒[ Out ] ((P ⊗₀ Q) ⊗₀ (R ⊗₀ S))
+mid4σₒ = ⇒-solver
+
+mid4 : ∀ {P Q R S} → Machine ((P ⊗₀ Q) ⊗₀ (R ⊗₀ S)) ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S))
+mid4 = TotalFunctionMachine' mid4σᵢ mid4σₒ
+
+absorb-regroupσᵢ : ∀ {X Y Z W} → ((X ⊗₀ Y) ⊗₀ (W ⊗₀ Z)) [ In ]⇒[ In ] (X ⊗₀ (W ⊗₀ (Z ⊗₀ Y)))
+absorb-regroupσᵢ = ⇒-solver
+
+absorb-regroupσₒ : ∀ {X Y Z W} → (X ⊗₀ (W ⊗₀ (Z ⊗₀ Y))) [ Out ]⇒[ Out ] ((X ⊗₀ Y) ⊗₀ (W ⊗₀ Z))
+absorb-regroupσₒ = ⇒-solver
+
+absorb-regroup : ∀ {X Y Z W} → Machine ((X ⊗₀ Y) ⊗₀ (W ⊗₀ Z)) (X ⊗₀ (W ⊗₀ (Z ⊗₀ Y)))
+absorb-regroup = TotalFunctionMachine' absorb-regroupσᵢ absorb-regroupσₒ
 
 idᴷ : ∀ {A} → Machine A (A ⊗₀ I)
 idᴷ = liftᴷ id
@@ -140,23 +228,34 @@ idᴷ = liftᴷ id
 transpose : ∀ {A B} → Machine A B → Machine (B ᵀ) (A ᵀ)
 transpose = modifyStepRel ⇒-solver
  
--- cup : Machine I (A ⊗ A ᵀ)
--- cup = StatelessMachine λ x x₁ → {!!}
-
--- cap : Machine (A ᵀ ⊗ A) I
--- cap {A} = modifyStepRel ⇒-solver (transpose (cup {A})) {!!} {!!}
-
 ⨂₁ : ∀ {n} → {A B : Fin n → Channel} → ((k : Fin n) → Machine (A k) (B k)) → Machine (⨂ A) (⨂ B)
 ⨂₁ {zero} M = id
 ⨂₁ {suc n} M = M fzero ⊗₁ ⨂₁ (M P.∘ fsuc)
 
+∘ᴷ-fwdᵢ : ∀ {C E₁ E₂} → ((C ⊗₀ E₂) ⊗₀ E₁) [ In ]⇒[ In ] (C ⊗₀ (E₁ ⊗₀ E₂))
+∘ᴷ-fwdᵢ = ⇒-solver
+
+∘ᴷ-fwdₒ : ∀ {C E₁ E₂} → (C ⊗₀ (E₁ ⊗₀ E₂)) [ Out ]⇒[ Out ] ((C ⊗₀ E₂) ⊗₀ E₁)
+∘ᴷ-fwdₒ = ⇒-solver
+
+∘ᴷ-fwd : ∀ {C E₁ E₂} → Machine ((C ⊗₀ E₂) ⊗₀ E₁) (C ⊗₀ (E₁ ⊗₀ E₂))
+∘ᴷ-fwd = TotalFunctionMachine' ∘ᴷ-fwdᵢ ∘ᴷ-fwdₒ
+
+⊗ᴷ-fwdᵢ : ∀ {B₁ E₁ B₂ E₂} → ((B₁ ⊗₀ E₁) ⊗₀ (B₂ ⊗₀ E₂)) [ In ]⇒[ In ] ((B₁ ⊗₀ B₂) ⊗₀ (E₁ ⊗₀ E₂))
+⊗ᴷ-fwdᵢ = ⇒-solver
+
+⊗ᴷ-fwdₒ : ∀ {B₁ E₁ B₂ E₂} → ((B₁ ⊗₀ B₂) ⊗₀ (E₁ ⊗₀ E₂)) [ Out ]⇒[ Out ] ((B₁ ⊗₀ E₁) ⊗₀ (B₂ ⊗₀ E₂))
+⊗ᴷ-fwdₒ = ⇒-solver
+
+⊗ᴷ-fwd : ∀ {B₁ E₁ B₂ E₂} → Machine ((B₁ ⊗₀ E₁) ⊗₀ (B₂ ⊗₀ E₂)) ((B₁ ⊗₀ B₂) ⊗₀ (E₁ ⊗₀ E₂))
+⊗ᴷ-fwd = TotalFunctionMachine' ⊗ᴷ-fwdᵢ ⊗ᴷ-fwdₒ
 
 infixr 9 _∘ᴷ_
 _∘ᴷ_ : ∀ {A B C E₁ E₂} → Machine B (C ⊗₀ E₂) → Machine A (B ⊗₀ E₁) → Machine A (C ⊗₀ (E₁ ⊗₀ E₂))
-_∘ᴷ_ {E₁ = E₁} M₂ M₁ = TotalFunctionMachine' ⇒-solver ⇒-solver ∘ (M₂ ⊗ʳ E₁ ∘ M₁)
+_∘ᴷ_ {E₁ = E₁} M₂ M₁ = ∘ᴷ-fwd ∘ (M₂ ⊗ʳ E₁ ∘ M₁)
 
 _⊗ᴷ_ : ∀ {A₁ B₁ E₁ A₂ B₂ E₂} → Machine A₁ (B₁ ⊗₀ E₁) → Machine A₂ (B₂ ⊗₀ E₂) → Machine (A₁ ⊗₀ A₂) ((B₁ ⊗₀ B₂) ⊗₀ (E₁ ⊗₀ E₂))
-M₁ ⊗ᴷ M₂ = TotalFunctionMachine' ⇒-solver ⇒-solver ∘ M₁ ⊗₁ M₂
+M₁ ⊗ᴷ M₂ = ⊗ᴷ-fwd ∘ M₁ ⊗₁ M₂
 
 ⨂ᴷ : ∀ {n} → {A B E : Fin n → Channel} → ((k : Fin n) → Machine (A k) (B k ⊗₀ E k)) → Machine (⨂ A) (⨂ B ⊗₀ ⨂ E)
 ⨂ᴷ {zero} M = idᴷ
@@ -212,38 +311,18 @@ Invariant-trans : {A B C D : Channel} → {M₁ : Machine A B} → {M₂ : Machi
 Invariant-trans record { A≡C = refl ; B≡D = refl ; M₁≡M₂ = H.refl } P inv = inv
 
 --------------------------------------------------------------------------------
--- Open adversarial protocols
-
-record OAP (A E₁ B E₂ : Channel) : Type₁ where
-  field Adv        : Channel
-        Protocol   : Machine A (B ⊗₀ Adv)
-        Adversary  : Machine (Adv ⊗₀ E₁) E₂
-
---------------------------------------------------------------------------------
 -- Environment model
 
+-- The verdict channel: environments output a Boolean and receive nothing.
 ℰ-Out : Channel
 ℰ-Out = record {inType = Bool ; outType = ⊥}
 
--- Presheaf on the category of channels & machines
--- we just take machines that output a boolean
--- for now, not on the Kleisli construction
+-- Environments act on machines by precomposition.  `Machine.Iso` compares
+-- machines under all environments (`_≅ℰ_`), each comparison a state
+-- isomorphism; `Machine.UC` instantiates the abstract UC layer at machines,
+-- and `_≤UC_` and `_≈ᵁ_` themselves are defined in that abstract layer.
 ℰ : Channel → Type₁
 ℰ C = Machine C ℰ-Out
 
 map-ℰ : ∀ {A B} → Machine A B → ℰ B → ℰ A
 map-ℰ M E = E ∘ M
-
---------------------------------------------------------------------------------
--- UC relations
-
--- perfect equivalence
-_≈ℰ_ : ∀ {A B} → Machine A B → Machine A B → Type₁
-_≈ℰ_ {B = B} M M' = (E : ℰ B) → map-ℰ M E ≡ map-ℰ M' E
-
-_≤UC_ : ∀ {A B E E''} → Machine A (B ⊗₀ E) → Machine A (B ⊗₀ E'') → Type₁
-_≤UC_ {B = B} {E} R I = ∀ E' (A : Machine E E') → ∃[ S ] ((B ⊗ˡ A) ∘ R) ≈ℰ ((B ⊗ˡ S) ∘ I)
-
--- equivalent to _≤UC_ by "completeness of the dummy adversary"
-_≤'UC_ : ∀ {A B E} → Machine A (B ⊗₀ E) → Machine A (B ⊗₀ E) → Type₁
-_≤'UC_ {B = B} R I = ∃[ S ] R ≈ℰ (B ⊗ˡ S ∘ I)

@@ -1,0 +1,493 @@
+{-# OPTIONS --safe #-}
+
+-- ============================================================================
+-- Forwarders: the stateless, total, deterministic machines.
+--
+-- They are closed under the three machine builders, `_⊗₁_` (`⊗₁-Fwd`),
+-- `modifyStepRel` (`modifyStepRel-Fwd`) and `_∘_` (`∘-Xfwd`), with the
+-- composite forwarder computed explicitly in each case, so an equation
+-- between two composites of forwarders reduces to a pointwise equation
+-- between two message-level functions, a finite case split closed by `refl`.
+--
+-- `_∘_` is the hard case because it traces: a message bounces between the
+-- two copies of the shared channel until it lands on an external port.  `Run`
+-- below is that bouncing, `tr-Fwd` turns a total deterministic `Run` into a
+-- forwarder, and a crossing forwarder always converges in exactly two hops.
+-- ============================================================================
+
+open import categorical-crypto.Prelude hiding (id; _∘_)
+import Data.Sum.Base as ⊎
+open import CategoricalCrypto.Channel.Core
+open import CategoricalCrypto.Channel.Selection
+open import CategoricalCrypto.Machine.Core
+open import CategoricalCrypto.Machine.Message
+import CategoricalCrypto.Machine.Core as CC
+open import CategoricalCrypto.Machine.Iso
+open import CategoricalCrypto.Machine.Reindex
+open import Tactic.Defaults
+
+module CategoricalCrypto.Machine.Forwarder where
+
+open Channel
+
+open _≅ᴹ_
+
+-- `_∘_` is `tr` of a `modifyStepRel` of a `_⊗₁_`; these are the congruences
+-- for the first two, the third being `⊗₁-resp-≅ᴹ` in `Machine.Iso`.  Both are
+-- `Machine.Reindex`'s congruences for its primitives, read off through the
+-- identities `modifyStepRel-Reindex` and `tr-named`, which hold by `refl`:
+-- `modifyStepRel p` IS `Reindex` with the same map at both modes, and `tr` IS
+-- `Trc` under the two named reshuffles `∣ˡσ` and `∣^ˡσ`.
+modifyStepRel-resp-≅ᴹ : ∀ {A B C D} {M N : Machine A B}
+    (p : ∀ {m} → C ⊗₀ D ᵀ [ m ]⇒[ m ] A ⊗₀ B ᵀ)
+  → M ≅ᴹ N → modifyStepRel p M ≅ᴹ modifyStepRel p N
+modifyStepRel-resp-≅ᴹ p = Reindex-resp-≅ᴹ (app (p {In})) (app (p {Out}))
+
+tr-resp-≅ᴹ : ∀ {A B C} {M N : Machine (A ⊗₀ C) (B ⊗₀ C)}
+           → M ≅ᴹ N → tr M ≅ᴹ tr N
+tr-resp-≅ᴹ {C = C} φ =
+  modifyStepRel-resp-≅ᴹ (∣^ˡσ {C = C})
+    (modifyStepRel-resp-≅ᴹ ∣ˡσ (Trc-resp-≅ᴹ φ))
+
+-- A stateless, total, deterministic machine.
+Fwd : ∀ {A B} → (inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B)) → Machine A B
+Fwd φ = MkMachine {State = ⊤} (λ _ i o _ → just (φ i) ≡ o)
+
+tfm-is-Fwd : ∀ {A B} (p : (A ⊗ᵀ B) [ In ]⇒[ Out ] (A ⊗ᵀ B))
+           → TotalFunctionMachine {A} {B} p ≡ Fwd (app p)
+tfm-is-Fwd _ = refl
+
+Fwd-≅ᴹ : ∀ {A B} {φ ψ : inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B)}
+       → (∀ x → φ x ≡ ψ x) → Fwd φ ≅ᴹ Fwd ψ
+Fwd-≅ᴹ {φ = φ} {ψ} eq = MkIso _ _ (λ _ → refl) (λ _ → refl)
+  (λ {_} {i} p → trans (cong just (sym (eq i))) p)
+  (λ {_} {i} p → trans (cong just (eq i)) p)
+
+-- Relabelling a forwarder is a forwarder, whenever the output relabelling is
+-- injective (it need not be surjective — `_∣ˡ` and `_∣^ˡ` are not).
+modifyStepRel-Fwd : ∀ {A B C D} (p : ∀ {m} → C ⊗₀ D ᵀ [ m ]⇒[ m ] A ⊗₀ B ᵀ)
+    (χ : inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B))
+    (κ : inType (C ⊗ᵀ D) → outType (C ⊗ᵀ D))
+  → (∀ i → app (p {Out}) (κ i) ≡ χ (app (p {In}) i))
+  → (∀ {x y} → app (p {Out}) x ≡ app (p {Out}) y → x ≡ y)
+  → modifyStepRel p (Fwd χ) ≅ᴹ Fwd κ
+modifyStepRel-Fwd {A} {B} {C} {D} p χ κ sq inj =
+  MkIso _ _ (λ _ → refl) (λ _ → refl)
+    (λ {_} {i} {o} e → t i o e) (λ {_} {i} {o} e → f i o e)
+  where
+  t : (i : inType (C ⊗ᵀ D)) (o : Maybe (outType (C ⊗ᵀ D)))
+    → just (χ (app (p {In}) i)) ≡ (app (p {Out}) <$> o) → just (κ i) ≡ o
+  t i (just y)  e = cong just (inj (trans (sq i) (just-inj e)))
+  t i nothing  ()
+  f : (i : inType (C ⊗ᵀ D)) (o : Maybe (outType (C ⊗ᵀ D)))
+    → just (κ i) ≡ o → just (χ (app (p {In}) i)) ≡ (app (p {Out}) <$> o)
+  f i _ refl = cong just (sym (sq i))
+
+-- The internal run of `tr`: a message bounces between the two copies of the
+-- traced channel until it lands on an external port.  It is stated over the
+-- raw message sums rather than the channel types because `_⊗₀_` does not
+-- unfold outside the `opaque` block below; `Runᶜ` instantiates it at the
+-- channels.
+data Run {aᵢ bₒ cᵢ cₒ aₒ bᵢ : Type}
+         (κ : (aᵢ ⊎ cᵢ) ⊎ (bₒ ⊎ cₒ) → (aₒ ⊎ cₒ) ⊎ (bᵢ ⊎ cᵢ))
+     : (aᵢ ⊎ cᵢ) ⊎ (bₒ ⊎ cₒ) → (aₒ ⊎ cₒ) ⊎ (bᵢ ⊎ cᵢ) → Type where
+  stop : ∀ {m} → Run κ m (κ m)
+  goₒ  : ∀ {m v x} → κ m ≡ inj₁ (inj₂ x) → Run κ (inj₂ (inj₂ x)) v → Run κ m v
+  goᵢ  : ∀ {m v y} → κ m ≡ inj₂ (inj₂ y) → Run κ (inj₁ (inj₂ y)) v → Run κ m v
+
+opaque
+  unfolding _⊗₀_ destruct-⊗ construct-⊗ ⊗-sym ⊗-right-assoc ⊗-left-assoc
+            ⊗-right-intro ⊗-ᵀ-distrib ⊗-ᵀ-factor ⊗-right-neutral ⊗-fusion ⊗-combine
+
+  private
+    tag₁ : ∀ {W X Y Z : Type} → W ⊎ X → (W ⊎ Y) ⊎ (X ⊎ Z)
+    tag₁ = ⊎.map inj₁ inj₁
+
+    tag₂ : ∀ {W X Y Z : Type} → Y ⊎ Z → (W ⊎ Y) ⊎ (X ⊎ Z)
+    tag₂ = ⊎.map inj₂ inj₂
+
+  ⊗Fwd : ∀ {A B C D}
+       → (inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B))
+       → (inType (C ⊗ᵀ D) → outType (C ⊗ᵀ D))
+       → inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ D))
+       → outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ D))
+  ⊗Fwd φ ψ (inj₁ (inj₁ a)) = tag₁ (φ (inj₁ a))
+  ⊗Fwd φ ψ (inj₁ (inj₂ c)) = tag₂ (ψ (inj₁ c))
+  ⊗Fwd φ ψ (inj₂ (inj₁ b)) = tag₁ (φ (inj₂ b))
+  ⊗Fwd φ ψ (inj₂ (inj₂ d)) = tag₂ (ψ (inj₂ d))
+
+  private
+    ⊗Fwd-to : ∀ {A B C D}
+              (φ : inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B))
+              (ψ : inType (C ⊗ᵀ D) → outType (C ⊗ᵀ D))
+              {s s'} (i : inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ D)))
+              (o : Maybe (outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ D))))
+            → Machine.stepRel (Fwd φ ⊗₁ Fwd ψ) s i o s' → just (⊗Fwd φ ψ i) ≡ o
+    -- On the first component's ports, only `Step₁` can fire.
+    ⊗Fwd-to φ ψ (inj₁ (inj₁ a)) o p with comp-view p
+    ... | inj₂ (_ , _ , xeq , _) = inj₁≢inj₂ xeq
+    ⊗Fwd-to φ ψ (inj₁ (inj₁ a)) (just (inj₁ (inj₁ ao))) p | inj₁ (_ , just w , xeq , yeq , _ , q)
+      with inj₁-inj xeq | inj₁-inj (just-inj yeq)
+    ... | refl | refl = cong (λ x → just (tag₁ x)) (just-inj q)
+    ⊗Fwd-to φ ψ (inj₁ (inj₁ a)) (just (inj₂ (inj₁ bi))) p | inj₁ (_ , just w , xeq , yeq , _ , q)
+      with inj₁-inj xeq | inj₁-inj (just-inj yeq)
+    ... | refl | refl = cong (λ x → just (tag₁ x)) (just-inj q)
+    ⊗Fwd-to φ ψ (inj₁ (inj₁ a)) (just (inj₁ (inj₂ co))) p | inj₁ (_ , just w , xeq , yeq , _ , q) =
+      inj₁≢inj₂ (sym (just-inj yeq))
+    ⊗Fwd-to φ ψ (inj₁ (inj₁ a)) (just (inj₂ (inj₂ di))) p | inj₁ (_ , just w , xeq , yeq , _ , q) =
+      inj₁≢inj₂ (sym (just-inj yeq))
+    ⊗Fwd-to φ ψ (inj₁ (inj₁ a)) (just _) p | inj₁ (_ , nothing , xeq , () , _ , q)
+    ⊗Fwd-to φ ψ (inj₁ (inj₁ a)) nothing  p | inj₁ (_ , just w , xeq , () , _ , q)
+    ⊗Fwd-to φ ψ (inj₁ (inj₁ a)) nothing  p | inj₁ (_ , nothing , xeq , yeq , _ , ())
+    ⊗Fwd-to φ ψ (inj₂ (inj₁ b)) o p with comp-view p
+    ... | inj₂ (_ , _ , xeq , _) = inj₁≢inj₂ xeq
+    ⊗Fwd-to φ ψ (inj₂ (inj₁ b)) (just (inj₁ (inj₁ ao))) p | inj₁ (_ , just w , xeq , yeq , _ , q)
+      with inj₁-inj xeq | inj₁-inj (just-inj yeq)
+    ... | refl | refl = cong (λ x → just (tag₁ x)) (just-inj q)
+    ⊗Fwd-to φ ψ (inj₂ (inj₁ b)) (just (inj₂ (inj₁ bi))) p | inj₁ (_ , just w , xeq , yeq , _ , q)
+      with inj₁-inj xeq | inj₁-inj (just-inj yeq)
+    ... | refl | refl = cong (λ x → just (tag₁ x)) (just-inj q)
+    ⊗Fwd-to φ ψ (inj₂ (inj₁ b)) (just (inj₁ (inj₂ co))) p | inj₁ (_ , just w , xeq , yeq , _ , q) =
+      inj₁≢inj₂ (sym (just-inj yeq))
+    ⊗Fwd-to φ ψ (inj₂ (inj₁ b)) (just (inj₂ (inj₂ di))) p | inj₁ (_ , just w , xeq , yeq , _ , q) =
+      inj₁≢inj₂ (sym (just-inj yeq))
+    ⊗Fwd-to φ ψ (inj₂ (inj₁ b)) (just _) p | inj₁ (_ , nothing , xeq , () , _ , q)
+    ⊗Fwd-to φ ψ (inj₂ (inj₁ b)) nothing  p | inj₁ (_ , just w , xeq , () , _ , q)
+    ⊗Fwd-to φ ψ (inj₂ (inj₁ b)) nothing  p | inj₁ (_ , nothing , xeq , yeq , _ , ())
+    -- On the second component's ports, only `Step₂` can fire.
+    ⊗Fwd-to φ ψ (inj₁ (inj₂ c)) o p with comp-view p
+    ... | inj₁ (_ , _ , xeq , _) = inj₁≢inj₂ (sym xeq)
+    ⊗Fwd-to φ ψ (inj₁ (inj₂ c)) (just (inj₁ (inj₂ co))) p | inj₂ (_ , just w , xeq , yeq , _ , q)
+      with inj₂-inj xeq | inj₂-inj (just-inj yeq)
+    ... | refl | refl = cong (λ x → just (tag₂ x)) (just-inj q)
+    ⊗Fwd-to φ ψ (inj₁ (inj₂ c)) (just (inj₂ (inj₂ di))) p | inj₂ (_ , just w , xeq , yeq , _ , q)
+      with inj₂-inj xeq | inj₂-inj (just-inj yeq)
+    ... | refl | refl = cong (λ x → just (tag₂ x)) (just-inj q)
+    ⊗Fwd-to φ ψ (inj₁ (inj₂ c)) (just (inj₁ (inj₁ ao))) p | inj₂ (_ , just w , xeq , yeq , _ , q) =
+      inj₁≢inj₂ (just-inj yeq)
+    ⊗Fwd-to φ ψ (inj₁ (inj₂ c)) (just (inj₂ (inj₁ bi))) p | inj₂ (_ , just w , xeq , yeq , _ , q) =
+      inj₁≢inj₂ (just-inj yeq)
+    ⊗Fwd-to φ ψ (inj₁ (inj₂ c)) (just _) p | inj₂ (_ , nothing , xeq , () , _ , q)
+    ⊗Fwd-to φ ψ (inj₁ (inj₂ c)) nothing  p | inj₂ (_ , just w , xeq , () , _ , q)
+    ⊗Fwd-to φ ψ (inj₁ (inj₂ c)) nothing  p | inj₂ (_ , nothing , xeq , yeq , _ , ())
+    ⊗Fwd-to φ ψ (inj₂ (inj₂ d)) o p with comp-view p
+    ... | inj₁ (_ , _ , xeq , _) = inj₁≢inj₂ (sym xeq)
+    ⊗Fwd-to φ ψ (inj₂ (inj₂ d)) (just (inj₁ (inj₂ co))) p | inj₂ (_ , just w , xeq , yeq , _ , q)
+      with inj₂-inj xeq | inj₂-inj (just-inj yeq)
+    ... | refl | refl = cong (λ x → just (tag₂ x)) (just-inj q)
+    ⊗Fwd-to φ ψ (inj₂ (inj₂ d)) (just (inj₂ (inj₂ di))) p | inj₂ (_ , just w , xeq , yeq , _ , q)
+      with inj₂-inj xeq | inj₂-inj (just-inj yeq)
+    ... | refl | refl = cong (λ x → just (tag₂ x)) (just-inj q)
+    ⊗Fwd-to φ ψ (inj₂ (inj₂ d)) (just (inj₁ (inj₁ ao))) p | inj₂ (_ , just w , xeq , yeq , _ , q) =
+      inj₁≢inj₂ (just-inj yeq)
+    ⊗Fwd-to φ ψ (inj₂ (inj₂ d)) (just (inj₂ (inj₁ bi))) p | inj₂ (_ , just w , xeq , yeq , _ , q) =
+      inj₁≢inj₂ (just-inj yeq)
+    ⊗Fwd-to φ ψ (inj₂ (inj₂ d)) (just _) p | inj₂ (_ , nothing , xeq , () , _ , q)
+    ⊗Fwd-to φ ψ (inj₂ (inj₂ d)) nothing  p | inj₂ (_ , just w , xeq , () , _ , q)
+    ⊗Fwd-to φ ψ (inj₂ (inj₂ d)) nothing  p | inj₂ (_ , nothing , xeq , yeq , _ , ())
+
+    ⊗Fwd-from : ∀ {A B C D}
+                (φ : inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B))
+                (ψ : inType (C ⊗ᵀ D) → outType (C ⊗ᵀ D))
+                {s s'} (i : inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ D)))
+                (o : Maybe (outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ D))))
+              → just (⊗Fwd φ ψ i) ≡ o → Machine.stepRel (Fwd φ ⊗₁ Fwd ψ) s i o s'
+    ⊗Fwd-from φ ψ (inj₁ (inj₁ a)) _ refl with φ (inj₁ a) in eq
+    ... | inj₁ ao = Tensor.Step₁ (cong just eq)
+    ... | inj₂ bi = Tensor.Step₁ (cong just eq)
+    ⊗Fwd-from φ ψ (inj₂ (inj₁ b)) _ refl with φ (inj₂ b) in eq
+    ... | inj₁ ao = Tensor.Step₁ (cong just eq)
+    ... | inj₂ bi = Tensor.Step₁ (cong just eq)
+    ⊗Fwd-from φ ψ (inj₁ (inj₂ c)) _ refl with ψ (inj₁ c) in eq
+    ... | inj₁ co = Tensor.Step₂ (cong just eq)
+    ... | inj₂ di = Tensor.Step₂ (cong just eq)
+    ⊗Fwd-from φ ψ (inj₂ (inj₂ d)) _ refl with ψ (inj₂ d) in eq
+    ... | inj₁ co = Tensor.Step₂ (cong just eq)
+    ... | inj₂ di = Tensor.Step₂ (cong just eq)
+
+  ⊗₁-Fwd : ∀ {A B C D} {φ : inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B)}
+                       {ψ : inType (C ⊗ᵀ D) → outType (C ⊗ᵀ D)}
+         → (Fwd φ ⊗₁ Fwd ψ) ≅ᴹ Fwd (⊗Fwd φ ψ)
+  ⊗₁-Fwd {φ = φ} {ψ} = MkIso (λ _ → tt) (λ _ → tt , tt) (λ _ → refl) (λ _ → refl)
+    (λ {_} {i} {o} p → ⊗Fwd-to φ ψ i o p)
+    (λ {_} {i} {o} p → ⊗Fwd-from φ ψ i o p)
+
+  ⊗₁-id : ∀ {A B} → (CC.id {A} ⊗₁ CC.id {B}) ≅ᴹ CC.id {A ⊗₀ B}
+  ⊗₁-id = ≅ᴹ-trans ⊗₁-Fwd (Fwd-≅ᴹ λ { (inj₁ (inj₁ a)) → refl
+                                     ; (inj₁ (inj₂ c)) → refl
+                                     ; (inj₂ (inj₁ b)) → refl
+                                     ; (inj₂ (inj₂ d)) → refl })
+
+  -- `Run` at the channel-shaped indices (all six type arguments pinned, so that
+  -- nothing has to be inverted through `_⊗₀_`).
+  Runᶜ : ∀ {A B C} (κ : inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
+                     → outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C)))
+       → inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
+       → outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C)) → Type
+  Runᶜ {A} {B} {C} = Run {inType A} {outType B} {inType C}
+                         {outType C} {outType A} {inType B}
+
+  private
+    Run→Trace : ∀ {A B C} {κ : inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
+                             → outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))} {m v}
+              → Runᶜ κ m v → TraceRel (Fwd κ) tt m (just v) tt
+    Run→Trace stop        = Trace[ refl ]
+    Run→Trace (goₒ eq r)  = cong just eq Trace∷ₒ Run→Trace r
+    Run→Trace (goᵢ eq r)  = cong just eq Trace∷ᵢ Run→Trace r
+
+    Trace→Run : ∀ {A B C} {κ : inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
+                             → outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))} {m mo}
+              → TraceRel (Fwd κ) tt m mo tt
+              → ∃ λ v → (mo ≡ just v) × Runᶜ κ m v
+    Trace→Run Trace[ p ]     = _ , sym p , stop
+    Trace→Run (p Trace∷ₒ r)  = let (v , e , r') = Trace→Run r in v , e , goₒ (just-inj p) r'
+    Trace→Run (p Trace∷ᵢ r)  = let (v , e , r') = Trace→Run r in v , e , goᵢ (just-inj p) r'
+
+  -- The external ports of the traced machine, as seen from inside.
+  ιₜ : ∀ {A B C} → inType (A ⊗ᵀ B) → inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
+  ιₜ = ⊎.map inj₁ inj₁
+
+  εₜ : ∀ {A B C} → outType (A ⊗ᵀ B) → outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
+  εₜ = ⊎.map inj₁ inj₁
+
+  private
+    εₜ-inj : ∀ {A B C} {x y : outType (A ⊗ᵀ B)} → εₜ {A} {B} {C} x ≡ εₜ y → x ≡ y
+    εₜ-inj {x = inj₁ _} {inj₁ _} e = cong inj₁ (inj₁-inj (inj₁-inj e))
+    εₜ-inj {x = inj₂ _} {inj₂ _} e = cong inj₂ (inj₁-inj (inj₂-inj e))
+    εₜ-inj {x = inj₁ _} {inj₂ _} e = inj₁≢inj₂ e
+    εₜ-inj {x = inj₂ _} {inj₁ _} e = inj₁≢inj₂ (sym e)
+
+    -- `tr`'s two `modifyStepRel` layers, computed away.
+    tr-unfold : ∀ {A B C} (κ : inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
+                             → outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C)))
+                (i : inType (A ⊗ᵀ B))
+                (o : Maybe (outType (A ⊗ᵀ B)))
+              → Machine.stepRel (tr {A} {B} {C} (Fwd κ)) tt i o tt
+              ≡ TraceRel (Fwd κ) tt (ιₜ i) (mapᴹ εₜ o) tt
+    tr-unfold κ (inj₁ a)  (just (inj₁ ao)) = refl
+    tr-unfold κ (inj₁ a)  (just (inj₂ bi)) = refl
+    tr-unfold κ (inj₁ a)  nothing          = refl
+    tr-unfold κ (inj₂ bo) (just (inj₁ ao)) = refl
+    tr-unfold κ (inj₂ bo) (just (inj₂ bi)) = refl
+    tr-unfold κ (inj₂ bo) nothing          = refl
+
+  tr-Fwd : ∀ {A B C : Channel}
+             {κ : inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
+                → outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))}
+             {κ° : inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B)}
+         → (∀ i → Runᶜ κ (ιₜ {A} {B} {C} i) (εₜ {A} {B} {C} (κ° i)))
+         → (∀ i v → Runᶜ κ (ιₜ {A} {B} {C} i) (εₜ {A} {B} {C} v) → v ≡ κ° i)
+         → tr {A} {B} {C} (Fwd κ) ≅ᴹ Fwd κ°
+  tr-Fwd {A} {B} {C} {κ} {κ°} total uniq =
+    MkIso _ _ (λ _ → refl) (λ _ → refl)
+      (λ {_} {i} {o} p → t i o (subst (λ X → X) (tr-unfold κ i o) p))
+      (λ {_} {i} {o} p → subst (λ X → X) (sym (tr-unfold κ i o)) (f i o p))
+    where
+    t : ∀ i o → TraceRel (Fwd κ) tt (ιₜ {A} {B} {C} i) (mapᴹ (εₜ {A} {B} {C}) o) tt → just (κ° i) ≡ o
+    t i (just y) tr₀ with Trace→Run tr₀
+    ... | v , e , r =
+      cong just (sym (uniq i y (subst (Runᶜ κ (ιₜ {A} {B} {C} i)) (sym (just-inj e)) r)))
+    t i nothing tr₀ with Trace→Run tr₀
+    ... | v , () , r
+    f : ∀ i o → just (κ° i) ≡ o → TraceRel (Fwd κ) tt (ιₜ {A} {B} {C} i) (mapᴹ (εₜ {A} {B} {C}) o) tt
+    f i _ refl = Run→Trace (total i)
+
+  -- The forwarder that relays every domain input to the codomain and back.
+  -- This is exactly what `TotalFunctionMachine'` builds.
+  Xφ : ∀ {A B} → (inType A → inType B)
+                → (outType B → outType A)
+     → inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B)
+  Xφ f g m = ⊎.swap (⊎.map f g m)
+
+  Xfwd : ∀ {A B} → (inType A → inType B)
+                 → (outType B → outType A) → Machine A B
+  Xfwd f g = Fwd (Xφ f g)
+
+  tfm'-is-Xfwd : ∀ {A B} (p : A [ In ]⇒[ In ] B) (q : B [ Out ]⇒[ Out ] A)
+               → TotalFunctionMachine' p q ≅ᴹ Xfwd (app p) (app q)
+  tfm'-is-Xfwd p q = Fwd-≅ᴹ λ { (inj₁ a) → refl ; (inj₂ bo) → refl }
+
+  id-is-Xfwd : ∀ {A} → CC.id {A} ≅ᴹ Xfwd (λ (a : inType A) → a) (λ o → o)
+  id-is-Xfwd = tfm'-is-Xfwd _ _
+
+  -- The traced core of `Xfwd f₂ g₂ ∘ Xfwd f₁ g₁`, as a forwarder.
+  ∘κ : ∀ {A B C}
+       (f₁ : inType A → inType B) (g₁ : outType B → outType A)
+       (f₂ : inType B → inType C) (g₂ : outType C → outType B)
+     → inType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B)) → outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
+  ∘κ f₁ g₁ f₂ g₂ (inj₁ (inj₁ a))  = inj₂ (inj₂ (f₁ a))
+  ∘κ f₁ g₁ f₂ g₂ (inj₁ (inj₂ b))  = inj₂ (inj₁ (f₂ b))
+  ∘κ f₁ g₁ f₂ g₂ (inj₂ (inj₁ co)) = inj₁ (inj₂ (g₂ co))
+  ∘κ f₁ g₁ f₂ g₂ (inj₂ (inj₂ bo)) = inj₁ (inj₁ (g₁ bo))
+
+  private
+    ∘sq : ∀ {A B C}
+          (f₁ : inType A → inType B) (g₁ : outType B → outType A)
+          (f₂ : inType B → inType C) (g₂ : outType C → outType B)
+        → ∀ i → app (∘σ {A} {B} {C} {Out}) (∘κ f₁ g₁ f₂ g₂ i)
+              ≡ ⊗Fwd (Xφ f₁ g₁) (Xφ f₂ g₂) (app (∘σ {A} {B} {C} {In}) i)
+    ∘sq f₁ g₁ f₂ g₂ (inj₁ (inj₁ a))  = refl
+    ∘sq f₁ g₁ f₂ g₂ (inj₁ (inj₂ b))  = refl
+    ∘sq f₁ g₁ f₂ g₂ (inj₂ (inj₁ co)) = refl
+    ∘sq f₁ g₁ f₂ g₂ (inj₂ (inj₂ bo)) = refl
+
+    ∘σ-inj : ∀ {A B C} {x y : outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))}
+           → app (∘σ {A} {B} {C} {Out}) x ≡ app (∘σ {A} {B} {C} {Out}) y → x ≡ y
+    ∘σ-inj {x = inj₁ (inj₁ _)} {inj₁ (inj₁ _)} e = cong (λ z → inj₁ (inj₁ z)) (inj₁-inj (inj₁-inj e))
+    ∘σ-inj {x = inj₁ (inj₁ _)} {inj₁ (inj₂ _)} e = inj₁≢inj₂ (inj₁-inj e)
+    ∘σ-inj {x = inj₁ (inj₁ _)} {inj₂ (inj₁ _)} e = inj₁≢inj₂ e
+    ∘σ-inj {x = inj₁ (inj₁ _)} {inj₂ (inj₂ _)} e = inj₁≢inj₂ e
+    ∘σ-inj {x = inj₁ (inj₂ _)} {inj₁ (inj₁ _)} e = inj₁≢inj₂ (sym (inj₁-inj e))
+    ∘σ-inj {x = inj₁ (inj₂ _)} {inj₁ (inj₂ _)} e = cong (λ z → inj₁ (inj₂ z)) (inj₂-inj (inj₁-inj e))
+    ∘σ-inj {x = inj₁ (inj₂ _)} {inj₂ (inj₁ _)} e = inj₁≢inj₂ e
+    ∘σ-inj {x = inj₁ (inj₂ _)} {inj₂ (inj₂ _)} e = inj₁≢inj₂ e
+    ∘σ-inj {x = inj₂ (inj₁ _)} {inj₁ (inj₁ _)} e = inj₁≢inj₂ (sym e)
+    ∘σ-inj {x = inj₂ (inj₁ _)} {inj₁ (inj₂ _)} e = inj₁≢inj₂ (sym e)
+    ∘σ-inj {x = inj₂ (inj₁ _)} {inj₂ (inj₁ _)} e = cong (λ z → inj₂ (inj₁ z)) (inj₂-inj (inj₂-inj e))
+    ∘σ-inj {x = inj₂ (inj₁ _)} {inj₂ (inj₂ _)} e = inj₁≢inj₂ (sym (inj₂-inj e))
+    ∘σ-inj {x = inj₂ (inj₂ _)} {inj₁ (inj₁ _)} e = inj₁≢inj₂ (sym e)
+    ∘σ-inj {x = inj₂ (inj₂ _)} {inj₁ (inj₂ _)} e = inj₁≢inj₂ (sym e)
+    ∘σ-inj {x = inj₂ (inj₂ _)} {inj₂ (inj₁ _)} e = inj₁≢inj₂ (inj₂-inj e)
+    ∘σ-inj {x = inj₂ (inj₂ _)} {inj₂ (inj₂ _)} e = cong (λ z → inj₂ (inj₂ z)) (inj₁-inj (inj₂-inj e))
+
+    ∘total : ∀ {A B C}
+             (f₁ : inType A → inType B) (g₁ : outType B → outType A)
+             (f₂ : inType B → inType C) (g₂ : outType C → outType B)
+           → ∀ i → Runᶜ {A} {C} {B} (∘κ f₁ g₁ f₂ g₂) (ιₜ {A} {C} {B} i)
+                        (εₜ {A} {C} {B} (Xφ (λ a → f₂ (f₁ a)) (λ co → g₁ (g₂ co)) i))
+    ∘total f₁ g₁ f₂ g₂ (inj₁ a)  = goᵢ refl stop
+    ∘total f₁ g₁ f₂ g₂ (inj₂ co) = goₒ refl stop
+
+    ∘uniq : ∀ {A B C}
+            (f₁ : inType A → inType B) (g₁ : outType B → outType A)
+            (f₂ : inType B → inType C) (g₂ : outType C → outType B)
+          → ∀ i v → Runᶜ {A} {C} {B} (∘κ f₁ g₁ f₂ g₂) (ιₜ {A} {C} {B} i) (εₜ {A} {C} {B} v)
+          → v ≡ Xφ (λ a → f₂ (f₁ a)) (λ co → g₁ (g₂ co)) i
+    ∘uniq f₁ g₁ f₂ g₂ (inj₁ a)  (inj₁ ao) (goₒ () _)
+    ∘uniq f₁ g₁ f₂ g₂ (inj₁ a)  (inj₁ ao) (goᵢ refl (goₒ () _))
+    ∘uniq f₁ g₁ f₂ g₂ (inj₁ a)  (inj₁ ao) (goᵢ refl (goᵢ () _))
+    ∘uniq f₁ g₁ f₂ g₂ (inj₁ a)  (inj₂ ci) (goₒ () _)
+    ∘uniq f₁ g₁ f₂ g₂ (inj₁ a)  (inj₂ ci) (goᵢ refl stop) = refl
+    ∘uniq f₁ g₁ f₂ g₂ (inj₁ a)  (inj₂ ci) (goᵢ refl (goₒ () _))
+    ∘uniq f₁ g₁ f₂ g₂ (inj₁ a)  (inj₂ ci) (goᵢ refl (goᵢ () _))
+    ∘uniq f₁ g₁ f₂ g₂ (inj₂ co) (inj₁ ao) (goᵢ () _)
+    ∘uniq f₁ g₁ f₂ g₂ (inj₂ co) (inj₁ ao) (goₒ refl stop) = refl
+    ∘uniq f₁ g₁ f₂ g₂ (inj₂ co) (inj₁ ao) (goₒ refl (goₒ () _))
+    ∘uniq f₁ g₁ f₂ g₂ (inj₂ co) (inj₁ ao) (goₒ refl (goᵢ () _))
+    ∘uniq f₁ g₁ f₂ g₂ (inj₂ co) (inj₂ ci) (goᵢ () _)
+    ∘uniq f₁ g₁ f₂ g₂ (inj₂ co) (inj₂ ci) (goₒ refl (goₒ () _))
+    ∘uniq f₁ g₁ f₂ g₂ (inj₂ co) (inj₂ ci) (goₒ refl (goᵢ () _))
+
+  -- `ρ-∘ᴷ-fwd` and `ρ-idᴷ` below are corollaries of this together with
+  -- `⊗₁-Xfwd`.
+  ∘-Xfwd : ∀ {A B C}
+           {f₁ : inType A → inType B} {g₁ : outType B → outType A}
+           {f₂ : inType B → inType C} {g₂ : outType C → outType B}
+         → (Xfwd f₂ g₂ CC.∘ Xfwd f₁ g₁) ≅ᴹ Xfwd (λ a → f₂ (f₁ a)) (λ co → g₁ (g₂ co))
+  ∘-Xfwd {A} {B} {C} {f₁} {g₁} {f₂} {g₂} =
+    ≅ᴹ-trans (tr-resp-≅ᴹ (≅ᴹ-trans (modifyStepRel-resp-≅ᴹ ∘σ ⊗₁-Fwd)
+                                   (modifyStepRel-Fwd ∘σ (⊗Fwd (Xφ f₁ g₁) (Xφ f₂ g₂)) (∘κ f₁ g₁ f₂ g₂)
+                                                      (∘sq f₁ g₁ f₂ g₂) ∘σ-inj)))
+             (tr-Fwd (∘total f₁ g₁ f₂ g₂) (∘uniq f₁ g₁ f₂ g₂))
+
+  ⊗mapᵢ : ∀ {A B C D} → (inType A → inType B)
+                      → (inType C → inType D)
+        → inType (A ⊗₀ C) → inType (B ⊗₀ D)
+  ⊗mapᵢ f g = ⊎.map f g
+
+  ⊗mapₒ : ∀ {A B C D} → (outType B → outType A)
+                      → (outType D → outType C)
+        → outType (B ⊗₀ D) → outType (A ⊗₀ C)
+  ⊗mapₒ f g = ⊎.map f g
+
+  ⊗₁-Xfwd : ∀ {A B C D}
+            {f₁ : inType A → inType B} {g₁ : outType B → outType A}
+            {f₂ : inType C → inType D} {g₂ : outType D → outType C}
+          → (Xfwd f₁ g₁ ⊗₁ Xfwd f₂ g₂) ≅ᴹ Xfwd (⊗mapᵢ f₁ f₂) (⊗mapₒ g₁ g₂)
+  ⊗₁-Xfwd = ≅ᴹ-trans ⊗₁-Fwd (Fwd-≅ᴹ λ { (inj₁ (inj₁ _)) → refl
+                                       ; (inj₁ (inj₂ _)) → refl
+                                       ; (inj₂ (inj₁ _)) → refl
+                                       ; (inj₂ (inj₂ _)) → refl })
+
+  Xfwd-≅ᴹ : ∀ {A B} {f f' : inType A → inType B}
+                    {g g' : outType B → outType A}
+          → (∀ a → f a ≡ f' a) → (∀ o → g o ≡ g' o) → Xfwd f g ≅ᴹ Xfwd f' g'
+  Xfwd-≅ᴹ ef eg = Fwd-≅ᴹ λ { (inj₁ a) → cong inj₂ (ef a) ; (inj₂ bo) → cong inj₁ (eg bo) }
+
+  ρ∘ᴷ-rhs : ∀ {C E₁} → (ρ⇒ {C} ⊗₁ CC.id {E₁})
+           ≅ᴹ Xfwd (⊗mapᵢ (app (⊗-right-neutral {In} {C})) (λ (x : inType E₁) → x))
+                   (⊗mapₒ (app (⊗-right-intro {Out} {C} {I})) (λ (x : outType E₁) → x))
+  ρ∘ᴷ-rhs = ≅ᴹ-trans (⊗₁-resp-≅ᴹ (tfm'-is-Xfwd _ _) id-is-Xfwd) ⊗₁-Xfwd
+
+  ρ∘ᴷ-lhs : ∀ {C E₁} → ((CC.id {C} ⊗₁ ρ⇒ {E₁}) CC.∘ ∘ᴷ-fwd {C} {E₁} {I})
+           ≅ᴹ Xfwd (λ a → ⊗mapᵢ (λ (x : inType C) → x)
+                                 (app (⊗-right-neutral {In} {E₁}))
+                                 (app (∘ᴷ-fwdᵢ {C} {E₁} {I}) a))
+                   (λ o → app (∘ᴷ-fwdₒ {C} {E₁} {I})
+                              (⊗mapₒ (λ (x : outType C) → x)
+                                     (app (⊗-right-intro {Out} {E₁} {I})) o))
+  ρ∘ᴷ-lhs = ≅ᴹ-trans (∘-resp-≅ᴹ (≅ᴹ-trans (⊗₁-resp-≅ᴹ id-is-Xfwd (tfm'-is-Xfwd _ _)) ⊗₁-Xfwd)
+                                  (tfm'-is-Xfwd _ _))
+                      ∘-Xfwd
+
+  ρ-∘ᴷ-fwd : ∀ {C E₁}
+           → ((CC.id {C} ⊗₁ ρ⇒ {E₁}) CC.∘ ∘ᴷ-fwd {C} {E₁} {I}) ≅ᴹ (ρ⇒ ⊗₁ CC.id {E₁})
+  ρ-∘ᴷ-fwd {C} {E₁} =
+    ≅ᴹ-trans ρ∘ᴷ-lhs
+      (≅ᴹ-trans (Xfwd-≅ᴹ (λ { (inj₁ (inj₁ _)) → refl ; (inj₁ (inj₂ ())) ; (inj₂ _) → refl })
+                         (λ { (inj₁ _) → refl ; (inj₂ _) → refl }))
+                (≅ᴹ-sym ρ∘ᴷ-rhs))
+
+  idᴷ-f : ∀ {A} → inType A → inType (A ⊗₀ I)
+  idᴷ-f a = inj₁ a
+
+  idᴷ-g : ∀ {A} → outType (A ⊗₀ I) → outType A
+  idᴷ-g (inj₁ ao) = ao
+  idᴷ-g (inj₂ ())
+
+  private
+    idᴷ-sq : ∀ {A} i → app (∣ˡσ {A} {I} {A ⊗₀ I} {Out}) (Xφ idᴷ-f idᴷ-g i)
+                     ≡ Xφ (⊗mapᵢ (λ (x : inType A) → x) (λ (x : inType I) → x))
+                          (⊗mapₒ (λ (x : outType A) → x) (λ (x : outType I) → x))
+                          (app (∣ˡσ {A} {I} {A ⊗₀ I} {In}) i)
+    idᴷ-sq (inj₁ a)        = refl
+    idᴷ-sq (inj₂ (inj₁ _)) = refl
+    idᴷ-sq (inj₂ (inj₂ ()))
+
+    ∣ˡσ-inj : ∀ {A} {x y : outType (A ⊗ᵀ (A ⊗₀ I))}
+            → app (∣ˡσ {A} {I} {A ⊗₀ I} {Out}) x ≡ app (∣ˡσ {A} {I} {A ⊗₀ I} {Out}) y → x ≡ y
+    ∣ˡσ-inj {x = inj₁ _}        {inj₁ _}        e = cong inj₁ (inj₁-inj (inj₁-inj e))
+    ∣ˡσ-inj {x = inj₁ _}        {inj₂ (inj₁ _)} e = inj₁≢inj₂ e
+    ∣ˡσ-inj {x = inj₁ _}        {inj₂ (inj₂ ())}
+    ∣ˡσ-inj {x = inj₂ (inj₁ _)} {inj₁ _}        e = inj₁≢inj₂ (sym e)
+    ∣ˡσ-inj {x = inj₂ (inj₁ _)} {inj₂ (inj₁ _)} e = cong (λ z → inj₂ (inj₁ z)) (inj₁-inj (inj₂-inj e))
+    ∣ˡσ-inj {x = inj₂ (inj₁ _)} {inj₂ (inj₂ ())}
+    ∣ˡσ-inj {x = inj₂ (inj₂ ())} {_}
+
+  idᴷ-Xfwd : ∀ {A} → idᴷ {A} ≅ᴹ Xfwd idᴷ-f idᴷ-g
+  idᴷ-Xfwd {A} =
+    ≅ᴹ-trans (modifyStepRel-resp-≅ᴹ ∣ˡσ (≅ᴹ-trans (⊗₁-resp-≅ᴹ id-is-Xfwd id-is-Xfwd) ⊗₁-Xfwd))
+             (modifyStepRel-Fwd ∣ˡσ
+                (Xφ (⊗mapᵢ {A} {A} {I} {I} (λ x → x) (λ x → x))
+                    (⊗mapₒ {A} {A} {I} {I} (λ x → x) (λ x → x)))
+                (Xφ (idᴷ-f {A}) (idᴷ-g {A})) idᴷ-sq ∣ˡσ-inj)
+
+  ρ-idᴷ : ∀ {C} → (ρ⇒ CC.∘ idᴷ {C}) ≅ᴹ CC.id {C}
+  ρ-idᴷ {C} =
+    ≅ᴹ-trans (∘-resp-≅ᴹ (tfm'-is-Xfwd _ _) idᴷ-Xfwd)
+      (≅ᴹ-trans ∘-Xfwd
+        (≅ᴹ-trans (Xfwd-≅ᴹ (λ _ → refl) (λ _ → refl)) (≅ᴹ-sym id-is-Xfwd)))
+
+  no-input-≅ᴹ : ∀ {A B} {M N : Machine A B}
+    (t : Machine.State M → Machine.State N) (f : Machine.State N → Machine.State M)
+    → (∀ s → f (t s) ≡ s) → (∀ s → t (f s) ≡ s)
+    → ((i : inType (A ⊗ᵀ B)) → ⊥)
+    → M ≅ᴹ N
+  no-input-≅ᴹ t f p q ni =
+    MkIso t f p q (λ {_} {i} _ → ⊥-elim (ni i)) (λ {_} {i} _ → ⊥-elim (ni i))
+
+  -- Every port of the channels involved is `I`, so the machines have no
+  -- possible input and only the states must match.
+  λ-zip-idᴷ : ((CC.id {I} ⊗₁ λ⇒ {I}) CC.∘ (idᴷ {I} ∘ᴷ idᴷ {I})) ≅ᴹ idᴷ {I}
+  λ-zip-idᴷ = no-input-≅ᴹ _ _ (λ _ → refl) (λ _ → refl)
+    λ { (inj₁ ()) ; (inj₂ (inj₁ ())) ; (inj₂ (inj₂ ())) }
