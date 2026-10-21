@@ -17,7 +17,8 @@
 -- realization — `docs/fcom-extraction.md`, `docs/fcom-hiding.md`,
 -- `docs/rcom-icom-b1.md`) and `Examples.CoinToss.*` (Blum coin-tossing over it,
 -- both corruptions, to an ideal coin — `docs/coin-toss.md`).  Tests:
--- `GamePlaying.Test`, `Protocol.Machine.Pin`, `Approx.FilteredTests`,
+-- `GamePlaying.Test`, `Protocol.Machine.Pin`, `Protocol.ReachabilityTests`,
+-- `Approx.FilteredTests`,
 -- `UC.Approximate.LocalTests`, `UC.Machine.MonitorTests`,
 -- `UC.Machine.StateEvent.HitTests`.
 -- Outside, checked per file through their leaves: `Examples.ChimericLedger`
@@ -64,6 +65,8 @@ open import CategoricalCrypto.Protocol.Machine.Agree
 open import CategoricalCrypto.Protocol.Machine.Compose
 open import CategoricalCrypto.Protocol.Machine.Pin
 open import CategoricalCrypto.Protocol.Observe
+open import CategoricalCrypto.Protocol.Reachability
+open import CategoricalCrypto.Protocol.ReachabilityTests
 open import CategoricalCrypto.Protocol.Safety
 open import CategoricalCrypto.Approx.FilteredTests
 open import CategoricalCrypto.Approx.Separating
