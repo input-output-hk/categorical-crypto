@@ -13,12 +13,13 @@ open import Data.Rational.Properties
   using ( +-*-commutativeRing
         ; +-identityˡ; +-identityʳ; +-assoc; +-mono-≤
         ; *-identityˡ; *-identityʳ; *-zeroʳ; *-assoc; *-monoˡ-≤-nonNeg
-        ; *-distribˡ-+; ≤-refl )
+        ; *-distribˡ-+; ≤-refl; _<?_ )
 open import Data.Rational.Properties.Ext
 open import Data.List hiding (map)
 import Data.List.NonEmpty as NE
 import Data.List.Relation.Unary.All as All
 import Data.List.Relation.Unary.All.Properties as AllP
+import Data.List.Relation.Unary.Any as Any
 open import Relation.Binary using (IsEquivalence)
 import Relation.Binary.Construct.On as On
 open import Algebra using (CommutativeRing)
@@ -363,15 +364,30 @@ Dmap->>= f μ k P = trans
 ------------------------------------------------------------------------
 -- Support
 --
--- Which points a distribution actually charges is a property of the
--- REPRESENTATION only, so the monad operations preserve it with no
--- weight-positivity input.
+-- `OnSupport` quantifies over representation entries, including zero weights.
+-- `InSupport` requires a positive weight, so zero-weight entries cannot witness
+-- a possible outcome.
 
 OnSupportᴰ : (A → Type ℓ′) → DistData A → Type _
 OnSupportᴰ P μ = All.All (λ e → P (proj₂ e)) (NE.toList μ)
 
 OnSupport : (A → Type ℓ′) → Dist-ℚ A → Type _
 OnSupport P μ = OnSupportᴰ P (entries μ)
+
+InSupport : A → Dist-ℚ A → Type _
+InSupport x μ = Any.Any (λ e → 0ℚ ℚ.< proj₁ e × x ≡ proj₂ e) (NE.toList (entries μ))
+
+in-support-return : {x : A} → InSupport x (return-ℚ x)
+in-support-return = Any.here (toWitness {a? = 0ℚ <? 1ℚ} tt , refl)
+
+support-return : {x y : A} → InSupport x (return-ℚ y) → x ≡ y
+support-return (Any.here (_ , eq)) = eq
+support-return (Any.there ())
+
+OnSupport-InSupport : {P : A → Type ℓ′} {μ : Dist-ℚ A} {x : A}
+                    → OnSupport P μ → InSupport x μ → P x
+OnSupport-InSupport {P = P} os member =
+  All.lookupWith (λ pa (_ , eq) → subst P (sym eq) pa) os member
 
 private
   -- `scale-ℚ` and `_⁺++⁺_` rearrange weights only, so the predicate rides along.

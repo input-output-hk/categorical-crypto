@@ -115,6 +115,12 @@ is independent of any particular machine implementation:
   Elgot iteration, with interface polarity from the G-construction
   (`Machines.G`).
 - `Strategy`, `Protocol` — protocols in plain Agda and their machine images.
+  For closed protocols, read `Protocol.Observe` for activation-boundary kernels,
+  then `Protocol.Reachability` for finite positive-probability reachability and
+  the invariant theorem from `GamePlaying.Partial.Preserved⊥`.
+  `Protocol.ReachabilityTests` exercises random branches, repeated activations,
+  zero-weight exclusion and abort; `Protocol.Safety` supplies quantitative
+  bad-event bounds.
 - `GamePlaying` — game-hopping: the supermartingale bound and the fundamental
   lemma in coupled form.
 - `Examples/` — the chimeric ledger (`docs/end-to-end.md`), a random-oracle
