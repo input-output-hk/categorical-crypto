@@ -24,7 +24,7 @@ open import Data.Fin
 open import Data.Vec
 
 open import Categories.Category
-open import Categories.Coherence.Monoidal
+open import Categories.Coherence.Symmetric using (module Solver)
 open import Categories.FreeMonoidal
 
 open import CategoricalCrypto.Channel.Core
@@ -47,22 +47,22 @@ open HomReasoning
     (c ⊗₁ (u₁ ⊗₁ u₂)) CC.∘ ∘ᴷ-fwd
   ≈⟨ ∘-resp-≅ᴹ ≅ᴹ-refl ∘ᴷ-fwd-decomp ⟩
     (c ⊗₁ (u₁ ⊗₁ u₂)) CC.∘ ((CC.id ⊗₁ ⊗-symₘ) CC.∘ ⊗-assoc)
-  ≈⟨ solveMorσ! lhs rhs ⟩
+  ≈⟨ solveH! lhs rhs ⟩
     ((CC.id ⊗₁ ⊗-symₘ) CC.∘ ⊗-assoc) CC.∘ ((c ⊗₁ u₂) ⊗₁ u₁)
   ≈⟨ ∘-resp-≅ᴹ (≅ᴹ-sym ∘ᴷ-fwd-decomp) ≅ᴹ-refl ⟩
     ∘ᴷ-fwd CC.∘ ((c ⊗₁ u₂) ⊗₁ u₁)
   ∎
   where
   vars = C ∷ C' ∷ E₁ ∷ E₁' ∷ E₂ ∷ E₂' ∷ []
-  open SymAtoms machine-monoidal-category machine-symmetric vars
-  open SymSolve machine-monoidal-category machine-symmetric vars
-    ( ((V (# 0) , V (# 1)) , c)
-    ∷ ((V (# 2) , V (# 3)) , u₁)
-    ∷ ((V (# 4) , V (# 5)) , u₂) ∷ [] )
-  lhs = (gen (# 0) S.⊗₁ (gen (# 1) S.⊗₁ gen (# 2)))
-        S.∘ ((S.id {V (# 0)} S.⊗₁ S.σ {V (# 4)} {V (# 2)}) S.∘ S.α⇒ {V (# 0)} {V (# 4)} {V (# 2)})
-  rhs = ((S.id {V (# 1)} S.⊗₁ S.σ {V (# 5)} {V (# 3)}) S.∘ S.α⇒ {V (# 1)} {V (# 5)} {V (# 3)})
-        S.∘ ((gen (# 0) S.⊗₁ gen (# 2)) S.⊗₁ gen (# 1))
+  open FreeMonoidalHelper Symm (Fin 6) using (ObjTerm; Var) renaming (_⊗₀_ to _⊗ᵒ_)
+  open Solver machine-symmetric-monoidal-category vars
+    ( (Var (# 0) , Var (# 1) , c)
+    ∷ (Var (# 2) , Var (# 3) , u₁)
+    ∷ (Var (# 4) , Var (# 5) , u₂) ∷ [] )
+  lhs = (S.Agen (gen (# 0)) S.⊗₁ (S.Agen (gen (# 1)) S.⊗₁ S.Agen (gen (# 2))))
+        S.∘ ((S.id {Var (# 0)} S.⊗₁ S.σ {Var (# 4)} {Var (# 2)}) S.∘ S.α⇒ {Var (# 0)} {Var (# 4)} {Var (# 2)})
+  rhs = ((S.id {Var (# 1)} S.⊗₁ S.σ {Var (# 5)} {Var (# 3)}) S.∘ S.α⇒ {Var (# 1)} {Var (# 5)} {Var (# 3)})
+        S.∘ ((S.Agen (gen (# 0)) S.⊗₁ S.Agen (gen (# 2))) S.⊗₁ S.Agen (gen (# 1)))
 
 ⊗ᴷ-fwd-natural : ∀ {B₁ B₁' E₁ E₁' B₂ B₂' E₂ E₂'}
                  (b₁ : Machine B₁ B₁') (u₁ : Machine E₁ E₁')
@@ -73,7 +73,7 @@ open HomReasoning
     ((b₁ ⊗₁ b₂) ⊗₁ (u₁ ⊗₁ u₂)) CC.∘ ⊗ᴷ-fwd
   ≈⟨ ∘-resp-≅ᴹ ≅ᴹ-refl (≅ᴹ-trans ⊗ᴷ-fwd-decomp mid4-decomp) ⟩
     ((b₁ ⊗₁ b₂) ⊗₁ (u₁ ⊗₁ u₂)) CC.∘ mid4-core
-  ≈⟨ solveMorσ! lhs rhs ⟩
+  ≈⟨ solveH! lhs rhs ⟩
     mid4-core CC.∘ ((b₁ ⊗₁ u₁) ⊗₁ (b₂ ⊗₁ u₂))
   ≈⟨ ∘-resp-≅ᴹ (≅ᴹ-sym (≅ᴹ-trans ⊗ᴷ-fwd-decomp mid4-decomp)) ≅ᴹ-refl ⟩
     ⊗ᴷ-fwd CC.∘ ((b₁ ⊗₁ u₁) ⊗₁ (b₂ ⊗₁ u₂))
@@ -82,19 +82,19 @@ open HomReasoning
   mid4-core : ∀ {P Q R S} → Machine ((P ⊗₀ Q) ⊗₀ (R ⊗₀ S)) ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S))
   mid4-core = ⊗-assoc⃖ CC.∘ ((CC.id ⊗₁ (⊗-assoc CC.∘ ((⊗-symₘ ⊗₁ CC.id) CC.∘ ⊗-assoc⃖))) CC.∘ ⊗-assoc)
   vars = B₁ ∷ B₁' ∷ E₁ ∷ E₁' ∷ B₂ ∷ B₂' ∷ E₂ ∷ E₂' ∷ []
-  open SymAtoms machine-monoidal-category machine-symmetric vars
-  open SymSolve machine-monoidal-category machine-symmetric vars
-    ( ((V (# 0) , V (# 1)) , b₁)
-    ∷ ((V (# 2) , V (# 3)) , u₁)
-    ∷ ((V (# 4) , V (# 5)) , b₂)
-    ∷ ((V (# 6) , V (# 7)) , u₂) ∷ [] )
-  -- Must mirror the local `mid4-core` exactly; `solveMorσ!` compares the two.
+  open FreeMonoidalHelper Symm (Fin 8) using (ObjTerm; Var) renaming (_⊗₀_ to _⊗ᵒ_)
+  open Solver machine-symmetric-monoidal-category vars
+    ( (Var (# 0) , Var (# 1) , b₁)
+    ∷ (Var (# 2) , Var (# 3) , u₁)
+    ∷ (Var (# 4) , Var (# 5) , b₂)
+    ∷ (Var (# 6) , Var (# 7) , u₂) ∷ [] )
+  -- Must mirror the local `mid4-core` exactly; `solveH!` compares the two.
   core : (p q r s : ObjTerm) → S.HomTerm ((p ⊗ᵒ q) ⊗ᵒ (r ⊗ᵒ s)) ((p ⊗ᵒ r) ⊗ᵒ (q ⊗ᵒ s))
   core p q r s =
     S.α⇐ {p} {r} {q ⊗ᵒ s}
     S.∘ ((S.id {p} S.⊗₁ (S.α⇒ {r} {q} {s} S.∘ ((S.σ {q} {r} S.⊗₁ S.id {s}) S.∘ S.α⇐ {q} {r} {s})))
          S.∘ S.α⇒ {p} {q} {r ⊗ᵒ s})
-  lhs = ((gen (# 0) S.⊗₁ gen (# 2)) S.⊗₁ (gen (# 1) S.⊗₁ gen (# 3)))
-        S.∘ core (V (# 0)) (V (# 2)) (V (# 4)) (V (# 6))
-  rhs = core (V (# 1)) (V (# 3)) (V (# 5)) (V (# 7))
-        S.∘ ((gen (# 0) S.⊗₁ gen (# 1)) S.⊗₁ (gen (# 2) S.⊗₁ gen (# 3)))
+  lhs = ((S.Agen (gen (# 0)) S.⊗₁ S.Agen (gen (# 2))) S.⊗₁ (S.Agen (gen (# 1)) S.⊗₁ S.Agen (gen (# 3))))
+        S.∘ core (Var (# 0)) (Var (# 2)) (Var (# 4)) (Var (# 6))
+  rhs = core (Var (# 1)) (Var (# 3)) (Var (# 5)) (Var (# 7))
+        S.∘ ((S.Agen (gen (# 0)) S.⊗₁ S.Agen (gen (# 1))) S.⊗₁ (S.Agen (gen (# 2)) S.⊗₁ S.Agen (gen (# 3))))

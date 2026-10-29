@@ -1,9 +1,8 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The naive graded Kleisli construction: a graded Kleisli triple ℳ presents a
--- locally ℐ-graded category whose grade-X homs are the bare Kleisli maps
--- A ⇒ T₀ X B (McDermott–Uustalu, "Flexibly graded monads and graded
--- algebras", MPC 2022).
+-- The locally-graded Kleisli construction: a graded Kleisli triple ℳ presents
+-- a locally ℐ-graded category whose grade-X homs are the Kleisli maps
+-- A ⇒ T₀ X B (https://arxiv.org/pdf/2007.11235).
 
 module Categories.LocallyGraded.Kleisli where
 
@@ -21,8 +20,8 @@ module _ {o ℓ e o′ ℓ′ e′ : Level} {ℐ : MonoidalCategory o ℓ e} {�
     open HomReasoning public
     open MR 𝒞 public
 
-  naiveKleisli : GradedKleisliTriple ℐ 𝒞 → LocallyGradedCategory ℐ o′ ℓ′ e′
-  naiveKleisli ℳ = record
+  Kleisli : GradedKleisliTriple ℐ 𝒞 → LocallyGradedCategory ℐ o′ ℓ′ e′
+  Kleisli ℳ = record
     { Obj              = C.Obj
     ; Hom              = λ X A B → A C.⇒ T₀ X B
     ; _≈_              = C._≈_

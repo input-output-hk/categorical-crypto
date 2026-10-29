@@ -98,9 +98,7 @@ Uι-decomp (β , g , α) = let open 𝒞 in ⟺ (begin
   ≈⟨ pullˡ (⟺ sub-homomorphism) ⟩
     sub (λ⇒ ℐ.∘ ℐ.id ⊗₁ (⟦ α ⟧₁ ℐ.∘ λ⇐)) ∘ ext ℐ.unit g
   ≈⟨ sub-resp-≈ λ-step ⟩∘⟨refl ⟩
-    sub (⟦ α ⟧₁ ℐ.∘ ℐ.id) ∘ ext ℐ.unit g
-  ≈⟨ refl⟩∘⟨ ⟺ (μT g) ⟩
-    sub (⟦ α ⟧₁ ℐ.∘ ℐ.id) ∘ (μ ℐ.unit ⟦ β ⟧₀ ∘ T₁ ℐ.unit g)  ∎)
+    sub (⟦ α ⟧₁ ℐ.∘ ℐ.id) ∘ ext ℐ.unit g  ∎)
   where
     λ-step : λ⇒ ℐ.∘ ℐ.id ⊗₁ (⟦ α ⟧₁ ℐ.∘ λ⇐) ℐ.≈ ⟦ α ⟧₁ ℐ.∘ ℐ.id
     λ-step = let open ℐ.HomReasoning in
@@ -191,14 +189,14 @@ oap⇔ᵁ gs {f = f} {g = g} = mk⇔ fwd (ᵁ⇒oap {f = f} {g = g})
 ------------------------------------------------------------------------
 
 ⌊⌈⌉⌋-id : (x : A 𝒞.⇒ T₀ X B) → ⌊ ⌈ x ⌉ ⌋ 𝒞.≈ x
-⌊⌈⌉⌋-id = FA.flatten-unflatten naiveKleisli
+⌊⌈⌉⌋-id = FA.flatten-unflatten Kleisli
 
 ι⌈⌊⌋⌉-id : (x : Prot A B J) → ι ⌈ ⌊ x ⌋ ⌉ OAPᶜ.≈ ι x
 ι⌈⌊⌋⌉-id x = OAPᶜ.Equiv.trans
-  (GK.≈-components 𝒞 ℐ ℳ
+  (GK.≈-components 𝒞 ℐ triple
     (𝒞.∘-resp-≈ˡ (sub-resp-≈ (ℐ.∘-resp-≈ˡ (ℐ.Equiv.sym ℐ.identityʳ)))) ℐ.identityʳ)
-  (Functor.F-resp-≈ (FAK.fromFreeActegory 𝒞 ℐ ℳ)
-    (FA.unflatten-flatten naiveKleisli (ι x)))
+  (Functor.F-resp-≈ (FAK.fromFreeActegory 𝒞 ℐ triple)
+    (FA.unflatten-flatten Kleisli (ι x)))
 
 oap⇒bare-⌈⌉ : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B} → ⌈ f ⌉ OAP.≤UC ⌈ g ⌉ → f ≤UCᵇ g
 oap⇒bare-⌈⌉ {f = f} {g = g} f≤g =

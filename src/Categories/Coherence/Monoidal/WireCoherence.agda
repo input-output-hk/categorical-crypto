@@ -1,21 +1,16 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Wire-coherence theory: the ⟦_⟧ᵇ-free coherence of the structural
--- `wires`/`HomTerm` layer still consumed by the solver — the `castW`
--- object-transport algebra, the +-associators, and the flat-shift/merge-split
--- bridge `liftW-merge` (`WireCoh`), plus the DecEq-dependent UIP/castW-collapse
--- layer, the `castW-id⊗ˡ` helper, and the merge/split right-unitor & pentagon
--- coherence family `merge-ρ`/`split-ρ`/`merge-assoc`/`split-assoc`
--- (`WireCohDec`), which `Reflect.embed-resp-≈` and `Frontend.Core` consume.
+-- Wire-coherence theory: the box-free coherence of the structural
+-- `wires`/`HomTerm` layer — the `castW` object-transport algebra, the
+-- ++-associators and the flat-shift/merge-split bridge (`WireCoh`), plus the
+-- DecEq-dependent merge/split unitor & pentagon coherence (`WireCohDec`).
 --------------------------------------------------------------------------------
 
 module Categories.Coherence.Monoidal.WireCoherence where
 
 open import categorical-crypto.Prelude hiding (_∘_; id; map; merge)
 open import Data.List.Properties
-open import Relation.Binary.PropositionalEquality.Properties
-import Data.List.Properties.Ext as ListExt
 
 open import Categories.Category
 import Categories.Category.Monoidal.Properties as MonProps
@@ -24,13 +19,13 @@ import Categories.Morphism.Reasoning as MR
 import Categories.Morphism.Reasoning.Ext as MRExt
 open import Categories.FreeMonoidal
 
-module WireCoh (v : Variant) (X : Set)
-               (mor : FreeMonoidalHelper.ObjTerm v X → FreeMonoidalHelper.ObjTerm v X → Set)
+module WireCoh (X : Set)
+               (mor : FreeMonoidalHelper.ObjTerm Mon X → FreeMonoidalHelper.ObjTerm Mon X → Set)
                where
-  open FreeMonoidalHelper v X
-  open FreeMonoidalHelper.Mor v X mor
+  open FreeMonoidalHelper Mon X
+  open FreeMonoidalHelper.Mor Mon X mor
   open Category.HomReasoning FreeMonoidal
-  open MonR Monoidal-FreeMonoidal using (refl⟩⊗⟨_; _⟩⊗⟨refl; _⟩⊗⟨_; split₁ʳ; serialize₁₂)
+  open MonR Monoidal-FreeMonoidal using (refl⟩⊗⟨_; _⟩⊗⟨refl; _⟩⊗⟨_; split₁ʳ)
   open MR FreeMonoidal
   open MRExt FreeMonoidal
 
@@ -55,15 +50,8 @@ module WireCoh (v : Variant) (X : Set)
   assocW⁻ : (p q s : List X) → HomTerm (wires ((p ++ q) ++ s)) (wires (p ++ (q ++ s)))
   assocW⁻ p q s = castW (++-assoc p q s)
 
-  -- `assocW`/`assocW⁻` are mutually inverse (they are `castW` of `sym`-related indices).
   assocW⁻∘assocW : ∀ (p q s : List X) → assocW⁻ p q s ∘ assocW p q s ≈Term id
   assocW⁻∘assocW p q s = castW-isoʳ (++-assoc p q s)
-  -- Flat-shift of a wire morphism as a merge/split conjugation.  `liftW p W`
-  -- (the prefix-idle lift, `id {wires p} ⊗₁ W` reflattened) equals the box `W`
-  -- conjugated by the flat `merge p`/`split p`; and the flat `pad` is literally
-  -- the wire-shift of the right-pad `rpad`.  Both are ⟦_⟧ᵇ-free wire coherence.
-
-  -- the flat shift equals the merge/split conjugation.
   liftW-merge : ∀ (p : List X) {u v} (W : HomTerm (wires u) (wires v))
               → liftW p W ≈Term merge p ∘ (id ⊗₁ W) ∘ split p
   liftW-merge []      W = introʳ λ⇒∘λ⇐≈id ○ pullˡ (⟺ λ⇒∘id⊗f≈f∘λ⇒) ○ assoc
@@ -72,8 +60,6 @@ module WireCoh (v : Variant) (X : Set)
       ○ (⟺ (id⊗-∘3 (merge p) (id ⊗₁ W) (split p)))
       ○ reassoc-suc
     where
-      -- insert α⇒∘α⇐ = id in the middle and reassociate to expose
-      -- merge (suc p) = id⊗₁merge p ∘ α⇒ and split (suc p) = α⇐ ∘ id⊗₁split p.
       reassoc-suc :
           id ⊗₁ merge p ∘ (id ⊗₁ (id ⊗₁ W) ∘ id ⊗₁ split p)
         ≈Term (id ⊗₁ merge p ∘ α⇒) ∘ id ⊗₁ W ∘ (α⇐ ∘ id ⊗₁ split p)
@@ -87,33 +73,22 @@ module WireCoh (v : Variant) (X : Set)
         (id ⊗₁ merge p ∘ α⇒) ∘ id ⊗₁ W ∘ (α⇐ ∘ id ⊗₁ split p) ∎
 
   --------------------------------------------------------------------------------
-  -- The DecEq-dependent layer: `castW` is determined by its
-  -- endpoints. On top of that UIP fact this holds the castW helper
-  -- kit, the merge/split right-unitor & pentagon coherence family,
-  -- and the structural reassociators' collapse to `castW`.
+  -- The DecEq-dependent layer: the `castW` helper kit and the merge/split
+  -- right-unitor & pentagon coherence family.
   --------------------------------------------------------------------------------
   module WireCohDec ⦃ _ : DecEq X ⦄ where
-    ≡-irrelevantL : ∀ {x y : List X} (e e' : x ≡ y) → e ≡ e'
-    ≡-irrelevantL = ListExt.≡-irrelevant _≟_
-
-    castW-irr : ∀ {u v : List X} (e e' : u ≡ v) → castW e ≈Term castW e'
-    castW-irr e e' = ≡⇒≈Term (cong castW (≡-irrelevantL e e'))
-
-    -- push a coercion along `cong (x ∷_)` under the prefix `id {Var x} ⊗₁ _`;
-    -- the other end is an ARBITRARY object, since the merge/split steps below
+    -- the far end is an arbitrary object, since the merge/split steps below
     -- need bracketed tensors of wires, not flat ones.
     castW-id⊗ˡ : ∀ {R} (x : X) {p q : List X} (e : p ≡ q) (h : HomTerm R (wires p))
                → castW (cong (x ∷_) e) ∘ (id ⊗₁ h) ≈Term id ⊗₁ (castW e ∘ h)
     castW-id⊗ˡ x e h = (⟺ (castW-∷ e) ⟩∘⟨refl) ○ id⊗-∘ (castW e) h
 
     --------------------------------------------------------------------------------
-    -- The merge/split coherence family: the right-unitor coherence on the flat
-    -- merge/split (`merge-ρ`/`split-ρ`, ≈ ρ⇒/ρ⇐) and the pentagon associativity
-    -- of merge/split (`merge-assoc`/`split-assoc`).  Pure ⟦_⟧ᵇ-free wire
-    -- coherence — the merge/split analogue of the assocW/castW theory above.
-    -- They bottom out in the Mac Lane / Kelly unit coherence laws at the *free*
-    -- monoidal category over `mor`, whose _≈_/α⇒/ρ⇒/λ⇒/_⊗₁_ coincide
-    -- DEFINITIONALLY with _≈Term_/α⇒/ρ⇒/λ⇒/_⊗₁_, so these land as `≈Term`.
+    -- The merge/split coherence family: the right-unitor coherence
+    -- (`merge-ρ`/`split-ρ`) and the pentagon associativity
+    -- (`merge-assoc`/`split-assoc`).  They bottom out in the Mac Lane / Kelly
+    -- unit coherence laws at the free monoidal category over `mor`, whose `_≈_`
+    -- coincides definitionally with `_≈Term_`.
     --------------------------------------------------------------------------------
     module K = MonProps.Kelly's Monoidal-FreeMonoidal
 

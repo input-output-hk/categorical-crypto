@@ -167,11 +167,11 @@
     "standard-library-meta": {
       "flake": false,
       "locked": {
-        "lastModified": 1784039623,
-        "narHash": "sha256-HQX2phq5CtAsczRRS0A6llWzjKGAeRksNgj8PLGu8kQ=",
+        "lastModified": 1788253692,
+        "narHash": "sha256-jA65FwnhoIxahmJtkaCnoDvo+PvmejeO6JJPh4aPvJI=",
         "owner": "agda",
         "repo": "agda-stdlib-meta",
-        "rev": "5690f324fcde24aea4c58011035185150f65058b",
+        "rev": "97e2f65f5c8a1cc07aacec32b4974668ef32979b",
         "type": "github"
       },
       "original": {

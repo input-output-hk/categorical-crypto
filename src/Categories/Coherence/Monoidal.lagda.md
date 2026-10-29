@@ -1,8 +1,7 @@
 # Monoidal coherence solver
 
 Decision procedures for equality of morphisms in a monoidal category, in
-the style of Mac Lane's coherence theorem. Three variants are exposed,
-covering progressively richer fragments:
+the style of Mac Lane's coherence theorem. Two variants are exposed:
 
   * `Structural` — the bare coherence theorem: any two parallel composites
     of *structural* isomorphisms (associators, unitors, and their inverses)
@@ -11,9 +10,6 @@ covering progressively richer fragments:
     opaque *generating morphisms* (`boxes`).  They discharge goals that hold by
     naturality and bifunctoriality / interchange of `_⊗₁_` and `_∘_`, e.g.
     `(s ⊗₁ id) ∘ (id ⊗₁ t) ≈ s ⊗₁ t`; `MorRewrite` additionally fires rules.
-  * `SymSolve` / `SymRewrite` (with `SymAtoms`) — the morphism solver over a
-    *symmetric* monoidal category, so the term language additionally carries
-    the braiding `σ` and goals may use it.
 
 This file is the user-facing entry point. It is literate Agda: the
 implementation lives in the `Categories.Coherence.Monoidal.*` submodules, and
@@ -33,12 +29,13 @@ open import Data.Product
 open import Data.Vec using (Vec; _∷_; []; lookup)
 open import Categories.Category
 open import Categories.Category.Monoidal
-open import Categories.Category.Monoidal.Symmetric using () renaming (Symmetric to SymmetricStructure)
 
 open import Categories.FreeMonoidal
 open import Categories.Coherence.Monoidal.MacLane
 open import Categories.Coherence.Monoidal.Frontend
-open import Categories.Coherence.Monoidal.Frontend.Sigma
+
+open import Categories.Coherence.Monoidal.Normalize public
+  using (NormStatus; converged; cycled; exhausted)
 ```
 
 ## `Structural`: coherence of structural isomorphisms
@@ -76,22 +73,38 @@ generator — the arities are `ObjTerm`s over the atoms, the interpretation a
 generators and the solver `solveMor!`, which discharges a goal between
 interpretations of front-end terms whose normal forms agree — handling
 monoidal coherence together with naturality and the interchange law for
-`_⊗₁_`/`_∘_`. `rewriteMor!` and friends additionally fire a user-supplied
-equational rule in a context (`rewriteMorAuto!` locates it automatically).
-See `Categories.GradedKleisli` for a call site.
+`_⊗₁_`/`_∘_`; the example below is a call site. `rewriteMor!`
+and friends additionally fire a user-supplied equational rule in a context
+(`rewriteMorAuto!` locates it automatically); the `Rewrite` module of
+`Categories.Coherence.Monoidal.Test.Frontend` exercises that family.
+`statusMor` reports the normalizer's verdict on a front-end term: a failed
+`solveMor!` whose sides report `cycled` or `exhausted` hit the rewrite
+loop's non-termination on degenerate signatures (a generator with an empty
+arity side), not a decided inequality — see `Test.Limitations`.
 
 Warning: `MorRewrite` is slow to `open`. Prefer `MorSolve` if you simply want
 to call `solveMor!`.
 
+The reflection macro `solve-mor C` (`Categories.Coherence.Monoidal.Tactic`)
+synthesises all of this — the atom vector, the generator signature, and both
+front-end terms — from the goal itself; use it when the goal is stated in
+`C`'s own vocabulary. The macro needs the goal's type to be determined at
+the call site. The common way to lose that is a record literal whose law
+fields' types apply sibling `λ where` fields (`_≈_`, `_∘_`): the siblings
+are still unchecked while the literal elaborates, so the law components'
+types stay stuck on them. Name those operations as top-level definitions —
+`Categories.GradedKleisli` does this for its category's operations — or
+hoist the equation as an ascribed lemma proved by the macro.
+
 ```agda
 module MorAtoms
   {o ℓ e} (C : MonoidalCategory o ℓ e)
-  {nA} (vars : Vec (C .MonoidalCategory.U .Category.Obj) nA)
+  {nA} (vars : Vec (C .MonoidalCategory.Obj) nA)
   = FinSetup C vars using (ObjTerm; V; unitᵒ; _⊗ᵒ_)
 
 module MorRewrite
   {o ℓ e} (C : MonoidalCategory o ℓ e)
-  {nA} (vars : Vec (C .MonoidalCategory.U .Category.Obj) nA)
+  {nA} (vars : Vec (C .MonoidalCategory.Obj) nA)
   (let module Impl = FinSetup C vars)
   -- the signature is one vector of triples: source arity, target arity, and
   -- the generator's interpretation (typed by `Impl`'s generator-free `⟦_⟧ₒ`).
@@ -99,7 +112,7 @@ module MorRewrite
                       (C .MonoidalCategory.U [ Impl.⟦ proj₁ st ⟧ₒ , Impl.⟦ proj₂ st ⟧ₒ ])) nG)
   (let module ImplS = Impl.Sig (λ i → proj₁ (lookup gens i)))
   where
-  open ImplS public using (module S; gen)
+  open ImplS public using (module S; gen; statusMor)
   open ImplS using (genS)
 
   private module ImplW = ImplS.WithGen (λ { (genS i) → proj₂ (lookup gens i) })
@@ -114,22 +127,21 @@ module MorRewrite
 
 module MorSolve
   {o ℓ e} (C : MonoidalCategory o ℓ e)
-  {nA} (vars : Vec (C .MonoidalCategory.U .Category.Obj) nA)
+  {nA} (vars : Vec (C .MonoidalCategory.Obj) nA)
   (let module Impl = FinSetup C vars)
   {nG} (gens : Vec (Σ[ st ∈ Impl.ObjTerm × Impl.ObjTerm ]
                       (C .MonoidalCategory.U [ Impl.⟦ proj₁ st ⟧ₒ , Impl.⟦ proj₂ st ⟧ₒ ])) nG)
-  = MorRewrite C vars gens using (solveMor!; gen; module S)
+  = MorRewrite C vars gens using (solveMor!; gen; module S; statusMor)
 ```
 
 ### Example
 
 A worked example over an arbitrary monoidal category `C`, with two object atoms
 `A , B` and two generators `s : A → A`, `t : B → B`. The solver takes the whole
-signature as a single vector of triples —
-each `(source , target , interpretation)` — and exposes in one open the term
-DSL `S`, the generators `gen i`, and the solver `solveMor!`. (`open
-FreeMonoidalHelper` supplies just the atom term `V`, so the arities can be
-written.) Each goal is
+signature as a single vector of triples — each
+`(source , target , interpretation)` — and exposes in one open the term
+DSL `S`, the generators `gen i`, and the solver `solveMor!`. (`MorAtoms`
+supplies just the atom term `V`, so the arities can be written.) Each goal is
 then stated in `C`'s own vocabulary; the `solveMor!` arguments are the two
 front-end terms whose normal forms it compares.
 
@@ -172,59 +184,14 @@ module Morphism-example {o ℓ e} (C : MonoidalCategory o ℓ e) where
       rewriteMorAuto! (t' S.⊗₁ (s' S.∘ s')) (t' S.⊗₁ S.id) (s' S.∘ s') S.id s∘s≈id
 ```
 
-## `SymRewrite` / `SymSolve`: the symmetric/braided morphism solver
-
-`SymRewrite C Sym vars gens` is the analogue of `MorRewrite` for a symmetric monoidal
-`C` (`Sym : Symmetric (C .monoidal)`); same one-vector-of-triples signature.
-The term language additionally carries the braiding `σ`, normalised by
-`σσ`-cancellation, the two naturality slides and disjoint interchange;
-`solveMorσ!` lands `σ` on the target's braiding.
-
-```agda
-module SymAtoms
-  {o ℓ e} (C : MonoidalCategory o ℓ e)
-  (Sym : SymmetricStructure (C .MonoidalCategory.monoidal))
-  {nA} (vars : Vec (C .MonoidalCategory.U .Category.Obj) nA)
-  = FinSetupσ C Sym vars using (ObjTerm; V; unitᵒ; _⊗ᵒ_)
-
-module SymRewrite
-  {o ℓ e} (C : MonoidalCategory o ℓ e)
-  (Sym : SymmetricStructure (C .MonoidalCategory.monoidal))
-  {nA} (vars : Vec (C .MonoidalCategory.U .Category.Obj) nA)
-  (let module Impl = FinSetupσ C Sym vars)
-  {nG} (gens : Vec (Σ[ st ∈ Impl.ObjTerm × Impl.ObjTerm ]
-                      (C .MonoidalCategory.U [ Impl.⟦ proj₁ st ⟧ₒ , Impl.⟦ proj₂ st ⟧ₒ ])) nG)
-  (let module ImplS = Impl.Sig (λ i → proj₁ (lookup gens i)))
-  where
-  open ImplS public using (module S; gen)
-  open ImplS using (genS)
-
-  private module ImplW = ImplS.WithGen (λ { (genS i) → proj₂ (lookup gens i) })
-
-  -- | Discharge a goal in a symmetric monoidal category (σ allowed).
-  solveMorσ!       = ImplW.solveMor!
-  -- | Fire a rule (a `C`-equation between term interpretations) in context.
-  rewriteMorσ!     = ImplW.rewriteMor!
-  rewriteMorσₙ!    = ImplW.rewriteMorₙ!
-  -- | …with the rule's context located automatically.
-  rewriteMorσAuto! = ImplW.rewriteMorAuto!
-
-module SymSolve
-  {o ℓ e} (C : MonoidalCategory o ℓ e)
-  (Sym : SymmetricStructure (C .MonoidalCategory.monoidal))
-  {nA} (vars : Vec (C .MonoidalCategory.U .Category.Obj) nA)
-  (let module Impl = FinSetupσ C Sym vars)
-  {nG} (gens : Vec (Σ[ st ∈ Impl.ObjTerm × Impl.ObjTerm ]
-                      (C .MonoidalCategory.U [ Impl.⟦ proj₁ st ⟧ₒ , Impl.⟦ proj₂ st ⟧ₒ ])) nG)
-  = SymRewrite C Sym vars gens using (solveMorσ!; gen; module S)
-```
-
 ## Scope and limitations
+
+Both variants target monoidal categories only.
 
 The solver family is sound but not complete: it may return `nothing` on a
 true equation. The full list of what it does *not* decide — the ambiguous
-rank convention, opaque generators, the braided hexagon and straddling
-boxes, and the meta-properties (incompleteness, no confluence claim) — is
-catalogued, with machine-checked witnesses, in
+rank convention, opaque generators, and the meta-properties
+(incompleteness, no confluence claim) — is catalogued, with
+machine-checked witnesses, in
 `Categories.Coherence.Monoidal.Test.Limitations`.
 ```

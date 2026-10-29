@@ -1,17 +1,10 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The category of graded monads on 𝒞 (the lax slice `GMon`) and the bundled
--- functor `Kl : GMon → Cats`, packaging the data + laws of `.Functorial`.
+-- The category of graded monads on 𝒞 and the functor `Kl : GMon → Cat`.
 --
 -- GMon's hom-equality is reflected from `Cats` along `Kl`: (Φ, ρ) ≈ (Φ′, ρ′)
 -- iff KlMap (Φ, ρ) ≡F KlMap (Φ′, ρ′) — the coarsest equality making `Kl` a
 -- functor, with `F-resp-≈` the identity.
---
--- Every clause is η-long with all implicits pinned and `GMon`/`Kl` are defined
--- by copatterns for performance reasons: as a `record{…}` this module exhausts a
--- 12 GB heap.  The laws are proved in an `unfolding` block, and GMon's field-type
--- conversions stay cheap because `.Functorial`'s `idG`/`∘G`/`KlMap` are `opaque`
--- (see there).
 
 module Categories.GradedKleisli.Functorial.Category where
 
