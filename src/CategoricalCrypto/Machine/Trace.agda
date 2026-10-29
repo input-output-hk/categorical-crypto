@@ -11,7 +11,10 @@
 --
 -- A machine is made checkable by a `Checkable` record: the hint type, a way
 -- to read the hint off a step, and a per-step checker that returns either a
--- machine-specific error or a step carrying that hint.
+-- machine-specific error or a step carrying that hint.  The record is
+-- parameterised by how traces name inputs, `embed : Msg → Input`; a
+-- `Checker` checks the inputs themselves.  Checkers compose along the
+-- machine builders (`Machine.Trace.Compose`).
 --
 -- From these, once for every machine:
 --   * `verifyTrace`, which returns a `ValidTrace` carrying the derivations,
@@ -68,7 +71,10 @@ module _ {A B : Channel} (M : Machine A B) where
   ------------------------------------------------------------------------------
   -- What a machine provides to be checkable
 
-  record Checkable : Type₁ where
+  -- Traces name inputs as `Msg`s.  Because `_⊗₀_` is opaque, a flat sum of
+  -- the leaf message types is often easier to produce and to match on than
+  -- `Input` itself; `embed` maps it into `Input`, typically via selectors.
+  record Checkable {Msg : Type} (embed : Msg → Input) : Type₁ where
     field
       Hint   : Type
       hintOf : ∀ {s i} → Step s i → Hint
@@ -76,19 +82,19 @@ module _ {A B : Channel} (M : Machine A B) where
     StepWith : Hint → State → Input → Type
     StepWith h s i = Σ[ x ∈ Step s i ] hintOf x ≡ h
 
-    -- Traces name inputs as `Msg`s. Because `_⊗₀_` is opaque, a flat sum of
-    -- the leaf message types is often easier to produce and to match on than
-    -- `Input` itself; `embed` maps it into `Input`, typically via selectors.
-    -- Use `Msg = Input` and `embed = id` when no flattening is wanted.
     field
-      Msg       : Type
-      embed     : Msg → Input
       Err       : Hint → Msg → State → Type
       checkStep : ∀ h m s → Err h m s ⊎ StepWith h s (embed m)
 
+  -- A checker on the inputs themselves, with no flattening.  Only these
+  -- compose: a composite machine feeds outputs back as inputs, which have
+  -- no `Msg` form.
+  Checker : Type₁
+  Checker = Checkable (λ i → i)
+
   -- Optional: errors are genuine refutations, and a hint pins down the
   -- result of a step. Needed for completeness, not for soundness.
-  record Complete (C : Checkable) : Type where
+  record Complete {Msg : Type} {embed : Msg → Input} (C : Checkable embed) : Type where
     open Checkable C
     field
       refute : ∀ {h m s} → Err h m s → ¬ StepWith h s (embed m)
@@ -124,7 +130,7 @@ module _ {A B : Channel} (M : Machine A B) where
   ------------------------------------------------------------------------------
   -- The verifier
 
-  module Verifier (C : Checkable) where
+  module Verifier {Msg : Type} {embed : Msg → Input} (C : Checkable embed) where
 
     open Checkable C
 

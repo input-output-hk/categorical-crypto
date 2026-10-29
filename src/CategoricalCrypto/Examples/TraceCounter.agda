@@ -40,12 +40,10 @@ opaque
   ... | no m≢n   = no λ { refl → m≢n refl }
 
 -- Steps are deterministic, so no hint is needed.
-checkable : Checkable Counter
+checkable : Checkable Counter embed
 checkable = record
   { Hint      = ⊤
   ; hintOf    = λ _ → tt
-  ; Msg       = Msg
-  ; embed     = embed
   ; Err       = λ _ _ _ → ⊥
   ; checkStep = λ where _ inc _ → inj₂ (step _ _ Inc , refl)
   }
