@@ -143,10 +143,9 @@ tests⇒≈ℰ e = KE.mk∼ λ {t} → same (e (proj₁ t) (proj₂ t))
 -- Grade stability.  A test `(Y , E)` on `B ⊗₀ Z` regroups into the test
 -- `(Z ⊗₀ Y , E ∘ ⊗-assoc⃖)` on `B`.
 
-open CurriedTensorProperties machines using (T₁-⊗)
-
+-- `T₁` is the curried tensor's own functor action, so this holds on the nose.
 T₁-⊗ʳ : ∀ Z {A B} (h : Machine A B) → T₁ Z h ≅ᴹ (h ⊗₁ id {Z})
-T₁-⊗ʳ = T₁-⊗
+T₁-⊗ʳ _ _ = ≅ᴹ-refl
 
 private
   regroup : ∀ {A B Z Y} (k : Machine A B) (E : Machine ((B ⊗₀ Z) ⊗₀ Y) ℰ-Out)
@@ -181,7 +180,7 @@ grade-stable Z {h} {h′} e = tests⇒≈ℰ λ Y E → begin
 
 private
   _ : ∀ {A B X} (f : Machine A (B ⊗₀ X)) → f ≤UC f
-  _ = ≤UC-refl
+  _ = λ f → ≤UC-refl {f = f}
 
   _ : ∀ {A B X Y Z} {f : Machine A (B ⊗₀ X)} {g : Machine A (B ⊗₀ Y)} {h : Machine A (B ⊗₀ Z)}
     → f ≤UC g → g ≤UC h → f ≤UC h

@@ -1,6 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The locally graded ("naive one-sided") UC layer.  A protocol/functionality is
+-- The locally graded UC layer.  A protocol/functionality is
 -- a bare graded-Kleisli morphism f : A ⇒ T₀ X B — the adversary interface X is
 -- the grade, carried on the morphism — and an adversary/simulator is a grade
 -- morphism acting by `sub`.  Observational equivalence is the U-kernel _≈ᵁ_,
@@ -15,10 +15,11 @@
 
 module CategoricalCrypto.Abstract2 where
 
+import Relation.Binary.Reasoning.Setoid as SetoidR
 open import Data.Product
+open import Function.Bundles
 open import Level
 open import Relation.Binary.Bundles
-import Relation.Binary.Reasoning.Setoid as SetoidR
 
 open import Categories.LocallyGraded
 import Categories.LocallyGraded.Kleisli as LGKleisli
@@ -34,12 +35,10 @@ module AbstractUC
   private variable
     A B C′ : 𝒞.Obj
     X X′ Y Z P Q : ℐ.Obj
+    f f′ h : A 𝒞.⇒ T₀ X B
+    g g′ : A 𝒞.⇒ T₀ Y B
 
-  infixr 9 _∙_
   infix  4 _≈ᵁ_ _≤UC_
-
-  _∙_ : B 𝒞.⇒ T₀ P C′ → A 𝒞.⇒ T₀ X B → A 𝒞.⇒ T₀ (X ⊗₀ P) C′
-  _∙_ {X = X} h f = ext X h 𝒞.∘ f
 
   ------------------------------------------------------------------------
   -- The U-kernel ≈ᵁ and its congruences
@@ -48,13 +47,13 @@ module AbstractUC
   _≈ᵁ_ : (f g : A 𝒞.⇒ T₀ X B) → Set (o ⊔ cs ⊔ ℓs)
   _≈ᵁ_ {X = X} f g = ∀ Y → μ Y X 𝒞.∘ T₁ Y f ≈ℰ μ Y X 𝒞.∘ T₁ Y g
 
-  ≈ᵁ-refl : {f : A 𝒞.⇒ T₀ X B} → f ≈ᵁ f
+  ≈ᵁ-refl : f ≈ᵁ f
   ≈ᵁ-refl _ = ≈ℰ-refl
 
-  ≈ᵁ-sym : {f g : A 𝒞.⇒ T₀ X B} → f ≈ᵁ g → g ≈ᵁ f
+  ≈ᵁ-sym : f ≈ᵁ g → g ≈ᵁ f
   ≈ᵁ-sym e Y = ≈ℰ-sym (e Y)
 
-  ≈ᵁ-trans : {f g h : A 𝒞.⇒ T₀ X B} → f ≈ᵁ g → g ≈ᵁ h → f ≈ᵁ h
+  ≈ᵁ-trans : f ≈ᵁ g → g ≈ᵁ h → f ≈ᵁ h
   ≈ᵁ-trans e₁ e₂ Y = ≈ℰ-trans (e₁ Y) (e₂ Y)
 
   ≈ᵁ-setoid : (A B : 𝒞.Obj) (X : ℐ.Obj) → Setoid ℓ′ (o ⊔ cs ⊔ ℓs)
@@ -63,48 +62,17 @@ module AbstractUC
     ; _≈_ = _≈ᵁ_
     ; isEquivalence = record { refl = ≈ᵁ-refl ; sym = ≈ᵁ-sym ; trans = ≈ᵁ-trans } }
 
-  ≈C⇒≈ᵁ : {f g : A 𝒞.⇒ T₀ X B} → f 𝒞.≈ g → f ≈ᵁ g
+  ≈C⇒≈ᵁ : f 𝒞.≈ g → f ≈ᵁ g
   ≈C⇒≈ᵁ e _ = ≈C⇒≈ℰ (𝒞.∘-resp-≈ʳ (T-resp-≈ e))
-
-  sub-decomp : (c : X ℐ.⇒ X′) (x : A 𝒞.⇒ T₀ X B) (Y : ℐ.Obj)
-             → μ Y X′ 𝒞.∘ T₁ Y (sub c 𝒞.∘ x) 𝒞.≈ sub (ℐ.id ⊗₁ c) 𝒞.∘ μ Y X 𝒞.∘ T₁ Y x
-  sub-decomp {X = X} {X′} c x Y = let open 𝒞 in begin
-      μ Y X′ ∘ T₁ Y (sub c ∘ x)              ≈⟨ refl⟩∘⟨ T-homomorphism ⟩
-      μ Y X′ ∘ T₁ Y (sub c) ∘ T₁ Y x         ≈⟨ sym-assoc ⟩
-      (μ Y X′ ∘ T₁ Y (sub c)) ∘ T₁ Y x       ≈⟨ μst ⟩∘⟨refl ⟩
-      (sub (ℐ.id ⊗₁ c) ∘ μ Y X) ∘ T₁ Y x     ≈⟨ assoc ⟩
-      sub (ℐ.id ⊗₁ c) ∘ μ Y X ∘ T₁ Y x       ∎
-    where μst : μ Y X′ 𝒞.∘ T₁ Y (sub c) 𝒞.≈ sub (ℐ.id ⊗₁ c) 𝒞.∘ μ Y X
-          μst = let open 𝒞 in (refl⟩∘⟨ introʳ sub-identity) ○ μ-sub-commute
-
-  ∙-decomp : (h : B 𝒞.⇒ T₀ P C′) (f : A 𝒞.⇒ T₀ X B) (W : ℐ.Obj)
-           → μ W (X ⊗₀ P) 𝒞.∘ T₁ W (ext X h 𝒞.∘ f)
-             𝒞.≈ (sub α⇒ 𝒞.∘ ext (W ⊗₀ X) h) 𝒞.∘ μ W X 𝒞.∘ T₁ W f
-  ∙-decomp {P = P} {X = X} h f W = let open 𝒞 in begin
-      μ W (X ⊗₀ P) ∘ T₁ W (ext X h ∘ f)
-        ≈⟨ refl⟩∘⟨ T-homomorphism ⟩
-      μ W (X ⊗₀ P) ∘ T₁ W (ext X h) ∘ T₁ W f
-        ≈⟨ sym-assoc ⟩
-      (μ W (X ⊗₀ P) ∘ T₁ W (ext X h)) ∘ T₁ W f
-        ≈⟨ μT (ext X h) ⟩∘⟨refl ⟩
-      ext W (ext X h) ∘ T₁ W f
-        ≈⟨ extassoc ⟩∘⟨refl ⟩
-      (sub α⇒ ∘ ext (W ⊗₀ X) h ∘ μ W X) ∘ T₁ W f
-        ≈⟨ sym-assoc ⟩∘⟨refl ⟩
-      ((sub α⇒ ∘ ext (W ⊗₀ X) h) ∘ μ W X) ∘ T₁ W f
-        ≈⟨ assoc ⟩
-      (sub α⇒ ∘ ext (W ⊗₀ X) h) ∘ μ W X ∘ T₁ W f  ∎
-    where extassoc : ext W (ext X h) 𝒞.≈ sub α⇒ 𝒞.∘ ext (W ⊗₀ X) h 𝒞.∘ μ W X
-          extassoc = let open 𝒞 in ⟺ (ext-resp-≈ identityʳ) ○ ext-assoc
 
   sub-cong : (c : X ℐ.⇒ X′) {x x′ : A 𝒞.⇒ T₀ X B} → x ≈ᵁ x′ → sub c 𝒞.∘ x ≈ᵁ sub c 𝒞.∘ x′
   sub-cong c {x} {x′} e Y = ≈ℰ-trans (≈C⇒≈ℰ (sub-decomp c x Y))
       (≈ℰ-trans (≈ℰ-cong-post (sub (ℐ.id ⊗₁ c)) (e Y))
                 (≈ℰ-sym (≈C⇒≈ℰ (sub-decomp c x′ Y))))
 
-  ext-cong : (k : B 𝒞.⇒ T₀ P C′) {f f′ : A 𝒞.⇒ T₀ X B}
+  ext-cong : (k : B 𝒞.⇒ T₀ P C′)
            → f ≈ᵁ f′ → ext X k 𝒞.∘ f ≈ᵁ ext X k 𝒞.∘ f′
-  ext-cong {X = X} k {f} {f′} e W = ≈ℰ-trans (≈C⇒≈ℰ (∙-decomp k f W))
+  ext-cong {X = X} {f = f} {f′} k e W = ≈ℰ-trans (≈C⇒≈ℰ (∙-decomp k f W))
       (≈ℰ-trans (≈ℰ-cong-post (sub α⇒ 𝒞.∘ ext (W ⊗₀ X) k) (e W))
                 (≈ℰ-sym (≈C⇒≈ℰ (∙-decomp k f′ W))))
 
@@ -148,15 +116,15 @@ module AbstractUC
               sub λ⇐ ∘ 𝒞.id                              ≈⟨ identityʳ ⟩
               sub λ⇐                                     ∎
 
-  ≈ᵁ⇒≈ℰ : {f g : A 𝒞.⇒ T₀ X B} → f ≈ᵁ g → f ≈ℰ g
+  ≈ᵁ⇒≈ℰ : f ≈ᵁ g → f ≈ℰ g
   ≈ᵁ⇒≈ℰ {f = f} {g} e = ≈ℰ-trans (≈ℰ-sym (≈C⇒≈ℰ (λ-cancel f)))
       (≈ℰ-trans (≈ℰ-cong-post (sub λ⇒) key) (≈C⇒≈ℰ (λ-cancel g)))
     where key : (sub λ⇐ 𝒞.∘ f) ≈ℰ (sub λ⇐ 𝒞.∘ g)
           key = ≈ℰ-trans (≈ℰ-sym (≈C⇒≈ℰ (unit-comp f)))
                   (≈ℰ-trans (≈ℰ-cong-pre return (e ℐ.unit)) (≈C⇒≈ℰ (unit-comp g)))
 
-  bridge : {f g : A 𝒞.⇒ T₀ X B} → GradeStable → f ≈ℰ g → f ≈ᵁ g
-  bridge {X = X} gs e Y = ≈ℰ-cong-post (μ Y X) (gs Y e)
+  bridge : GradeStable → f ≈ℰ g → f ≈ᵁ g
+  bridge gs e Y = ≈ℰ-cong-post (μ Y _) (gs Y e)
 
   ------------------------------------------------------------------------
   -- The UC metatheory
@@ -166,22 +134,45 @@ module AbstractUC
   _≤UC_ {X = X} {Y = Y} f g =
     ∀ {X′} (a : X ℐ.⇒ X′) → Σ[ s ∈ Y ℐ.⇒ X′ ] sub a 𝒞.∘ f ≈ᵁ sub s 𝒞.∘ g
 
-  ≤UC-refl : (f : A 𝒞.⇒ T₀ X B) → f ≤UC f
-  ≤UC-refl f a = a , ≈ᵁ-refl
+  UC-dummy-sim : {f : A 𝒞.⇒ T₀ X B} → {g : A 𝒞.⇒ T₀ Y B} → f ≤UC g → Y ℐ.⇒ X
+  UC-dummy-sim uc = proj₁ (uc ℐ.id)
 
-  dummy-complete : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B}
-                 → Σ[ s₀ ∈ Y ℐ.⇒ X ] f ≈ᵁ sub s₀ 𝒞.∘ g
-                 → f ≤UC g
-  dummy-complete {g = g} (s₀ , e) a = a ℐ.∘ s₀ , ≈ᵁ-trans (sub-cong a e) (≈C⇒≈ᵁ strict)
-    where strict : sub a 𝒞.∘ sub s₀ 𝒞.∘ g 𝒞.≈ sub (a ℐ.∘ s₀) 𝒞.∘ g
-          strict = let open 𝒞 in sym-assoc ○ ⟺ sub-homomorphism ⟩∘⟨refl
+  -- dummy variant, equivalent to `_≤UC_` (see below)
+  _≤UCᵈ_ : A 𝒞.⇒ T₀ X B → A 𝒞.⇒ T₀ Y B → Set (o ⊔ ℓ ⊔ cs ⊔ ℓs)
+  _≤UCᵈ_ {X = X} {Y = Y} f g = Σ[ s ∈ Y ℐ.⇒ X ] f ≈ᵁ sub s 𝒞.∘ g
 
-  ≤UC-trans : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B} {h : A 𝒞.⇒ T₀ Z B}
-            → f ≤UC g → g ≤UC h → f ≤UC h
+  UCᵈ-sim : {f : A 𝒞.⇒ T₀ X B} → {g : A 𝒞.⇒ T₀ Y B} → f ≤UCᵈ g → Y ℐ.⇒ X
+  UCᵈ-sim = proj₁
+
+  ≤UC-refl : f ≤UC f
+  ≤UC-refl a = a , ≈ᵁ-refl
+
+  ≤UC-trans : f ≤UC g → g ≤UC h → f ≤UC h
   ≤UC-trans f≤g g≤h a =
     let (s₁ , e₁) = f≤g a
         (s₂ , e₂) = g≤h s₁
     in s₂ , ≈ᵁ-trans e₁ e₂
+
+  ≤UC-resp-≈ : f 𝒞.≈ f′ → g 𝒞.≈ g′ → f ≤UC g → f′ ≤UC g′
+  ≤UC-resp-≈ ef eg p a =
+    let s , e = p a
+    in s , ≈ᵁ-trans (≈C⇒≈ᵁ (𝒞.∘-resp-≈ʳ (𝒞.Equiv.sym ef)))
+                    (≈ᵁ-trans e (≈C⇒≈ᵁ (𝒞.∘-resp-≈ʳ eg)))
+
+  dummy-complete : f ≤UCᵈ g → f ≤UC g
+  dummy-complete {g = g} (s₀ , e) a = a ℐ.∘ s₀ , ≈ᵁ-trans (sub-cong a e) (≈C⇒≈ᵁ strict)
+    where strict : sub a 𝒞.∘ sub s₀ 𝒞.∘ g 𝒞.≈ sub (a ℐ.∘ s₀) 𝒞.∘ g
+          strict = let open 𝒞 in sym-assoc ○ ⟺ sub-homomorphism ⟩∘⟨refl
+
+  ≈ᵁ⇒≤UC : f ≈ᵁ g → f ≤UC g
+  ≈ᵁ⇒≤UC {g = g} h = dummy-complete (ℐ.id , ≈ᵁ-trans h (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ g))))
+
+  ≤UC⇒dummy : f ≤UC g → Σ[ s ∈ Y ℐ.⇒ X ] f ≈ᵁ sub s 𝒞.∘ g
+  ≤UC⇒dummy {f = f} le =
+    let s , e = le ℐ.id in s , ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ f))) e
+
+  ≤UCᵈ⇔≤UC : f ≤UCᵈ g ⇔ f ≤UC g
+  ≤UCᵈ⇔≤UC = mk⇔ dummy-complete ≤UC⇒dummy
 
   UC-compose : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B}
                {h : B 𝒞.⇒ T₀ P C′} {k : B 𝒞.⇒ T₀ Q C′}
@@ -189,22 +180,18 @@ module AbstractUC
   UC-compose {X = X} {Y = Y} {P = P} {Q = Q} {f = f} {g = g} {h = h} {k = k} f≤g h≤k {Z} a =
       s , (let open SetoidR (≈ᵁ-setoid _ _ _) in begin
         sub a 𝒞.∘ (h ∙ f)
-          ≈⟨ sub-cong a (∙-cong-arg f eh) ⟩
+          ≈⟨ sub-cong a (∙-cong-arg f (proj₂ (≤UC⇒dummy h≤k))) ⟩
         sub a 𝒞.∘ ext X (sub t 𝒞.∘ k) 𝒞.∘ f
-          ≈⟨ sub-cong a (ext-cong (sub t 𝒞.∘ k) ef) ⟩
+          ≈⟨ sub-cong a (ext-cong (sub t 𝒞.∘ k) (proj₂ (≤UC⇒dummy f≤g))) ⟩
         sub a 𝒞.∘ ext X (sub t 𝒞.∘ k) 𝒞.∘ sub sf 𝒞.∘ g
           ≈⟨ ≈C⇒≈ᵁ strict-final ⟩
         sub s 𝒞.∘ k ∙ g  ∎)
     where
       t : Q ℐ.⇒ P
-      t = proj₁ (h≤k ℐ.id)
-      eh : h ≈ᵁ sub t 𝒞.∘ k
-      eh = ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ h))) (proj₂ (h≤k ℐ.id))
+      t = proj₁ (≤UC⇒dummy h≤k)
 
       sf : Y ℐ.⇒ X
-      sf = proj₁ (f≤g ℐ.id)
-      ef : f ≈ᵁ sub sf 𝒞.∘ g
-      ef = ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ f))) (proj₂ (f≤g ℐ.id))
+      sf = proj₁ (≤UC⇒dummy f≤g)
 
       s : Y ⊗₀ Q ℐ.⇒ Z
       s = a ℐ.∘ ℐ.id ⊗₁ t ℐ.∘ sf ⊗₁ ℐ.id
@@ -233,5 +220,36 @@ module AbstractUC
           sub s ∘ ext Y k ∘ g  ∎
 
   -- Note the hom-equality of this packaging is 𝒞._≈_, NOT ≈ᵁ.
-  naiveKleisli : LocallyGradedCategory ℐ o′ ℓ′ e′
-  naiveKleisli = LGKleisli.naiveKleisli ℳ
+  Kleisli : LocallyGradedCategory ℐ o′ ℓ′ e′
+  Kleisli = LGKleisli.Kleisli triple
+
+  ≤UC-sub : (c : X ℐ.⇒ Y) (r : Y ℐ.⇒ X) → r ℐ.∘ c ℐ.≈ ℐ.id
+          → f ≤UC g → sub c 𝒞.∘ f ≤UC sub c 𝒞.∘ g
+  ≤UC-sub {X = X} {f = f} {g = g} c r inv p = dummy-complete (c ℐ.∘ s₀ ℐ.∘ r , eq)
+    where
+    s₀ : X ℐ.⇒ X
+    s₀ = proj₁ (p ℐ.id)
+
+    em : f ≈ᵁ sub s₀ 𝒞.∘ g
+    em = ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ f))) (proj₂ (p ℐ.id))
+
+    -- The conjugation, which is where the retraction is spent.
+    grade : (c ℐ.∘ s₀ ℐ.∘ r) ℐ.∘ c ℐ.≈ c ℐ.∘ s₀
+    grade = let open ℐ.HomReasoning in begin
+        (c ℐ.∘ s₀ ℐ.∘ r) ℐ.∘ c  ≈⟨ ℐ.assoc ⟩
+        c ℐ.∘ (s₀ ℐ.∘ r) ℐ.∘ c  ≈⟨ refl⟩∘⟨ ℐ.assoc ⟩
+        c ℐ.∘ s₀ ℐ.∘ r ℐ.∘ c    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ inv ⟩
+        c ℐ.∘ s₀ ℐ.∘ ℐ.id       ≈⟨ refl⟩∘⟨ ℐ.identityʳ ⟩
+        c ℐ.∘ s₀                ∎
+
+    strict : sub c 𝒞.∘ sub s₀ 𝒞.∘ g 𝒞.≈ sub (c ℐ.∘ s₀ ℐ.∘ r) 𝒞.∘ (sub c 𝒞.∘ g)
+    strict = let open 𝒞 in begin
+        sub c ∘ sub s₀ ∘ g                  ≈⟨ sym-assoc ⟩
+        (sub c ∘ sub s₀) ∘ g                ≈⟨ ⟺ sub-homomorphism ⟩∘⟨refl ⟩
+        sub (c ℐ.∘ s₀) ∘ g                  ≈⟨ sub-resp-≈ (ℐ.Equiv.sym grade) ⟩∘⟨refl ⟩
+        sub ((c ℐ.∘ s₀ ℐ.∘ r) ℐ.∘ c) ∘ g    ≈⟨ sub-homomorphism ⟩∘⟨refl ⟩
+        (sub (c ℐ.∘ s₀ ℐ.∘ r) ∘ sub c) ∘ g  ≈⟨ assoc ⟩
+        sub (c ℐ.∘ s₀ ℐ.∘ r) ∘ sub c ∘ g    ∎
+
+    eq : sub c 𝒞.∘ f ≈ᵁ sub (c ℐ.∘ s₀ ℐ.∘ r) 𝒞.∘ (sub c 𝒞.∘ g)
+    eq = ≈ᵁ-trans (sub-cong c em) (≈C⇒≈ᵁ strict)

@@ -1,125 +1,101 @@
 # Categorical Cryptography
 
-A framework for universally composable (UC) cryptography built on category
-theory, implemented in Agda (`--safe` throughout; the generic and abstract
-layers are also `--without-K`).  Protocols,
-functionalities, adversaries, and environments are all categorical data; UC
-emulation and its metatheory (reflexivity, transitivity, completeness of the
-dummy adversary, universal composition) are proved once, abstractly, and then
-instantiated at concrete models.
+A framework for universally composable (UC) cryptography built on
+category theory, implemented in Agda. Protocols, functionalities,
+adversaries, and environments are all categorical data; UC emulation
+and its metatheory (completeness of the dummy adversary, universal
+composition) are proved abstractly, and instantiated at concrete
+models.
 
 Documentation can be found [here](https://input-output-hk.github.io/categorical-crypto/).
 
-The development is organized in four layers, from generic category theory down
-to executable machines. Each layer only imports the ones above it.
+## 1. General category theory (`src/Categories/`)
 
-## 1. Categorical substrate (`src/Categories/`)
+- `GradedKleisli` (+ `.Regrade`): the [graded Kleisli
+  category](https://www.irif.fr/~mellies/papers/fossacs2016-final-paper.pdf)
+  , with the forgetful/free adjunction `F ⊣ U`. `Regrade` is the
+  change-of-grading functor, i.e. functoriality of `Kl` in the grading.
+- `GradedKleisli.Functorial.Category`: the category of graded
+  monads. Also shows functoriality of `Kl` in the graded monad itself.
+- `LocallyGraded`: [locally `ℐ`-graded categories](https://ncatlab.org/nlab/show/locally+graded+category) in their elementary presentation.
+  - `LocallyGraded.Kleisli` is the locally-graded Kleisli construction
+  - `LocallyGraded.FreeActegory` freely constructs an actegory from a locally graded category
+    `LocallyGraded.FreeActegory.Kleisli` the **bridge theorem**: the
+    free actegory of the locally graded Kleisli is equivalent to `GradedKleisli`.
+- `KernelCongruence`: the kernel congruence of a functor (`f ∼ g` iff
+  `F₁ f ≈ F₁ g`).
+- `Coherence.Monoidal` — solvers for morphism equality in monoidal
+  categories. Has an optional reflection front-end.
+- `Coherence.Symmetric` — same as the previous, but for SMCs and no
+  reflection so far.
 
-General-purpose category theory, independent of cryptography:
+## 2. Abstract UC layer (`src/CategoricalCrypto/`)
 
-- `Monad.Graded` — graded monads as graded Kleisli triples over a monoidal
-  grading category ℐ (`T₀`, `sub`, `return`, `ext`, and derived `T₁`, `μ`);
-  `Monad.Graded.Pullback` — change of grading along a lax monoidal functor.
-- `GradedKleisli` (+ `.Regrade`) — the *grade-on-object* graded Kleisli
-  category: objects are pairs ⟨X, A⟩ of an interface and a carrier, homs are
-  a coend `∃ k. 𝒞[A, T₀ k B] × ℐ[X ⊗ k, Y]` quotiented by `Slide`, with the
-  forgetful/free adjunction `F ⊣ U`. `Regrade` is the change-of-grading
-  functor between such categories.
-- `LocallyGraded` — locally ℐ-graded categories (categories enriched in
-  presheaves on ℐ under Day convolution, in elementary presentation; Wood
-  1976/78), the *grade-on-morphism* point of view. `LocallyGraded.Kleisli` is
-  the naive graded Kleisli presentation of a triple; `LocallyGraded.FreeActegory`
-  the free ℐ-actegory `∮` on a locally graded category; and
-  `LocallyGraded.FreeActegory.Kleisli` the **bridge theorem**: the free
-  actegory on the naive presentation *is* `GradedKleisli`; objects, homs,
-  identities and composition agree on the nose.  This connects the two points
-  of view and is the formal backbone of the two UC formulations below.
-- `KernelCongruence` — the kernel congruence of a functor (`f ∼ g` iff
-  `F₁ f ≈ F₁ g`), the notion of observational equality used everywhere.
-- `Diagram.Coend.Ext.Setoids` — concrete Setoid-valued coends with a
-  definitional mapping-out principle (the substrate for the free actegory).
-- `Functor.Monoidal.CurriedTensor` (+ `.Properties`) — the tensor `X ⊗ −` as
-  a graded monad; this is the graded monad of the standard instantiations.
-- `CoherenceIsos` — `Coh(ℐ)`, the free monoidal category on `Ob ℐ` with no
-  morphism generators, so every hom is a structural coherence iso; the
-  interpretation functor into ℐ is faithful.
-- `Coherence.Monoidal` (literate entry point) — reflection-based decision
-  procedures for morphism equality in (symmetric) monoidal categories
-  (`Structural`, `MorRewrite`/`MorSolve`, `SymRewrite`/`SymSolve`), used as
-  `FreeMonoidal` and `FreeStrictMonoidal` are their term languages.
+- `UCSetup` packages a base category 𝒞 of computations, a monoidal
+  category ℐ of adversarial interfaces, a graded Kleisli triple ℳ,
+  and an environment presheaf ℰ. The kernel congruence `≈ℰ` expresses
+  observational equivalence: no environment distinguishes the two
+  computations.
 
-## 2. Abstract UC layer (`src/CategoricalCrypto/`, parametric)
+- `Abstract2` develops UC security in the locally graded presentation.
+  A protocol is a graded Kleisli morphism `f : A ⇒ T₀ X B`, where X
+  is its adversarial interface; adversaries and simulators act by
+  regrading. Security uses contextual observational equivalence
+  `≈ᵁ`: two protocols agree under `≈ℰ` after every prefix context
+  `μ ∘ T₁ Y −`. UC emulation `_≤UC_` requires every adversary against
+  the real protocol to have a simulator against the ideal protocol.
+  The theory proves reflexivity, transitivity, completeness of the
+  dummy adversary, and universal composition for sequential
+  graded-Kleisli composition.
 
-Everything here is parametric over a single record, `UCSetup`: a base category
-𝒞 (machines), a monoidal category ℐ (adversary interfaces), a graded Kleisli
-triple ℳ over them (how an interface is attached to a machine), and a
-presheaf ℰ on 𝒞 (the environments). Security is always relative to the
-kernel congruence `≈ℰ` of ℰ — two morphisms are equal when no environment
-distinguishes them.
+  `GradeStable` says that each graded action `T₁ Y` preserves `≈ℰ`.
+  Under this assumption `≈ᵁ` is equivalent to `≈ℰ`, otherwise `≈ᵁ` is
+  finer.
 
-Two equivalent formulations of UC emulation are developed:
+- `Abstract2.Operation` proves that an operation on an indexed family of
+  protocols preserves `_≤UC_` if it preserves `≈ᵁ` and commutes with
+  regrading through a supplied map of simulators. This implies
+  compatibility with parallel composition and traces, but their manual
+  proofs are shorter.
 
-- `Abstract` — the *grade-on-object* formulation. Protocols live in the
-  graded Kleisli category `OAP` (open adversarial protocols) of ℳ, whose
-  morphisms carry an explicit attack component; `OP` restricts that component
-  to coherence isomorphisms ("attack-free" protocols). `_≤UC_` compares
-  OP-morphisms with two simulators (output-side and input-side), and the four
-  metatheorems are proved, with `UC-compose` using the invertibility of
-  OP-interface parts. `Abstract2.OAPEmulation` shows `_≤UC_` is definitionally
-  the same relation stated on OAP-homs, so OP earns its existence exactly at
-  the composition theorem.
-- `Abstract2` — the *locally graded* (one-sided) formulation. A protocol is a
-  bare graded-Kleisli morphism `f : A ⇒ T₀ X B` (the adversary interface X is
-  the grade), and an adversary/simulator acts by reindexing (`sub`).
-  Observational equivalence is the U-kernel `_≈ᵁ_` — all prefix-context
-  components `μ ∘ T₁ Y f` agree under `≈ℰ` — and over it all four
-  metatheorems, including universal composition, are **hypothesis-free**.
-  `GradeStable`, the ℳ-module property of ℰ, is sufficient for the converse
-  of `≈ᵁ ⇒ ≈ℰ` but not equivalent to it, and is needed only by `bridge`,
-  which ingests a bare `≈ℰ` security artifact into the compositional world:
-  a conservation law paid once at artifact ingestion, never in the metatheory.
-- `Abstract2.Equivalence` — the machine-checked hierarchy connecting the two:
-  `≤UC` over `≈ᵁ` implies OAP-`≤UC` at unit input grade implies the bare
-  one-sided relation, unconditionally; both converses hold under
-  `GradeStable`, which is sufficient but not known to be necessary.
+- `Abstract2.Parallel` proves compatibility of `_≤UC_` with parallel
+  composition. Note that this requires a monoidal structure on `𝒞` and
+  an effect-combination map `χ : T X B ⊗ T Y D ⇒ T (X ⊗ Y) (B ⊗ D)`,
+  both of which need some compatibility laws.
 
-`Standard` / `Standard2` instantiate the respective layers at 𝒞 = ℐ = a
-monoidal category of machines with ℳ = the curried tensor (attaching an
-interface = tensoring a channel on). `RandomOracle` / `RandomOracle2` package
-a Merkle–Damgård-vs-random-oracle security proof as a record of concrete
-artifacts (`ROData`) and derive `MD≤UC-RO` from it.
+- `Abstract2.Trace` proves compatibility of `_≤UC_` with a lifted feedback
+  operation that commutes with regrading and preserves `≈ᵁ`.
 
-## 3. Probabilistic model over axiomatized machines
+- `UCSetup.Morphism` defines structure-preserving maps between setups,
+  combining a graded-monad morphism with a map of environment
+  presheaves. `Abstract2.Morphism` proves preservation and reflection
+  of UC emulation under suitable hypotheses on these maps and
+  grade stability.
 
-The concrete environment model — machines indexed by a security parameter,
-distinguished up to vanishing total-variation distance under polynomial query
-budgets — is built parametrically over an *axiomatized* machine layer, so it
-is independent of any particular machine implementation:
+- `Abstract2.WideSubcategory` restricts a setup to an admissible class
+  of computations closed under the graded-monad operations, and
+  relates security in the restricted and ambient setups.
 
-- `MachineAxioms` — one security level as a record: a monoidal category 𝕄, a
-  verdict channel, observation semantics (`⟦_⟧`, a pseudometric `adv` on
-  observations), and a query-budget instrument `QB` with its composition laws.
-- `Data.Nat.Poly` — polynomial bounds on ℕ-functions and their closure
-  properties.
-- `FamilyCategory` — the security-parameter family category `𝒞^ω`: objects
-  are ℕ-indexed families of 𝕄-objects, morphisms carry a (proof-irrelevant)
-  polynomial query-budget witness `PolyQB`.
-- `VanishingTV` — the vanishing-TV relation `_∼ᵛ_` on observation sequences; the
-  environment presheaf `ℰᵗᵛ` on `𝒞^ω` whose tests are budgeted *joint
-  ancilla tests*; the proof that this ℰ is grade-stable, given
-  `MachineAxioms.HomTransportTrivial`, that transport along an object loop is
-  invisible on closures, which `UIP Obj` implies (so `≈ᵁ = ≈ℰ` here and the
-  `Abstract2` bridge is free); and the ε-bounded relation `_≈ℰ[_]_`
-  with `absorb`, the ingestion gate turning concrete vanishing bounds into
-  kernel equalities.
-- `StandardTV` — everything plugged together: the `Standard2` setup at
-  𝒞 = ℐ = `𝒞^ω`, with `GradeStable` discharged from that hypothesis and
-  `≈ᵁ ⇔ ≈ℰ` as the headline corollary.
+- `Standard2` specializes the theory to a monoidal category with
+  𝒞 = ℐ and `T₀ X B = X ⊗ B`: attaching an adversarial interface
+  is tensoring with it. `Standard2.Morphism` constructs maps between
+  these setups from strong monoidal functors and compatible maps
+  of environment presheaves.
+  `Standard2.Parallel` is an optional extension for symmetric monoidal
+  categories, deriving `ParallelStable` and `UC-⊠` without extra
+  assumptions on the environment presheaf.
+  `Standard2.Trace` lifts a trace on the computation category to protocols,
+  assuming trace congruence and output naturality (absent from the current
+  library's `Traced` record), with contextual trace preservation required
+  separately for `UC-trace`.
 
-## 4. Concrete machine layer
+`Abstract` and `Standard` are the older grade-on-object presentation.
+`Abstract2.Equivalence` and `Abstract2.OAPEmulation` relate it to the
+locally graded theory.
 
-The executable model (predating the layers above; connecting it to
-`MachineAxioms` is planned work):
+## 3. Concrete machine layer
+
+The executable model, predating the abstract layers above:
 
 - `Channel/` — channels (typed communication ports), their category, and a
   wiring DSL (`Selection`).
