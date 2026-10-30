@@ -8,7 +8,6 @@
 module CategoricalCrypto.Examples.TraceCompose where
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
-open import Data.Nat.Properties using () renaming (_≟_ to _≟ℕ_)
 open import Relation.Nullary.Decidable using (toWitnessFalse)
 open import Data.List.NonEmpty using (List⁺; _∷_)
 open import CategoricalCrypto.Channel.Core
@@ -16,18 +15,10 @@ open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core using (Machine; MkMachine; MachineType; _⊗₁_; tr; _∘_; id)
 open import CategoricalCrypto.Machine.Trace
 open import CategoricalCrypto.Machine.Trace.Compose
-
-Cmd : Channel
-Cmd = ⊤ ⇿ ℕ
+open import CategoricalCrypto.Examples.TraceCounter using (Cmd; _-⟦_/_⟧ᶜ_; Inc; Counter; _≟O_)
 
 ------------------------------------------------------------------------------
 -- The counter of `Examples.TraceCounter`, checked on inputs
-
-data _-⟦_/_⟧ᶜ_ : MachineType Cmd I ℕ where
-  Inc : ∀ {n} → n -⟦ ϵ ⊗R ↑ᵢ tt / just (ϵ ⊗R ↑ₒ suc n) ⟧ᶜ suc n
-
-Counter : Machine Cmd I
-Counter = MkMachine _-⟦_/_⟧ᶜ_
 
 -- Every input steps, so a checker needs no hint and never fails.
 opaque
@@ -175,17 +166,8 @@ module Composed where
     out-of-order : run (⟨ inj₂ tt ∷ inj₁ tt ∷ inj₁ tt ∷ [] , inc ⟩ ∷ []) ≡ nothing
     out-of-order = refl
 
-  -- Exact outputs need the representation of `_⊗₀_`.
-  opaque
-    unfolding _⊗₀_
-
-    _≟O_ : DecidableEquality (Output (Counter ∘ id))
-    inj₁ m ≟O inj₁ n with m ≟ℕ n
-    ... | yes refl = yes refl
-    ... | no m≢n   = no λ { refl → m≢n refl }
-
   -- Answering 2 first, which the counter cannot do.
-  skip : List (Maybe (Output (Counter ∘ id)))
+  skip : List (Maybe (Output Counter))
   skip = just (ϵ ⊗R ↑ₒ 2) ∷ []
 
   -- The composite checker is complete, so `passing?` decides whether any
