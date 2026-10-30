@@ -28,6 +28,9 @@ Documentation can be found [here](https://input-output-hk.github.io/categorical-
   categories. Has an optional reflection front-end.
 - `Coherence.Symmetric` — same as the previous, but for SMCs and no
   reflection so far.
+- `GConstructionMonoidal` — the monoidal G-construction over a traced
+  monoidal category, with coherence proofs adapted to the current
+  symmetric solver.
 
 ## 2. Abstract UC layer (`src/CategoricalCrypto/`)
 
@@ -93,7 +96,44 @@ Documentation can be found [here](https://input-output-hk.github.io/categorical-
 `Abstract2.Equivalence` and `Abstract2.OAPEmulation` relate it to the
 locally graded theory.
 
-## 3. Concrete machine layer
+## 3. Generic machine layer (`src/CategoricalCrypto/Machines/`)
+
+This layer is independent of probability theory. `Core` defines Mealy
+machines over an arbitrary symmetric monoidal category; it requires no
+monad. Additional structure is supplied explicitly:
+
+- `Frame`, `Sim`, and `Category` develop machine frames, simulation, and
+  the machine category.
+- `Tensor` and `Bundle` provide the symmetric monoidal machine category
+  with coproduct-based interface tensor, using monoidal distributivity
+  and a wide subcategory of pure maps (`PureSub`).
+- `Iteration.Elgot` supplies iteration for `Trace` and its congruence,
+  vanishing, and Fubini laws.
+- `G` packages the traced machine category, its trace laws (including
+  naturality and superposing), and the monoidal G-construction
+  `Mealy-Gᴹ`.
+- `Sim.Lax` provides generic initialization-prefix simulation.
+
+`CategoricalCrypto` imports `Machines.G` and `Machines.Sim.Lax` so its
+typecheck covers the complete generic layer, without opening their
+parameterized APIs.
+
+### Integration order
+
+The `integrate/generic-machines` branch is based on `protocol-model`
+(`b1623dddf`) and extracts the generic dependency closure from
+`protocol-rewrite` (`f280e04f3`). Review order: generic category
+extensions, G-construction, machine core and tensor, then iteration and
+trace. The existing abstract UC theory and legacy machine APIs are
+preserved.
+
+Probability theory can follow this layer. The `Dₚ` instantiation
+(`Machines.Base`), its concrete adapters, all `Machines.Run` modules,
+and the concrete protocol/UC bridge depend on probability and are not
+included here. They must follow the probability foundations; postponing
+probability does not make those consumers independent of it.
+
+## 4. Legacy concrete machine layer
 
 The executable model, predating the abstract layers above:
 
