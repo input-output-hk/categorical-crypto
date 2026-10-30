@@ -38,7 +38,7 @@ module AbstractUC
     f f′ h : A 𝒞.⇒ T₀ X B
     g g′ : A 𝒞.⇒ T₀ Y B
 
-  infix  4 _≈ᵁ_ _≤UC_
+  infix  4 _≈ᵁ_ _≈ctx_ _≤UC_
 
   ------------------------------------------------------------------------
   -- The U-kernel ≈ᵁ and its congruences
@@ -46,6 +46,20 @@ module AbstractUC
 
   _≈ᵁ_ : (f g : A 𝒞.⇒ T₀ X B) → Set (o ⊔ cs ⊔ ℓs)
   _≈ᵁ_ {X = X} f g = ∀ Y → μ Y X 𝒞.∘ T₁ Y f ≈ℰ μ Y X 𝒞.∘ T₁ Y g
+
+  _≈ctx_ : (f g : A 𝒞.⇒ T₀ X B) → Set (o ⊔ o′ ⊔ ℓ′ ⊔ cs ⊔ ℓs)
+  _≈ctx_ {A = A} f g = ∀ {D W} (h : D 𝒞.⇒ T₀ W A) → f ∙ h ≈ℰ g ∙ h
+
+  ≈ᵁ⇒≈ctx : f ≈ᵁ g → f ≈ctx g
+  ≈ᵁ⇒≈ctx e h = ≈ℰ-cong-pre h (e _)
+
+  -- The identity on T₀ W A is a grade-W prefix with domain T₀ W A.
+  ≈ctx⇒≈ᵁ : f ≈ctx g → f ≈ᵁ g
+  ≈ctx⇒≈ᵁ e W = ≈ℰ-trans (≈C⇒≈ℰ (𝒞.Equiv.sym 𝒞.identityʳ))
+    (≈ℰ-trans (e {W = W} 𝒞.id) (≈C⇒≈ℰ 𝒞.identityʳ))
+
+  ≈ᵁ⇔≈ctx : (f ≈ᵁ g) ⇔ (f ≈ctx g)
+  ≈ᵁ⇔≈ctx = mk⇔ ≈ᵁ⇒≈ctx ≈ctx⇒≈ᵁ
 
   ≈ᵁ-refl : f ≈ᵁ f
   ≈ᵁ-refl _ = ≈ℰ-refl
@@ -83,6 +97,9 @@ module AbstractUC
                 (≈ℰ-sym (≈C⇒≈ℰ (∙-decomp h′ f W))))
     where extℰ : ext (W ⊗₀ X) h ≈ℰ ext (W ⊗₀ X) h′
           extℰ = ≈ℰ-trans (≈ℰ-sym (≈C⇒≈ℰ (μT h))) (≈ℰ-trans (e (W ⊗₀ X)) (≈C⇒≈ℰ (μT h′)))
+
+  ≈ctx-compose : f ≈ctx f′ → g ≈ctx g′ → g ∙ f ≈ctx g′ ∙ f′
+  ≈ctx-compose ef eh = ≈ᵁ⇒≈ctx (≈ᵁ-trans (ext-cong _ (≈ctx⇒≈ᵁ ef)) (∙-cong-arg _ (≈ctx⇒≈ᵁ eh)))
 
   ------------------------------------------------------------------------
   -- ≈ᵁ refines ≈ℰ; GradeStable suffices for the converse
