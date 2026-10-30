@@ -186,7 +186,8 @@ module _ (G K : Hypergraph FlatGen) where
     ... | v∈out' | v∈in' with ∈-map⁻ C.remapP v∈out' | ∈-map⁻ C.injL v∈in'
     ... | k₀ , k₀∈out , v≡rk | i₀ , i₀∈in , v≡injL =
           dom-and-out→absurd k₀ eb
-            (remap-↑ˡ→∈ K.dom C.lookup-cod k₀ i₀ (trans (sym v≡rk) v≡injL))
+            (remap-↑ˡ→∈ K.dom C.lookup-cod k₀ i₀
+              (trans (sym (C.remapP-≡ k₀)) (trans (sym v≡rk) v≡injL)))
             k₀∈out
 
     NoInvH-compose : ∀ (gs : List (Fin G.nE)) (ks : List (Fin K.nE))

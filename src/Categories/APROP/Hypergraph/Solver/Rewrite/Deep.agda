@@ -195,11 +195,12 @@ module At (P Q : ObjTerm) where
                → List X → HomTerm P₀ Q₀ → List X → List (Foc A B P Q)
   deepFocAllAt s ls (x ⊗₁ id {Var w}) rs = deepFocAllAt s ls x (w ∷ rs)
   deepFocAllAt s ls (id {Var w} ⊗₁ x) rs = deepFocAllAt s (ls ∷ʳ w) x rs
-  deepFocAllAt s [] core [] = mapMaybe (tryEmb s core) (subMatchAll ⟪ core ⟫ ⟪ s ⟫)
+  deepFocAllAt s [] core [] = mapMaybe (tryEmb s core)
+    (withTranslation core (λ H → withTranslation s (subMatchAll H)))
   deepFocAllAt s ls core rs =
     padded (length ls)
            (map (λ w → filter (λ v → S.vlab v ≟X w) (allFin S.nV)) (ls ++ rs))
-           (subMatchAll ⟪ core ⟫ ⟪ s ⟫)
+           (withTranslation core (λ H → withTranslation s (subMatchAll H)))
     where module S = Hypergraph ⟪ s ⟫
 
 --------------------------------------------------------------------------------

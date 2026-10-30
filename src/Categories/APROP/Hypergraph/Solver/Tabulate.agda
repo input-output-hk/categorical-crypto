@@ -10,7 +10,8 @@
 -- at every application.
 --
 -- Dependent edge labels need a Σ-Vec storing their original boundaries.
--- lookup∘tabulate then transports each label to the tabulated boundaries.
+-- WithTransport permits a proved lazy transport: FlatGen can retain boundary
+-- equalities without forcing them while Search and Verify inspect its payload.
 --------------------------------------------------------------------------------
 
 module Categories.APROP.Hypergraph.Solver.Tabulate where
@@ -33,7 +34,11 @@ module _ {X : Set} {Gen : List X → List X → Set} where
   ElabEntry = Σ[ st ∈ (List X × List X) ] Gen (proj₁ st) (proj₂ st)
 
   private
-    module Impl (H : Hypergraph Gen)
+    module Impl
+      (transport : ∀ {As Bs As' Bs'} → As ≡ As' → Bs ≡ Bs' → Gen As Bs → Gen As' Bs')
+      (transport-≡ : ∀ {As Bs As' Bs'} (p : As ≡ As') (q : Bs ≡ Bs') (g : Gen As Bs)
+                   → transport p q g ≡ subst₂ Gen p q g)
+      (H : Hypergraph Gen)
       (let module H = Hypergraph H)
       (vlabV : Vec X H.nV)
       (einV eoutV : Vec (List (Fin H.nV)) H.nE)
@@ -53,8 +58,8 @@ module _ {X : Set} {Gen : List X → List X → Set} where
       eq-out e = trans (map-cong vlab-ok (lookup eoutV e))
                        (cong (map H.vlab) (eout-ok e))
 
-      -- Sharing this transport makes the two label proofs line up
-      -- definitionally when the entry equation is refl.
+      -- The entry equation relates the stored boundaries to the original label;
+      -- the transport implementation decides whether those proofs must reduce.
       transport-entry
         : ∀ {As' Bs' As Bs} (g : Gen As Bs)
             (entry : ElabEntry)
@@ -62,7 +67,7 @@ module _ {X : Set} {Gen : List X → List X → Set} where
             (p : As' ≡ As) (q : Bs' ≡ Bs)
         → Gen As' Bs'
       transport-entry g entry eq p q =
-        subst₂ Gen
+        transport
           (trans (cong (λ z → proj₁ (proj₁ z)) eq) (sym p))
           (trans (cong (λ z → proj₂ (proj₁ z)) eq) (sym q))
           (proj₂ entry)
@@ -73,7 +78,7 @@ module _ {X : Set} {Gen : List X → List X → Set} where
             (eq : entry ≡ ((As , Bs) , g))
             (p : As' ≡ As) (q : Bs' ≡ Bs)
         → subst₂ Gen (sym p) (sym q) g ≡ transport-entry g entry eq p q
-      transport-entry-refl g .((_ , _) , g) refl p q = refl
+      transport-entry-refl g .((_ , _) , g) refl p q = sym (transport-≡ (sym p) (sym q) g)
 
       tab-elab : ∀ e → Gen (map (lookup vlabV) (lookup einV e))
                            (map (lookup vlabV) (lookup eoutV e))
@@ -124,17 +129,29 @@ module _ {X : Set} {Gen : List X → List X → Set} where
         ; ψ-elab    = ψ-elab-tab
         }
 
-  private
-    module Tab (H : Hypergraph Gen) (let module H = Hypergraph H) =
-      Impl H
-        (tabulate H.vlab) (tabulate H.ein) (tabulate H.eout)
-        (tabulate (λ e → (map H.vlab (H.ein e) , map H.vlab (H.eout e)) , H.elab e))
-        (lookup∘tabulate H.vlab) (lookup∘tabulate H.ein) (lookup∘tabulate H.eout)
-        (lookup∘tabulate
-          (λ e → (map H.vlab (H.ein e) , map H.vlab (H.eout e)) , H.elab e))
+  module WithTransport
+    (transport : ∀ {As Bs As' Bs'} → As ≡ As' → Bs ≡ Bs' → Gen As Bs → Gen As' Bs')
+    (transport-≡ : ∀ {As Bs As' Bs'} (p : As ≡ As') (q : Bs ≡ Bs') (g : Gen As Bs)
+                 → transport p q g ≡ subst₂ Gen p q g)
+    where
+
+    private
+      module Tab (H : Hypergraph Gen) (let module H = Hypergraph H) =
+        Impl transport transport-≡ H
+          (tabulate H.vlab) (tabulate H.ein) (tabulate H.eout)
+          (tabulate (λ e → (map H.vlab (H.ein e) , map H.vlab (H.eout e)) , H.elab e))
+          (lookup∘tabulate H.vlab) (lookup∘tabulate H.ein) (lookup∘tabulate H.eout)
+          (lookup∘tabulate
+            (λ e → (map H.vlab (H.ein e) , map H.vlab (H.eout e)) , H.elab e))
+
+    tabH : Hypergraph Gen → Hypergraph Gen
+    tabH = Tab.tabbed
+
+    tab-≅ᴴ : (H : Hypergraph Gen) → tabH H ≅ᴴ H
+    tab-≅ᴴ = Tab.tab-iso
 
   tabH : Hypergraph Gen → Hypergraph Gen
-  tabH = Tab.tabbed
+  tabH = WithTransport.tabH (subst₂ Gen) (λ _ _ _ → refl)
 
   tab-≅ᴴ : (H : Hypergraph Gen) → tabH H ≅ᴴ H
-  tab-≅ᴴ = Tab.tab-iso
+  tab-≅ᴴ = WithTransport.tab-≅ᴴ (subst₂ Gen) (λ _ _ _ → refl)

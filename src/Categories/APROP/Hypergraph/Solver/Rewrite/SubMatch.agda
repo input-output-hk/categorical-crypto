@@ -13,6 +13,7 @@ open import Categories.APROP
 module Categories.APROP.Hypergraph.Solver.Rewrite.SubMatch (sig : APROPSignature) where
 
 open import Categories.APROP.Hypergraph.Model.Core
+open import Categories.APROP.Hypergraph.Model.Evaluate
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 open import Categories.APROP.Hypergraph.Solver.Match.PBij
 open import Categories.APROP.Hypergraph.Solver.Match.Search sig
@@ -50,8 +51,9 @@ verifySub L S φB ψB =
 
 subMatchAll : (L S : Hypergraph FlatGen) → List (L ↪ᴴ S)
 subMatchAll L S =
-  mapMaybe (λ { (φB , ψB) → verifySub L S φB ψB })
-           (searchAll L S emptyBij emptyBij)
+  forceCounts (λ L → forceCounts (λ S →
+    mapMaybe (λ { (φB , ψB) → verifySub L S φB ψB })
+             (searchAll L S emptyBij emptyBij)) S) L
 
 subMatch : (L S : Hypergraph FlatGen) → Maybe (L ↪ᴴ S)
 subMatch L S = head (subMatchAll L S)

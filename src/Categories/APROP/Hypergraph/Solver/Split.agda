@@ -65,7 +65,8 @@ eq? : (f g : HomTerm A B) → Maybe (f ≡ g)
 eq? f g = eqH? f g refl refl
 
 fallback : (f g : HomTerm A B) → Maybe (f ≈Term g)
-fallback f g = Maybe.map (λ iso → soundness {f = f} {g = g} iso) (findIsoᵀ ⟪ f ⟫ ⟪ g ⟫)
+fallback f g = Maybe.map (λ iso → soundness {f = f} {g = g} iso)
+  (withTranslation f (λ H → withTranslation g (findIsoᵀ H)))
 
 -- `peel` splits one level and leaves the fallback to its caller; `solveSplit?`
 -- falls back at the stuck decomposition level, preserving the smaller window.

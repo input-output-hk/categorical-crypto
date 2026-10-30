@@ -4,11 +4,12 @@ module Data.List.Properties.Ext where
 
 open import Axiom.UniquenessOfIdentityProofs
 open import Data.Empty
-open import Data.Fin.Base hiding (_+_)
+open import Data.Fin.Base hiding (_+_; pred)
 open import Data.List.Base
 open import Data.List.Properties
 open import Data.List.Relation.Unary.All using (All; _∷_)
 open import Data.List.Relation.Unary.AllPairs using (_∷_)
+open import Data.List.Relation.Unary.Any using (Any; here; there; index)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe.Base as Maybe using (Maybe; just; nothing)
 open import Data.Nat.Base
@@ -67,6 +68,21 @@ map-∘-id p xs = trans (map-∘-cong p xs) (map-id xs)
 All-lookup : All P xs → (i : Fin (length xs)) → P (lookup xs i)
 All-lookup (p ∷ _)  zero    = p
 All-lookup (_ ∷ ps) (suc i) = All-lookup ps i
+
+-- Eliminate the witness against the aligned list without constructing,
+-- casting and then eliminating an intermediate Fin index.
+lookup-along : (xs : List A) (ys : List B) → length xs ≡ length ys → Any P xs → B
+lookup-along [] ys eq ()
+lookup-along (_ ∷ _) [] () p
+lookup-along (_ ∷ xs) (y ∷ ys) eq (here _) = y
+lookup-along (_ ∷ xs) (_ ∷ ys) eq (there p) = lookup-along xs ys (cong pred eq) p
+
+lookup-along-index : (xs : List A) (ys : List B) (eq : length xs ≡ length ys) (p : Any P xs)
+                   → lookup-along xs ys eq p ≡ lookup ys (cast eq (index p))
+lookup-along-index [] ys eq ()
+lookup-along-index (_ ∷ _) [] () p
+lookup-along-index (_ ∷ xs) (_ ∷ ys) eq (here _) = refl
+lookup-along-index (_ ∷ xs) (_ ∷ ys) eq (there p) = lookup-along-index xs ys (cong pred eq) p
 
 lookup-injective-unique : Unique xs
                         → ∀ (i j : Fin (length xs))
