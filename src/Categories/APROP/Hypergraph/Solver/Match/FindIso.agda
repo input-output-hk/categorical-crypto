@@ -10,12 +10,13 @@ open import Categories.APROP
 module Categories.APROP.Hypergraph.Solver.Match.FindIso (sig : APROPSignature) where
 
 open import Categories.APROP.Hypergraph.Model.Core
+open import Categories.APROP.Hypergraph.Model.Evaluate
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 open import Categories.APROP.Hypergraph.Model.Iso
 open import Categories.APROP.Hypergraph.Solver.Match.PBij
 open import Categories.APROP.Hypergraph.Solver.Match.Search sig
 open import Categories.APROP.Hypergraph.Solver.Match.Verify sig
-open import Categories.APROP.Hypergraph.Solver.Tabulate
+import Categories.APROP.Hypergraph.Solver.Tabulate as Tabulate
 
 open import Data.Maybe.Base as Maybe
 import Data.Nat.Properties as Nat
@@ -41,10 +42,13 @@ findIso H J with Hypergraph.nV H Nat.≟ Hypergraph.nV J
   searchIso H J φ₀ emptyBij          >>= λ { (φ , ψ) →
   Verify.verify H J φ ψ }
 
+private module Tab = Tabulate.WithTransport retype retype-≡
+
 -- Tabulation shares field results (see Solver.Tabulate). Consumers inspecting
 -- only is-just do not force the transport's isomorphism proof fields.
 findIsoᵀ : (H J : Hypergraph FlatGen) → Maybe (H ≅ᴴ J)
 findIsoᵀ H J =
-  Maybe.map
-    (λ iso → trans-≅ᴴ (sym-≅ᴴ (tab-≅ᴴ H)) (trans-≅ᴴ iso (tab-≅ᴴ J)))
-    (findIso (tabH H) (tabH J))
+  forceCounts (λ H → forceCounts (λ J →
+    Maybe.map
+      (λ iso → trans-≅ᴴ (sym-≅ᴴ (Tab.tab-≅ᴴ H)) (trans-≅ᴴ iso (Tab.tab-≅ᴴ J)))
+      (findIso (Tab.tabH H) (Tab.tabH J))) J) H

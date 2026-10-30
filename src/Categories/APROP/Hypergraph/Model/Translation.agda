@@ -10,6 +10,7 @@ open import Categories.APROP
 module Categories.APROP.Hypergraph.Model.Translation (sig : APROPSignature) where
 
 open import Categories.APROP.Hypergraph.Model.Core
+open import Categories.APROP.Hypergraph.Model.Evaluate
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
 
@@ -112,3 +113,72 @@ module _ {ℓ} (Q : Hypergraph FlatGen → Set ℓ)
   HomTermRec (α⇒ {A}{B}{C})  = q-id ((A ⊗₀ B) ⊗₀ C)
   HomTermRec (α⇐ {A}{B}{C})  = q-id ((A ⊗₀ B) ⊗₀ C)
   HomTermRec (σ {A}{B})      = q-swap A B
+
+-- Force each operand's counts before constructing its parent, not the entire
+-- graph. The dependent continuation retains the original graph's label proofs.
+module _ {ℓ} {Q : Hypergraph FlatGen → Set ℓ} where
+
+  composeWith : (k : (H : Hypergraph FlatGen) → Q H)
+              → (G K : Hypergraph FlatGen) (p : codL G ≡ domL K)
+              → Q (hComposeP G K p)
+  composeWith k G K =
+    forceCounts (λ G → forceCounts (λ K p → k (hComposeP G K p)) K) G
+
+  composeWith-≡ : (k : (H : Hypergraph FlatGen) → Q H)
+                → (G K : Hypergraph FlatGen) (p : codL G ≡ domL K)
+                → composeWith k G K p ≡ k (hComposeP G K p)
+  composeWith-≡ k G K p = trans
+    (cong (λ h → h p)
+      (forceCounts-≡ (λ G → forceCounts (λ K p → k (hComposeP G K p)) K) G))
+    (cong (λ h → h p) (forceCounts-≡ (λ K p → k (hComposeP G K p)) K))
+
+  tensorWith : (k : (H : Hypergraph FlatGen) → Q H)
+             → (G K : Hypergraph FlatGen) → Q (hTensor G K)
+  tensorWith k G K = forceCounts (λ G → forceCounts (λ K → k (hTensor G K)) K) G
+
+  tensorWith-≡ : (k : (H : Hypergraph FlatGen) → Q H)
+               → (G K : Hypergraph FlatGen) → tensorWith k G K ≡ k (hTensor G K)
+  tensorWith-≡ k G K = trans
+    (forceCounts-≡ (λ G → forceCounts (λ K → k (hTensor G K)) K) G)
+    (forceCounts-≡ (λ K → k (hTensor G K)) K)
+
+withTranslation : ∀ {ℓ} {Q : Hypergraph FlatGen → Set ℓ}
+                → (f : HomTerm A B) (k : (H : Hypergraph FlatGen) → Q H) → Q ⟪ f ⟫
+withTranslation (Agen f) k = k (hGen f)
+withTranslation (id {A}) k = k (hId A)
+withTranslation (g ∘ f) k =
+  withTranslation f (λ G → withTranslation g (λ K → composeWith k G K))
+    (trans (⟪⟫-codL f) (sym (⟪⟫-domL g)))
+withTranslation (f ⊗₁ g) k =
+  withTranslation f (λ G → withTranslation g (λ K → tensorWith k G K))
+withTranslation (λ⇒ {A}) k = k (hId A)
+withTranslation (λ⇐ {A}) k = k (hId A)
+withTranslation (ρ⇒ {A}) k = k (hId (A ⊗₀ unit))
+withTranslation (ρ⇐ {A}) k = k (hId (A ⊗₀ unit))
+withTranslation (α⇒ {A}{B}{C}) k = k (hId ((A ⊗₀ B) ⊗₀ C))
+withTranslation (α⇐ {A}{B}{C}) k = k (hId ((A ⊗₀ B) ⊗₀ C))
+withTranslation (σ {A}{B}) k = k (hSwap A B)
+
+withTranslation-≡ : ∀ {ℓ} {Q : Hypergraph FlatGen → Set ℓ}
+                  → (f : HomTerm A B) (k : (H : Hypergraph FlatGen) → Q H)
+                  → withTranslation f k ≡ k ⟪ f ⟫
+withTranslation-≡ (Agen f) k = refl
+withTranslation-≡ (id {A}) k = refl
+withTranslation-≡ (g ∘ f) k = trans
+  (cong (λ h → h p)
+    (withTranslation-≡ f (λ G → withTranslation g (λ K → composeWith k G K))))
+  (trans
+    (cong (λ h → h p) (withTranslation-≡ g (λ K → composeWith k ⟪ f ⟫ K)))
+    (composeWith-≡ k ⟪ f ⟫ ⟪ g ⟫ p))
+  where p = trans (⟪⟫-codL f) (sym (⟪⟫-domL g))
+withTranslation-≡ (f ⊗₁ g) k = trans
+  (withTranslation-≡ f (λ G → withTranslation g (λ K → tensorWith k G K)))
+  (trans (withTranslation-≡ g (λ K → tensorWith k ⟪ f ⟫ K))
+    (tensorWith-≡ k ⟪ f ⟫ ⟪ g ⟫))
+withTranslation-≡ (λ⇒ {A}) k = refl
+withTranslation-≡ (λ⇐ {A}) k = refl
+withTranslation-≡ (ρ⇒ {A}) k = refl
+withTranslation-≡ (ρ⇐ {A}) k = refl
+withTranslation-≡ (α⇒ {A}{B}{C}) k = refl
+withTranslation-≡ (α⇐ {A}{B}{C}) k = refl
+withTranslation-≡ (σ {A}{B}) k = refl

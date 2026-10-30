@@ -12,7 +12,7 @@
 module Categories.APROP.Hypergraph.Util.Prune where
 
 open import Data.Empty
-open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_; splitAt)
+open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_; splitAt; cast)
 open import Data.Fin.Properties using (_≟_; splitAt-↑ˡ; splitAt-↑ʳ; ↑ˡ-injective; ↑ʳ-injective)
 open import Data.List using (List; length; filter; allFin; lookup; map)
 open import Data.List.Membership.Propositional
@@ -90,6 +90,20 @@ module _ {n m : ℕ} where
   open import Data.List.Membership.DecPropositional (_≟_ {n = n}) using (_∈?_)
   remap : (xs : List (Fin n)) → (Fin (length xs) → Fin m) → Fin n → Fin (m + count-non xs)
   remap xs f v = [ (λ i → f i ↑ˡ count-non xs) , (λ j → m ↑ʳ j) ]′ (classify xs v)
+
+  -- Membership selects the first occurrence even when the boundary repeats;
+  -- non-boundary vertices retain their ascending allFin order.
+  remap-lookup : (xs : List (Fin n)) (ys : List (Fin m))
+               → length xs ≡ length ys → Fin n → Fin (m + count-non xs)
+  remap-lookup xs ys eq v with v ∈? xs
+  ... | yes p = lookup-along xs ys eq p ↑ˡ count-non xs
+  ... | no q = m ↑ʳ index (∈-filter⁺ (nonMem? xs) (∈-allFin v) q)
+
+  remap-lookup-≡ : (xs : List (Fin n)) (ys : List (Fin m)) (eq : length xs ≡ length ys)
+                 → ∀ v → remap-lookup xs ys eq v ≡ remap xs (lookup ys ∘ cast eq) v
+  remap-lookup-≡ xs ys eq v with v ∈? xs
+  ... | yes p = cong (_↑ˡ count-non xs) (lookup-along-index xs ys eq p)
+  ... | no q = refl
 
   remap-inj₁ : (xs : List (Fin n)) (f : Fin (length xs) → Fin m)
                (v : Fin n) (i : Fin (length xs))

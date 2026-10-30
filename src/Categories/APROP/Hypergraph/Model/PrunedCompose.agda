@@ -47,7 +47,10 @@ module hComposeP-impl
   lookup-cod i = lookup G.cod (cast dom-cod-len i)
 
   remapP : Fin K.nV → Fin (G.nV + count-non K.dom)
-  remapP = remap K.dom lookup-cod
+  remapP = remap-lookup K.dom G.cod dom-cod-len
+
+  remapP-≡ : ∀ v → remapP v ≡ remap K.dom lookup-cod v
+  remapP-≡ = remap-lookup-≡ K.dom G.cod dom-cod-len
 
   nV-P : ℕ
   nV-P = G.nV + count-non K.dom
@@ -69,7 +72,8 @@ module hComposeP-impl
     cong lookup-cod (lookup-injective-unique unique i j eq)
 
   remapP-seam : SeamCompatible → ∀ i → remapP (lookup K.dom i) ≡ injL (lookup-cod i)
-  remapP-seam = remap-lookup-compatible K.dom lookup-cod
+  remapP-seam compatible i = trans (remapP-≡ (lookup K.dom i))
+    (remap-lookup-compatible K.dom lookup-cod compatible i)
 
   vlab-injL : ∀ i → vlab-P (injL i) ≡ G.vlab i
   vlab-injL i = cong [ G.vlab , λ-pruned ]′ (splitAt-↑ˡ G.nV i (count-non K.dom))
@@ -78,11 +82,12 @@ module hComposeP-impl
   bdy-pt = lookup-boundary K.vlab G.vlab K.dom G.cod (sym bdy-eq)
 
   remapP-vlab : ∀ v → vlab-P (remapP v) ≡ K.vlab v
-  remapP-vlab = remap-vlab K.dom lookup-cod K.vlab G.vlab bdy-pt
+  remapP-vlab v = trans (cong vlab-P (remapP-≡ v))
+    (remap-vlab K.dom lookup-cod K.vlab G.vlab bdy-pt v)
 
   map-via-remapP : (xs : List (Fin K.nV))
                  → map K.vlab xs ≡ map vlab-P (map remapP xs)
-  map-via-remapP = map-via-remap K.dom lookup-cod K.vlab G.vlab bdy-pt
+  map-via-remapP = map-via remapP-vlab
 
   open CoproductEdges G K nV-P vlab-P injL remapP
          (map-via vlab-injL) map-via-remapP public

@@ -103,13 +103,15 @@ module _
         (cast dom-cod-len i) (cast dom-cod-len j) eq)
 
   remapP-injective : ∀ {v v'} → remapP v ≡ remapP v' → v ≡ v'
-  remapP-injective = remap-injective K.dom lookup-cod K-dom-Unique lookup-cod-injective
+  remapP-injective {v} {v'} eq = remap-injective K.dom lookup-cod K-dom-Unique lookup-cod-injective
+    (trans (sym (remapP-≡ v)) (trans eq (remapP-≡ v')))
 
   private
     remapP-on-dom : ∀ (idx : Fin (length K.dom)) → remapP (lookup K.dom idx) ≡ lookup-cod idx ↑ˡ cn
     remapP-on-dom idx =
-      remap-inj₁ K.dom lookup-cod (lookup K.dom idx) idx
-        (classify-lookup-Unique K.dom K-dom-Unique idx)
+      trans (remapP-≡ (lookup K.dom idx))
+        (remap-inj₁ K.dom lookup-cod (lookup K.dom idx) idx
+          (classify-lookup-Unique K.dom K-dom-Unique idx))
 
     map-ext-cast
       : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
@@ -239,7 +241,7 @@ module _
     ... | yes i∈ with ∈-map⁻ remapP i∈
     ...   | k , k∈ , i≡rk =
             ⊥-elim (++-bnd→disjoint K.dom K-eb (K-bnd k)
-                      (remap-↑ˡ→∈ K.dom lookup-cod k i (sym i≡rk)) k∈)
+                      (remap-↑ˡ→∈ K.dom lookup-cod k i (trans (sym (remapP-≡ k)) (sym i≡rk))) k∈)
 
     bound-injL : ∀ (i : Fin G.nV) → count (injL i) (producedList (hComposeP G K bdy-eq)) Nat.≤ 1
     bound-injL i =
