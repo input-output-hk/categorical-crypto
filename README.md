@@ -24,10 +24,12 @@ Documentation can be found [here](https://input-output-hk.github.io/categorical-
     free actegory of the locally graded Kleisli is equivalent to `GradedKleisli`.
 - `KernelCongruence`: the kernel congruence of a functor (`f ∼ g` iff
   `F₁ f ≈ F₁ g`).
-- `Coherence.Monoidal` — solvers for morphism equality in monoidal
+- `Coherence.Monoidal`: solvers for morphism equality in monoidal
   categories. Has an optional reflection front-end.
-- `Coherence.Symmetric` — same as the previous, but for SMCs and no
+- `Coherence.Symmetric`: same as the previous, but for SMCs and no
   reflection so far.
+- `GConstruction`: G-construction over a traced symmetric monoidal
+  category.
 
 ## 2. Abstract UC layer (`src/CategoricalCrypto/`)
 
