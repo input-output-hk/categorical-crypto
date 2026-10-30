@@ -56,8 +56,14 @@ r · s = value r * value s , *-mono-≤ (proj₂ r) (proj₂ s)
 positive : ℕ → ℕ⁺
 positive c = c ⊔ 1 , m≤n⊔m c 1
 
+positive-· : ∀ c d → value (positive c · positive d) ≡ (c ⊔ 1) * (d ⊔ 1)
+positive-· c d = refl
+
 scale : ℕ → ℕ⁺ → ℕ
 scale q r = q * value r
+
+scale-zero : ∀ r → scale 0 r ≡ 0
+scale-zero r = refl
 
 scale-unit : ∀ q → scale q 1⁺ ≡ q
 scale-unit = *-identityʳ

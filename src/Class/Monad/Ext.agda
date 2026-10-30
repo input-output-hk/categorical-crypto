@@ -12,8 +12,24 @@ open import Categories.Category.Instance.Sets
 open import Categories.Monad.Construction.Kleisli
 open import Categories.Monad.Discrete
 open import Relation.Binary.PropositionalEquality.Properties using () renaming (setoid to ≡-setoid)
+import Data.Sum as S
 
 module Class.Monad.Ext where
+
+-- The error monad `E ⊎_`
+module _ {E : Type} where instance
+  Functor-⊎ : Functor (E ⊎_)
+  Functor-⊎ ._<$>_ = S.map₂
+
+  Applicative-⊎ : Applicative (E ⊎_)
+  Applicative-⊎ .pure = inj₂
+  Applicative-⊎ ._<*>_ (inj₁ err) _ = inj₁ err
+  Applicative-⊎ ._<*>_ (inj₂ f)   x = S.map₂ f x
+
+  Monad-⊎ : Monad (E ⊎_)
+  Monad-⊎ .return = inj₂
+  Monad-⊎ ._>>=_ (inj₁ err) _ = inj₁ err
+  Monad-⊎ ._>>=_ (inj₂ x)   f = f x
 
 record ExtensionalMonad (M : Type↑) ⦃ Monad-M : Monad M ⦄ ⦃ _ : MonadLaws M ⦄ : Typeω where
   infixr 4 _⟩>>=⟨_ refl⟩>>=⟨_

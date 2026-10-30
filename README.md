@@ -42,10 +42,10 @@ General-purpose category theory, independent of cryptography:
 - `Functor.Monoidal.CurriedTensor` (+ `.Properties`) — the tensor `X ⊗ −` as
   a graded monad; this is the graded monad of the standard instantiations.
 - `CoherenceIsos` — the wide subcategory `Coh(ℐ)` of coherence isomorphisms.
-- `Coherence.Monoidal` (literate entry point) — reflection-based decision
-  procedures for morphism equality in (symmetric) monoidal categories
-  (`Structural` / `Mor` / `Symmetric`), used as proof engineering throughout;
-  `FreeMonoidal` and `FreeStrictMonoidal` are their term languages.
+- `Coherence.Monoidal` — a reflection frontend for morphism equality in
+  monoidal categories; `FreeMonoidal` and `FreeStrictMonoidal` are its term
+  languages. `Coherence.Symmetric` is the finite-signature string-diagram
+  solver for symmetric monoidal categories.
 
 ## 2. Abstract UC layer (`src/CategoricalCrypto/`, parametric)
 
@@ -73,6 +73,9 @@ Two equivalent formulations of UC emulation are developed:
   Observational equivalence is the U-kernel `_≈ᵁ_` — all prefix-context
   components `μ ∘ T₁ Y f` agree under `≈ℰ` — and over it all four
   metatheorems, including universal composition, are **hypothesis-free**.
+  The equivalent contextual relation `_≈ctx_` quantifies over every graded
+  prefix; `≈ᵁ⇔≈ctx` identifies the two presentations and `≈ctx-compose`
+  proves compatibility with composition.
   `GradeStable` (ℰ is a lax ℳ-module; sufficient, not necessary, for the bare
   kernel to coincide with the U-kernel) is needed only by `bridge`, which ingests a bare `≈ℰ` security artifact
   into the compositional world: a conservation law paid once at artifact
@@ -81,6 +84,9 @@ Two equivalent formulations of UC emulation are developed:
   `≤UC` over `≈ᵁ` implies OAP-`≤UC` at unit input grade implies the bare
   one-sided relation, unconditionally; both converses cost exactly
   `GradeStable`.
+- `Abstract2.Operation`, `.Parallel`, and `.Trace` establish preservation of
+  UC emulation by operations, parallel composition, and lifted feedback;
+  `Standard2.Parallel` and `.Trace` specialize these constructions.
 
 `Standard` / `Standard2` instantiate the respective layers at 𝒞 = ℐ = a
 monoidal category of machines with ℳ = the curried tensor (attaching an
@@ -111,9 +117,13 @@ is independent of any particular machine implementation:
 ## 4. Probabilistic machine model and examples
 
 - `ProbabilisticLogic.Dp` — the rational probabilistic delay monad `Dₚ`.
-- `Machines.*` — Mealy machines in the Kleisli category of `Dₚ`, composed by
-  Elgot iteration, with interface polarity from the G-construction
-  (`Machines.G`).
+- `Machines.Core` through `Machines.G` — generic Mealy machines over an
+  arbitrary symmetric monoidal category. Tensor, simulation, iteration,
+  trace, and the G-construction are independent of probability;
+  `Machines.Sim.Lax` supplies the independent lax-simulation API.
+- `Machines.Base` instantiates that generic interface in the Kleisli
+  category of `Dₚ`, with Elgot iteration supplying feedback. The probability
+  and concrete protocol layers therefore sit above the generic machines.
 - `Strategy`, `Protocol` — protocols in plain Agda and their machine images.
   For closed protocols, read `Protocol.Observe` for activation-boundary kernels,
   then `Protocol.Reachability` for finite positive-probability reachability and

@@ -11,8 +11,10 @@ open import Categories.Category.Monoidal.Bundle
 module Categories.Coherence.Symmetric.Test
   {o ℓ e : Level} (C : SymmetricMonoidalCategory o ℓ e) where
 
+open import Data.Bool.Base using (false)
 open import Data.Fin
 open import Data.List
+open import Data.Maybe.Base using (is-just)
 open import Data.Product
 open import Data.Vec
 open import Relation.Binary.PropositionalEquality
@@ -254,6 +256,7 @@ module MonoidRewrite (A : C.Obj) (mᴹ : (A C.⊗₀ A) C.⇒ A) (uᴹ : C.unit 
   open Atom1 A renaming (a to a₀)
 
   open Solver C objects (((a₀ ⊗₀ a₀) , a₀ , mᴹ) ∷ (unitᵗ , a₀ , uᴹ) ∷ [])
+  open import Categories.APROP.Hypergraph.Solver.Rewrite.Carve finSig using (focusAll; focusAtₙ)
 
   private
     m u : S.HomTerm _ _
@@ -302,6 +305,12 @@ module MonoidRewrite (A : C.Obj) (mᴹ : (A C.⊗₀ A) C.⇒ A) (uᴹ : C.unit 
       (mᴹ ∘ (id {A} ⊗₁ λ⇒)) ∘ id ∎
       where open C.HomReasoning
 
+  occurrence-count : Data.List.length (focusAll (lᵗ S.⊗₁ lᵗ) lᵗ) ≡ 2
+  occurrence-count = refl
+
+  out-of-range : is-just (focusAtₙ (lᵗ S.⊗₁ lᵗ) lᵗ 2) ≡ false
+  out-of-range = refl
+
 --------------------------------------------------------------------------------
 -- rewriteDeepₙ! / rewriteDeepTo!: interchange, braiding and disconnected redexes
 --------------------------------------------------------------------------------
@@ -310,12 +319,23 @@ module DeepRewrite (A₀ A₁ A₂ : C.Obj) (pᴹ qᴹ : A₀ C.⇒ A₁) (wᴹ 
   open Atoms3 A₀ A₁ A₂
 
   open Solver C objects ((a₀ , a₁ , pᴹ) ∷ (a₀ , a₁ , qᴹ) ∷ (a₁ , a₂ , wᴹ) ∷ [])
+  open import Categories.APROP.Hypergraph.Solver.Rewrite.Carve finSig using (focusAt)
+  open import Categories.APROP.Hypergraph.Solver.Rewrite.Deep finSig using (deepFoc)
 
   private
     p q w : S.HomTerm _ _
     p = S.Agen (gen zero)
     q = S.Agen (gen (suc zero))
     w = S.Agen (gen (suc (suc zero)))
+
+  syntactic-fails : is-just (focusAt ((w S.⊗₁ w) S.∘ (p S.⊗₁ q)) (w S.∘ p)) ≡ false
+  syntactic-fails = refl
+
+  deep-overlap-rejected : is-just (deepFoc (w S.∘ p) (p S.⊗₁ w)) ≡ false
+  deep-overlap-rejected = refl
+
+  deep-structural-limitation : is-just (deepFoc (S.σ S.∘ (p S.⊗₁ q)) (S.σ {a₁} {a₁})) ≡ false
+  deep-structural-limitation = refl
 
   module _ (collapse : wᴹ ∘ pᴹ ≈ wᴹ ∘ qᴹ) where
 
@@ -400,6 +420,7 @@ module DeepArity (A : C.Obj)
 
   open Solver C objects
     (((a ⊗₀ a) , a , mᴹ) ∷ (a , (a ⊗₀ a) , eᴹ) ∷ (a , a , kᴹ) ∷ (unitᵗ , a , uᴹ) ∷ [])
+  open import Categories.APROP.Hypergraph.Solver.Rewrite.Deep finSig using (deepFoc)
 
   private
     m sp k u : S.HomTerm _ _
@@ -407,6 +428,9 @@ module DeepArity (A : C.Obj)
     sp = S.Agen (gen (suc zero))
     k  = S.Agen (gen (suc (suc zero)))
     u  = S.Agen (gen (suc (suc (suc zero))))
+
+  deep-non-convex-rejected : is-just (deepFoc (k S.∘ k S.∘ k) (k S.⊗₁ k)) ≡ false
+  deep-non-convex-rejected = refl
 
   module _ (identityLaw : id {A} ≈ kᴹ) where
 
