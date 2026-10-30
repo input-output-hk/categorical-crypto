@@ -53,7 +53,7 @@ module Drive {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
     tryFoc r s (just (k , pre , post)) =
       fireWith s frameL frameR
         (C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , Rule.sound r))))
-        (findIsoᵀ ⟪ s ⟫ ⟪ frameL ⟫)
+        (withTranslation s (λ H → withTranslation frameL (findIsoᵀ H)))
       where frameL = reassocBal post ∘ (id {k} ⊗₁ Rule.lhs r) ∘ reassocBal pre
             frameR = reassocBal post ∘ (id {k} ⊗₁ Rule.rhs r) ∘ reassocBal pre
 
