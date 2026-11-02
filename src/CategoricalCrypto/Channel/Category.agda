@@ -80,8 +80,8 @@ opaque
         { ⊥ = I
         ; ⊥-is-initial = record
             { ! = λ where
-                {m = Out} → record { app = λ () }
-                {m = In } → record { app = λ () }
+                {m = Out} → mk⇒ (λ ())
+                {m = In } → mk⇒ (λ ())
             ; !-unique = λ where
                 _ {Out} ()
                 _ {In } ()

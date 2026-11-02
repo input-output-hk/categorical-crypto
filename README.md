@@ -99,12 +99,43 @@ The executable model, predating the abstract layers above:
 
 - `Channel/` — channels (typed communication ports), their category, and a
   wiring DSL (`Selection`).
-- `Machine/` — stateful machines communicating over channels, with UC
-  security notions stated directly on them; `Constraints` adds extra
-  side conditions.
+- `Machine/` — stateful machines communicating over channels.  `Machine.Core`
+  still carries the original hand-rolled UC notions, but they are shadowed by,
+  and definitionally agree with, the abstract ones `Machine.UC` imports;
+  `Constraints` adds extra side conditions.  `Machine.Iso` is the state
+  isomorphism `_≅ᴹ_`, a bijection of state spaces preserving the step relation
+  in both directions, with its congruences and the associativity of trace
+  composition; `Machine.Category` assembles the category of machines, the
+  identity laws being instances of the relay lemmas of
+  `Machine.Reindex.Post` (composing with a forwarder relabels the other
+  machine); `Machine.MonoidalCategory` bundles it as a symmetric monoidal
+  category, with the coherence laws proved as forwarder computations
+  (`Machine.Monoidal.*`) and the naturality of the Kleisli shuffles discharged
+  by the coherence solver.  `Machine.UC` instantiates `Standard2` at the
+  reversed monoidal category of machines (hence the grade on the right, with
+  environments as joint ancilla tests), proves `GradeStable`, and so has
+  `≈ᵁ ⇔ ≈ℰ` and the UC metatheorems for concrete machines;
+  `Machine.UC.Kleisli` identifies the hand-rolled `_∘ᴷ_` with the abstract
+  Kleisli composition up to the grade swap.
+- The proof engineering behind all of that, and the bulk of the layer:
+  `Machine.Forwarder` (forwarders are the stateless, total, deterministic
+  machines, closed under all three machine builders, so an equation between
+  composites of forwarders collapses to a finite message-level case split),
+  `Machine.Reindex` and its submodules (`Reindex`/`Pair`/`Trc`, the three
+  primitives every builder decomposes into, with the structural lemmas
+  relating them), `Machine.Message` (the shared message-level inversion
+  lemmas) and `Machine.NAry` (the n-ary rewiring laws a multi-party transfer
+  argument needs).  These stay internal; the root module does not re-export
+  them.
 - `SFunM` — the category of stateful, monadic functions.
-- `Examples/` — commitment, signature, and basic protocol examples.
-- `CategoricalCrypto` — the root module re-exporting this layer.
+- `Examples/` — commitment, signature, and basic protocol examples;
+  `Examples.Channels` is the first worked UC statement on concrete machines.
+  It proves the monotonicity direction: the length-leaking secure channel
+  realizes the message-leaking one, the ideal specification being permissive
+  enough that the simulator can discard what it is given.  The converse
+  non-realization is not proved.
+- `CategoricalCrypto` — the root module, re-exporting the public surface of
+  this layer.
 
 # Contributing
 
