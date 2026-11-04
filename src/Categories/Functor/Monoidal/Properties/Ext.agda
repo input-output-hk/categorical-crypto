@@ -13,8 +13,6 @@ import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 open import Categories.Functor.Monoidal
 import Categories.Morphism.Reasoning as MR
 
-import Categories.Morphism.Reasoning.Ext as MRExt
-
 module Categories.Functor.Monoidal.Properties.Ext where
 
 -- The oplax (comonoidal) structure that a strong monoidal functor carries:
@@ -26,13 +24,13 @@ module Oplax {o ℓ e o′ ℓ′ e′ : Level}
     module C  = MonoidalCategory C
     module CS = MonoidalUtilities.Shorthands C.monoidal
     module F  = StrongMonoidalFunctor F
+    module Op = IsMonoidalFunctor F.isOplaxMonoidal
 
   open F hiding (F)
   open MonoidalCategory D
   open MonoidalReasoning monoidal
   open MonoidalUtilities.Shorthands monoidal
   open MR U
-  open MRExt U
 
   δ : ∀ {X Y} → F₀ (X C.⊗₀ Y) ⇒ F₀ X ⊗₀ F₀ Y
   δ {X} {Y} = ⊗-homo.⇐.η (X , Y)
@@ -58,36 +56,17 @@ module Oplax {o ℓ e o′ ℓ′ e′ : Level}
                                          ≈ F₁ f ⊗₁ id ∘ δ
   δ-commuteʳ f = δ-commute f C.id ○ ((refl⟩⊗⟨ identity) ⟩∘⟨refl)
 
-  private
-    F-cancel : ∀ {X Y} {f : X C.⇒ Y} {g : Y C.⇒ X} → f C.∘ g C.≈ C.id → F₁ f ∘ F₁ g ≈ id
-    F-cancel eq = ⟺ homomorphism ○ F-resp-≈ eq ○ identity
-
-    ⊗-cancel₁ : ∀ {A B W} {f : A ⇒ B} {g : B ⇒ A} → f ∘ g ≈ id → f ⊗₁ id {W} ∘ g ⊗₁ id ≈ id
-    ⊗-cancel₁ eq = merge₁ˡ ○ eq ⟩⊗⟨refl ○ ⊗.identity
-
-    ⊗-cancel₂ : ∀ {A B W} {f : A ⇒ B} {g : B ⇒ A} → f ∘ g ≈ id → id {W} ⊗₁ f ∘ id ⊗₁ g ≈ id
-    ⊗-cancel₂ eq = merge₂ʳ ○ refl⟩⊗⟨ eq ○ ⊗.identity
-
   δ-assoc : ∀ {X Y Z} → δ {X} ⊗₁ id ∘ δ ∘ F₁ CS.α⇐
                       ≈ α⇐ ∘ id ⊗₁ δ {Y} {Z} ∘ δ
-  δ-assoc = inv-resp
-    (sym-assoc ⟩∘⟨refl ○ cancelInner (F-cancel C.associator.isoˡ) ○ cancelInner δψ ○ ⊗-cancel₁ δψ)
-    (sym-assoc ⟩∘⟨refl ○ cancelInner associator.isoʳ ○ cancelInner (⊗-cancel₂ ψδ) ○ ψδ)
-    associativity
+  δ-assoc = sym-assoc ○ Op.associativity ○ assoc
 
   -- `δ-assoc` with the leading `δ ⊗₁ id` cancelled away and the trailing `δ` exposed
   δ-assoc′ : ∀ {X Y Z} → δ {X C.⊗₀ Y} ∘ F₁ (CS.α⇐ {X} {Y} {Z})
            ≈ (ψ ⊗₁ id ∘ α⇐ ∘ id ⊗₁ δ) ∘ δ
-  δ-assoc′ = introˡ (⊗-cancel₁ ψδ) ○ assoc ○ (refl⟩∘⟨ δ-assoc) ○ assoc²εβ
+  δ-assoc′ = introˡ (⊗-cancel ψδ identity²) ○ assoc ○ (refl⟩∘⟨ δ-assoc) ○ assoc²εβ
 
   δ-unitorˡ : ∀ {X} → δ {C.unit} {X} ∘ F₁ CS.λ⇐ ≈ ε.from ⊗₁ id ∘ λ⇐
-  δ-unitorˡ = inv-resp
-    (cancelInner (F-cancel C.unitorˡ.isoˡ) ○ δψ)
-    (cancelInner (⊗-cancel₁ ε.isoˡ) ○ unitorˡ.isoʳ)
-    (insertʳ (⊗-cancel₁ ε.isoʳ) ○ assoc ⟩∘⟨refl ○ unitaryˡ ⟩∘⟨refl)
+  δ-unitorˡ = introˡ (⊗-cancel ε.isoʳ identity²) ○ assoc ○ (refl⟩∘⟨ (sym-assoc ○ Op.unitaryˡ))
 
   δ-unitorʳ : ∀ {X} → δ {X} ∘ F₁ CS.ρ⇐ ≈ id ⊗₁ ε.from ∘ ρ⇐
-  δ-unitorʳ = inv-resp
-    (cancelInner (F-cancel C.unitorʳ.isoˡ) ○ δψ)
-    (cancelInner (⊗-cancel₂ ε.isoˡ) ○ unitorʳ.isoʳ)
-    (insertʳ (⊗-cancel₂ ε.isoʳ) ○ assoc ⟩∘⟨refl ○ unitaryʳ ⟩∘⟨refl)
+  δ-unitorʳ = introˡ (⊗-cancel identity² ε.isoʳ) ○ assoc ○ (refl⟩∘⟨ (sym-assoc ○ Op.unitaryʳ))

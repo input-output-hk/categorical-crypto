@@ -84,10 +84,7 @@ Documentation can be found [here](https://input-output-hk.github.io/categorical-
   `Standard2.Parallel` is an optional extension for symmetric monoidal
   categories, deriving `ParallelStable` and `UC-⊠` without extra
   assumptions on the environment presheaf.
-  `Standard2.Trace` lifts a trace on the computation category to protocols,
-  assuming trace congruence and output naturality (absent from the current
-  library's `Traced` record), with contextual trace preservation required
-  separately for `UC-trace`.
+  Similarly, `Standard2.Trace` lifts a trace on the computation category to protocols.
 
 `Abstract` and `Standard` are the older grade-on-object presentation.
 `Abstract2.Equivalence` and `Abstract2.OAPEmulation` relate it to the

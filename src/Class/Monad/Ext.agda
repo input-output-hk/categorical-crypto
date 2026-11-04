@@ -6,26 +6,10 @@ open import Class.Core
 open import Class.Monad
 open import Class.Prelude using (Typeω)
 open import Data.Product hiding (_<*>_)
-import Data.Sum as S
 
 module Class.Monad.Ext where
 
--- The error monad `E ⊎_`
-module _ {E : Type} where instance
-  Functor-⊎ : Functor (E ⊎_)
-  Functor-⊎ ._<$>_ = S.map₂
-
-  Applicative-⊎ : Applicative (E ⊎_)
-  Applicative-⊎ .pure = inj₂
-  Applicative-⊎ ._<*>_ (inj₁ err) _ = inj₁ err
-  Applicative-⊎ ._<*>_ (inj₂ f)   x = S.map₂ f x
-
-  Monad-⊎ : Monad (E ⊎_)
-  Monad-⊎ .return = inj₂
-  Monad-⊎ ._>>=_ (inj₁ err) _ = inj₁ err
-  Monad-⊎ ._>>=_ (inj₂ x)   f = f x
-
-record ExtensionalMonad (M : Type↑) ⦃ Monad-M : Monad M ⦄ ⦃ _ : MonadLaws M ⦄ : Typeω where
+record ExtensionalMonad (M : Type↑ (λ ℓ → ℓ)) ⦃ Monad-M : Monad M ⦄ ⦃ _ : MonadLaws M ⦄ : Typeω where
   infixr 4 _⟩>>=⟨_ refl⟩>>=⟨_
   infixl 5 _⟩>>=⟨refl
 
@@ -46,7 +30,7 @@ instance
   ... | just x  = f≗g x
   ... | nothing = refl
 
-record CommutativeMonad (M : Type↑) ⦃ Monad-M : Monad M ⦄ ⦃ _ : MonadLaws M ⦄ : Typeω where
+record CommutativeMonad (M : Type↑ (λ ℓ → ℓ)) ⦃ Monad-M : Monad M ⦄ ⦃ _ : MonadLaws M ⦄ : Typeω where
   field >>=-comm : ∀ {a b} {X : Type a} {Y : Type b} {x : M X} {y : M Y}
           → (x >>= λ x → y >>= λ y → return (x ,′ y)) ≡ (y >>= λ y → x >>= λ x → return (x , y))
 
@@ -87,7 +71,7 @@ open import Categories.Category.Construction.Kleisli
 open import Categories.Category.Instance.Sets
 open import Categories.Monad.Construction.Kleisli
 
-module _ {M : Type↑} ⦃ Monad-M : Monad M ⦄ ⦃ F-Laws : FunctorLaws M ⦄
+module _ {M : Type↑ (λ ℓ → ℓ)} ⦃ Monad-M : Monad M ⦄ ⦃ F-Laws : FunctorLaws M ⦄
   ⦃ M-Laws : MonadLaws M ⦄ ⦃ M-Extensional : ExtensionalMonad M ⦄ where
 
   KleisliTriple-M : ∀ {a} → KleisliTriple (Sets a)
