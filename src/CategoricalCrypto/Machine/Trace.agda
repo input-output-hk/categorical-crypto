@@ -36,9 +36,11 @@ open import Data.Maybe.Properties using () renaming (≡-dec to ≡-decMaybe)
 import Data.List as L
 import Data.Sum as S
 open import Data.List.Relation.Binary.Pointwise as Pointwise using (Pointwise; []; _∷_)
-open import Class.Monad.Ext using (Functor-⊎; Applicative-⊎; Monad-⊎)
+open import Class.Monad.Instances using (module Monad-Sumˡ)
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Machine.Core using (Machine; _⊗ᵀ_)
+
+open Monad-Sumˡ
 
 module _ {A B : Channel} (M : Machine A B) where
 

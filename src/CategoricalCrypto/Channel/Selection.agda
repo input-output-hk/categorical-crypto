@@ -43,8 +43,6 @@ _↑ᵢ_ p = app (_↑ {In} p)
 _↑ₒ_ : ∀ {m' A B} → A [ Out ]⇒[ m' ]ᵍ B → modeType Out A → modeType m' B
 _↑ₒ_ p = app (_↑ {Out} p)
 
-instance _ = Functor-M ⦃ Class.Monad.Monad-TC ⦄
-
 ⇒-solver-tactic' : TC ⊤
 ⇒-solver-tactic' =
   inDebugPath "Auto _[_]⇒[_]_ tactic" $ do
@@ -67,7 +65,7 @@ instance _ = Functor-M ⦃ Class.Monad.Monad-TC ⦄
     where
     handle-pattern : Term → Term → Term → Term → TC Term
     handle-pattern A m m' B
-      with isYes (A ≟ B ×-dec m ≟ m')
+      with isYes (A ≟ B ×? m ≟ m')
     ... | true
       = return $ quote ⇒-refl ∙
     ... | false
