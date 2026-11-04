@@ -12,6 +12,7 @@ open import Categories.Category
 open import Categories.Category.Construction.Functors
 open import Categories.Category.Monoidal.Construction.Endofunctors
 open import Categories.Category.Product
+import Categories.Category.Monoidal.Reassociation as Reassociation
 open import Categories.Coherence.Monoidal.Tactic using (solve-mor)
 open import Categories.Functor renaming (id to idF)
 open import Categories.Functor.Monoidal
@@ -44,14 +45,10 @@ curriedTensor = record { F = F ; isMonoidal = isMon }
   ε = ntHelper record { η = λ _ → λ⇐ ; commute = λ _ → M.unitorˡ-commute-to }
 
   homo-η : ∀ XY → F₀ Src XY E.⇒ F₀ Tgt XY
-  homo-η (X , Y) = ntHelper record { η = λ _ → α⇐ ; commute = inner }
-    where
-    open Category.HomReasoning 𝒞
-    inner : ∀ {A B} (f : 𝒞 [ A , B ]) → α⇐ 𝒞.∘ 𝒞.id ⊗₁ 𝒞.id ⊗₁ f 𝒞.≈ 𝒞.id ⊗₁ f 𝒞.∘ α⇐
-    inner f = begin
-        α⇐ 𝒞.∘ (𝒞.id ⊗₁ (𝒞.id ⊗₁ f)) ≈⟨ M.assoc-commute-to ⟩
-        ((𝒞.id ⊗₁ 𝒞.id) ⊗₁ f) 𝒞.∘ α⇐ ≈⟨ F-resp-≈ M.⊗ (identity M.⊗ , 𝒞.Equiv.refl) ⟩∘⟨refl ⟩
-        (𝒞.id ⊗₁ f) 𝒞.∘ α⇐            ∎
+  homo-η (X , Y) = ntHelper record
+    { η = λ _ → α⇐
+    ; commute = λ _ → 𝒞.Equiv.sym (Reassociation.α⇐-id⊗-commute M.monoidal)
+    }
 
   homo-commute : ∀ {XY X′Y′} (f : 𝒞×𝒞 [ XY , X′Y′ ]) → homo-η X′Y′ E.∘ F₁ Src f E.≈ F₁ Tgt f E.∘ homo-η XY
   homo-commute (m , n) = begin

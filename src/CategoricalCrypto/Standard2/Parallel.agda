@@ -15,6 +15,7 @@ open import Categories.Category.Monoidal.Braided
 import Categories.Category.Monoidal.Braided.Properties as BraidedProperties
 import Categories.Category.Monoidal.Interchange.Braided as Interchange
 import Categories.Category.Monoidal.Reasoning as MonoidalReasoning
+import Categories.Category.Monoidal.Reassociation as Reassociation
 open import Categories.Category.Monoidal.Symmetric
 import Categories.Functor.Monoidal.CurriedTensor.Properties as TensorProperties
 open import Categories.Functor.Presheaf
@@ -34,6 +35,7 @@ module Parallel
   open BraidedProperties.Shorthands (Symmetric.braided symmetric)
   open Interchange (Symmetric.braided symmetric)
   open MonoidalReasoning monoidal
+  open Reassociation monoidal
   open MorphismReasoning ∣machines∣
   open TensorProperties machines
   private
@@ -84,8 +86,7 @@ module Parallel
     where
     reassociate : (P : Channel) (k : A ⇒ X ⊗₀ B)
                 → id {P} ⊗₁ (id {W} ⊗₁ k) ≈ (α⇒ ∘ id {P ⊗₀ W} ⊗₁ k) ∘ α⇐
-    reassociate P k = switch-fromtoʳ associator
-      (⟺ assoc-commute-from ○ (refl⟩∘⟨ (⊗.identity ⟩⊗⟨refl)))
+    reassociate P k = switch-fromtoʳ associator (⟺ α⇒-id⊗-commute)
 
   ⊗ʳ-cong-≈ᵁ : (W : Channel) → f ≈ᵁ f′ → f ⊗₁ id {W} ≈ᵁ f′ ⊗₁ id
   ⊗ʳ-cong-≈ᵁ {f = f} {f′} W eq =

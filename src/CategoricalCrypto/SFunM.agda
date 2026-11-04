@@ -13,7 +13,7 @@ open import LibExt
 import Relation.Binary.Construct.On as On
 import Relation.Binary.Reasoning.Setoid as R-Setoid
 
-module CategoricalCrypto.SFunM {M : Type↑}
+module CategoricalCrypto.SFunM {M : Type↑ (λ ℓ → ℓ)}
   ⦃ Monad-M       : Monad M            ⦄
   ⦃ F-Laws        : FunctorLaws M      ⦄
   ⦃ M-Laws        : MonadLaws M        ⦄

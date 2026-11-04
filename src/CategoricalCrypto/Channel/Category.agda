@@ -4,7 +4,10 @@ module CategoricalCrypto.Channel.Category where
 
 open import CategoricalCrypto.Channel.Core
 open import Categories.Category.Core
+open import Categories.Category.BinaryCoproducts
 open import Categories.Category.Cocartesian
+open import Categories.Category.Cocartesian.Monoidal
+open import Categories.Category.Cocartesian.SymmetricMonoidal
 open import Categories.Category.Helper
 open import Categories.Category.Monoidal
 open import Categories.Category.Monoidal.Braided
@@ -79,10 +82,10 @@ opaque
     { initial = record
         { ⊥ = I
         ; ⊥-is-initial = record
-            { ! = λ where
+            { ¡ = λ where
                 {m = Out} → record { app = λ () }
                 {m = In } → record { app = λ () }
-            ; !-unique = λ where
+            ; ¡-unique = λ where
                 _ {Out} ()
                 _ {In } ()
             }
@@ -92,7 +95,7 @@ opaque
 
   ⊗-bifunctor = BinaryCoproducts.-+- ⊗-binary-coproducts
 
-  channel-⊗-monoidal = CocartesianMonoidal.+-monoidal channel-category ⊗-cocartesian
+  channel-⊗-monoidal = CocartesianMonoidal.+-monoidal ⊗-cocartesian
 
   channel-⊗-symmetric = CocartesianSymmetricMonoidal.+-symmetric channel-category ⊗-cocartesian
 
