@@ -111,8 +111,9 @@ The executable model, predating the abstract layers above:
 Contributions are welcome, however please make sure that the
 contribution is of reasonable quality. AI contributions are welcome,
 but they must clear a higher quality bar than human
-contributions. **If you have access to AI tools, you should use them
-to do better work, not just more work.**
+contributions. Additionally, PRs, issues and comments must be written
+by a human. **If you have access to AI tools, you should use them to
+do better work, not just more work.**
 
 # AI disclaimer
 
