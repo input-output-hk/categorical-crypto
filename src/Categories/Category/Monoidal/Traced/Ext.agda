@@ -21,7 +21,7 @@ open import Categories.Category.Monoidal.Symmetric.Properties.Ext symmetric
 open import Categories.Morphism.Reasoning C
 
 private
-  variable A B D E X Y Z : Obj
+  variable A B D E P Q X Y Z : Obj
 
   Cˢ : SymmetricMonoidalCategory o ℓ e
   Cˢ = record { U = C ; monoidal = M ; symmetric = symmetric }
@@ -31,6 +31,15 @@ trace-β = superposing ○ (refl⟩⊗⟨ yanking) ○ ⊗.identity
 
 trace-β′ : {g : A ⊗₀ X ⇒ B} → trace (g ⊗₁ id ∘ β) ≈ g
 trace-β′ = tightenₗ ○ elimʳ trace-β
+
+trace-map : (k : A ⊗₀ X ⇒ B ⊗₀ X) (f : P ⇒ A) (g : B ⇒ Q)
+          → trace (g ⊗₁ id ∘ k ∘ f ⊗₁ id) ≈ g ∘ trace k ∘ f
+trace-map k f g = tightenₗ ○ (refl⟩∘⟨ tightenᵣ)
+
+trace-loop : (k : A ⊗₀ X ⇒ B ⊗₀ X) (f : X ⇒ Y) (g : Y ⇒ X)
+           → g ∘ f ≈ id → trace (id ⊗₁ f ∘ k ∘ id ⊗₁ g) ≈ trace k
+trace-loop k f g inv = trace-resp-≈ sym-assoc ○ slide
+  ○ trace-resp-≈ (cancelˡ (⊗-cancel identity² inv))
 
 fuse : {f : (A ⊗₀ X) ⊗₀ Y ⇒ (B ⊗₀ X) ⊗₀ Y} → trace (trace f) ≈ trace (α⇒ ∘ f ∘ α⇐)
 fuse = trace-resp-≈ (trace-resp-≈ (solve-smc Cˢ)) ○ vanishing₂

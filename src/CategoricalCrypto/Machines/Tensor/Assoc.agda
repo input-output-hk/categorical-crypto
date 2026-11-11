@@ -5,11 +5,10 @@
 open import Categories.Category.Core
 open import Categories.Category.Monoidal.Bundle
 open import Categories.Category.Monoidal.Subcategory
-import Categories.Category.Cocartesian.Ext as CE
 import Categories.Category.Monoidal.Distributive as MD
+import Categories.Category.Monoidal.Distributive.Context as MDC
 import Categories.Category.Monoidal.Distributive.Properties as MDP
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
-open import Categories.Coherence.Symmetric.Tactic
 import Categories.Morphism.Reasoning as MorRe
 
 import CategoricalCrypto.Machines.Category as MCat
@@ -27,7 +26,6 @@ open Core 𝒱
 open Equiv
 open MCat 𝒱 𝒫
 open MD.MonoidalDistributive dist
-open CE U cocartesian
 open MDP 𝒱 dist
 open MonoidalUtilities.Shorthands monoidal
 open WideSymmetricMonoidalSubcategory 𝒫
@@ -47,28 +45,15 @@ private
 open ℳ.HomReasoning using ()
   renaming (_⟩∘⟨_ to _⟩∘ᴹ⟨_; refl⟩∘⟨_ to reflᴹ⟩∘ᴹ⟨_; _⟩∘⟨refl to _⟩∘ᴹ⟨reflᴹ)
 
-private variable A B C D E F X : Obj
-
-⊗idᵉ-collapse : (f : Machine A B) → f ⊗ᵉ idᴹ {C} ≲ mk (state f) (tstep (step f) id)
-⊗idᵉ-collapse f = collapseʳ (tstep-sim onL-collapseʳ (refl⟩∘⟨ onR-id ○ identityʳ ○ ⟺ identityˡ))
-
-id⊗ᵉ-collapse : (g : Machine C D) → idᴹ {A} ⊗ᵉ g ≲ mk (state g) (tstep id (step g))
-id⊗ᵉ-collapse g = collapseˡ (tstep-sim (refl⟩∘⟨ onL-id ○ identityʳ ○ ⟺ identityˡ) onR-collapseˡ)
+private variable A B C D E F : Obj
 
 opaque
   unfolding _∘ᴹ_
 
   ⊗-split : (f : Machine A B) (g : Machine C D) → f ⊗ᵉ g ≈ᴹ f ⊗ᵉ idᴹ ∘ᴹ idᴹ ⊗ᵉ g
-  ⊗-split f g = ≲⇒≈ᴹ˘ (sim (ρ⇒ ⊗₁ λ⇒) (selected-⊗₁ selected-ρ⇒ selected-λ⇒) pt-u step-u)
-    where
-      pt-u : ρ⇒ ⊗₁ λ⇒ ∘ point ((state f ⊛ Iˢ) ⊛ (Iˢ ⊛ state g)) ≈ point (state f ⊛ state g)
-      pt-u = ⊛-∘-point (ρ-point (state f)) (λ-point (state g))
-
-      step-u : (ρ⇒ ⊗₁ λ⇒) ⊗₁ id ∘ onL (step (f ⊗ᵉ idᴹ)) ∘ onR (step (idᴹ ⊗ᵉ g))
-             ≈ step (f ⊗ᵉ g) ∘ (ρ⇒ ⊗₁ λ⇒) ⊗₁ id
-      step-u = refl⟩∘⟨ (onL-tstep ⟩∘⟨ onR-tstep ○ tstep-∘
-               ○ tstep-cong (elimʳ (onR-cong onL-id ○ onR-id)) (elimˡ (onL-cong onR-id ○ onL-id)))
-             ○ tstep-sim (onL-sim onL-collapseʳ) (onR-sim onR-collapseˡ)
+  ⊗-split f g = ≲⇒≈ᴹ˘ (≲-trans (∘ᴹ-resp-≲ (⊗idᵉ-collapse f) (id⊗ᵉ-collapse g))
+    (mk-cong (onL-tstep ⟩∘⟨ onR-tstep ○ tstep-∘
+      ○ tstep-cong (elimʳ onR-id) (elimˡ onL-id))))
 
 private
   braid-conj : (M : Machine A B) (N : Machine C D) → M ⊗ᵉ N ≈ᴹ σᴹ ∘ᴹ N ⊗ᵉ M ∘ᴹ σᴹ
@@ -93,13 +78,10 @@ opaque
                                     ○ tstep-cong refl (onL-id ⟩∘⟨ onR-id ○ identity²))))
                ○ᴹ ⟺ᴹ (≲⇒≈ᴹ (⊗idᵉ-collapse g) ⟩∘ᴹ⟨ ≲⇒≈ᴹ (⊗idᵉ-collapse f))
 
-id⊗ᵉ-hom : (g : Machine C D) (f : Machine B C) → idᴹ ⊗ᵉ (g ∘ᴹ f) ≈ᴹ idᴹ ⊗ᵉ g ∘ᴹ idᴹ {A} ⊗ᵉ f
-id⊗ᵉ-hom g f = braid-conj idᴹ (g ∘ᴹ f)
-             ○ᴹ (reflᴹ⟩∘ᴹ⟨ ⊗idᵉ-hom g f ⟩∘ᴹ⟨reflᴹ)
-             ○ᴹ ⟺ᴹ ((braid-conj idᴹ g ⟩∘ᴹ⟨ braid-conj idᴹ f)
-                    ○ᴹ (ℳ.sym-assoc ⟩∘ᴹ⟨reflᴹ)
-                    ○ᴹ MR.cancelInner (≲⇒≈ᴹ σᴹ-involutive)
-                    ○ᴹ MR.center reflᴹ)
+  id⊗ᵉ-hom : (g : Machine C D) (f : Machine B C) → idᴹ ⊗ᵉ (g ∘ᴹ f) ≈ᴹ idᴹ ⊗ᵉ g ∘ᴹ idᴹ {A} ⊗ᵉ f
+  id⊗ᵉ-hom g f = ≲⇒≈ᴹ (id⊗ᵉ-collapse (g ∘ᴹ f))
+    ○ᴹ ≲⇒≈ᴹ (mk-cong (⟺ (onL-tstep ⟩∘⟨ onR-tstep ○ tstep-∘ ○ tstep-cong (onL-id ⟩∘⟨ onR-id ○ identity²) refl)))
+    ○ᴹ ⟺ᴹ (≲⇒≈ᴹ (id⊗ᵉ-collapse g) ⟩∘ᴹ⟨ ≲⇒≈ᴹ (id⊗ᵉ-collapse f))
 
 ⊗ᵉ-homomorphism : {f′ : Machine B C} {f : Machine A B} {g′ : Machine E F} {g : Machine D E}
                 → (f′ ∘ᴹ f) ⊗ᵉ (g′ ∘ᴹ g) ≈ᴹ f′ ⊗ᵉ g′ ∘ᴹ f ⊗ᵉ g
@@ -110,40 +92,6 @@ id⊗ᵉ-hom g f = braid-conj idᴹ (g ∘ᴹ f)
   ○ᴹ ⟺ᴹ (MR.center reflᴹ)
   ○ᴹ ⟺ᴹ (⊗-split f′ g′ ⟩∘ᴹ⟨ ⊗-split f g)
 
-tstep-α : {k₁ : X ⊗₀ A ⇒ X ⊗₀ B} {k₂ : X ⊗₀ C ⇒ X ⊗₀ D} {k₃ : X ⊗₀ E ⇒ X ⊗₀ F}
-        → id ⊗₁ +-assocˡ ∘ tstep (tstep k₁ k₂) k₃ ≈ tstep k₁ (tstep k₂ k₃) ∘ id ⊗₁ +-assocˡ
-tstep-α {X = X} {k₁ = k₁} {k₂} {k₃} =
-  δ-unique (δ-unique (fuse ○ brA ○ ⟺ fuse) (fuse ○ brC ○ ⟺ fuse)) brE
-  where
-    fuse : {T V₁ V₂ W : Obj} {u : X ⊗₀ V₂ ⇒ T} {j : V₁ ⇒ V₂} {j′ : W ⇒ V₁}
-         → (u ∘ id ⊗₁ j) ∘ id ⊗₁ j′ ≈ u ∘ id ⊗₁ (j ∘ j′)
-    fuse = assoc ○ (refl⟩∘⟨ merge₂ʳ)
-
-    brA : (id ⊗₁ +-assocˡ ∘ tstep (tstep k₁ k₂) k₃) ∘ id ⊗₁ (i₁ ∘ i₁)
-        ≈ (tstep k₁ (tstep k₂ k₃) ∘ id ⊗₁ +-assocˡ) ∘ id ⊗₁ (i₁ ∘ i₁)
-    brA = assoc
-        ○ (refl⟩∘⟨ ((refl⟩∘⟨ ⟺ merge₂ʳ) ○ sym-assoc ○ (tstep-i₁ ⟩∘⟨refl) ○ assoc
-                    ○ (refl⟩∘⟨ tstep-i₁) ○ sym-assoc ○ (merge₂ʳ ⟩∘⟨refl)))
-        ○ pullˡ (merge₂ʳ ○ refl⟩⊗⟨ α+⇒-i₁i₁)
-        ○ ⟺ (assoc ○ (refl⟩∘⟨ (merge₂ʳ ○ refl⟩⊗⟨ α+⇒-i₁i₁)) ○ tstep-i₁)
-
-    brC : (id ⊗₁ +-assocˡ ∘ tstep (tstep k₁ k₂) k₃) ∘ id ⊗₁ (i₁ ∘ i₂)
-        ≈ (tstep k₁ (tstep k₂ k₃) ∘ id ⊗₁ +-assocˡ) ∘ id ⊗₁ (i₁ ∘ i₂)
-    brC = assoc
-        ○ (refl⟩∘⟨ ((refl⟩∘⟨ ⟺ merge₂ʳ) ○ sym-assoc ○ (tstep-i₁ ⟩∘⟨refl) ○ assoc
-                    ○ (refl⟩∘⟨ tstep-i₂) ○ sym-assoc ○ (merge₂ʳ ⟩∘⟨refl)))
-        ○ pullˡ (merge₂ʳ ○ refl⟩⊗⟨ α+⇒-i₁i₂)
-        ○ ⟺ (assoc ○ (refl⟩∘⟨ (merge₂ʳ ○ refl⟩⊗⟨ α+⇒-i₁i₂))
-             ○ (refl⟩∘⟨ ⟺ merge₂ʳ) ○ sym-assoc ○ (tstep-i₂ ⟩∘⟨refl) ○ assoc
-             ○ (refl⟩∘⟨ tstep-i₁) ○ sym-assoc ○ (merge₂ʳ ⟩∘⟨refl))
-
-    brE : (id ⊗₁ +-assocˡ ∘ tstep (tstep k₁ k₂) k₃) ∘ id ⊗₁ i₂
-        ≈ (tstep k₁ (tstep k₂ k₃) ∘ id ⊗₁ +-assocˡ) ∘ id ⊗₁ i₂
-    brE = assoc ○ (refl⟩∘⟨ tstep-i₂) ○ pullˡ (merge₂ʳ ○ refl⟩⊗⟨ α+⇒-i₂)
-        ○ ⟺ (assoc ○ (refl⟩∘⟨ (merge₂ʳ ○ refl⟩⊗⟨ α+⇒-i₂))
-             ○ (refl⟩∘⟨ ⟺ merge₂ʳ) ○ sym-assoc ○ (tstep-i₂ ⟩∘⟨refl) ○ assoc
-             ○ (refl⟩∘⟨ tstep-i₂) ○ sym-assoc ○ (merge₂ʳ ⟩∘⟨refl))
-
 assoc-commuteᴹ : {f : Machine A B} {g : Machine C D} {h : Machine E F}
                → α⇒ᴹ ∘ᴹ (f ⊗ᵉ g) ⊗ᵉ h ≈ᴹ f ⊗ᵉ g ⊗ᵉ h ∘ᴹ α⇒ᴹ
 assoc-commuteᴹ {f = f} {g} {h} =
@@ -153,5 +101,5 @@ assoc-commuteᴹ {f = f} {g} {h} =
        ○ refl⟩∘⟨ refl⟩∘⟨ tstep-cong onL-tstep refl
        ○ refl⟩∘⟨ tstep-sim (tstep-sim (onL-α (step f)) (onLR-α (step g))) (onR-α (step h))
        ○ sym-assoc
-       ○ (tstep-α ○ tstep-cong refl (⟺ onR-tstep) ⟩∘⟨refl) ⟩∘⟨refl))
+       ○ (MDC.tstep-α 𝒱 dist _ ○ tstep-cong refl (⟺ onR-tstep) ⟩∘⟨refl) ⟩∘⟨refl))
   ○ᴹ ≲⇒≈ᴹ˘ (pure-∘ʳ +-assocˡ (f ⊗ᵉ g ⊗ᵉ h))

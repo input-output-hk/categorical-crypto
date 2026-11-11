@@ -7,11 +7,10 @@ open import Categories.Category.Monoidal.Subcategory
 import Categories.Category.Cocartesian.Ext as CE
 import Categories.Category.Monoidal.Distributive as MD
 import Categories.Category.Monoidal.Distributive.Properties as MDP
-import Categories.Category.Monoidal.Utilities as MonoidalUtilities
-open import Categories.Coherence.Symmetric.Tactic
 
 import Relation.Binary.Construct.Closure.Equivalence as EqC
 
+import CategoricalCrypto.Machines.Category as MCat
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
 
@@ -21,10 +20,10 @@ module CategoricalCrypto.Machines.Tensor
 
 open SymmetricMonoidalCategory 𝒱
 open Core 𝒱
+open MCat 𝒱 𝒫
 open MD.MonoidalDistributive dist
 open CE U cocartesian
 open MDP 𝒱 dist
-open MonoidalUtilities.Shorthands monoidal
 open WideSymmetricMonoidalSubcategory 𝒫
 open Sim 𝒱 𝒫
 
@@ -80,11 +79,21 @@ opaque
   pure-∘ʳ : (h : A ⇒ B) (M : Machine B C) → M ∘ᴹ pureᴹ h ≲ mk (state M) (step M ∘ id ⊗₁ h)
   pure-∘ʳ h M = collapseʳ (refl⟩∘⟨ refl⟩∘⟨ onR-id⊗ h ○ pullˡ onL-collapseʳ ○ assoc ○ refl⟩∘⟨ whisker-comm ○ sym-assoc)
 
+pure-∘both : (l : B ⇒ C) (r : D ⇒ A) (M : Machine A B)
+           → pureᴹ l ∘ᴹ M ∘ᴹ pureᴹ r ≲ mk (state M) (id ⊗₁ l ∘ step M ∘ id ⊗₁ r)
+pure-∘both l r M = ≲-trans (∘ᴹ-resp-≲ ≲-refl (pure-∘ʳ r M)) (pure-∘ˡ l (mk (state M) (step M ∘ id ⊗₁ r)))
+
 ⊗ᵉ-pureᴹ : (h : A ⇒ B) (k : C ⇒ D) → pureᴹ h ⊗ᵉ pureᴹ k ≲ pureᴹ (h +₁ k)
 ⊗ᵉ-pureᴹ h k = collapseˡ (refl⟩∘⟨ (tstep-cong (onL-id⊗ h) (onR-id⊗ k) ○ ⊗-+₁ h k) ○ whisker-comm)
 
 ⊗ᵉ-identity : (idᴹ {A} ⊗ᵉ idᴹ {B}) ≲ idᴹ
-⊗ᵉ-identity = collapseˡ (refl⟩∘⟨ (tstep-cong onL-id onR-id ○ tstep-id) ○ identityʳ ○ ⟺ identityˡ)
+⊗ᵉ-identity = collapseˡ (refl⟩∘⟨ (tstep-cong onL-id onR-id ○ tstep-id) ○ id-comm)
+
+⊗idᵉ-collapse : (f : Machine A B) → f ⊗ᵉ idᴹ {C} ≲ mk (state f) (tstep (step f) id)
+⊗idᵉ-collapse f = collapseʳ (tstep-sim onL-collapseʳ (refl⟩∘⟨ onR-id ○ id-comm))
+
+id⊗ᵉ-collapse : (g : Machine C D) → idᴹ {A} ⊗ᵉ g ≲ mk (state g) (tstep id (step g))
+id⊗ᵉ-collapse g = collapseˡ (tstep-sim (refl⟩∘⟨ onL-id ○ id-comm) onR-collapseˡ)
 
 pure⊗-stateˡ : (h : A ⇒ B) (M : Machine C D) → pureᴹ h ⊗ᵉ M ≲ mk (state M) (tstep (id ⊗₁ h) (step M))
 pure⊗-stateˡ h M =

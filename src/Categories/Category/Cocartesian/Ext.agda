@@ -8,6 +8,8 @@ open import Categories.Category.Cocartesian
 open import Categories.Category.Cocartesian.Monoidal
 open import Categories.Category.Core
 open import Categories.Category.Monoidal
+open import Categories.Category.Monoidal.Symmetric
+import Categories.Category.Monoidal.Braided.Properties as BP
 
 module Categories.Category.Cocartesian.Ext
   {o ℓ e} (C : Category o ℓ e) (cocart : Cocartesian C) where
@@ -45,3 +47,17 @@ module ⊕ = Monoidal (CocartesianMonoidal.+-monoidal cocart)
 
 α+⇐-i₂ : +-assocʳ {A} {B} {D} ∘ i₂ ≈ i₂ +₁ id
 α+⇐-i₂ = inject₂ ○ []-cong₂ Equiv.refl (⟺ identityʳ)
+
+module _ (β : Symmetric (CocartesianMonoidal.+-monoidal cocart)) where
+  open Symmetric β using (braided; commutative)
+  open BP.Shorthands braided
+
+  braiding-i₁ : σ⇒ {A} {B} ∘ i₁ ≈ i₂
+  braiding-i₁ {A} {B} = refl⟩∘⟨ ⟺ (+₁∘i₁ ○ identityʳ)
+    ○ pullˡ (σ⇒-comm {f = id} {g = ¡}) ○ assoc
+    ○ refl⟩∘⟨ (switch-fromtoˡ ⊕.unitorˡ (pullˡ (BP.braiding-coherence braided) ○ inject₁) ○ identityʳ)
+    ○ +₁∘i₂ ○ identityʳ
+
+  braiding-swap : σ⇒ {A} {B} ≈ +-swap
+  braiding-swap = +-unique₂ (braiding-i₁ ○ ⟺ inject₁)
+    (refl⟩∘⟨ ⟺ braiding-i₁ ○ cancelˡ commutative ○ ⟺ inject₂)
