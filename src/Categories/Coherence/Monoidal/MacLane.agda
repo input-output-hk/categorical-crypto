@@ -137,10 +137,10 @@ module CoherenceThm (X : Set) ⦃ _ : DecEq X ⦄ where
   private
     P = Product FreeMonoidal Discrete
 
-  module _ where opaque
+  opaque
     unfolding ⟦_⟧F ι iso
     open FMReasoning
-    open import Categories.Morphism.Reasoning FreeMonoidal
+    open import Categories.Morphism.Reasoning FreeMonoidal hiding (push-eq)
 
     iso-comm-ty : Set
     iso-comm-ty = ∀ {A} {d₁} {d₂} {g : d₁ ≡ d₂}
@@ -318,14 +318,14 @@ module CoherenceThm (X : Set) ⦃ _ : DecEq X ⦄ where
   opaque
     unfolding ι
     Nf≅id : NaturalIsomorphism (ι ∘F Nf) F.id
-    Nf≅id = begin
-      ι ∘F Nf ≈⟨ NI.associator (-× []) ⟦_⟧F ι ⟨
-      (ι ∘F ⟦_⟧F) ∘F -× [] ≈⟨ ⟦⟧≅⊗ ⓘʳ (-× []) ⟩
-      (FM.⊗ ∘F (F.id ⁂ ι)) ∘F -× [] ≈⟨ NI.associator (-× []) (F.id ⁂ ι) FM.⊗ ⟩
-      FM.⊗ ∘F (F.id ⁂ ι) ∘F (-× []) ≈⟨ FM.⊗ ⓘˡ (⁂-× ι []) ⟩
-      appʳ FM.⊗ unit ≈⟨ FM.unitorʳ-naturalIsomorphism ⟩
-      F.id ∎
-      where open SetoidR (Functor-NI-setoid FreeMonoidal FreeMonoidal)
+    Nf≅id = R.begin
+      ι ∘F Nf R.≈⟨ NI.associator (-× []) ⟦_⟧F ι ⟨
+      (ι ∘F ⟦_⟧F) ∘F -× [] R.≈⟨ ⟦⟧≅⊗ ⓘʳ (-× []) ⟩
+      (FM.⊗ ∘F (F.id ⁂ ι)) ∘F -× [] R.≈⟨ NI.associator (-× []) (F.id ⁂ ι) FM.⊗ ⟩
+      FM.⊗ ∘F (F.id ⁂ ι) ∘F (-× []) R.≈⟨ FM.⊗ ⓘˡ (⁂-× ι []) ⟩
+      appʳ FM.⊗ unit R.≈⟨ FM.unitorʳ-naturalIsomorphism ⟩
+      F.id R.∎
+      where module R = SetoidR (Functor-NI-setoid FreeMonoidal FreeMonoidal)
 
   all-Comm : ∀ {A B} f g → [ A ⇒ B ]⟨ f ≈ g ⟩
   all-Comm f g = push-eq Nf≅id (ι.F-resp-≈ _)

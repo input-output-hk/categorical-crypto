@@ -10,7 +10,6 @@ open import Level
 import Relation.Binary.Construct.Closure.Equivalence as EqC
 
 import CategoricalCrypto.Machines.Core as Core
-import CategoricalCrypto.Machines.Frame as Frame
 
 module CategoricalCrypto.Machines.Sim
   {o ℓ e} (𝒱 : SymmetricMonoidalCategory o ℓ e) (𝒫 : WideSymmetricMonoidalSubcategory 𝒱) where
@@ -18,7 +17,6 @@ module CategoricalCrypto.Machines.Sim
 open SymmetricMonoidalCategory 𝒱
 open Core 𝒱
 open Equiv
-open Frame 𝒱
 open MonoidalUtilities.Shorthands monoidal
 open WideSymmetricMonoidalSubcategory 𝒫
 

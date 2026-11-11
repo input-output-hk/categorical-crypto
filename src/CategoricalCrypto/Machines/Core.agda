@@ -2,19 +2,26 @@
 
 -- Mealy machines over a symmetric monoidal category.
 
+open import Level
+
 open import Categories.Category.Monoidal.Bundle
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
-
-open import Level
+import Categories.Category.Monoidal.Braided.Properties as BraidedProps
+open import Categories.Coherence.Symmetric.Tactic
 
 module CategoricalCrypto.Machines.Core {o ℓ e} (𝒱 : SymmetricMonoidalCategory o ℓ e) where
 
 open SymmetricMonoidalCategory 𝒱
+open BraidedProps.Shorthands braided
 open MonoidalUtilities.Shorthands monoidal
+
+open import Categories.Category.Monoidal.Properties monoidal
+open import Categories.Category.Monoidal.Reasoning monoidal
+open import Categories.Morphism.Reasoning U
 
 open import Categories.Category.Monoidal.Symmetric.Properties.Ext symmetric
 
-private variable A B P Q R X Y : Obj
+private variable A B P : Obj
 
 -- `point` is the initial state; over a Kleisli base it may be effectful (a
 -- distribution over states).
@@ -33,6 +40,23 @@ infixr 9 _⊛_
 _⊛_ : State → State → State
 S ⊛ T = record { obj = obj S ⊗₀ obj T ; point = point S ⊗₁ point T ∘ λ⇐ }
 
+⊛-∘-point : {S T S′ T′ : State} {u : obj S ⇒ obj T} {v : obj S′ ⇒ obj T′}
+          → u ∘ point S ≈ point T → v ∘ point S′ ≈ point T′
+          → u ⊗₁ v ∘ point (S ⊛ S′) ≈ point (T ⊛ T′)
+⊛-∘-point e₁ e₂ = pullˡ (⟺ ⊗.homomorphism ○ e₁ ⟩⊗⟨ e₂)
+
+λ-point : (S : State) → λ⇒ ∘ point (Iˢ ⊛ S) ≈ point S
+λ-point S = pullˡ unitorˡ-commute-from ○ cancelʳ unitorˡ.isoʳ
+
+ρ-point : (S : State) → ρ⇒ ∘ point (S ⊛ Iˢ) ≈ point S
+ρ-point S = pullˡ unitorʳ-commute-from ○ cancelʳ (⟺ coherence₃ ⟩∘⟨refl ○ unitorˡ.isoʳ)
+
+⊛-swap-point : (S T : State) → σ⇒ ∘ point (S ⊛ T) ≈ point (T ⊛ S)
+⊛-swap-point S T = solve-smc 𝒱
+
+⊛-assoc-point : (S T R : State) → α⇒ ∘ point ((S ⊛ T) ⊛ R) ≈ point (S ⊛ (T ⊛ R))
+⊛-assoc-point S T R = solve-smc 𝒱
+
 record Machine (A B : Obj) : Set (o ⊔ ℓ) where
   constructor mk
   field state : State
@@ -43,15 +67,6 @@ record Machine (A B : Obj) : Set (o ⊔ ℓ) where
   field step : St ⊗₀ A ⇒ St ⊗₀ B
 
 open Machine public
-
-------------------------------------------------------------------------
--- The ways a step can act on a paired state
-
-onL : (P ⊗₀ X ⇒ P ⊗₀ Y) → (P ⊗₀ Q) ⊗₀ X ⇒ (P ⊗₀ Q) ⊗₀ Y
-onL k = β ∘ k ⊗₁ id ∘ β
-
-onR : (Q ⊗₀ X ⇒ R ⊗₀ Y) → (P ⊗₀ Q) ⊗₀ X ⇒ (P ⊗₀ R) ⊗₀ Y
-onR k = α⇐ ∘ id ⊗₁ k ∘ α⇒
 
 ------------------------------------------------------------------------
 -- Composition
