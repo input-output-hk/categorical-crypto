@@ -2,6 +2,7 @@
 
 open import Categories.Category
 open import Categories.Category.Monoidal
+open import Categories.Category.Monoidal.Bundle
 open import Categories.Category.Monoidal.Traced
 import Categories.Category.Monoidal.Braided.Properties as BProps
 import Categories.Category.Monoidal.Utilities as U
@@ -32,9 +33,7 @@ trace-β′ : {g : A ⊗₀ X ⇒ B} → trace (g ⊗₁ id ∘ β) ≈ g
 trace-β′ = tightenₗ ○ elimʳ trace-β
 
 fuse : {f : (A ⊗₀ X) ⊗₀ Y ⇒ (B ⊗₀ X) ⊗₀ Y} → trace (trace f) ≈ trace (α⇒ ∘ f ∘ α⇐)
-fuse = trace-resp-≈ (trace-resp-≈
-         (⟺ ((refl⟩∘⟨ assoc) ○ cancelˡ associator.isoˡ ○ cancelʳ associator.isoˡ)))
-     ○ vanishing₂
+fuse = trace-resp-≈ (trace-resp-≈ (solve-smc Cˢ)) ○ vanishing₂
 
 trace-comm : {f : (A ⊗₀ X) ⊗₀ Y ⇒ (B ⊗₀ X) ⊗₀ Y} → trace (trace f) ≈ trace (trace (β ∘ f ∘ β))
 trace-comm {f = f} =
