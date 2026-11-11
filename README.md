@@ -59,6 +59,9 @@ Documentation can be found [here](https://input-output-hk.github.io/categorical-
   as maps `A ⊗ C ⇒ B ⊗ D`. Its `threading f` passes an independent wire
   between the external and feedback ports. Writer sliding specializes
   `C` to the tensor unit, then swaps and combines the effect outputs.
+- `Category.Monoidal.Construction.Transport` (+ `.Symmetric`): transport
+  monoidal structure along an identity-on-objects functor, given a compatible
+  tensor on the same objects and naturality for all target morphisms.
 - `GConstruction`: G-construction over a traced symmetric monoidal
   category.
 
@@ -123,7 +126,31 @@ Documentation can be found [here](https://input-output-hk.github.io/categorical-
 `Abstract2.Equivalence` and `Abstract2.OAPEmulation` relate it to the
 locally graded theory.
 
-## 3. Concrete machine layer
+## 3. Generic machine layer (`src/CategoricalCrypto/Machines/`)
+
+This first defines Mealy machines over an arbitrary symmetric monoidal
+category. If the base category also has a traced cocartesian structure
+that behaves nicely with respect to the monoidal structure, then the
+category of Mealy machines is also traced. In this case, we can
+transform this into a category of interactive Mealy machines, via the
+`G`-construction.
+
+- `Bundle` provides the symmetric monoidal machine category
+  with coproduct-based interface tensor, using monoidal distributivity
+  and a wide symmetric monoidal subcategory of selected arrows.
+- `Trace` gives the traced monoidal structure.
+- `G` gives the final construction.
+
+`Categories.Category.Monoidal.Discard` supplies the standard recommended
+instance: given a monoidal discard family `𝒟`, `DiscardSub 𝒱 𝒟` selects
+discard-preserving arrows.
+
+The direct component-feedback construction follows the perspective of
+Ichiro Hasuo and Bart Jacobs, *Traces for Coalgebraic Components* §6.
+Their setting is in a Kleisli category, whereas this doesn't require
+the base SMC to be of that form.
+
+## 4. Legacy concrete machine layer
 
 The executable model, predating the abstract layers above:
 

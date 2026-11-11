@@ -3,13 +3,14 @@
 open import Categories.Category.Monoidal.Bundle
 import Categories.Category.Cocartesian.Ext as CE
 import Categories.Category.Monoidal.Distributive as MD
+import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
-module Categories.Category.Monoidal.Distributive.Properties
-  {o ℓ e} (𝒱 : SymmetricMonoidalCategory o ℓ e)
-  (dist : MD.MonoidalDistributive 𝒱) where
+module Categories.Category.Monoidal.Distributive.Properties {o ℓ e}
+  (𝒱 : SymmetricMonoidalCategory o ℓ e) (dist : MD.MonoidalDistributive 𝒱) where
 
 open SymmetricMonoidalCategory 𝒱
 open MD.MonoidalDistributive dist
+open MonoidalUtilities.Shorthands monoidal
 open CE U cocartesian
 open import Categories.Category.Monoidal.Reassociation monoidal
 
@@ -30,18 +31,16 @@ private variable A B C D P Q R S T X Y : Obj
 δ⇐-i₂ : δ⇐ ∘ id ⊗₁ i₂ ≈ i₂ {X ⊗₀ A} {X ⊗₀ B}
 δ⇐-i₂ = refl⟩∘⟨ ⟺ inject₂ ○ cancelˡ distributeˡ.isoˡ
 
-[]-δ⇐ : {S A₁ A₂ B₁ B₂ : Obj} {p : S ⊗₀ B₁ ⇒ Y} {t : S ⊗₀ B₂ ⇒ Y} (r : A₁ ⇒ B₁) (s : A₂ ⇒ B₂)
-      → [ p , t ] ∘ δ⇐ ∘ id ⊗₁ (r +₁ s) ≈ [ p ∘ id ⊗₁ r , t ∘ id ⊗₁ s ] ∘ δ⇐
-[]-δ⇐ r s =
-  δ-unique (pullʳ (pullʳ (merge₂ʳ ○ refl⟩⊗⟨ +₁∘i₁ ○ ⟺ merge₂ʳ)) ○ refl⟩∘⟨ pullˡ δ⇐-i₁
-              ○ pullˡ inject₁ ○ ⟺ (pullʳ δ⇐-i₁ ○ inject₁))
-           (pullʳ (pullʳ (merge₂ʳ ○ refl⟩⊗⟨ +₁∘i₂ ○ ⟺ merge₂ʳ)) ○ refl⟩∘⟨ pullˡ δ⇐-i₂
-              ○ pullˡ inject₂ ○ ⟺ (pullʳ δ⇐-i₂ ○ inject₂))
+⊗-[] : (f : A ⇒ C) (g : B ⇒ C) → id {X} ⊗₁ [ f , g ] ≈ [ id ⊗₁ f , id ⊗₁ g ] ∘ δ⇐
+⊗-[] f g = δ-unique (merge₂ˡ ○ refl⟩⊗⟨ inject₁ ○ ⟺ (pullʳ δ⇐-i₁ ○ inject₁))
+                    (merge₂ˡ ○ refl⟩⊗⟨ inject₂ ○ ⟺ (pullʳ δ⇐-i₂ ○ inject₂))
 
 ⊗-+₁ : (f : A ⇒ B) (g : C ⇒ D) → distributeˡ ∘ (id {X} ⊗₁ f +₁ id ⊗₁ g) ∘ δ⇐ ≈ id ⊗₁ (f +₁ g)
-⊗-+₁ f g = δ-unique
-  (assoc ○ refl⟩∘⟨ (pullʳ δ⇐-i₁ ○ +₁∘i₁) ○ pullˡ inject₁ ○ merge₂ˡ ○ ⟺ (merge₂ˡ ○ refl⟩⊗⟨ +₁∘i₁))
-  (assoc ○ refl⟩∘⟨ (pullʳ δ⇐-i₂ ○ +₁∘i₂) ○ pullˡ inject₂ ○ merge₂ˡ ○ ⟺ (merge₂ˡ ○ refl⟩⊗⟨ +₁∘i₂))
+⊗-+₁ f g = pullˡ []∘+₁ ○ []-cong₂ merge₂ˡ merge₂ˡ ⟩∘⟨refl ○ ⟺ (⊗-[] (i₁ ∘ f) (i₂ ∘ g))
+
+[]-δ⇐ : {S A₁ A₂ B₁ B₂ : Obj} {p : S ⊗₀ B₁ ⇒ Y} {t : S ⊗₀ B₂ ⇒ Y} (r : A₁ ⇒ B₁) (s : A₂ ⇒ B₂)
+      → [ p , t ] ∘ δ⇐ ∘ id ⊗₁ (r +₁ s) ≈ [ p ∘ id ⊗₁ r , t ∘ id ⊗₁ s ] ∘ δ⇐
+[]-δ⇐ r s = refl⟩∘⟨ (refl⟩∘⟨ ⟺ (⊗-+₁ r s) ○ cancelˡ distributeˡ.isoˡ) ○ pullˡ []∘+₁
 
 distributeˡ-natural : (θ : X ⇒ Y) → distributeˡ ∘ (θ ⊗₁ id {A} +₁ θ ⊗₁ id {B}) ≈ θ ⊗₁ id ∘ distributeˡ
 distributeˡ-natural θ = []∘+₁ ○ []-cong₂ (⟺ whisker-comm) (⟺ whisker-comm) ○ ⟺ ∘-distribˡ-[]
@@ -49,11 +48,23 @@ distributeˡ-natural θ = []∘+₁ ○ []-cong₂ (⟺ whisker-comm) (⟺ whisk
 sum-pad : (θ : X ⇒ Y) → distributeˡ ∘ (θ ⊗₁ id {A} +₁ θ ⊗₁ id {B}) ∘ δ⇐ ≈ θ ⊗₁ id
 sum-pad θ = pullˡ (distributeˡ-natural θ) ○ cancelʳ distributeˡ.isoʳ
 
+δ⇐-natural : (θ : X ⇒ Y)
+           → δ⇐ ∘ θ ⊗₁ id {A + B} ≈ ((θ ⊗₁ id) +₁ (θ ⊗₁ id)) ∘ δ⇐
+δ⇐-natural θ = (refl⟩∘⟨ ⟺ (sum-pad θ)) ○ cancelˡ distributeˡ.isoˡ
+
+δ⇐-assoc⇒ : (α⇒ {P} {S} {A} +₁ α⇒ {P} {S} {B}) ∘ δ⇐
+            ≈ δ⇐ ∘ id ⊗₁ δ⇐ ∘ α⇒
+δ⇐-assoc⇒ = δ-unique
+  (pullʳ δ⇐-i₁ ○ +₁∘i₁
+    ○ ⟺ (assoc ○ (refl⟩∘⟨ (pullʳ α⇒-id⊗-commute
+      ○ pullˡ (merge₂ˡ ○ (refl⟩⊗⟨ δ⇐-i₁)))) ○ pullˡ δ⇐-i₁))
+  (pullʳ δ⇐-i₂ ○ +₁∘i₂
+    ○ ⟺ (assoc ○ (refl⟩∘⟨ (pullʳ α⇒-id⊗-commute
+      ○ pullˡ (merge₂ˡ ○ (refl⟩⊗⟨ δ⇐-i₂)))) ○ pullˡ δ⇐-i₂))
+
 ⊥-unique : {u v : X ⊗₀ ⊥ ⇒ Y} → u ≈ v
-⊥-unique = ⟺ inject₁ ○ (refl⟩∘⟨ i-collapse) ○ inject₂
-  where
-    i-collapse : i₁ ≈ i₂
-    i-collapse = ⟺ δ⇐-i₁ ○ (refl⟩∘⟨ (refl⟩⊗⟨ ¡-unique₂ i₁ i₂)) ○ δ⇐-i₂
+⊥-unique = ⟺ inject₁
+  ○ (refl⟩∘⟨ (⟺ δ⇐-i₁ ○ (refl⟩∘⟨ (refl⟩⊗⟨ ¡-unique₂ i₁ i₂)) ○ δ⇐-i₂)) ○ inject₂
 
 ------------------------------------------------------------------------
 -- Coproducts of arrows between tensor contexts

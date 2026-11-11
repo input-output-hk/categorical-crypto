@@ -21,4 +21,5 @@ open import CategoricalCrypto.Examples.Basic
 open import CategoricalCrypto.Examples.Commitment
 open import CategoricalCrypto.Examples.Signatures
 
+import CategoricalCrypto.Machines.G
 import Categories.Category.Monoidal.Discard
