@@ -308,8 +308,7 @@ module _ {a b c} (C : Category a b c) (M : Monoidal C) (T : Traced M) where
     using (introˡ; pullˡ; pullʳ; pushˡ; elimˡ; elimʳ; cancelˡ; cancelʳ)
   open BProps.Shorthands braided
   private module W = GT C M T
-  open W using (α; β; γ; Cˢ; mid; mid-σ; mid-natural; mid-involutive; mid-unitˡ; mid-unitʳ; mid-assoc;
-                trace-βyank; trace-gyank; trace-mid)
+  open W using (α; β; γ; Cˢ; mid; mid-σ; mid-natural; mid-involutive; mid-unitˡ; mid-unitʳ; mid-assoc; trace-mid)
   open HomReasoning
 
   open Core.Construction C M T
@@ -384,24 +383,17 @@ module _ {a b c} (C : Category a b c) (M : Monoidal C) (T : Traced M) where
       -- Vanishing splits the two-wire loop; coherence exposes framed yanks.
       identityˡ' {A} {B} {f} =
         ⟺ (vanishing₂ {X = proj₂ B} {Y = proj₁ B})
-        ○ trace-resp-≈ (trace-resp-≈ ICW.C1L ○ tightenᵣ
-                        ○ (trace-gyank ⟩∘⟨refl) ○ cancelˡ β-β)
-        ○ trace-gyank
+        ○ trace-resp-≈ (trace-resp-≈ ICW.C1L ○ tightenᵣ ○ trace-β′ ⟩∘⟨refl ○ cancelˡ β-β) ○ trace-β′
         where
-          module ICW = ICoh Cˢ
-            (proj₁ A) (proj₂ A) (proj₁ B) (proj₂ B) (proj₁ A) f
+          module ICW = ICoh Cˢ (proj₁ A) (proj₂ A) (proj₁ B) (proj₂ B) (proj₁ A) f
 
       identityʳ' : ∀ {A B} {f : A ⇒ᴳ B} → composeᴳ f σ⇒ ≈ f
       identityʳ' {A} {B} {f} =
         ⟺ (vanishing₂ {X = proj₂ A} {Y = proj₁ A})
-        ○ trace-resp-≈ (trace-resp-≈ ICW.C1R ○ tightenₗ
-                        ○ (refl⟩∘⟨ (tightenᵣ ○ elimˡ trace-βyank))
-                        ○ ICW.C3R)
-        ○ tightenᵣ ○ (trace-gyank ⟩∘⟨refl)
-        ○ cancelˡ commutative
+        ○ trace-resp-≈ (trace-resp-≈ ICW.C1R ○ tightenₗ ○ refl⟩∘⟨ (tightenᵣ ○ elimˡ trace-β) ○ ICW.C3R)
+        ○ tightenᵣ ○ trace-β′ ⟩∘⟨refl ○ cancelˡ commutative
         where
-          module ICW = ICoh Cˢ
-            (proj₁ A) (proj₂ A) (proj₁ B) (proj₂ B) (proj₁ A) f
+          module ICW = ICoh Cˢ (proj₁ A) (proj₂ A) (proj₁ B) (proj₂ B) (proj₁ A) f
 
       assoc' : ∀ {A B D E} {f : A ⇒ᴳ B} {g : B ⇒ᴳ D} {h : D ⇒ᴳ E}
              → composeᴳ (composeᴳ h g) f ≈ composeᴳ h (composeᴳ g f)
