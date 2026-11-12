@@ -130,12 +130,6 @@ mid-assoc {A⁺} {A⁻} {B⁺} {B⁻} {D⁺} {D⁻} {E⁺} {E⁻} {P⁺} {P⁻} 
   P.solveH! lhs rhs
   where open AssocCoherence Cˢ A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ E⁺ E⁻ P⁺ P⁻ Q⁺ Q⁻ f g h
 
-trace-βyank : ∀ {Y X : Obj} → trace (β {Y} {X}) ≈ id
-trace-βyank = superposing ○ (refl⟩⊗⟨ yanking) ○ ⊗.identity
-
-trace-gyank : ∀ {Y X B' : Obj} {g : Y ⊗₀ X ⇒ B'} → trace (g ⊗₁ id ∘ β) ≈ g
-trace-gyank = tightenₗ ○ elimʳ trace-βyank
-
 -- Re-bracketing the loop object along `mid`: slide, then `mid`'s involution.
 trace-mid : ∀ {A B P Q R S : Obj}
               {f : A ⊗₀ ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S)) ⇒ B ⊗₀ ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S))} →

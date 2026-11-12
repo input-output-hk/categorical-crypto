@@ -26,8 +26,39 @@ Documentation can be found [here](https://input-output-hk.github.io/categorical-
   `F₁ f ≈ F₁ g`).
 - `Coherence.Monoidal`: solvers for morphism equality in monoidal
   categories. Has an optional reflection front-end.
-- `Coherence.Symmetric`: same as the previous, but for SMCs and no
-  reflection so far.
+- `Coherence.Symmetric`: symmetric-monoidal coherence with the reflection
+  macro `solve-smc Cˢ`, plus explicit free-term coherence and rewriting.
+- `Object.CommutativeMonoid` defines `IsCommutativeMonoid braided E`,
+  extending upstream `IsMonoid`, and `CommutativeMonoid braided`, bundling
+  `Carrier` and `isCommutativeMonoid`. Its `monoid` projection supplies the
+  underlying upstream `Monoid`; `commutative` states `μ ∘ σ⇒ ≈ μ`.
+- `Monad.Construction.Action.Commutative`: `actionStrength S W₀` works for
+  any ordinary monoid `W₀`; `actionCommutativeMonad S W` takes a bundled
+  `CommutativeMonoid (Symmetric.braided S)`. Both use upstream `ActionM`.
+- `Category.Monoidal.Construction.Kleisli.Writer T W` takes
+  `T : Traced M` and `W : CommutativeMonoid (Traced.braided T)`, with no
+  separate commutativity argument. It provides `writerCategory`,
+  `writerMonoidal`, `writerSymmetric`, and `writerTraced`, reusing the upstream
+  Kleisli category, monoidal structure, and symmetry. Its trace is
+  `traceW f = Traced.trace T (α⇐ ∘ f)` for
+  `f : A ⊗ X ⇒ Carrier ⊗ (B ⊗ X)`: the effect stays outside feedback.
+  All trace laws include arbitrary effectful Kleisli arrows, not just pure
+  feedback maps. Pass `writerCategory`, `writerMonoidal`, and `writerTraced`
+  directly to `GConstruction`; this does not assume or construct a trace
+  for an arbitrary base category or monad.
+  Writer/action and feedback-interchange proofs use `solve-smc` for structural
+  coherence; monoid commutativity and trace laws remain explicit.
+  `Writer.Core.Normalization S W₀` requires only symmetry and an ordinary
+  monoid; `Writer.Core.Trace T W₀` supplies the trace formula and the
+  non-sliding laws with an ordinary monoid. `Writer.Core.Sliding T W`
+  uses commutativity for effectful sliding.
+- `Category.Monoidal.Traced.Ext` contains `trace-β`, `trace-β′`, and
+  `trace-comm`, shared with the G construction, and the general two-box
+  `feedback-interchange` law. For arbitrary `f : A ⊗ Y ⇒ B ⊗ X` and
+  `g : C ⊗ X ⇒ D ⊗ Y`, it equates the two cuts of their feedback loop
+  as maps `A ⊗ C ⇒ B ⊗ D`. Its `threading f` passes an independent wire
+  between the external and feedback ports. Writer sliding specializes
+  `C` to the tensor unit, then swaps and combines the effect outputs.
 - `GConstruction`: G-construction over a traced symmetric monoidal
   category.
 
