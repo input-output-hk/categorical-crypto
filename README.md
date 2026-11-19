@@ -163,6 +163,10 @@ The executable model, predating the abstract layers above:
 - `Examples/` — commitment, signature, and basic protocol examples.
 - `CategoricalCrypto` — the root module re-exporting this layer.
 
+# License
+
+This project is licensed under the [Apache License 2.0](LICENSE).
+
 # Contributing
 
 Contributions are welcome, however please make sure that the
