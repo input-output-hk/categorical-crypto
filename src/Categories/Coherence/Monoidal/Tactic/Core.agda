@@ -80,7 +80,7 @@ module Parser where
   `α⇒ = quote FreeMonoidalHelper.Mor.α⇒ ; `α⇐ = quote FreeMonoidalHelper.Mor.α⇐
 
 ------------------------------------------------------------------------
--- The object level: a `DetectedTheory` driven by `parseGoalTerm`,
+-- The object level: a `DetectedTheory` driven by `parseGoalTermWith`,
 -- with atoms emitted in `indexed` mode as `Var i` references into the
 -- store that later becomes the `vars` vector.
 
@@ -137,60 +137,29 @@ module Parser where
     ; finishSolve  = λ _ body _ → body
     }
 
-  objFuel : ℕ
-  objFuel = 1024
-
-  -- The `prepIndex` pre-pass: bring an object term onto the shape the
-  -- PURE object operators can recognise. `f₀parse` needs
-  -- `F₀ (⊗ M) (con _,_ x y)`; an endpoint that came from a derived
-  -- tensor functor — `-⊗ j`, `j ⊗-`, the braiding's `flip ⊗`, any
-  -- `_∘F_` composite — weak-head reduces only as far as
-  -- `F₀ (⊗ M) ⟨neutral pair⟩`, and a pure `parseOcc` cannot reduce
-  -- the pair. Running in TC, this pass can: it rebuilds the node as
-  -- an ordinary `_⊗₀_` application and recurses into the components.
-  -- A node in which nothing is recognised is returned unchanged (not
-  -- weak-head normalised), so atom spellings emitted into the `vars`
-  -- vector stay exactly as the user wrote them. A rebuilt node's four
-  -- hidden level/category arguments are left `unknown` — safe, since
-  -- such a node is always consumed by `⊗₀op` and never atomised.
-  expandObj : ℕ → Term → TC Term
-  expandObj zero t = pure t
-  expandObj (suc n) t = do
-    t' ← whnfIfReducible t
-    case t' of λ where
-      (def f as) →
-        if f == `⊗₀ then (case takeLast 3 (vArgs as) of λ where
-          (just (M Vec.∷ x Vec.∷ y Vec.∷ Vec.[])) → rebuild M x y
-          _ → pure t)
-        else if (f == `F₀) ∨ (f == `₀) then (case takeLast 2 (vArgs as) of λ where
-          (just (F Vec.∷ p Vec.∷ Vec.[])) → viaF₀ F p
-          _ → pure t)
-        else pure t
-      _ → pure t
-    where
-    rebuild : Term → Term → Term → TC Term
-    rebuild M x y = do
-      x' ← expandObj n x
-      y' ← expandObj n y
-      pure (def `⊗₀ (4 ⋯⟅∷⟆ M ⟨∷⟩ x' ⟨∷⟩ y' ⟨∷⟩ []))
-
-    viaF₀ : Term → Term → TC Term
-    viaF₀ (def g gas) p =
-      if g == `⊗f
-        then (case takeLast 1 (vArgs gas) of λ where
-          (just (M Vec.∷ Vec.[])) → do
+  -- A derived tensor functor can leave a neutral pair under `F₀ (⊗ M)`.
+  -- Inspect that pair in TC, then let the index parser visit its components
+  -- directly: no rebuilt object terms or second traversal are needed.
+  objOccurrence : Operator → Args Term → TC (Maybe Occurrence)
+  objOccurrence o as = case headName (Operator.opTerm o) of λ where
+    (just f) → if (f == `F₀) ∨ (f == `₀)
+      then (case takeLast 2 (vArgs as) of λ where
+        (just (F Vec.∷ p Vec.∷ Vec.[])) → case headName F of λ where
+          (just g) → if g == `⊗f then (do
             p' ← whnfIfReducible p
             case p' of λ where
-              (con c cargs) →
-                if c == `pair
-                  then (case takeLast 2 (vArgs cargs) of λ where
-                    (just (x Vec.∷ y Vec.∷ Vec.[])) → rebuild M x y
-                    _ → pure t)
-                  else pure t
-              _ → pure t
-          _ → pure t)
-        else pure t
-    viaF₀ _ _ = pure t
+              (con c cargs) → if c == `pair
+                then pure (case takeLast 2 (vArgs cargs) of λ where
+                  (just (x Vec.∷ y Vec.∷ Vec.[])) →
+                    just (record { operands = x ∷ y ∷ [] ; indices = [] })
+                  _ → nothing)
+                else pure nothing
+              _ → pure nothing)
+            else pure nothing
+          nothing → pure nothing
+        _ → pure nothing)
+      else pure nothing
+    nothing → pure nothing
 
 ------------------------------------------------------------------------
 -- The morphism level: the two-level theory over the object level.
@@ -284,7 +253,7 @@ module Parser where
   theory macroName atomRef finish = record
     { macroName    = macroName
     ; indexTheory  = objTheory
-    ; prepIndex    = expandObj objFuel
+    ; parseIndex   = parseGoalTermWith (just objOccurrence)
     ; operators    = operators (isoOcc `λ⇒ `ρ⇒ `α⇒) (isoOcc `λ⇐ `ρ⇐ `α⇐)
     ; blockedNames = blocked
     ; atomRef      = atomRef

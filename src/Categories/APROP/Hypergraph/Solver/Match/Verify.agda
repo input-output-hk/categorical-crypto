@@ -80,8 +80,11 @@ flat-match-subst {As} {Bs} {As'} {Bs'} p q v y = step (view v) (view y)
         dispatch : _ → _ → Maybe (subst₂ FlatGen p q v ≡ y)
         dispatch (yes refl) (yes refl) = compare (f ≟-mor g)
           where
+            liftEquality : f ≡ g → subst₂ FlatGen p q v ≡ y
+            liftEquality refl = flatgen-irrel p q v y f ok-A ok-B ok-A' ok-B' ok-v ok-y
+
             compare : _ → Maybe (subst₂ FlatGen p q v ≡ y)
-            compare (yes refl) = just (flatgen-irrel p q v y f ok-A ok-B ok-A' ok-B' ok-v ok-y)
+            compare (yes eq) = just (liftEquality eq)
             compare (no _) = nothing
         dispatch _ _ = nothing
 

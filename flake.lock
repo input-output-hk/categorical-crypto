@@ -316,16 +316,16 @@
     "standard-library-meta": {
       "flake": false,
       "locked": {
-        "lastModified": 1794925573,
-        "narHash": "sha256-rbsL8OnQIz72cuC9qBTxJoyhmj4uSybzAo/lTUDr4q8=",
+        "lastModified": 1795165249,
+        "narHash": "sha256-sWp/bmWj75ITQG8+hNBgqSZC6L17wfZSxsIhURCVYGg=",
         "owner": "agda",
         "repo": "agda-stdlib-meta",
-        "rev": "10818f91efe79ab751fc24e08eca489d9a0d1a71",
+        "rev": "db9af18cc406475e1b563e0a64dc88bb5595149f",
         "type": "github"
       },
       "original": {
         "owner": "agda",
-        "ref": "agda-2.9",
+        "ref": "algebraic-solvers",
         "repo": "agda-stdlib-meta",
         "type": "github"
       }
