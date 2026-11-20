@@ -1,14 +1,16 @@
 # Symmetric-monoidal coherence and rewriting
 
-Prove equations in a symmetric monoidal category `C` by describing its morphisms
-as free terms over a finite table of opaque generators. `solveH!` handles
-category laws, monoidal coherence, symmetry, naturality and interchange.
-The rewriting operations additionally use equations supplied by the caller.
+Prove equations in a symmetric monoidal category `C` with the reflection macro
+`solve-smc C`, or describe morphisms explicitly as free terms over a finite table
+of opaque generators. Both interfaces handle category laws, monoidal coherence,
+symmetry, naturality and interchange. The explicit rewriting operations
+additionally use equations supplied by the caller.
 
 This is the user-facing entry point. The search and certificate machinery lives
 in `Categories.APROP.Hypergraph.Solver.*`, with soundness proved in
 `Categories.APROP.Hypergraph.Soundness`. Tests live in
-`Categories.Coherence.Symmetric.Test`.
+`Categories.Coherence.Symmetric.Test` and
+`Categories.Coherence.Symmetric.Test.Tactic`.
 
 ```agda
 {-# OPTIONS --safe --without-K #-}
@@ -30,6 +32,18 @@ import Categories.APROP.Hypergraph.Solver.Frontend.FinSetup as FinSetup
 open import Categories.FreeMonoidal public
 open import Categories.Functor using (Functor)
 ```
+
+## `solve-smc`: reflection from a categorical equation
+
+Import `Categories.Coherence.Symmetric.Tactic` separately, then write:
+
+```text
+conjugate : σ⇒ ∘ (g ⊗₁ f) ∘ σ⇒ ≈ f ⊗₁ g
+conjugate = solve-smc C
+```
+
+Here `C : SymmetricMonoidalCategory o ℓ e` is explicit. For now, `σ⇐`
+is not recognized by this macro.
 
 ## `Solver`: configuring the finite signature
 

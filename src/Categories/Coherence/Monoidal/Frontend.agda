@@ -122,7 +122,7 @@ module FinSetup
     -- the transport pipeline at the target.
     open Frontend {Fin nA} GenS
     private module D = Decide rankS
-    open D
+    open D public using (decide?F)
 
     open FSolve GenS decide?F public using (solveTerm!; module Into)
     open Into C (lookup vars) public

@@ -24,10 +24,46 @@ Documentation can be found [here](https://input-output-hk.github.io/categorical-
     free actegory of the locally graded Kleisli is equivalent to `GradedKleisli`.
 - `KernelCongruence`: the kernel congruence of a functor (`f ∼ g` iff
   `F₁ f ≈ F₁ g`).
-- `Coherence.Monoidal` — solvers for morphism equality in monoidal
+- `Coherence.Monoidal`: solvers for morphism equality in monoidal
   categories. Has an optional reflection front-end.
-- `Coherence.Symmetric` — same as the previous, but for SMCs and no
-  reflection so far.
+- `Coherence.Symmetric`: symmetric-monoidal coherence with the reflection
+  macro `solve-smc Cˢ`, plus explicit free-term coherence and rewriting.
+- `Object.CommutativeMonoid` defines `IsCommutativeMonoid braided E`,
+  extending upstream `IsMonoid`, and `CommutativeMonoid braided`, bundling
+  `Carrier` and `isCommutativeMonoid`. Its `monoid` projection supplies the
+  underlying upstream `Monoid`; `commutative` states `μ ∘ σ⇒ ≈ μ`.
+- `Monad.Construction.Action.Commutative`: `actionStrength S W₀` works for
+  any ordinary monoid `W₀`; `actionCommutativeMonad S W` takes a bundled
+  `CommutativeMonoid (Symmetric.braided S)`. Both use upstream `ActionM`.
+- `Category.Monoidal.Construction.Kleisli.Writer T W` takes
+  `T : Traced M` and `W : CommutativeMonoid (Traced.braided T)`, with no
+  separate commutativity argument. It provides `writerCategory`,
+  `writerMonoidal`, `writerSymmetric`, and `writerTraced`, reusing the upstream
+  Kleisli category, monoidal structure, and symmetry. Its trace is
+  `traceW f = Traced.trace T (α⇐ ∘ f)` for
+  `f : A ⊗ X ⇒ Carrier ⊗ (B ⊗ X)`: the effect stays outside feedback.
+  All trace laws include arbitrary effectful Kleisli arrows, not just pure
+  feedback maps. Pass `writerCategory`, `writerMonoidal`, and `writerTraced`
+  directly to `GConstruction`; this does not assume or construct a trace
+  for an arbitrary base category or monad.
+  Writer/action and feedback-interchange proofs use `solve-smc` for structural
+  coherence; monoid commutativity and trace laws remain explicit.
+  `Writer.Core.Normalization S W₀` requires only symmetry and an ordinary
+  monoid; `Writer.Core.Trace T W₀` supplies the trace formula and the
+  non-sliding laws with an ordinary monoid. `Writer.Core.Sliding T W`
+  uses commutativity for effectful sliding.
+- `Category.Monoidal.Traced.Ext` contains `trace-β`, `trace-β′`, and
+  `trace-comm`, shared with the G construction, and the general two-box
+  `feedback-interchange` law. For arbitrary `f : A ⊗ Y ⇒ B ⊗ X` and
+  `g : C ⊗ X ⇒ D ⊗ Y`, it equates the two cuts of their feedback loop
+  as maps `A ⊗ C ⇒ B ⊗ D`. Its `threading f` passes an independent wire
+  between the external and feedback ports. Writer sliding specializes
+  `C` to the tensor unit, then swaps and combines the effect outputs.
+- `Category.Monoidal.Construction.Transport` (+ `.Symmetric`): transport
+  monoidal structure along an identity-on-objects functor, given a compatible
+  tensor on the same objects and naturality for all target morphisms.
+- `GConstruction`: G-construction over a traced symmetric monoidal
+  category.
 
 ## 2. Abstract UC layer (`src/CategoricalCrypto/`)
 
@@ -84,16 +120,37 @@ Documentation can be found [here](https://input-output-hk.github.io/categorical-
   `Standard2.Parallel` is an optional extension for symmetric monoidal
   categories, deriving `ParallelStable` and `UC-⊠` without extra
   assumptions on the environment presheaf.
-  `Standard2.Trace` lifts a trace on the computation category to protocols,
-  assuming trace congruence and output naturality (absent from the current
-  library's `Traced` record), with contextual trace preservation required
-  separately for `UC-trace`.
+  Similarly, `Standard2.Trace` lifts a trace on the computation category to protocols.
 
 `Abstract` and `Standard` are the older grade-on-object presentation.
 `Abstract2.Equivalence` and `Abstract2.OAPEmulation` relate it to the
 locally graded theory.
 
-## 3. Concrete machine layer
+## 3. Generic machine layer (`src/CategoricalCrypto/Machines/`)
+
+This first defines Mealy machines over an arbitrary symmetric monoidal
+category. If the base category also has a traced cocartesian structure
+that behaves nicely with respect to the monoidal structure, then the
+category of Mealy machines is also traced. In this case, we can
+transform this into a category of interactive Mealy machines, via the
+`G`-construction.
+
+- `Bundle` provides the symmetric monoidal machine category
+  with coproduct-based interface tensor, using monoidal distributivity
+  and a wide symmetric monoidal subcategory of selected arrows.
+- `Trace` gives the traced monoidal structure.
+- `G` gives the final construction.
+
+`Categories.Category.Monoidal.Discard` supplies the standard recommended
+instance: given a monoidal discard family `𝒟`, `DiscardSub 𝒱 𝒟` selects
+discard-preserving arrows.
+
+The direct component-feedback construction follows the perspective of
+Ichiro Hasuo and Bart Jacobs, *Traces for Coalgebraic Components* §6.
+Their setting is in a Kleisli category, whereas this doesn't require
+the base SMC to be of that form.
+
+## 4. Legacy concrete machine layer
 
 The executable model, predating the abstract layers above:
 
@@ -111,8 +168,9 @@ The executable model, predating the abstract layers above:
 Contributions are welcome, however please make sure that the
 contribution is of reasonable quality. AI contributions are welcome,
 but they must clear a higher quality bar than human
-contributions. **If you have access to AI tools, you should use them
-to do better work, not just more work.**
+contributions. Additionally, PRs, issues and comments must be written
+by a human. **If you have access to AI tools, you should use them to
+do better work, not just more work.**
 
 # AI disclaimer
 

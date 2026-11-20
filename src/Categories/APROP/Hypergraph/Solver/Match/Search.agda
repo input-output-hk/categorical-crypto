@@ -19,7 +19,7 @@ open import Categories.APROP.Hypergraph.Solver.Match.PBij
 open import Data.Bool.Base
 open import Data.Fin
 open import Data.List.Base
-open import Data.Maybe.Base using (Maybe; just; nothing; is-just; _>>=_)
+open import Data.Maybe.Base using (Maybe; just; nothing; _>>=_)
 open import Data.Nat
 open import Data.Product using (_×_; _,_)
 open import Relation.Binary.PropositionalEquality
@@ -37,9 +37,6 @@ samePayload (flat-rec {A} {B} _ _ f) (flat-rec {C} {D} _ _ g)
 ...   | yes _ = true
 ...   | no _ = false
 samePayload _ _ | _ | _ = false
-
-firstUnmatched : ∀ {nEH nEJ} → PBij nEH nEJ → Maybe (Fin nEH)
-firstUnmatched {nEH} ψ = findᵇ (λ e → not (is-just (forward ψ e))) (allFin nEH)
 
 module _ (H J : Hypergraph FlatGen) where
 
@@ -81,37 +78,35 @@ module _ (H J : Hypergraph FlatGen) where
   matchEdge : VertexBij → EdgeBij → Fin nEH → List (VertexBij × EdgeBij)
   matchEdge φ ψ e = mapMaybe (tryEdge φ ψ e) (allFin nEJ)
 
-  -- Enumerate rather than commit: carving may reject a non-convex match
-  -- and need a later candidate.
+  -- Enumerate rather than commit: carving may reject a non-convex match.
+  -- tryEdge changes only the selected edge, so the initial unmapped tail
+  -- remains valid in every branch without rescanning the accumulated map.
   searchAllIndexed : VertexBij → EdgeBij → List (VertexBij × EdgeBij)
-  searchAllIndexed = go (incidence (Hypergraph.ein J)) (incidence (Hypergraph.eout J)) (nEH * nEJ)
+  searchAllIndexed φ ψ =
+    go (incidence (Hypergraph.ein J)) (incidence (Hypergraph.eout J))
+       (nEH * nEJ) (unmapped (forward ψ)) φ ψ
     where
-      go : Buckets nVJ nEJ → Buckets nVJ nEJ → ℕ → VertexBij → EdgeBij → List (VertexBij × EdgeBij)
-      go inputs outputs ℕ.zero φ ψ with firstUnmatched ψ
-      ... | nothing = (φ , ψ) ∷ []
-      ... | just _  = []
-      go inputs outputs (ℕ.suc k) φ ψ with firstUnmatched ψ
-      ... | nothing = (φ , ψ) ∷ []
-      ... | just e  = tryAll (matchEdgeFrom inputs outputs φ ψ e)
+      go : Buckets nVJ nEJ → Buckets nVJ nEJ → ℕ → List (Fin nEH)
+         → VertexBij → EdgeBij → List (VertexBij × EdgeBij)
+      go inputs outputs k [] φ ψ = (φ , ψ) ∷ []
+      go inputs outputs ℕ.zero (_ ∷ _) φ ψ = []
+      go inputs outputs (ℕ.suc k) (e ∷ es) φ ψ = tryAll (matchEdgeFrom inputs outputs φ ψ e)
         where
           tryAll : List (VertexBij × EdgeBij) → List (VertexBij × EdgeBij)
           tryAll []               = []
-          tryAll ((φ' , ψ') ∷ xs) = go inputs outputs k φ' ψ' ++ tryAll xs
+          tryAll ((φ' , ψ') ∷ xs) = go inputs outputs k es φ' ψ' ++ tryAll xs
 
   searchAllScan : VertexBij → EdgeBij → List (VertexBij × EdgeBij)
-  searchAllScan = go (nEH * nEJ)
+  searchAllScan φ ψ = go (nEH * nEJ) (unmapped (forward ψ)) φ ψ
     where
-      go : ℕ → VertexBij → EdgeBij → List (VertexBij × EdgeBij)
-      go ℕ.zero    φ ψ with firstUnmatched ψ
-      ... | nothing = (φ , ψ) ∷ []
-      ... | just _  = []
-      go (ℕ.suc k) φ ψ with firstUnmatched ψ
-      ... | nothing = (φ , ψ) ∷ []
-      ... | just e  = tryAll (matchEdge φ ψ e)
+      go : ℕ → List (Fin nEH) → VertexBij → EdgeBij → List (VertexBij × EdgeBij)
+      go k [] φ ψ = (φ , ψ) ∷ []
+      go ℕ.zero (_ ∷ _) φ ψ = []
+      go (ℕ.suc k) (e ∷ es) φ ψ = tryAll (matchEdge φ ψ e)
         where
           tryAll : List (VertexBij × EdgeBij) → List (VertexBij × EdgeBij)
           tryAll []               = []
-          tryAll ((φ' , ψ') ∷ xs) = go k φ' ψ' ++ tryAll xs
+          tryAll ((φ' , ψ') ∷ xs) = go k es φ' ψ' ++ tryAll xs
 
   -- Dispatch once, outside both recursive loops. Scalars have no incidence
   -- constraint, and a small pattern cannot amortize building the host index.

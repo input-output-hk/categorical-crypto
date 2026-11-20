@@ -145,6 +145,9 @@ module MonLimits where
   lim-equal-rank : D₀.decide?F (u' ∘ᴵ v') (v' ∘ᴵ u') ≡ nothing
   lim-equal-rank = refl
 
+  lim-equal-rank-converged : D₀.statusF (u' ∘ᴵ v') ≡ converged
+  lim-equal-rank-converged = refl
+
   -- The honest verdict on a decided goal: the compared form is a genuine
   -- normal form.
   lim-converged : statusF (s' ∘ᴵ μ') ≡ converged
@@ -201,6 +204,17 @@ module CycleLimits where
   -- … and the true equation is refused.
   lim-cycle-nothing : decide?F t₀ t₂ ≡ nothing
   lim-cycle-nothing = refl
+
+  -- A detected cycle does not invalidate a matching pair of cut trajectories.
+  lim-cycle-reflexive : is-just (decide?F t₀ t₀) ≡ true
+  lim-cycle-reflexive = refl
+
+  -- An equal-rank scalar pair must not hide the state/effect orbit beside it.
+  lim-cycle-repeated-scalar : statusF (t₀ ∘ᴵ w') ≡ cycled
+  lim-cycle-repeated-scalar = refl
+
+  lim-cycle-repeated-reflexive : is-just (decide?F (t₀ ∘ᴵ w') (t₀ ∘ᴵ w')) ≡ true
+  lim-cycle-repeated-reflexive = refl
 
   -- The machine check that the refused equation IS true (solver soundness):
   -- the identical pair under a rank making `w` minimal converges and is
