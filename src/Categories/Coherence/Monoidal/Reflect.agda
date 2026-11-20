@@ -211,13 +211,17 @@ module DecideCore
     -- A non-`converged` verdict does not disable the comparison: the
     -- normalization witness is sound wherever the loop stops, so a match
     -- between two cut trajectories is still a real proof.
+    -- Keep equality elimination under `just`: `IsJust` callers need only the
+    -- decision, not normalization of `encode-inj`'s equality proof to `refl`.
     decideW : ∀ {n m} (f g : WTerm n m) → Maybe (embed f ≈Term embed g)
     decideW f g = case norm (reflect f) , norm (reflect g) of λ where
       ((df' , sndf , _) , (dg' , sndg , _)) → case df' ≟Diag dg' of λ where
         (no  _)     → nothing
-        (yes refl)  → just (embed-resp-≈
+        (yes eq)    → just (embed-resp-≈
           (transʷ (symʷ (reflect-soundˢ f))
-            (transʷ sndf (transʷ (symʷ sndg) (reflect-soundˢ g)))))
+            (transʷ sndf
+              (transʷ (≡→≈ʷ (cong ⟦_⟧ˢ eq))
+                (transʷ (symʷ sndg) (reflect-soundˢ g))))))
 
     -- Diagnostic: the loop's verdict on one side.  A `nothing` from
     -- `decideW` under a `cycled`/`exhausted` verdict is the normalizer's

@@ -362,13 +362,7 @@ module FBridge
       main = F.⟺ (bridgeF l) F.○ (inj-resp-≈ eq F.⟩∘⟨refl) F.○ bridgeF r
 
 ------------------------------------------------------------------------
--- FSolve: term-level focusing and the transport into a target monoidal
--- category along the free functor.  `Into` fixes the target; `WithGen` then
--- hosts the solve/rewrite epilogue at the concrete `FreeFunctor`
--- interpretation, which is what the reduction-sensitive `plugCong` needs.
---
--- The focusing search is unverified: a `focusAtₙ` hit is certified
--- downstream by `decide?F`, so soundness rests solely on the solver.
+-- FSolve: transport into a target monoidal category along the free functor.
 ------------------------------------------------------------------------
 
 module FSolve
@@ -384,6 +378,53 @@ module FSolve
   -- reference-style entry point: discharge `l F.≈Term r` by reflection.
   solveTerm! : ∀ {Y Z} (l r : F.HomTerm Y Z) {hit : IsJust (decide?F l r)} → l F.≈Term r
   solveTerm! l r {hit} = to-witness-T (decide?F l r) hit
+
+  module Into
+    {o ℓ e : Level}
+    (C : MonoidalCategory o ℓ e)
+    (⟦_⟧ᵖ₀ : X → C .MonoidalCategory.U .Category.Obj)
+    where
+
+    private
+      ⟦v⟧ : ⟦ Mon ⟧ᵥ
+      ⟦v⟧ = fromMC C noSymmetric
+
+      dF : FreeMonoidalData
+      dF = record { v = Mon ; X = X ; mor = GenF }
+
+    -- the object map straight from the generator-independent `FreeObjInterp`,
+    -- so `⟦_⟧ₒ` is definitionally one and the same across signatures over the
+    -- same atoms.
+    open FreeObjInterp Mon X ⟦v⟧ ⟦_⟧ᵖ₀ using () renaming (⟦_⟧₀ to ⟦_⟧ₒ) public
+
+    module WithGen
+      (⟦gen⟧ : ∀ {Y Z} → GenF Y Z → C .MonoidalCategory.U [ ⟦ Y ⟧ₒ , ⟦ Z ⟧ₒ ])
+      where
+
+      private
+        ffdF : FreeFunctorData dF
+        ffdF = record { ⟦v⟧ = ⟦v⟧ ; ⟦_⟧ᵖ₀ = ⟦_⟧ᵖ₀ ; ⟦_⟧ᵖ₁ = ⟦gen⟧ }
+
+      open FreeFunctor {d = dF} ffdF public using (⟦_⟧₁; ⟦⟧-resp-≈)
+
+      -- the actual entry point
+      solveMor! : ∀ {Y Z} (l r : F.HomTerm Y Z) {hit : IsJust (decide?F l r)}
+                → C .MonoidalCategory.U [ ⟦ l ⟧₁ ≈ ⟦ r ⟧₁ ]
+      solveMor! l r {hit} = ⟦⟧-resp-≈ (solveTerm! l r {hit})
+
+------------------------------------------------------------------------
+-- FRewrite: the focusing search is unverified; `decide?F` certifies a hit.
+------------------------------------------------------------------------
+
+module FRewrite
+  {X : Set} ⦃ _ : DecEq X ⦄
+  (let open FreeMonoidalHelper Mon X using (ObjTerm; unit; _⊗₀_))
+  (GenF : ObjTerm → ObjTerm → Set)
+  (let open FreeMonoidalHelper.Mor Mon X GenF using (HomTerm; _≈Term_))
+  (decide?F : ∀ {Y Z} (l r : HomTerm Y Z) → Maybe (l ≈Term r))
+  where
+
+  private module F = FreeMonoidalHelper.Mor Mon X GenF
 
   private instance
     DecEq-ObjTerm : DecEq ObjTerm
@@ -447,32 +488,15 @@ module FSolve
 
     private
       module MCc = MonoidalCategory C
+      module Solve = FSolve.Into GenF decide?F C ⟦_⟧ᵖ₀
 
-      ⟦v⟧ : ⟦ Mon ⟧ᵥ
-      ⟦v⟧ = fromMC C noSymmetric
-
-      dF : FreeMonoidalData
-      dF = record { v = Mon ; X = X ; mor = GenF }
-
-    -- the object map straight from the generator-independent `FreeObjInterp`,
-    -- so `⟦_⟧ₒ` is definitionally one and the same across signatures over the
-    -- same atoms.
-    open FreeObjInterp Mon X ⟦v⟧ ⟦_⟧ᵖ₀ using () renaming (⟦_⟧₀ to ⟦_⟧ₒ) public
+    open Solve public using (⟦_⟧ₒ)
 
     module WithGen
       (⟦gen⟧ : ∀ {Y Z} → GenF Y Z → C .MonoidalCategory.U [ ⟦ Y ⟧ₒ , ⟦ Z ⟧ₒ ])
       where
 
-      private
-        ffdF : FreeFunctorData dF
-        ffdF = record { ⟦v⟧ = ⟦v⟧ ; ⟦_⟧ᵖ₀ = ⟦_⟧ᵖ₀ ; ⟦_⟧ᵖ₁ = ⟦gen⟧ }
-
-      open FreeFunctor {d = dF} ffdF public using (⟦_⟧₁; ⟦⟧-resp-≈)
-
-      -- the actual entry point
-      solveMor! : ∀ {Y Z} (l r : F.HomTerm Y Z) {hit : IsJust (decide?F l r)}
-                → C .MonoidalCategory.U [ ⟦ l ⟧₁ ≈ ⟦ r ⟧₁ ]
-      solveMor! l r {hit} = ⟦⟧-resp-≈ (solveTerm! l r {hit})
+      open Solve.WithGen ⟦gen⟧ public
 
       --------------------------------------------------------------------
       -- The diagrammatic rewriting wrappers.  A *rule* is any C-equation
