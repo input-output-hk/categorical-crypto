@@ -51,7 +51,10 @@ genElim t (i , refl , refl) = t i
 _≟-FinMor_ : ∀ {A B} → DecidableEquality (FinMor A B)
 (i , p , q) ≟-FinMor (j , p' , q') with i ≟Fin j
 ... | no i≢j = no λ eq → i≢j (cong proj₁ eq)
-... | yes refl rewrite uip-ObjTerm p p' | uip-ObjTerm q q' = yes refl
+... | yes eq = yes (finiteMorEquality eq)
+  where
+    finiteMorEquality : i ≡ j → (i , p , q) ≡ (j , p' , q')
+    finiteMorEquality refl rewrite uip-ObjTerm p p' | uip-ObjTerm q q' = refl
 
 finSig : APROPSignature
 finSig = record { X = X ; mor = FinMor ; _≟X_ = _≟X_ ; _≟-mor_ = _≟-FinMor_ }

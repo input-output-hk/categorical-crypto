@@ -447,6 +447,20 @@ module DeepArity (A : C.Obj)
     test-deep-retry =
       rewriteDeepₙ! ((k S.∘ k S.∘ k) S.⊗₁ k) (k S.⊗₁ k) (sp S.∘ m) 0 mix
 
+    -- The first raw embedding leaves and re-enters the chain. Pin the first
+    -- two carvable endpoints, not merely the existence of some later match.
+    test-deep-retry-first : (kᴹ ∘ kᴹ ∘ kᴹ) ⊗₁ kᴹ ≈ ((kᴹ ∘ kᴹ) ⊗₁ id) ∘ (eᴹ ∘ mᴹ)
+    test-deep-retry-first =
+      rewriteDeepTo! ((k S.∘ k S.∘ k) S.⊗₁ k) (((k S.∘ k) S.⊗₁ S.id) S.∘ (sp S.∘ m))
+                     (k S.⊗₁ k) (sp S.∘ m) 0 mix
+
+    test-deep-retry-second
+      : (kᴹ ∘ kᴹ ∘ kᴹ) ⊗₁ kᴹ ≈ (kᴹ ⊗₁ id) ∘ ((eᴹ ∘ mᴹ) ∘ (kᴹ ⊗₁ id))
+    test-deep-retry-second =
+      rewriteDeepTo! ((k S.∘ k S.∘ k) S.⊗₁ k)
+                     ((k S.⊗₁ S.id) S.∘ ((sp S.∘ m) S.∘ (k S.⊗₁ S.id)))
+                     (k S.⊗₁ k) (sp S.∘ m) 1 mix
+
 --------------------------------------------------------------------------------
 -- Deep padding: typed context wires and selected occurrences
 --------------------------------------------------------------------------------

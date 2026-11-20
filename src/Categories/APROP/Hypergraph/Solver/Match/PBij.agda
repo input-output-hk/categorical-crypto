@@ -6,10 +6,11 @@
 
 module Categories.APROP.Hypergraph.Solver.Match.PBij where
 
+open import Data.Bool.Base
 open import Data.Fin
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List.Base
-open import Data.Maybe.Base as Maybe using (Maybe; just; nothing; _>>=_)
+open import Data.Maybe.Base as Maybe using (Maybe; just; nothing; is-just; _>>=_)
 open import Data.Nat
 open import Function
 open import Relation.Binary.PropositionalEquality
@@ -24,6 +25,9 @@ PartialMap n m = Fin n → Maybe (Fin m)
 
 empty : PartialMap n m
 empty _ = nothing
+
+unmapped : PartialMap n m → List (Fin n)
+unmapped {n} p = filterᵇ (λ i → not (is-just (p i))) (allFin n)
 
 extend : PartialMap n m → Fin n → Fin m → Maybe (PartialMap n m)
 extend p i j with p i

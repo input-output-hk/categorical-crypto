@@ -168,9 +168,8 @@ module At (P Q : ObjTerm) where
 
   -- Rejecting a non-convex occurrence must leave later embeddings available.
 
-  tryEmb : (s : HomTerm A B) (core : HomTerm P₀ Q₀)
-         → ⟪ core ⟫ ↪ᴴ ⟪ s ⟫ → Maybe (Foc A B P Q)
-  tryEmb s core emb = Build.holeGraph ⟪ core ⟫ ⟪ s ⟫ emb >>= focusHole
+  tryEmb : (L S : Hypergraph FlatGen) → L ↪ᴴ S → Maybe (Foc A B P Q)
+  tryEmb L S emb = Build.holeGraph L S emb >>= focusHole
 
   -- Per-embedding values are function arguments so that call-by-need
   -- evaluation shares them across bindings.
@@ -195,13 +194,15 @@ module At (P Q : ObjTerm) where
                → List X → HomTerm P₀ Q₀ → List X → List (Foc A B P Q)
   deepFocAllAt s ls (x ⊗₁ id {Var w}) rs = deepFocAllAt s ls x (w ∷ rs)
   deepFocAllAt s ls (id {Var w} ⊗₁ x) rs = deepFocAllAt s (ls ∷ʳ w) x rs
-  deepFocAllAt s [] core [] = mapMaybe (tryEmb s core)
-    (withTranslation core (λ H → withTranslation s (subMatchAll H)))
+  deepFocAllAt s [] core [] =
+    withTranslation core λ H → withTranslation s λ S →
+      mapMaybe (tryEmb H S) (subMatchAll H S)
   deepFocAllAt s ls core rs =
-    padded (length ls)
-           (map (λ w → filter (λ v → S.vlab v ≟X w) (allFin S.nV)) (ls ++ rs))
-           (withTranslation core (λ H → withTranslation s (subMatchAll H)))
-    where module S = Hypergraph ⟪ s ⟫
+    withTranslation core λ H → withTranslation s λ S →
+      let module S = Hypergraph S in
+      padded (length ls)
+             (map (λ w → filter (λ v → S.vlab v ≟X w) (allFin S.nV)) (ls ++ rs))
+             (subMatchAll H S)
 
 --------------------------------------------------------------------------------
 -- Focus enumeration
