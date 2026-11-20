@@ -27,12 +27,14 @@ open import Data.Nat
 open import Data.Fin
 open import Data.Product
 open import Data.Vec using (Vec; _∷_; []; lookup)
+open import Class.DecEq using (DecEq-Fin)
 open import Categories.Category
 open import Categories.Category.Monoidal
 
 open import Categories.FreeMonoidal
 open import Categories.Coherence.Monoidal.MacLane
 open import Categories.Coherence.Monoidal.Frontend
+open import Categories.Coherence.Monoidal.Frontend.Core using (module FRewrite)
 
 open import Categories.Coherence.Monoidal.Normalize public
   using (NormStatus; converged; cycled; exhausted)
@@ -82,8 +84,8 @@ and friends additionally fire a user-supplied equational rule in a context
 loop's non-termination on degenerate signatures (a generator with an empty
 arity side), not a decided inequality — see `Test.Limitations`.
 
-Warning: `MorRewrite` is slow to `open`. Prefer `MorSolve` if you simply want
-to call `solveMor!`.
+`MorSolve` instantiates only the solve interpretation; `MorRewrite` additionally
+instantiates focusing and rewriting. Prefer `MorSolve` for `solveMor!` alone.
 
 The reflection macro `solve-mor C` (`Categories.Coherence.Monoidal.Tactic`)
 synthesises all of this — the atom vector, the generator signature, and both
@@ -115,7 +117,9 @@ module MorRewrite
   open ImplS public using (module S; gen; statusMor)
   open ImplS using (genS)
 
-  private module ImplW = ImplS.WithGen (λ { (genS i) → proj₂ (lookup gens i) })
+  private
+    module ImplW = FRewrite.Into.WithGen ImplS.GenS ImplS.decide?F C (lookup vars)
+      (λ { (genS i) → proj₂ (lookup gens i) })
 
   -- | Discharge a goal between interpretations of parallel front-end terms.
   solveMor!       = ImplW.solveMor!
@@ -128,10 +132,18 @@ module MorRewrite
 module MorSolve
   {o ℓ e} (C : MonoidalCategory o ℓ e)
   {nA} (vars : Vec (C .MonoidalCategory.Obj) nA)
-  (let module Impl = FinSetup C vars)
-  {nG} (gens : Vec (Σ[ st ∈ Impl.ObjTerm × Impl.ObjTerm ]
-                      (C .MonoidalCategory.U [ Impl.⟦ proj₁ st ⟧ₒ , Impl.⟦ proj₂ st ⟧ₒ ])) nG)
-  = MorRewrite C vars gens using (solveMor!; gen; module S; statusMor)
+  {nG} (gens : Vec (Σ[ st ∈ FinSetup.ObjTerm C vars × FinSetup.ObjTerm C vars ]
+                      (C .MonoidalCategory.U [ FinSetup.⟦_⟧ₒ C vars (proj₁ st) ,
+                                              FinSetup.⟦_⟧ₒ C vars (proj₂ st) ])) nG)
+  where
+
+  private module ImplS = FinSetup.Sig C vars (λ i → proj₁ (lookup gens i))
+  open ImplS public using (module S; gen; statusMor)
+  open ImplS using (genS)
+
+  private module ImplW = ImplS.WithGen (λ { (genS i) → proj₂ (lookup gens i) })
+
+  solveMor! = ImplW.solveMor!
 ```
 
 ### Example

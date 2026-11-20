@@ -9,10 +9,12 @@
 
 module Categories.Coherence.Monoidal.Test.Tactic where
 
-open import Level using (Level)
+open import Level using (Level; _⊔_)
 open import Categories.Category using (Category; _[_,_]; _[_≈_])
 open import Categories.Category.Monoidal using (MonoidalCategory)
 open import Categories.Functor using (Functor)
+open import Relation.Binary.Bundles using (Setoid)
+import Relation.Binary.PropositionalEquality as Eq
 
 open import Categories.Coherence.Monoidal.Tactic
 
@@ -93,3 +95,61 @@ module _ (C : MonoidalCategory o ℓ e) where
 
     test-F₁-nat : MC.U [ Functor.F₁ (-⊗ B) s ∘ (id ⊗₁ t) ≈ (id ⊗₁ t) ∘ (s ⊗₁ id) ]
     test-F₁-nat = solve-mor C
+
+    private
+      endoSetoid : Setoid ℓ e
+      endoSetoid = MC.hom-setoid {A} {A}
+
+      pointwiseSetoid : Setoid ℓ (o ⊔ e)
+      pointwiseSetoid = record
+        { Carrier = MC.U [ A , A ]
+        ; _≈_ = λ f g → ∀ (X : MC.Obj) → MC.U [ f ≈ g ]
+        ; isEquivalence = record
+          { refl = λ _ → Equiv.refl
+          ; sym = λ p X → Equiv.sym (p X)
+          ; trans = λ p q X → Equiv.trans (p X) (q X)
+          }
+        }
+
+      reversedSetoid : Setoid ℓ e
+      reversedSetoid = record
+        { Carrier = MC.U [ A , A ]
+        ; _≈_ = λ f g → MC.U [ g ≈ f ]
+        ; isEquivalence = record
+          { refl = Equiv.refl
+          ; sym = Equiv.sym
+          ; trans = λ p q → Equiv.trans q p
+          }
+        }
+
+      delayed : ∀ {X : MC.Obj} → MC.U [ id {X} ≈ id ] → X Eq.≡ A → MC.U [ id {A} ≈ id ]
+      delayed p Eq.refl = p
+
+      delayedMorphism : ∀ {f : MC.U [ A , A ]}
+                      → MC.U [ id ∘ f ≈ s ] → f Eq.≡ s → MC.U [ id ∘ s ≈ s ]
+      delayedMorphism p Eq.refl = p
+
+      delayedPair : ∀ {X : MC.Obj} → MC.U [ id {X} ≈ id ] → MC.U [ id {X} ≈ id ]
+                  → X Eq.≡ A → MC.U [ id {A} ≈ id ]
+      delayedPair p q Eq.refl = Equiv.trans p q
+
+    test-setoid-alias : Setoid._≈_ endoSetoid (id ∘ s) s
+    test-setoid-alias = solve-mor C
+
+    -- A relation projection can expose binders or reorder its operands.
+    test-setoid-pi : Setoid._≈_ pointwiseSetoid (id ∘ s) s
+    test-setoid-pi = solve-mor C
+
+    test-setoid-reversed : Setoid._≈_ reversedSetoid (id ∘ s) s
+    test-setoid-reversed = solve-mor C
+
+    -- The later argument determines the object of the earlier solver call.
+    test-retry : MC.U [ id {A} ≈ id ]
+    test-retry = delayed (solve-mor C) Eq.refl
+
+    -- A resolved morphism meta must share the explicitly written atom's slot.
+    test-morphism-retry : MC.U [ id ∘ s ≈ s ]
+    test-morphism-retry = delayedMorphism (solve-mor C) Eq.refl
+
+    test-shared-retries : MC.U [ id {A} ≈ id ]
+    test-shared-retries = delayedPair (solve-mor C) (solve-mor C) Eq.refl
